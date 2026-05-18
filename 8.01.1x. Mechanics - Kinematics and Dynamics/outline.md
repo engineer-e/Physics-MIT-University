@@ -40,7 +40,7 @@
 
 3. Week 1 - Kinematics
     1. Introduction - Kinematics vs Dynamics
-        1. W01intro: Kinematics vs. Dynamics
+        1. [W01intro](https://engineer-e.github.io/Physics-MIT-University/8.01.1x.%20Mechanics%20-%20Kinematics%20and%20Dynamics/course_html/Mechanics%20-%20Kinematics%20and%20Dynamics/Week%201%20-%20Kinematics/Introduction%20-%20Kinematics%20vs%20Dynamics/W01intro%20Kinematics%20vs%20Dynamics/W01Intro-ai1.html): Kinematics vs. Dynamics
 
     2. Lesson 1 - 1D Kinematics - Position and Velocity
         1. Topics and Reading List
