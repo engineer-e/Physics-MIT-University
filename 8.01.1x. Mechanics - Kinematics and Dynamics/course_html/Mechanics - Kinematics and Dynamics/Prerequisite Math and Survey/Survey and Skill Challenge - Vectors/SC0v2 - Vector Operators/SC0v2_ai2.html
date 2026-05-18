@@ -1,0 +1,1351 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Vector Mathematics Sandbox & Visual Infographic</title>
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Google Fonts (Inter) -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+    <!-- FontAwesome Icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    
+    <style>
+        body {
+            font-family: 'Inter', sans-serif;
+        }
+        .code-font {
+            font-family: 'JetBrains Mono', monospace;
+        }
+        /* Custom scrollbar for control panel */
+        ::-webkit-scrollbar {
+            width: 6px;
+        }
+        ::-webkit-scrollbar-track {
+            background: #1e293b;
+        }
+        ::-webkit-scrollbar-thumb {
+            background: #475569;
+            border-radius: 4px;
+        }
+        ::-webkit-scrollbar-thumb:hover {
+            background: #64748b;
+        }
+    </style>
+</head>
+<body class="bg-slate-950 text-slate-100 min-h-screen flex flex-col overflow-x-hidden">
+
+    <!-- Header/Navigation -->
+    <header class="border-b border-slate-800 bg-slate-900/80 backdrop-blur sticky top-0 z-40 px-6 py-4">
+        <div class="max-w-7xl mx-auto flex flex-col sm:flex-row justify-between items-center gap-4">
+            <div class="flex items-center gap-3">
+                <div class="bg-gradient-to-tr from-cyan-500 to-indigo-600 p-2.5 rounded-xl shadow-lg shadow-indigo-500/20">
+                    <svg class="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M13 10V3L4 14h7v7l9-11h-7z" />
+                    </svg>
+                </div>
+                <div>
+                    <h1 class="text-xl font-extrabold tracking-tight bg-gradient-to-r from-white via-slate-200 to-slate-400 bg-clip-text text-transparent">
+                        Vector Math Sandbox
+                    </h1>
+                    <p class="text-xs text-slate-400 font-medium">Interactive Visualizer & Infographic Guide</p>
+                </div>
+            </div>
+            <div class="flex items-center gap-2 bg-slate-950/60 p-1.5 rounded-lg border border-slate-800/80">
+                <button id="tab-tutorial" onclick="switchMainTab('tutorial')" class="px-4 py-1.5 rounded-md text-xs font-semibold tracking-wider uppercase transition-all duration-200 bg-indigo-600 text-white shadow-md shadow-indigo-500/10">
+                    <i class="fa-solid fa-book-open mr-1.5"></i>Interactive Guide
+                </button>
+                <button id="tab-sandbox" onclick="switchMainTab('sandbox')" class="px-4 py-1.5 rounded-md text-xs font-semibold tracking-wider uppercase transition-all duration-200 text-slate-400 hover:text-white">
+                    <i class="fa-solid fa-flask mr-1.5"></i>Free Sandbox
+                </button>
+            </div>
+        </div>
+    </header>
+
+    <main class="flex-grow max-w-7xl w-full mx-auto px-4 sm:px-6 py-6 flex flex-col lg:grid lg:grid-cols-12 gap-6 items-stretch">
+        
+        <!-- Left Column: Controls & Dynamic Guides (Col Span: 5) -->
+        <div class="lg:col-span-5 flex flex-col gap-5">
+            
+            <!-- SECTION A: Guide/Interactive Storyboard (Active by default) -->
+            <div id="tutorial-panel" class="bg-slate-900 border border-slate-800/80 rounded-2xl p-5 flex flex-col justify-between shadow-xl flex-grow min-h-[500px] lg:min-h-0">
+                <div>
+                    <!-- Storyboard Steps Header -->
+                    <div class="flex items-center justify-between mb-4 border-b border-slate-800 pb-4">
+                        <span class="text-xs font-bold tracking-widest text-indigo-400 uppercase">Interactive Infographic</span>
+                        <span id="slide-badge" class="px-2.5 py-1 text-xs font-bold bg-slate-950 text-indigo-300 rounded-full border border-indigo-500/20">Slide 1 of 5</span>
+                    </div>
+
+                    <!-- Slide Contents -->
+                    <div class="min-h-[220px]">
+                        <!-- Slide 1 -->
+                        <div id="slide-1" class="slide-content space-y-3">
+                            <h3 class="text-lg font-bold text-white flex items-center gap-2">
+                                <span class="text-cyan-400 font-mono">01.</span> What is a Vector?
+                            </h3>
+                            <p class="text-sm text-slate-300 leading-relaxed">
+                                A vector is fully defined by its <strong>magnitude</strong> (length) and <strong>direction</strong>. 
+                                In the graphic, <span class="text-cyan-400 font-semibold">Vector A</span> and <span class="text-indigo-400 font-semibold">Vector B</span> are displayed.
+                            </p>
+                            <p class="text-sm text-slate-400 leading-relaxed">
+                                Try dragging <span class="text-indigo-400 font-semibold">Vector B</span> around the canvas by its tail. Notice that its characteristics do not change! 
+                                <strong>A vector is identical anywhere in space</strong>, including when moved to the origin.
+                            </p>
+                            <div class="p-3 bg-slate-950/60 rounded-xl border border-slate-800/50 flex gap-3 items-center text-xs text-slate-400">
+                                <i class="fa-solid fa-circle-info text-cyan-400 text-base"></i>
+                                <span>Translate vectors by grabbing near their tails. Modify their lengths/angles by dragging their heads.</span>
+                            </div>
+                        </div>
+
+                        <!-- Slide 2 -->
+                        <div id="slide-2" class="slide-content space-y-3 hidden">
+                            <h3 class="text-lg font-bold text-white flex items-center gap-2">
+                                <span class="text-cyan-400 font-mono">02.</span> Scalar Multiplication
+                            </h3>
+                            <p class="text-sm text-slate-300 leading-relaxed">
+                                Multiplying a vector by a scalar (a simple number) rescales its magnitude. 
+                            </p>
+                            <p class="text-sm text-slate-300 leading-relaxed">
+                                Let's visualize scalar scaling:
+                            </p>
+                            <!-- Interactive Presets -->
+                            <div class="grid grid-cols-2 gap-2 my-2">
+                                <button onclick="applyScalarPreset(2)" class="px-3 py-2 text-xs bg-slate-950 hover:bg-slate-800 border border-slate-800 hover:border-cyan-500/40 rounded-lg text-slate-300 transition-all text-left flex items-center justify-between">
+                                    <span>Scale A by <strong class="text-cyan-400">2.0</strong></span>
+                                    <i class="fa-solid fa-arrows-left-right text-cyan-500"></i>
+                                </button>
+                                <button onclick="applyScalarPreset(-0.5)" class="px-3 py-2 text-xs bg-slate-950 hover:bg-slate-800 border border-slate-800 hover:border-indigo-500/40 rounded-lg text-slate-300 transition-all text-left flex items-center justify-between">
+                                    <span>Scale B by <strong class="text-indigo-400">-0.5</strong></span>
+                                    <i class="fa-solid fa-right-left text-indigo-400"></i>
+                                </button>
+                            </div>
+                            <p class="text-xs text-slate-400 leading-relaxed">
+                                Notice: Positive values scale length in the <span class="text-emerald-400 font-semibold">same direction</span>. 
+                                Negative values <span class="text-rose-400 font-semibold">reverse the direction</span>.
+                            </p>
+                        </div>
+
+                        <!-- Slide 3 -->
+                        <div id="slide-3" class="slide-content space-y-3 hidden">
+                            <h3 class="text-lg font-bold text-white flex items-center gap-2">
+                                <span class="text-cyan-400 font-mono">03.</span> Vector Addition: Tail-to-Head
+                            </h3>
+                            <p class="text-sm text-slate-300 leading-relaxed">
+                                To add vectors graphically, slide the tail of <span class="text-indigo-400 font-semibold">Vector B</span> to the head of <span class="text-cyan-400 font-semibold">Vector A</span>. 
+                            </p>
+                            <p class="text-sm text-slate-300 leading-relaxed">
+                                Their sum, <span class="text-amber-500 font-semibold">Vector C</span>, is drawn directly from the tail of A to the head of the translated B.
+                            </p>
+                            <div class="flex justify-center py-1">
+                                <button onclick="triggerAdditionAnimation()" class="px-5 py-2.5 bg-gradient-to-r from-emerald-600 to-teal-500 hover:from-emerald-500 hover:to-teal-400 text-white text-xs font-bold rounded-xl shadow-md transition-all flex items-center gap-2">
+                                    <i class="fa-solid fa-play"></i> Run Tail-to-Head Demo
+                                </button>
+                            </div>
+                        </div>
+
+                        <!-- Slide 4 -->
+                        <div id="slide-4" class="slide-content space-y-3 hidden">
+                            <h3 class="text-lg font-bold text-white flex items-center gap-2">
+                                <span class="text-cyan-400 font-mono">04.</span> Addition: Parallelogram Rule
+                            </h3>
+                            <p class="text-sm text-slate-300 leading-relaxed">
+                                You can also add them by sliding the tail of <span class="text-cyan-400 font-semibold">A</span> to the head of <span class="text-indigo-400 font-semibold">B</span>. 
+                                This demonstrates that addition is commutative: <span class="code-font text-xs text-indigo-300">A + B = B + A</span>.
+                            </p>
+                            <p class="text-sm text-slate-300 leading-relaxed">
+                                This forms a parallelogram. The resultant sum <span class="text-amber-500 font-semibold">Vector C</span> is the main diagonal.
+                            </p>
+                            <div class="flex justify-center py-1">
+                                <button onclick="triggerParallelogramAnimation()" class="px-5 py-2.5 bg-gradient-to-r from-indigo-600 to-purple-600 hover:from-indigo-500 hover:to-purple-500 text-white text-xs font-bold rounded-xl shadow-md transition-all flex items-center gap-2">
+                                    <i class="fa-solid fa-square-plus"></i> Show Parallelogram Action
+                                </button>
+                            </div>
+                        </div>
+
+                        <!-- Slide 5 -->
+                        <div id="slide-5" class="slide-content space-y-3 hidden">
+                            <h3 class="text-lg font-bold text-white flex items-center gap-2">
+                                <span class="text-cyan-400 font-mono">05.</span> Vector Subtraction
+                            </h3>
+                            <p class="text-sm text-slate-300 leading-relaxed">
+                                Subtraction is just adding a negative vector: <br>
+                                <span class="code-font text-xs bg-slate-950 px-2 py-1 rounded text-rose-300">C = A - B  👉  C = A + (-1 × B)</span>.
+                            </p>
+                            <p class="text-sm text-slate-300 leading-relaxed">
+                                We multiply <span class="text-indigo-400 font-semibold">B</span> by <span class="text-rose-400 font-semibold">-1</span> to get <span class="text-rose-400 font-semibold">-B</span>, 
+                                and then add <span class="text-cyan-400 font-semibold">A</span> to <span class="text-rose-400 font-semibold">-B</span> head-to-tail.
+                            </p>
+                            <div class="flex justify-center py-1">
+                                <button onclick="triggerSubtractionAnimation()" class="px-5 py-2.5 bg-gradient-to-r from-rose-600 to-amber-600 hover:from-rose-500 hover:to-amber-500 text-white text-xs font-bold rounded-xl shadow-md transition-all flex items-center gap-2">
+                                    <i class="fa-solid fa-minus"></i> Run Subtraction Demo
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Slide Navigation -->
+                    <div class="flex items-center justify-between border-t border-slate-800/80 pt-4 mt-4">
+                        <button id="prev-btn" onclick="changeSlide(-1)" class="px-3.5 py-1.5 rounded-lg text-xs font-semibold bg-slate-950 hover:bg-slate-800 text-slate-400 hover:text-white transition border border-slate-800 disabled:opacity-30 disabled:pointer-events-none">
+                            <i class="fa-solid fa-arrow-left mr-1"></i> Back
+                        </button>
+                        <div class="flex gap-1">
+                            <span class="dot w-2 h-2 rounded-full bg-indigo-500"></span>
+                            <span class="dot w-2 h-2 rounded-full bg-slate-800"></span>
+                            <span class="dot w-2 h-2 rounded-full bg-slate-800"></span>
+                            <span class="dot w-2 h-2 rounded-full bg-slate-800"></span>
+                            <span class="dot w-2 h-2 rounded-full bg-slate-800"></span>
+                        </div>
+                        <button id="next-btn" onclick="changeSlide(1)" class="px-3.5 py-1.5 rounded-lg text-xs font-semibold bg-indigo-600/20 text-indigo-300 hover:bg-indigo-600 hover:text-white transition border border-indigo-500/30">
+                            Next <i class="fa-solid fa-arrow-right ml-1"></i>
+                        </button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- SECTION B: Free Sandbox Controls (Hidden by default, switched dynamically) -->
+            <div id="sandbox-panel" class="bg-slate-900 border border-slate-800/80 rounded-2xl p-5 flex flex-col justify-between shadow-xl flex-grow hidden">
+                <div class="space-y-4">
+                    <div class="flex items-center justify-between border-b border-slate-800 pb-3">
+                        <span class="text-xs font-bold tracking-widest text-emerald-400 uppercase">Sandbox Workspace</span>
+                        <button onclick="resetSandbox()" class="px-2 py-1 text-2xs font-semibold bg-slate-950 text-slate-400 hover:text-white border border-slate-800 rounded transition-all">
+                            <i class="fa-solid fa-rotate-left mr-1"></i>Reset Workspace
+                        </button>
+                    </div>
+
+                    <!-- Sandbox View Mode Options -->
+                    <div>
+                        <span class="block text-2xs uppercase tracking-wider text-slate-400 font-bold mb-2">Display Controls</span>
+                        <div class="grid grid-cols-2 gap-2">
+                            <label class="flex items-center gap-2 bg-slate-950 p-2 rounded-lg border border-slate-800/60 cursor-pointer text-xs select-none">
+                                <input type="checkbox" id="chk-grid" checked class="rounded border-slate-800 bg-slate-900 text-emerald-500 focus:ring-0">
+                                <span>Show Grid</span>
+                            </label>
+                            <label class="flex items-center gap-2 bg-slate-950 p-2 rounded-lg border border-slate-800/60 cursor-pointer text-xs select-none">
+                                <input type="checkbox" id="chk-snap" checked class="rounded border-slate-800 bg-slate-900 text-emerald-500 focus:ring-0">
+                                <span>Snap to Grid</span>
+                            </label>
+                            <label class="flex items-center gap-2 bg-slate-950 p-2 rounded-lg border border-slate-800/60 cursor-pointer text-xs select-none col-span-2">
+                                <input type="checkbox" id="chk-components" class="rounded border-slate-800 bg-slate-900 text-emerald-500 focus:ring-0">
+                                <span>Show Component Projections (X & Y)</span>
+                            </label>
+                        </div>
+                    </div>
+
+                    <!-- Vector A Components -->
+                    <div class="p-3.5 bg-slate-950/50 rounded-xl border border-slate-800/80 space-y-2">
+                        <div class="flex justify-between items-center">
+                            <span class="text-xs font-bold text-cyan-400 flex items-center gap-1.5">
+                                <span class="w-2.5 h-2.5 rounded-full bg-cyan-500 inline-block"></span> Vector A Controls
+                            </span>
+                            <span class="text-2xs font-mono text-slate-500">Manual Entry</span>
+                        </div>
+                        <div class="grid grid-cols-2 gap-2.5">
+                            <div>
+                                <label class="block text-3xs uppercase text-slate-500 font-bold mb-1">X-Component (Units)</label>
+                                <input type="number" id="vecA-x" step="0.5" value="3.0" class="w-full bg-slate-900 border border-slate-800 rounded px-2 py-1 text-xs text-white focus:outline-none focus:border-cyan-500 font-mono">
+                            </div>
+                            <div>
+                                <label class="block text-3xs uppercase text-slate-500 font-bold mb-1">Y-Component (Units)</label>
+                                <input type="number" id="vecA-y" step="0.5" value="4.0" class="w-full bg-slate-900 border border-slate-800 rounded px-2 py-1 text-xs text-white focus:outline-none focus:border-cyan-500 font-mono">
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Vector B Components -->
+                    <div class="p-3.5 bg-slate-950/50 rounded-xl border border-slate-800/80 space-y-2">
+                        <div class="flex justify-between items-center">
+                            <span class="text-xs font-bold text-indigo-400 flex items-center gap-1.5">
+                                <span class="w-2.5 h-2.5 rounded-full bg-indigo-500 inline-block"></span> Vector B Controls
+                            </span>
+                            <span class="text-2xs font-mono text-slate-500">Manual Entry</span>
+                        </div>
+                        <div class="grid grid-cols-2 gap-2.5">
+                            <div>
+                                <label class="block text-3xs uppercase text-slate-500 font-bold mb-1">X-Component (Units)</label>
+                                <input type="number" id="vecB-x" step="0.5" value="4.0" class="w-full bg-slate-900 border border-slate-800 rounded px-2 py-1 text-xs text-white focus:outline-none focus:border-indigo-500 font-mono">
+                            </div>
+                            <div>
+                                <label class="block text-3xs uppercase text-slate-500 font-bold mb-1">Y-Component (Units)</label>
+                                <input type="number" id="vecB-y" step="0.5" value="-2.0" class="w-full bg-slate-900 border border-slate-800 rounded px-2 py-1 text-xs text-white focus:outline-none focus:border-indigo-500 font-mono">
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Mathematical Operations Trigger -->
+                    <div>
+                        <span class="block text-2xs uppercase tracking-wider text-slate-400 font-bold mb-2">Instant Operations</span>
+                        <div class="grid grid-cols-3 gap-2">
+                            <button id="btn-op-add" onclick="setSandboxOperation('add')" class="py-2 px-1.5 text-2xs font-bold bg-slate-950 hover:bg-slate-800 border border-slate-800 rounded-lg text-slate-300 hover:text-white transition-all flex flex-col items-center gap-1">
+                                <i class="fa-solid fa-plus text-emerald-500 text-sm"></i>
+                                <span>A + B</span>
+                            </button>
+                            <button id="btn-op-sub" onclick="setSandboxOperation('sub')" class="py-2 px-1.5 text-2xs font-bold bg-slate-950 hover:bg-slate-800 border border-slate-800 rounded-lg text-slate-300 hover:text-white transition-all flex flex-col items-center gap-1">
+                                <i class="fa-solid fa-minus text-rose-500 text-sm"></i>
+                                <span>A - B</span>
+                            </button>
+                            <button id="btn-op-scale" onclick="setSandboxOperation('scale')" class="py-2 px-1.5 text-2xs font-bold bg-slate-950 hover:bg-slate-800 border border-slate-800 rounded-lg text-slate-300 hover:text-white transition-all flex flex-col items-center gap-1">
+                                <i class="fa-solid fa-sliders text-cyan-500 text-sm"></i>
+                                <span>Scalar Mul</span>
+                            </button>
+                        </div>
+                    </div>
+
+                    <!-- Dynamic Slider details when active -->
+                    <div id="sandbox-slider-box" class="p-3.5 bg-indigo-950/20 border border-indigo-500/20 rounded-xl space-y-2 hidden">
+                        <div class="flex justify-between items-center">
+                            <span class="text-xs font-bold text-indigo-300">Scalar Multiple (k)</span>
+                            <span id="sandbox-scalar-val" class="text-xs font-mono font-bold text-white bg-indigo-900/60 px-2 py-0.5 rounded">1.5x</span>
+                        </div>
+                        <input type="range" id="sandbox-scalar-input" min="-3" max="3" step="0.1" value="1.5" class="w-full accent-indigo-500 cursor-pointer">
+                    </div>
+                </div>
+            </div>
+
+            <!-- Analytical Details Readout -->
+            <div class="bg-slate-900 border border-slate-800/80 rounded-2xl p-5 shadow-xl space-y-4">
+                <span class="text-xs font-bold tracking-widest text-slate-400 uppercase block border-b border-slate-800 pb-2.5">Live Vector Analytics</span>
+                
+                <div class="grid grid-cols-2 gap-3">
+                    <!-- Analytics Vector A -->
+                    <div class="p-3 bg-cyan-950/20 rounded-xl border border-cyan-500/10 space-y-1">
+                        <div class="flex items-center gap-1 text-2xs font-bold text-cyan-400 uppercase">
+                            <span class="w-2 h-2 rounded-full bg-cyan-500"></span> Vector A
+                        </div>
+                        <div class="text-sm font-bold text-white font-mono" id="stat-A-coords">[3.0, 4.0]</div>
+                        <div class="text-3xs text-slate-400 font-semibold flex flex-col">
+                            <span>Magnitude: <strong class="text-slate-300 font-mono text-2xs" id="stat-A-mag">5.00</strong></span>
+                            <span>Angle: <strong class="text-slate-300 font-mono text-2xs" id="stat-A-ang">53.1°</strong></span>
+                        </div>
+                    </div>
+
+                    <!-- Analytics Vector B -->
+                    <div class="p-3 bg-indigo-950/20 rounded-xl border border-indigo-500/10 space-y-1">
+                        <div class="flex items-center gap-1 text-2xs font-bold text-indigo-400 uppercase">
+                            <span class="w-2 h-2 rounded-full bg-indigo-500"></span> Vector B
+                        </div>
+                        <div class="text-sm font-bold text-white font-mono" id="stat-B-coords">[4.0, -2.0]</div>
+                        <div class="text-3xs text-slate-400 font-semibold flex flex-col">
+                            <span>Magnitude: <strong class="text-slate-300 font-mono text-2xs" id="stat-B-mag">4.47</strong></span>
+                            <span>Angle: <strong class="text-slate-300 font-mono text-2xs" id="stat-B-ang">-26.6°</strong></span>
+                        </div>
+                    </div>
+
+                    <!-- Analytics Resultant Vector C (Adds full-width when active) -->
+                    <div id="resultant-stats" class="p-3 bg-amber-950/20 rounded-xl border border-amber-500/10 space-y-1 col-span-2 hidden">
+                        <div class="flex justify-between items-center">
+                            <div class="flex items-center gap-1 text-2xs font-bold text-amber-500 uppercase">
+                                <span class="w-2.5 h-2.5 rounded-full bg-amber-500"></span> Resultant Vector C
+                            </div>
+                            <span id="stat-C-equation" class="text-3xs text-slate-500 font-mono font-bold">C = A + B</span>
+                        </div>
+                        <div class="text-sm font-bold text-white font-mono" id="stat-C-coords">[7.0, 2.0]</div>
+                        <div class="text-3xs text-slate-400 font-semibold flex flex-col">
+                            <span>Magnitude: <strong class="text-slate-300 font-mono text-2xs" id="stat-C-mag">7.28</strong></span>
+                            <span>Angle: <strong class="text-slate-300 font-mono text-2xs" id="stat-C-ang">15.9°</strong></span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Right Column: Canvas Workspace (Col Span: 7) -->
+        <div class="lg:col-span-7 flex flex-col gap-4">
+            <!-- Canvas Container card -->
+            <div class="bg-slate-900 border border-slate-800 rounded-2xl p-4 flex flex-col justify-between shadow-xl relative overflow-hidden flex-grow min-h-[480px] lg:min-h-[580px]">
+                
+                <!-- Action / Mode Display -->
+                <div class="absolute top-6 left-6 z-10 flex flex-col gap-1 pointer-events-none">
+                    <span id="canvas-mode-badge" class="px-2.5 py-1 text-3xs font-extrabold tracking-widest text-cyan-400 bg-slate-950/90 border border-cyan-500/30 rounded-full uppercase self-start shadow-md backdrop-blur">
+                        Visualizing Free Workspace
+                    </span>
+                    <span id="canvas-instruction-badge" class="text-2xs text-slate-400 font-medium bg-slate-950/80 px-2 py-0.5 rounded-md border border-slate-850 self-start shadow">
+                        Drag heads/tails to inspect vectors in space.
+                    </span>
+                </div>
+
+                <!-- Canvas Options / Toolbar overlay -->
+                <div class="absolute top-6 right-6 z-10 flex gap-2">
+                    <button onclick="recenterGrid()" title="Recenter Grid" class="p-2 text-xs bg-slate-950/90 border border-slate-800 hover:border-slate-750 text-slate-300 hover:text-white rounded-lg shadow-md transition-all backdrop-blur">
+                        <i class="fa-solid fa-arrows-to-dot text-sm"></i>
+                    </button>
+                </div>
+
+                <!-- Actual Interactive Canvas -->
+                <div class="w-full flex-grow flex items-center justify-center relative bg-slate-950 border border-slate-850 rounded-xl overflow-hidden mt-10">
+                    <canvas id="vector-canvas" class="block cursor-crosshair w-full h-full"></canvas>
+                </div>
+
+                <!-- Custom Bottom Legend & Information -->
+                <div class="mt-3.5 border-t border-slate-850/80 pt-3 flex flex-wrap gap-4 items-center justify-between">
+                    <div class="flex items-center gap-4 text-xs font-semibold">
+                        <div class="flex items-center gap-1.5">
+                            <span class="w-3.5 h-1 bg-cyan-500 rounded-full inline-block"></span>
+                            <span class="text-slate-300 font-mono">Vector A</span>
+                        </div>
+                        <div class="flex items-center gap-1.5">
+                            <span class="w-3.5 h-1 bg-indigo-500 rounded-full inline-block"></span>
+                            <span class="text-slate-300 font-mono">Vector B</span>
+                        </div>
+                        <div id="legend-resultant" class="flex items-center gap-1.5 opacity-30 transition-all duration-300">
+                            <span class="w-3.5 h-1 bg-amber-500 rounded-full inline-block"></span>
+                            <span class="text-slate-300 font-mono">Resultant C</span>
+                        </div>
+                    </div>
+                    <div class="text-3xs font-mono text-slate-500 font-bold">
+                        1 Grid Square = 1.0 Unit (40px)
+                    </div>
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <!-- Footer of page -->
+    <footer class="border-t border-slate-900 bg-slate-950 py-4 px-6 text-center text-3xs text-slate-500">
+        <p>&copy; 2026 Interactive Physics Lab. Tailored visualization matching the Vector Math Lessons transcript.</p>
+    </footer>
+
+    <script>
+        // System Synthesizer configuration for audio feedback clicks
+        const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+        function playInteractionSound(type) {
+            try {
+                const osc = audioCtx.createOscillator();
+                const gain = audioCtx.createGain();
+                osc.connect(gain);
+                gain.connect(audioCtx.destination);
+
+                if (type === 'tick') {
+                    osc.type = 'sine';
+                    osc.frequency.setValueAtTime(600, audioCtx.currentTime);
+                    osc.frequency.exponentialRampToValueAtTime(150, audioCtx.currentTime + 0.08);
+                    gain.gain.setValueAtTime(0.05, audioCtx.currentTime);
+                    gain.gain.linearRampToValueAtTime(0, audioCtx.currentTime + 0.08);
+                    osc.start();
+                    osc.stop(audioCtx.currentTime + 0.08);
+                } else if (type === 'complete') {
+                    osc.type = 'triangle';
+                    osc.frequency.setValueAtTime(330, audioCtx.currentTime);
+                    osc.frequency.setValueAtTime(440, audioCtx.currentTime + 0.08);
+                    osc.frequency.setValueAtTime(660, audioCtx.currentTime + 0.16);
+                    gain.gain.setValueAtTime(0.08, audioCtx.currentTime);
+                    gain.gain.linearRampToValueAtTime(0, audioCtx.currentTime + 0.3);
+                    osc.start();
+                    osc.stop(audioCtx.currentTime + 0.3);
+                }
+            } catch (e) {
+                // Silently bypass blockages
+            }
+        }
+
+        // Global Visual Canvas variables
+        const canvas = document.getElementById('vector-canvas');
+        const ctx = canvas.getContext('2d');
+
+        // State Machine config
+        let state = {
+            currentTab: 'tutorial', // 'tutorial' | 'sandbox'
+            currentSlide: 1, // 1 through 5
+            gridSize: 40, // 40 pixels per 1 unit
+            origin: { x: 0, y: 0 }, // dynamically calculated center
+            snapToGrid: true,
+            showComponents: false,
+            showGrid: true,
+            
+            // Vector Vectors structure: { tailX, tailY, headX, headY } relative to visual coordinate offsets
+            // Base components are in world units
+            A: { x: 3, y: 4, tailX: -3, tailY: -1 },
+            B: { x: 4, y: -2, tailX: 1, tailY: -3 },
+            
+            // Animation values for smooth transitions
+            animating: false,
+            animProgress: 0,
+            animType: 'none', // 'none' | 'addition_slide' | 'parallelogram' | 'subtraction'
+            animTimer: null,
+            
+            // Draggable mechanics
+            draggedObject: null, // { vector: 'A'|'B', point: 'head'|'tail' }
+            dragStartPos: { x: 0, y: 0 },
+            mouseIsDown: false,
+            
+            // Sandbox math state
+            sandboxOp: 'none' // 'none' | 'add' | 'sub' | 'scale'
+        };
+
+        // Initialize Canvas Sizing on resize
+        function resizeCanvas() {
+            const container = canvas.parentElement;
+            const dpr = window.devicePixelRatio || 1;
+            canvas.width = container.clientWidth * dpr;
+            canvas.height = container.clientHeight * dpr;
+            canvas.style.width = container.clientWidth + 'px';
+            canvas.style.height = container.clientHeight + 'px';
+            ctx.scale(dpr, dpr);
+            
+            // Recenter origin based on scale
+            state.origin.x = container.clientWidth / 2;
+            state.origin.y = container.clientHeight / 2;
+            
+            draw();
+        }
+
+        window.addEventListener('resize', resizeCanvas);
+        window.addEventListener('load', () => {
+            resizeCanvas();
+            // Start Animation loops
+            animationLoop();
+        });
+
+        // Conversion helper routines
+        // Convert Cartesian World coordinates to Screen space
+        function worldToScreen(wx, wy) {
+            return {
+                x: state.origin.x + (wx * state.gridSize),
+                y: state.origin.y - (wy * state.gridSize) // invert Y axis for normal math graphing coordinate systems
+            };
+        }
+
+        // Convert Screen coordinates back to Cartesian World space
+        function screenToWorld(sx, sy) {
+            return {
+                x: (sx - state.origin.x) / state.gridSize,
+                y: -(sy - state.origin.y) / state.gridSize
+            };
+        }
+
+        // Recenters the visual origin
+        function recenterGrid() {
+            playInteractionSound('tick');
+            state.origin.x = canvas.clientWidth / 2;
+            state.origin.y = canvas.clientHeight / 2;
+            draw();
+        }
+
+        // Reset elements back to clean default visual state
+        function resetSandbox() {
+            state.A = { x: 3, y: 4, tailX: -3, tailY: -1 };
+            state.B = { x: 4, y: -2, tailX: 1, tailY: -3 };
+            state.sandboxOp = 'none';
+            document.getElementById('sandbox-slider-box').classList.add('hidden');
+            // update entry UI
+            updateAnalyticsAndControls();
+            draw();
+        }
+
+        // UI Navigation handlers
+        function switchMainTab(target) {
+            playInteractionSound('tick');
+            state.currentTab = target;
+            
+            const tutTab = document.getElementById('tab-tutorial');
+            const sandTab = document.getElementById('tab-sandbox');
+            const tutPanel = document.getElementById('tutorial-panel');
+            const sandPanel = document.getElementById('sandbox-panel');
+            const badge = document.getElementById('canvas-mode-badge');
+            const instruction = document.getElementById('canvas-instruction-badge');
+
+            // Reset active state parameters
+            state.sandboxOp = 'none';
+            state.animating = false;
+            state.animProgress = 0;
+            state.animType = 'none';
+
+            if (target === 'tutorial') {
+                tutTab.classList.add('bg-indigo-600', 'text-white');
+                tutTab.classList.remove('text-slate-400');
+                sandTab.classList.remove('bg-indigo-600', 'text-white');
+                sandTab.classList.add('text-slate-400');
+                
+                tutPanel.classList.remove('hidden');
+                sandPanel.classList.add('hidden');
+                
+                badge.textContent = `Visualizing Free Workspace`;
+                badge.className = "px-2.5 py-1 text-3xs font-extrabold tracking-widest text-cyan-400 bg-slate-950/90 border border-cyan-500/30 rounded-full uppercase self-start shadow-md backdrop-blur";
+                
+                // Initialize vectors relative to visual slides state
+                initializeSlideState(state.currentSlide);
+            } else {
+                sandTab.classList.add('bg-indigo-600', 'text-white');
+                sandTab.classList.remove('text-slate-400');
+                tutTab.classList.remove('bg-indigo-600', 'text-white');
+                tutTab.classList.add('text-slate-400');
+                
+                sandPanel.classList.remove('hidden');
+                tutPanel.classList.add('hidden');
+                
+                badge.textContent = `Sandbox Workspace`;
+                badge.className = "px-2.5 py-1 text-3xs font-extrabold tracking-widest text-emerald-400 bg-slate-950/90 border border-emerald-500/30 rounded-full uppercase self-start shadow-md backdrop-blur";
+                instruction.textContent = "Freely alter Vector A/B components on the left or drag on-grid.";
+                
+                // Set default components for sandbox workspace
+                state.A = { x: 3, y: 4, tailX: -3, tailY: -1 };
+                state.B = { x: 4, y: -2, tailX: 1, tailY: -3 };
+                updateAnalyticsAndControls();
+            }
+            draw();
+        }
+
+        // Manage Slide change for Infographic walkthrough
+        function changeSlide(direction) {
+            let next = state.currentSlide + direction;
+            if (next < 1 || next > 5) return;
+            
+            playInteractionSound('tick');
+            
+            // Hide previous slides
+            document.querySelectorAll('.slide-content').forEach(slide => slide.classList.add('hidden'));
+            
+            state.currentSlide = next;
+            document.getElementById(`slide-${next}`).classList.remove('hidden');
+            
+            // Reset active operations/animations
+            state.animating = false;
+            state.animProgress = 0;
+            state.animType = 'none';
+            
+            // Configure controls
+            const prevBtn = document.getElementById('prev-btn');
+            const nextBtn = document.getElementById('next-btn');
+            
+            prevBtn.disabled = next === 1;
+            if (next === 5) {
+                nextBtn.innerHTML = `Restart <i class="fa-solid fa-rotate-left ml-1"></i>`;
+            } else {
+                nextBtn.innerHTML = `Next <i class="fa-solid fa-arrow-right ml-1"></i>`;
+            }
+
+            // Highlight slider dot
+            const dots = document.querySelectorAll('.dot');
+            dots.forEach((dot, idx) => {
+                if (idx === next - 1) {
+                    dot.className = "dot w-2 h-2 rounded-full bg-indigo-500 transition-all duration-300 transform scale-125";
+                } else {
+                    dot.className = "dot w-2 h-2 rounded-full bg-slate-800 transition-all duration-300";
+                }
+            });
+
+            document.getElementById('slide-badge').innerText = `Slide ${next} of 5`;
+
+            // Adjust Vector Coordinates state specifically for each educational slide
+            initializeSlideState(next);
+        }
+
+        function initializeSlideState(slideNum) {
+            const badge = document.getElementById('canvas-mode-badge');
+            const instruction = document.getElementById('canvas-instruction-badge');
+
+            if (slideNum === 1) {
+                state.A = { x: 3, y: 3, tailX: -5, tailY: -1 };
+                state.B = { x: 4, y: -2, tailX: 1, tailY: 2 };
+                badge.textContent = "Topic: Vector Basics & Spatial Invariance";
+                instruction.textContent = "Drag B's tail to observe that moving a vector leaves its magnitude unchanged.";
+            } else if (slideNum === 2) {
+                state.A = { x: 2, y: 2, tailX: -3, tailY: -2 };
+                state.B = { x: 4, y: -2, tailX: 1, tailY: 3 };
+                badge.textContent = "Topic: Scalar Rescaling (kA)";
+                instruction.textContent = "Use quick scaling preset buttons to stretch and reflect directions.";
+            } else if (slideNum === 3) {
+                state.A = { x: 3, y: 3, tailX: -4, tailY: -2 };
+                state.B = { x: 5, y: -1, tailX: 1, tailY: 3 };
+                badge.textContent = "Topic: Addition (Tail-to-Head)";
+                instruction.textContent = "Click 'Run Tail-to-Head Demo' to observe sliding action.";
+            } else if (slideNum === 4) {
+                state.A = { x: 4, y: 1, tailX: -3, tailY: -2 };
+                state.B = { x: 2, y: 4, tailX: -3, tailY: -2 }; // Start from exact same tail coordinates
+                badge.textContent = "Topic: Addition (Parallelogram Diagonal)";
+                instruction.textContent = "Observe addition from origin of vectors.";
+            } else if (slideNum === 5) {
+                state.A = { x: 5, y: 1, tailX: -3, tailY: -1 };
+                state.B = { x: 3, y: -3, tailX: 2, tailY: 3 };
+                badge.textContent = "Topic: Subtraction (A - B)";
+                instruction.textContent = "Click subtraction button below to trace the vector geometry.";
+            }
+            updateAnalyticsAndControls();
+            draw();
+        }
+
+        // Apply slider and numeric actions inside the Infographic slide modes
+        function applyScalarPreset(scalar) {
+            playInteractionSound('complete');
+            if (scalar === 2) {
+                // Double A
+                state.A.x = 2 * 2;
+                state.A.y = 2 * 2;
+                state.animType = 'scale_feedback_A';
+            } else if (scalar === -0.5) {
+                // Invert B half
+                state.B.x = 4 * -0.5;
+                state.B.y = -2 * -0.5;
+                state.animType = 'scale_feedback_B';
+            }
+            state.animating = true;
+            state.animProgress = 0;
+            updateAnalyticsAndControls();
+        }
+
+        // Run vector addition tail-to-head animation sequence
+        function triggerAdditionAnimation() {
+            if (state.animating) return;
+            playInteractionSound('tick');
+            
+            // Set up start animation state
+            state.animType = 'addition_slide';
+            state.animating = true;
+            state.animProgress = 0;
+            
+            // Setup base layout: Align vector B initially at a clear floating coordinates, A floating
+            state.A = { x: 3, y: 3, tailX: -4, tailY: -2 };
+            state.B = { x: 5, y: -1, tailX: 1, tailY: 3 };
+            
+            // Store start coordinates of vector B tail to animate smoothly
+            state.animStartPoint = { x: state.B.tailX, y: state.B.tailY };
+            state.animEndPoint = { x: state.A.tailX + state.A.x, y: state.A.tailY + state.A.y };
+        }
+
+        // Run parallelogram demo
+        function triggerParallelogramAnimation() {
+            if (state.animating) return;
+            playInteractionSound('tick');
+
+            state.animType = 'parallelogram';
+            state.animating = true;
+            state.animProgress = 0;
+
+            state.A = { x: 4, y: 1, tailX: -3, tailY: -2 };
+            state.B = { x: 2, y: 4, tailX: -3, tailY: -2 };
+        }
+
+        // Run vector subtraction animation sequence
+        function triggerSubtractionAnimation() {
+            if (state.animating) return;
+            playInteractionSound('tick');
+
+            state.animType = 'subtraction';
+            state.animating = true;
+            state.animProgress = 0;
+
+            // Base vectors
+            state.A = { x: 5, y: 1, tailX: -3, tailY: -1 };
+            state.B = { x: 3, y: -3, tailX: 2, tailY: 3 };
+
+            // For animating, first we flip B, then we slide it
+            state.animStartPoint = { x: state.B.tailX, y: state.B.tailY };
+            state.animEndPoint = { x: state.A.tailX + state.A.x, y: state.A.tailY + state.A.y };
+        }
+
+        // Animation update tick loop
+        function animationLoop() {
+            if (state.animating) {
+                state.animProgress += 0.012; // Controls speed of vector sliding
+                if (state.animProgress >= 1) {
+                    state.animProgress = 1;
+                    state.animating = false;
+                    playInteractionSound('complete');
+                }
+                draw();
+            }
+            requestAnimationFrame(animationLoop);
+        }
+
+        // Manage operation selection on sandbox workspace
+        function setSandboxOperation(op) {
+            playInteractionSound('tick');
+            state.sandboxOp = op;
+            
+            // Manage UI highlights
+            const addBtn = document.getElementById('btn-op-add');
+            const subBtn = document.getElementById('btn-op-sub');
+            const scaleBtn = document.getElementById('btn-op-scale');
+            const sliderBox = document.getElementById('sandbox-slider-box');
+
+            addBtn.className = "py-2 px-1.5 text-2xs font-bold bg-slate-950 border border-slate-800 rounded-lg text-slate-300 transition-all flex flex-col items-center gap-1";
+            subBtn.className = "py-2 px-1.5 text-2xs font-bold bg-slate-950 border border-slate-800 rounded-lg text-slate-300 transition-all flex flex-col items-center gap-1";
+            scaleBtn.className = "py-2 px-1.5 text-2xs font-bold bg-slate-950 border border-slate-800 rounded-lg text-slate-300 transition-all flex flex-col items-center gap-1";
+            sliderBox.classList.add('hidden');
+
+            if (op === 'add') {
+                addBtn.className = "py-2 px-1.5 text-2xs font-bold bg-emerald-950 border border-emerald-500 text-white rounded-lg transition-all flex flex-col items-center gap-1 shadow-md shadow-emerald-500/10";
+            } else if (op === 'sub') {
+                subBtn.className = "py-2 px-1.5 text-2xs font-bold bg-rose-950 border border-rose-500 text-white rounded-lg transition-all flex flex-col items-center gap-1 shadow-md shadow-rose-500/10";
+            } else if (op === 'scale') {
+                scaleBtn.className = "py-2 px-1.5 text-2xs font-bold bg-cyan-950 border border-cyan-500 text-white rounded-lg transition-all flex flex-col items-center gap-1 shadow-md shadow-cyan-500/10";
+                sliderBox.classList.remove('hidden');
+            }
+            updateAnalyticsAndControls();
+            draw();
+        }
+
+        // Event listener hooks for manual entry
+        document.getElementById('vecA-x').addEventListener('input', updateVectorsFromInputs);
+        document.getElementById('vecA-y').addEventListener('input', updateVectorsFromInputs);
+        document.getElementById('vecB-x').addEventListener('input', updateVectorsFromInputs);
+        document.getElementById('vecB-y').addEventListener('input', updateVectorsFromInputs);
+        
+        // Scalar input slider listener
+        document.getElementById('sandbox-scalar-input').addEventListener('input', (e) => {
+            const val = parseFloat(e.target.value);
+            document.getElementById('sandbox-scalar-val').innerText = `${val.toFixed(1)}x`;
+            draw();
+        });
+
+        function updateVectorsFromInputs() {
+            state.A.x = parseFloat(document.getElementById('vecA-x').value) || 0;
+            state.A.y = parseFloat(document.getElementById('vecA-y').value) || 0;
+            state.B.x = parseFloat(document.getElementById('vecB-x').value) || 0;
+            state.B.y = parseFloat(document.getElementById('vecB-y').value) || 0;
+            updateAnalyticsAndControls();
+            draw();
+        }
+
+        // Recalculates magnitudes, angles and formats equations dynamically
+        function updateAnalyticsAndControls() {
+            // Recalculate Vector A
+            const magA = Math.sqrt(state.A.x * state.A.x + state.A.y * state.A.y);
+            const angA = Math.atan2(state.A.y, state.A.x) * (180 / Math.PI);
+            
+            document.getElementById('stat-A-coords').innerText = `[${state.A.x.toFixed(1)}, ${state.A.y.toFixed(1)}]`;
+            document.getElementById('stat-A-mag').innerText = magA.toFixed(2);
+            document.getElementById('stat-A-ang').innerText = `${angA.toFixed(1)}°`;
+
+            // Recalculate Vector B
+            const magB = Math.sqrt(state.B.x * state.B.x + state.B.y * state.B.y);
+            const angB = Math.atan2(state.B.y, state.B.x) * (180 / Math.PI);
+
+            document.getElementById('stat-B-coords').innerText = `[${state.B.x.toFixed(1)}, ${state.B.y.toFixed(1)}]`;
+            document.getElementById('stat-B-mag').innerText = magB.toFixed(2);
+            document.getElementById('stat-B-ang').innerText = `${angB.toFixed(1)}°`;
+
+            // Dynamic Inputs Synchronization
+            if (state.currentTab === 'sandbox') {
+                document.getElementById('vecA-x').value = state.A.x.toFixed(1);
+                document.getElementById('vecA-y').value = state.A.y.toFixed(1);
+                document.getElementById('vecB-x').value = state.B.x.toFixed(1);
+                document.getElementById('vecB-y').value = state.B.y.toFixed(1);
+            }
+
+            // Show active Resultant Vector analytical card if mathematical mode is running
+            const resStatsBox = document.getElementById('resultant-stats');
+            const resLegend = document.getElementById('legend-resultant');
+            const equationLabel = document.getElementById('stat-C-equation');
+
+            let activeOperation = 'none';
+            if (state.currentTab === 'tutorial') {
+                if ([3, 4].includes(state.currentSlide)) activeOperation = 'add';
+                if (state.currentSlide === 5) activeOperation = 'sub';
+            } else {
+                activeOperation = state.sandboxOp;
+            }
+
+            if (activeOperation !== 'none') {
+                resStatsBox.classList.remove('hidden');
+                resLegend.classList.remove('opacity-30');
+                
+                let Cx = 0, Cy = 0;
+                if (activeOperation === 'add') {
+                    Cx = state.A.x + state.B.x;
+                    Cy = state.A.y + state.B.y;
+                    equationLabel.innerText = "C = A + B";
+                } else if (activeOperation === 'sub') {
+                    Cx = state.A.x - state.B.x;
+                    Cy = state.A.y - state.B.y;
+                    equationLabel.innerText = "C = A - B";
+                } else if (activeOperation === 'scale') {
+                    const scalarVal = parseFloat(document.getElementById('sandbox-scalar-input').value);
+                    Cx = state.A.x * scalarVal;
+                    Cy = state.A.y * scalarVal;
+                    equationLabel.innerText = `C = ${scalarVal.toFixed(1)} × A`;
+                }
+
+                const magC = Math.sqrt(Cx * Cx + Cy * Cy);
+                const angC = Math.atan2(Cy, Cx) * (180 / Math.PI);
+
+                document.getElementById('stat-C-coords').innerText = `[${Cx.toFixed(1)}, ${Cy.toFixed(1)}]`;
+                document.getElementById('stat-C-mag').innerText = magC.toFixed(2);
+                document.getElementById('stat-C-ang').innerText = `${angC.toFixed(1)}°`;
+            } else {
+                resStatsBox.classList.add('hidden');
+                resLegend.classList.add('opacity-30');
+            }
+        }
+
+        // Main Painting Route
+        function draw() {
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+            // Settings Read
+            const showGrid = document.getElementById('chk-grid').checked;
+            state.showComponents = document.getElementById('chk-components').checked;
+
+            if (showGrid) {
+                drawGrid();
+            } else {
+                // Draw coordinate axis lines at center at minimum
+                ctx.beginPath();
+                ctx.strokeStyle = '#334155';
+                ctx.lineWidth = 1.5;
+                ctx.moveTo(0, state.origin.y);
+                ctx.lineTo(canvas.width, state.origin.y);
+                ctx.moveTo(state.origin.x, 0);
+                ctx.lineTo(state.origin.x, canvas.height);
+                ctx.stroke();
+            }
+
+            // Render current context based on State Model
+            if (state.currentTab === 'tutorial') {
+                renderTutorialVisualization();
+            } else {
+                renderSandboxVisualization();
+            }
+        }
+
+        // Draw mathematical reference grid
+        function drawGrid() {
+            ctx.strokeStyle = 'rgba(30, 41, 59, 0.4)';
+            ctx.lineWidth = 1.0;
+            ctx.font = '9px "JetBrains Mono"';
+            ctx.fillStyle = '#475569';
+
+            // Vertical Gridlines
+            const width = canvas.width;
+            const height = canvas.height;
+
+            const gridLinesCountX = Math.ceil(width / state.gridSize);
+            const gridLinesCountY = Math.ceil(height / state.gridSize);
+
+            // Find starting grid offsets
+            const startX = state.origin.x % state.gridSize;
+            const startY = state.origin.y % state.gridSize;
+
+            for (let i = 0; i <= gridLinesCountX + 1; i++) {
+                const x = startX + (i - 1) * state.gridSize;
+                ctx.beginPath();
+                ctx.strokeStyle = 'rgba(30, 41, 59, 0.45)';
+                ctx.moveTo(x, 0);
+                ctx.lineTo(x, height);
+                ctx.stroke();
+
+                // Draw X Coordinate values along zero line
+                const wx = Math.round((x - state.origin.x) / state.gridSize);
+                if (wx !== 0 && Math.abs(state.origin.y - height/2) < height/2) {
+                    ctx.fillText(wx, x - 3, state.origin.y + 13);
+                }
+            }
+
+            // Horizontal Gridlines
+            for (let j = 0; j <= gridLinesCountY + 1; j++) {
+                const y = startY + (j - 1) * state.gridSize;
+                ctx.beginPath();
+                ctx.strokeStyle = 'rgba(30, 41, 59, 0.45)';
+                ctx.moveTo(0, y);
+                ctx.lineTo(width, y);
+                ctx.stroke();
+
+                // Draw Y Coordinate values along vertical axis
+                const wy = Math.round(-(y - state.origin.y) / state.gridSize);
+                if (wy !== 0 && Math.abs(state.origin.x - width/2) < width/2) {
+                    ctx.fillText(wy, state.origin.x - 13, y + 3);
+                }
+            }
+
+            // Draw primary X & Y thick axis line bounds
+            ctx.beginPath();
+            ctx.strokeStyle = '#1e293b';
+            ctx.lineWidth = 2.0;
+            ctx.moveTo(0, state.origin.y);
+            ctx.lineTo(width, state.origin.y);
+            ctx.moveTo(state.origin.x, 0);
+            ctx.lineTo(state.origin.x, height);
+            ctx.stroke();
+
+            // Label Origin
+            ctx.fillText("0", state.origin.x - 10, state.origin.y + 13);
+        }
+
+        // Draw vector utility with arrowhead and options
+        function drawVector(vec, color, name, isDashed = false) {
+            const start = worldToScreen(vec.tailX, vec.tailY);
+            const end = worldToScreen(vec.tailX + vec.x, vec.tailY + vec.y);
+
+            // Draw component projections if active
+            if (state.showComponents) {
+                ctx.beginPath();
+                ctx.strokeStyle = `${color}20`;
+                ctx.lineWidth = 1.5;
+                ctx.setLineDash([4, 4]);
+                // X component parallel projection
+                ctx.moveTo(start.x, start.y);
+                ctx.lineTo(end.x, start.y);
+                // Y component projection
+                ctx.lineTo(end.x, end.y);
+                ctx.stroke();
+                ctx.setLineDash([]);
+            }
+
+            // Main line segment
+            ctx.beginPath();
+            ctx.strokeStyle = color;
+            ctx.lineWidth = 3.5;
+            if (isDashed) {
+                ctx.setLineDash([5, 5]);
+            } else {
+                ctx.setLineDash([]);
+            }
+            ctx.moveTo(start.x, start.y);
+            ctx.lineTo(end.x, end.y);
+            ctx.stroke();
+            ctx.setLineDash([]); // clear dash always
+
+            // Draw Head Arrow details
+            const angle = Math.atan2(end.y - start.y, end.x - start.x);
+            const headLength = 15;
+
+            ctx.beginPath();
+            ctx.moveTo(end.x, end.y);
+            ctx.lineTo(end.x - headLength * Math.cos(angle - Math.PI / 6), end.y - headLength * Math.sin(angle - Math.PI / 6));
+            ctx.lineTo(end.x - headLength * Math.cos(angle + Math.PI / 6), end.y - headLength * Math.sin(angle + Math.PI / 6));
+            ctx.closePath();
+            ctx.fillStyle = color;
+            ctx.fill();
+
+            // Render text tag values near center of vector
+            const mx = (start.x + end.x) / 2;
+            const my = (start.y + end.y) / 2;
+            ctx.fillStyle = '#ffffff';
+            ctx.font = 'bold 12px "Inter", sans-serif';
+            ctx.shadowColor = 'rgba(0,0,0,0.85)';
+            ctx.shadowBlur = 4;
+            ctx.fillText(name, mx + 12 * Math.sin(angle), my - 12 * Math.cos(angle));
+            ctx.shadowBlur = 0; // reset shadow
+
+            // Draw visual grab anchors (Circle endpoints)
+            ctx.beginPath();
+            ctx.arc(start.x, start.y, 5, 0, 2 * Math.PI);
+            ctx.fillStyle = '#475569';
+            ctx.fill();
+            ctx.strokeStyle = '#ffffff';
+            ctx.lineWidth = 1;
+            ctx.stroke();
+
+            ctx.beginPath();
+            ctx.arc(end.x, end.y, 5, 0, 2 * Math.PI);
+            ctx.fillStyle = color;
+            ctx.fill();
+            ctx.strokeStyle = '#ffffff';
+            ctx.lineWidth = 1;
+            ctx.stroke();
+        }
+
+        // Custom Render for slide-specific walkthrough content
+        function renderTutorialVisualization() {
+            // SLIDE 1: Basic Vectors Visualization
+            if (state.currentSlide === 1) {
+                drawVector(state.A, '#06b6d4', 'A');
+                drawVector(state.B, '#818cf8', 'B');
+            }
+            
+            // SLIDE 2: Scalar Rescaling
+            else if (state.currentSlide === 2) {
+                drawVector(state.A, '#06b6d4', 'A');
+                drawVector(state.B, '#818cf8', 'B');
+                
+                // If animation highlights active, add visual glowing outline elements
+                if (state.animType === 'scale_feedback_A') {
+                    ctx.save();
+                    ctx.shadowColor = '#06b6d4';
+                    ctx.shadowBlur = 10;
+                    drawVector(state.A, '#22d3ee', 'Scaled A');
+                    ctx.restore();
+                } else if (state.animType === 'scale_feedback_B') {
+                    ctx.save();
+                    ctx.shadowColor = '#818cf8';
+                    ctx.shadowBlur = 10;
+                    drawVector(state.B, '#a5b4fc', 'Scaled B');
+                    ctx.restore();
+                }
+            }
+
+            // SLIDE 3: Vector Addition
+            else if (state.currentSlide === 3) {
+                // Base A vector
+                drawVector(state.A, '#06b6d4', 'A');
+
+                if (state.animating && state.animType === 'addition_slide') {
+                    // Linear interpolation math to determine current tail position
+                    const currentTailX = state.animStartPoint.x + (state.animEndPoint.x - state.animStartPoint.x) * state.animProgress;
+                    const currentTailY = state.animStartPoint.y + (state.animEndPoint.y - state.animStartPoint.y) * state.animProgress;
+
+                    const movingB = {
+                        x: state.B.x,
+                        y: state.B.y,
+                        tailX: currentTailX,
+                        tailY: currentTailY
+                    };
+                    drawVector(movingB, '#818cf8', 'B (sliding)', true);
+
+                    // If animation finishes, draw sum result vector C
+                    if (state.animProgress >= 1.0) {
+                        const C = {
+                            x: state.A.x + state.B.x,
+                            y: state.A.y + state.B.y,
+                            tailX: state.A.tailX,
+                            tailY: state.A.tailY
+                        };
+                        drawVector(C, '#f59e0b', 'C = A + B');
+                    }
+                } else {
+                    // Static base representation
+                    drawVector(state.B, '#818cf8', 'B');
+                }
+            }
+
+            // SLIDE 4: Commutative Parallelogram
+            else if (state.currentSlide === 4) {
+                // Render Vector A and B
+                drawVector(state.A, '#06b6d4', 'A');
+                drawVector(state.B, '#818cf8', 'B');
+
+                if (state.animType === 'parallelogram') {
+                    // Projecting parallel vector lines
+                    const bTranslatedAtHeadOfA = {
+                        x: state.B.x,
+                        y: state.B.y,
+                        tailX: state.A.tailX + state.A.x,
+                        tailY: state.A.tailY + state.A.y
+                    };
+                    const aTranslatedAtHeadOfB = {
+                        x: state.A.x,
+                        y: state.A.y,
+                        tailX: state.B.tailX + state.B.x,
+                        tailY: state.B.tailY + state.B.y
+                    };
+
+                    // Draw helper project references
+                    drawVector(bTranslatedAtHeadOfA, 'rgba(129, 140, 248, 0.45)', "B'", true);
+                    drawVector(aTranslatedAtHeadOfB, 'rgba(6, 182, 212, 0.45)', "A'", true);
+
+                    if (state.animProgress > 0.4) {
+                        const C = {
+                            x: state.A.x + state.B.x,
+                            y: state.A.y + state.B.y,
+                            tailX: state.A.tailX,
+                            tailY: state.A.tailY
+                        };
+                        drawVector(C, '#f59e0b', 'C = A + B');
+                    }
+                }
+            }
+
+            // SLIDE 5: Vector Subtraction
+            else if (state.currentSlide === 5) {
+                drawVector(state.A, '#06b6d4', 'A');
+
+                if (state.animType === 'subtraction') {
+                    // Render B originally
+                    if (state.animProgress < 0.4) {
+                        drawVector(state.B, '#818cf8', 'B');
+                    }
+
+                    // Flip Animation Step (0.0 to 0.4)
+                    let B_inverted_x = state.B.x;
+                    let B_inverted_y = state.B.y;
+                    if (state.animProgress >= 0.4) {
+                        B_inverted_x = -state.B.x;
+                        B_inverted_y = -state.B.y;
+                    }
+
+                    // Slide flipped vector B-prime to the head of A
+                    if (state.animProgress >= 0.4) {
+                        const slideFactor = (state.animProgress - 0.4) / 0.6; // normalized 0 to 1 scaling
+                        
+                        // Path interpolation values
+                        const startTailX = state.B.tailX;
+                        const startTailY = state.B.tailY;
+                        const destTailX = state.A.tailX + state.A.x;
+                        const destTailY = state.A.tailY + state.A.y;
+
+                        const curTailX = startTailX + (destTailX - startTailX) * slideFactor;
+                        const curTailY = startTailY + (destTailY - startTailY) * slideFactor;
+
+                        const invertedBVec = {
+                            x: B_inverted_x,
+                            y: B_inverted_y,
+                            tailX: curTailX,
+                            tailY: curTailY
+                        };
+                        drawVector(invertedBVec, '#f43f5e', '-B', true);
+
+                        // If completed transition slide, render Resultant Subtraction Vector C
+                        if (slideFactor >= 1.0) {
+                            const C = {
+                                x: state.A.x - state.B.x,
+                                y: state.A.y - state.B.y,
+                                tailX: state.A.tailX,
+                                tailY: state.A.tailY
+                            };
+                            drawVector(C, '#f59e0b', 'C = A - B');
+                        }
+                    }
+                } else {
+                    drawVector(state.B, '#818cf8', 'B');
+                }
+            }
+        }
+
+        // Render Sandbox mode
+        function renderSandboxVisualization() {
+            // Draw A & B
+            drawVector(state.A, '#06b6d4', 'A');
+            drawVector(state.B, '#818cf8', 'B');
+
+            // Math execution
+            if (state.sandboxOp === 'add') {
+                const C = {
+                    x: state.A.x + state.B.x,
+                    y: state.A.y + state.B.y,
+                    tailX: state.A.tailX,
+                    tailY: state.A.tailY
+                };
+                drawVector(C, '#f59e0b', 'C = A + B');
+            } else if (state.sandboxOp === 'sub') {
+                const C = {
+                    x: state.A.x - state.B.x,
+                    y: state.A.y - state.B.y,
+                    tailX: state.A.tailX,
+                    tailY: state.A.tailY
+                };
+                drawVector(C, '#f59e0b', 'C = A - B');
+            } else if (state.sandboxOp === 'scale') {
+                const sVal = parseFloat(document.getElementById('sandbox-scalar-input').value);
+                const C = {
+                    x: state.A.x * sVal,
+                    y: state.A.y * sVal,
+                    tailX: state.A.tailX,
+                    tailY: state.A.tailY
+                };
+                drawVector(C, '#f59e0b', `C = ${sVal.toFixed(1)}A`);
+            }
+        }
+
+        // Mouse and Touch Interaction Handlers
+        function getMouseCoordinates(e) {
+            const rect = canvas.getBoundingClientRect();
+            // Handle touch points vs standard mouse
+            const clientX = e.touches ? e.touches[0].clientX : e.clientX;
+            const clientY = e.touches ? e.touches[0].clientY : e.clientY;
+            return {
+                x: clientX - rect.left,
+                y: clientY - rect.top
+            };
+        }
+
+        function getDistance(p1, p2) {
+            return Math.sqrt((p1.x - p2.x) ** 2 + (p1.y - p2.y) ** 2);
+        }
+
+        // Handle Pointer Down
+        function handlePointerDown(e) {
+            if (state.animating) return; // Freeze dragging during presentation animations
+
+            const mPos = getMouseCoordinates(e);
+            const wPos = screenToWorld(mPos.x, mPos.y);
+
+            // Vector head positions
+            const headA_S = worldToScreen(state.A.tailX + state.A.x, state.A.tailY + state.A.y);
+            const headB_S = worldToScreen(state.B.tailX + state.B.x, state.B.tailY + state.B.y);
+
+            // Vector tail positions
+            const tailA_S = worldToScreen(state.A.tailX, state.A.tailY);
+            const tailB_S = worldToScreen(state.B.tailX, state.B.tailY);
+
+            const grabTolerance = 12; // pixels radius tolerance
+
+            state.draggedObject = null;
+
+            if (getDistance(mPos, headA_S) < grabTolerance) {
+                state.draggedObject = { vector: 'A', point: 'head' };
+            } else if (getDistance(mPos, headB_S) < grabTolerance) {
+                state.draggedObject = { vector: 'B', point: 'head' };
+            } else if (getDistance(mPos, tailA_S) < grabTolerance) {
+                state.draggedObject = { vector: 'A', point: 'tail' };
+            } else if (getDistance(mPos, tailB_S) < grabTolerance) {
+                state.draggedObject = { vector: 'B', point: 'tail' };
+            }
+
+            if (state.draggedObject) {
+                state.mouseIsDown = true;
+                state.dragStartPos = { ...wPos };
+                playInteractionSound('tick');
+                e.preventDefault();
+            }
+        }
+
+        // Handle Pointer Move
+        function handlePointerMove(e) {
+            if (!state.mouseIsDown || !state.draggedObject) return;
+
+            const mPos = getMouseCoordinates(e);
+            const wPos = screenToWorld(mPos.x, mPos.y);
+
+            const activeVec = state.draggedObject.vector === 'A' ? state.A : state.B;
+            const point = state.draggedObject.point;
+
+            // Optional grid snapping logic
+            const snap = document.getElementById('chk-snap').checked;
+
+            if (point === 'tail') {
+                // Translating vector: Keep length vector values identical, move tail offsets
+                let targetTailX = wPos.x;
+                let targetTailY = wPos.y;
+                
+                if (snap) {
+                    targetTailX = Math.round(targetTailX);
+                    targetTailY = Math.round(targetTailY);
+                }
+
+                activeVec.tailX = targetTailX;
+                activeVec.tailY = targetTailY;
+            } else if (point === 'head') {
+                // Resizing Vector: Change direct coordinate components
+                let newHeadX = wPos.x;
+                let newHeadY = wPos.y;
+
+                if (snap) {
+                    newHeadX = Math.round(newHeadX);
+                    newHeadY = Math.round(newHeadY);
+                }
+
+                activeVec.x = newHeadX - activeVec.tailX;
+                activeVec.y = newHeadY - activeVec.tailY;
+            }
+
+            updateAnalyticsAndControls();
+            draw();
+            e.preventDefault();
+        }
+
+        // Handle Pointer End
+        function handlePointerUp() {
+            if (state.mouseIsDown) {
+                playInteractionSound('tick');
+            }
+            state.mouseIsDown = false;
+            state.draggedObject = null;
+        }
+
+        // Event bindings on elements
+        canvas.addEventListener('mousedown', handlePointerDown);
+        canvas.addEventListener('mousemove', handlePointerMove);
+        window.addEventListener('mouseup', handlePointerUp);
+
+        canvas.addEventListener('touchstart', handlePointerDown, { passive: false });
+        canvas.addEventListener('touchmove', handlePointerMove, { passive: false });
+        window.addEventListener('touchend', handlePointerUp);
+
+        // Pre-run setup initialization on load
+        initializeSlideState(1);
+
+    </script>
+</body>
+</html>
