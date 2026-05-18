@@ -1,0 +1,838 @@
+<!DOCTYPE html>
+<html lang="en" class="h-full">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Vector Representations: i, j, k vs. Magnitude & Angle</title>
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Inter Font -->
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=Fira+Code:wght@400;500&display=swap" rel="stylesheet">
+    <!-- FontAwesome for Icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        body {
+            font-family: 'Inter', sans-serif;
+        }
+        .code-font {
+            font-family: 'Fira Code', monospace;
+        }
+        /* Custom scrollbar for steps */
+        ::-webkit-scrollbar {
+            width: 6px;
+            height: 6px;
+        }
+        ::-webkit-scrollbar-track {
+            background: #1e293b;
+        }
+        ::-webkit-scrollbar-thumb {
+            background: #475569;
+            border-radius: 3px;
+        }
+        ::-webkit-scrollbar-thumb:hover {
+            background: #64748b;
+        }
+        
+        /* Drag handle smooth transition without transform coordinates bouncing */
+        #dragHandle {
+            transition: r 0.15s ease, stroke-width 0.15s ease, fill 0.15s ease;
+        }
+        #dragHandle:hover {
+            r: 13;
+            stroke-width: 4px;
+            fill: #c7d2fe;
+        }
+        
+        /* Active body drag state to prevent highlight selection and lock down cursor */
+        body.dragging {
+            user-select: none;
+            -webkit-user-select: none;
+        }
+        body.dragging #dragHandle {
+            r: 14;
+            stroke-width: 4.5px;
+            fill: #e0e7ff;
+            cursor: grabbing;
+        }
+    </style>
+</head>
+<body class="bg-slate-950 text-slate-100 min-h-full flex flex-col selection:bg-indigo-500 selection:text-white overflow-x-hidden">
+
+    <header class="border-b border-slate-800 bg-slate-900/80 backdrop-blur sticky top-0 z-50 px-4 py-3 sm:px-6">
+        <div class="max-w-7xl mx-auto flex flex-col sm:flex-row items-center justify-between gap-4">
+            <div class="flex items-center gap-3">
+                <div class="h-10 w-10 rounded-xl bg-gradient-to-tr from-indigo-500 via-purple-500 to-pink-500 flex items-center justify-center shadow-lg shadow-indigo-500/20">
+                    <i class="fa-solid fa-arrows-spin text-white text-lg"></i>
+                </div>
+                <div>
+                    <h1 class="text-lg font-bold bg-gradient-to-r from-white via-slate-100 to-slate-300 bg-clip-text text-transparent">Vector Representation Simulator</h1>
+                    <p class="text-xs text-slate-400">Mastering conversions between Cartesian Components and Polar Coordinates</p>
+                </div>
+            </div>
+            <div class="flex items-center gap-2">
+                <button onclick="loadTranscriptPreset1()" class="px-3 py-1.5 text-xs font-semibold bg-slate-800 hover:bg-slate-700 text-indigo-400 hover:text-indigo-300 rounded-lg border border-slate-700 transition duration-200">
+                    <i class="fa-solid fa-chart-line mr-1"></i> Preset 1: -2i + 3j
+                </button>
+                <button onclick="loadTranscriptPreset2()" class="px-3 py-1.5 text-xs font-semibold bg-slate-800 hover:bg-slate-700 text-amber-400 hover:text-amber-300 rounded-lg border border-slate-700 transition duration-200">
+                    <i class="fa-solid fa-compass mr-1"></i> Preset 2: 2 @ 30°
+                </button>
+                <button onclick="resetVector()" class="p-1.5 text-slate-400 hover:text-slate-200 bg-slate-800 rounded-lg hover:bg-slate-700 border border-slate-700 transition" title="Reset Grid">
+                    <i class="fa-solid fa-rotate-left"></i>
+                </button>
+            </div>
+        </div>
+    </header>
+
+    <main class="flex-1 max-w-7xl w-full mx-auto p-4 sm:p-6 lg:p-8 grid grid-cols-1 lg:grid-cols-12 gap-8 items-start">
+        
+        <!-- Left Column: Interactive Vector Workspace (SVG Grid) & Controllers -->
+        <div class="lg:col-span-7 space-y-6">
+            
+            <!-- The Interactive Grid Canvas Card -->
+            <div class="bg-slate-900 border border-slate-800 rounded-2xl p-4 shadow-xl shadow-slate-950/50 flex flex-col relative overflow-hidden">
+                <div class="absolute top-0 left-0 w-1.5 h-full bg-indigo-500"></div>
+                
+                <div class="flex items-center justify-between mb-4">
+                    <div class="flex items-center gap-2">
+                        <span class="flex h-2.5 w-2.5 relative">
+                            <span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>
+                            <span class="relative inline-flex rounded-full h-2.5 w-2.5 bg-emerald-500"></span>
+                        </span>
+                        <h2 class="font-bold text-slate-200 text-sm tracking-wide uppercase">Interactive Sandbox Grid</h2>
+                    </div>
+                    <div class="flex items-center gap-4 text-xs text-slate-400">
+                        <label class="flex items-center gap-1.5 cursor-pointer">
+                            <input type="checkbox" id="snapCheck" checked onchange="toggleSnap()" class="rounded border-slate-700 text-indigo-600 bg-slate-800 focus:ring-indigo-500">
+                            Snap to Grid
+                        </label>
+                        <span id="coordDisplay" class="bg-slate-950 px-2 py-1 rounded border border-slate-800 font-mono text-indigo-400">A = (-2.00, 3.00)</span>
+                    </div>
+                </div>
+
+                <!-- SVG Interactive Grid Board -->
+                <div class="relative w-full aspect-square bg-slate-950 border border-slate-800/80 rounded-xl overflow-hidden select-none cursor-crosshair shadow-inner" id="gridContainer">
+                    <svg id="vectorGrid" class="w-full h-full" viewBox="0 0 500 500" xmlns="http://www.w3.org/2000/svg">
+                        <defs>
+                            <!-- Grid Patterns -->
+                            <pattern id="smallGrid" width="10" height="10" patternUnits="userSpaceOnUse">
+                                <path d="M 10 0 L 0 0 0 10" fill="none" stroke="#334155" stroke-width="0.3" opacity="0.3"/>
+                            </pattern>
+                            <pattern id="grid" width="50" height="50" patternUnits="userSpaceOnUse">
+                                <rect width="50" height="50" fill="url(#smallGrid)"/>
+                                <path d="M 50 0 L 0 0 0 50" fill="none" stroke="#475569" stroke-width="0.7" opacity="0.6"/>
+                            </pattern>
+                            <!-- Arrow Marker for Resultant Vector -->
+                            <marker id="arrow-resultant" viewBox="0 0 10 10" refX="6" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
+                                <path d="M 0 1.5 L 8 5 L 0 8.5 z" fill="#818cf8"/>
+                            </marker>
+                            <!-- Arrow Marker for Component X -->
+                            <marker id="arrow-x" viewBox="0 0 10 10" refX="5" refY="5" markerWidth="5" markerHeight="5" orient="auto-start-reverse">
+                                <path d="M 0 1.5 L 8 5 L 0 8.5 z" fill="#f43f5e"/>
+                            </marker>
+                            <!-- Arrow Marker for Component Y -->
+                            <marker id="arrow-y" viewBox="0 0 10 10" refX="5" refY="5" markerWidth="5" markerHeight="5" orient="auto-start-reverse">
+                                <path d="M 0 1.5 L 8 5 L 0 8.5 z" fill="#0ea5e9"/>
+                            </marker>
+                        </defs>
+
+                        <!-- Base Grid Overlay -->
+                        <rect width="100%" height="100%" fill="url(#grid)" />
+
+                        <!-- Main Coordinates Axes -->
+                        <line x1="0" y1="250" x2="500" y2="250" stroke="#64748b" stroke-width="1.8" />
+                        <line x1="250" y1="0" x2="250" y2="500" stroke="#64748b" stroke-width="1.8" />
+
+                        <!-- Axis Labels / Scale ticks (simplified) -->
+                        <g class="text-[10px] fill-slate-500 font-mono select-none pointer-events-none">
+                            <text x="485" y="242">X</text>
+                            <text x="256" y="15">Y</text>
+                            
+                            <!-- Positive X Axis Ticks -->
+                            <text x="300" y="262" text-anchor="middle">+1</text>
+                            <text x="350" y="262" text-anchor="middle">+2</text>
+                            <text x="400" y="262" text-anchor="middle">+3</text>
+                            <text x="450" y="262" text-anchor="middle">+4</text>
+                            
+                            <!-- Negative X Axis Ticks -->
+                            <text x="200" y="262" text-anchor="middle">-1</text>
+                            <text x="150" y="262" text-anchor="middle">-2</text>
+                            <text x="100" y="262" text-anchor="middle">-3</text>
+                            <text x="50" y="262" text-anchor="middle">-4</text>
+
+                            <!-- Positive Y Axis Ticks -->
+                            <text x="238" y="204" text-anchor="end">+1</text>
+                            <text x="238" y="154" text-anchor="end">+2</text>
+                            <text x="238" y="104" text-anchor="end">+3</text>
+                            <text x="238" y="54" text-anchor="end">+4</text>
+
+                            <!-- Negative Y Axis Ticks -->
+                            <text x="238" y="304" text-anchor="end">-1</text>
+                            <text x="238" y="354" text-anchor="end">-2</text>
+                            <text x="238" y="404" text-anchor="end">-3</text>
+                            <text x="238" y="454" text-anchor="end">-4</text>
+                        </g>
+
+                        <!-- Vector Components (Projections) -->
+                        <!-- X Component Arrow (along x-axis) -->
+                        <line id="compXLine" x1="250" y1="250" x2="150" y2="250" stroke="#f43f5e" stroke-width="3" stroke-dasharray="0" marker-end="url(#arrow-x)" />
+                        <!-- Y Component Arrow (displaced to form triangle) -->
+                        <line id="compYLine" x1="150" y1="250" x2="150" y2="100" stroke="#0ea5e9" stroke-width="3" stroke-dasharray="4,3" marker-end="url(#arrow-y)" />
+                        
+                        <!-- Ghost projections for visual context -->
+                        <line id="projXGhost" x1="250" y1="100" x2="150" y2="100" stroke="#475569" stroke-width="1.2" stroke-dasharray="3,3" />
+                        <line id="projYGhost" x1="250" y1="250" x2="250" y2="100" stroke="#0ea5e9" stroke-width="1.2" stroke-dasharray="3,3" opacity="0.3" />
+
+                        <!-- Dynamic Angle Arc -->
+                        <path id="angleArc" d="M 280,250 A 30,30 0 0,0 280,250" fill="rgba(245, 158, 11, 0.15)" stroke="#f59e0b" stroke-width="2" />
+
+                        <!-- Resultant Vector Line -->
+                        <line id="resultantLine" x1="250" y1="250" x2="150" y2="100" stroke="#818cf8" stroke-width="4.5" marker-end="url(#arrow-resultant)" />
+
+                        <!-- Interactive Vector Tip Handler -->
+                        <circle id="dragHandle" cx="150" cy="100" r="10" fill="#a5b4fc" stroke="#4338ca" stroke-width="3" class="cursor-grab" />
+                    </svg>
+
+                    <!-- Quadrant Watermark indicators -->
+                    <div class="absolute top-4 left-4 text-xs font-semibold text-slate-800 pointer-events-none select-none">Q II (-, +)</div>
+                    <div class="absolute top-4 right-4 text-xs font-semibold text-slate-800 pointer-events-none select-none">Q I (+, +)</div>
+                    <div class="absolute bottom-4 left-4 text-xs font-semibold text-slate-800 pointer-events-none select-none">Q III (-, -)</div>
+                    <div class="absolute bottom-4 right-4 text-xs font-semibold text-slate-800 pointer-events-none select-none">Q IV (+, -)</div>
+                </div>
+
+                <!-- Touch Device Warning Alert -->
+                <div class="mt-2 text-center text-[11px] text-slate-500 lg:hidden">
+                    <i class="fa-solid fa-fingerprint mr-1"></i> Tap and drag the light-blue node on the grid to direct the vector.
+                </div>
+            </div>
+
+            <!-- Input Sliders Control Board -->
+            <div class="bg-slate-900 border border-slate-800 rounded-2xl p-6 shadow-xl space-y-6">
+                <!-- Mode Switch Tabs -->
+                <div class="flex p-1 bg-slate-950 rounded-xl border border-slate-800">
+                    <button id="modeCartesianBtn" onclick="setControlMode('cartesian')" class="flex-1 py-2 text-xs font-bold rounded-lg transition-all duration-200 bg-indigo-600 text-white shadow">
+                        <i class="fa-solid fa-square-minus mr-1.5"></i> Cartesian: i & j
+                    </button>
+                    <button id="modePolarBtn" onclick="setControlMode('polar')" class="flex-1 py-2 text-xs font-bold rounded-lg transition-all duration-200 text-slate-400 hover:text-slate-200">
+                        <i class="fa-solid fa-compass-drafting mr-1.5"></i> Polar: Mag & θ
+                    </button>
+                </div>
+
+                <!-- Cartesian Sliders (Active by Default) -->
+                <div id="cartesianControls" class="space-y-5">
+                    <div>
+                        <div class="flex justify-between items-center mb-2">
+                            <span class="text-sm font-semibold text-rose-400 flex items-center gap-1.5">
+                                <span class="w-2.5 h-2.5 rounded bg-rose-500"></span>
+                                x Component (A<sub>x</sub>)
+                            </span>
+                            <span id="sliderXVal" class="text-sm font-bold code-font text-rose-400 bg-rose-500/10 px-2 py-0.5 rounded border border-rose-500/20">-2.00</span>
+                        </div>
+                        <input type="range" id="inputX" min="-5" max="5" step="0.1" value="-2" oninput="handleCartesianSlider()" class="w-full accent-rose-500 bg-slate-800 h-2 rounded-lg cursor-pointer">
+                        <div class="flex justify-between text-[10px] text-slate-500 mt-1 font-mono">
+                            <span>-5.0 î</span>
+                            <span>0.0</span>
+                            <span>+5.0 î</span>
+                        </div>
+                    </div>
+
+                    <div>
+                        <div class="flex justify-between items-center mb-2">
+                            <span class="text-sm font-semibold text-sky-400 flex items-center gap-1.5">
+                                <span class="w-2.5 h-2.5 rounded bg-sky-500"></span>
+                                y Component (A<sub>y</sub>)
+                            </span>
+                            <span id="sliderYVal" class="text-sm font-bold code-font text-sky-400 bg-sky-500/10 px-2 py-0.5 rounded border border-sky-500/20">3.00</span>
+                        </div>
+                        <input type="range" id="inputY" min="-5" max="5" step="0.1" value="3" oninput="handleCartesianSlider()" class="w-full accent-sky-500 bg-slate-800 h-2 rounded-lg cursor-pointer">
+                        <div class="flex justify-between text-[10px] text-slate-500 mt-1 font-mono">
+                            <span>-5.0 ĵ</span>
+                            <span>0.0</span>
+                            <span>+5.0 ĵ</span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Polar Sliders (Disabled by Default, switched dynamically) -->
+                <div id="polarControls" class="space-y-5 hidden opacity-40">
+                    <div>
+                        <div class="flex justify-between items-center mb-2">
+                            <span class="text-sm font-semibold text-indigo-400 flex items-center gap-1.5">
+                                <span class="w-2.5 h-2.5 rounded bg-indigo-500"></span>
+                                Magnitude (|A|)
+                            </span>
+                            <span id="sliderMagVal" class="text-sm font-bold code-font text-indigo-400 bg-indigo-500/10 px-2 py-0.5 rounded border border-indigo-500/20">3.61</span>
+                        </div>
+                        <input type="range" id="inputMag" min="0.1" max="7" step="0.1" value="3.61" oninput="handlePolarSlider()" disabled class="w-full accent-indigo-500 bg-slate-800 h-2 rounded-lg cursor-not-allowed">
+                        <div class="flex justify-between text-[10px] text-slate-500 mt-1 font-mono">
+                            <span>0.1 units</span>
+                            <span>3.5</span>
+                            <span>7.0 units</span>
+                        </div>
+                    </div>
+
+                    <div>
+                        <div class="flex justify-between items-center mb-2">
+                            <span class="text-sm font-semibold text-amber-500 flex items-center gap-1.5">
+                                <span class="w-2.5 h-2.5 rounded bg-amber-500"></span>
+                                Angle (θ)
+                            </span>
+                            <span id="sliderAngleVal" class="text-sm font-bold code-font text-amber-500 bg-amber-500/10 px-2 py-0.5 rounded border border-amber-500/20">123.7°</span>
+                        </div>
+                        <input type="range" id="inputAngle" min="0" max="359.9" step="0.5" value="123.7" oninput="handlePolarSlider()" disabled class="w-full accent-amber-500 bg-slate-800 h-2 rounded-lg cursor-not-allowed">
+                        <div class="flex justify-between text-[10px] text-slate-500 mt-1 font-mono">
+                            <span>0° (East)</span>
+                            <span>180° (West)</span>
+                            <span>359°</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Right Column: Interactive Conversions & Infographic Panel -->
+        <div class="lg:col-span-5 space-y-6">
+            
+            <!-- Real-time Conversions Breakdown -->
+            <div class="bg-slate-900 border border-slate-800 rounded-2xl p-6 shadow-xl relative">
+                <h3 class="text-base font-bold text-slate-100 flex items-center gap-2 mb-4 border-b border-slate-800 pb-3">
+                    <i class="fa-solid fa-calculator text-indigo-400"></i>
+                    Derivations & Conversion Formulas
+                </h3>
+
+                <div class="space-y-6">
+                    <!-- Conversion: i-j-k to Mag-Angle -->
+                    <div class="bg-slate-950 p-4 rounded-xl border border-slate-800 relative group overflow-hidden">
+                        <div class="absolute top-0 right-0 p-1.5 bg-rose-500/10 rounded-bl-lg text-[10px] font-bold text-rose-400 tracking-wider uppercase border-l border-b border-rose-500/20">i, j → Mag/Angle</div>
+                        <h4 class="text-xs font-bold text-slate-400 uppercase tracking-wide mb-3">Unit Components to Polar</h4>
+                        
+                        <!-- Pythagoras Formula Step -->
+                        <div class="space-y-3 text-sm">
+                            <div>
+                                <div class="text-[11px] text-slate-400 uppercase">1. Magnitude (|A|) via Pythagorean Theorem</div>
+                                <div class="font-mono mt-1 text-indigo-300 bg-indigo-950/20 p-2 rounded border border-indigo-900/30 flex justify-between items-center flex-wrap gap-2 text-xs">
+                                    <span>|A| = √(A<sub>x</sub>² + A<sub>y</sub>²)</span>
+                                    <span id="calcMagStep">|A| = √((-2.00)² + (3.00)²) = 3.61</span>
+                                </div>
+                            </div>
+                            <!-- Tangent Formula Step -->
+                            <div>
+                                <div class="text-[11px] text-slate-400 uppercase">2. Base Direction Angle (θ)</div>
+                                <div class="font-mono mt-1 text-amber-400 bg-amber-950/20 p-2 rounded border border-amber-900/30 flex justify-between items-center flex-wrap gap-2 text-xs">
+                                    <span>tan(θ) = A<sub>y</sub> / A<sub>x</sub></span>
+                                    <span id="calcTanStep">θ = tan⁻¹(3.00 / -2.00)</span>
+                                </div>
+                                <div id="calcQuadrantStep" class="text-xs text-slate-400 mt-1 bg-slate-900 p-2 rounded border border-slate-800 font-serif leading-relaxed italic">
+                                    Since x &lt; 0 and y &gt; 0, Vector is in Q II. θ = 180° - 56.31° = 123.69°
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Conversion: Mag-Angle to i-j-k -->
+                    <div class="bg-slate-950 p-4 rounded-xl border border-slate-800 relative group overflow-hidden">
+                        <div class="absolute top-0 right-0 p-1.5 bg-sky-500/10 rounded-bl-lg text-[10px] font-bold text-sky-400 tracking-wider uppercase border-l border-b border-sky-500/20">Mag/Angle → i, j</div>
+                        <h4 class="text-xs font-bold text-slate-400 uppercase tracking-wide mb-3">Polar to Unit Components</h4>
+                        
+                        <div class="space-y-3 text-sm">
+                            <!-- X Projection component -->
+                            <div>
+                                <div class="text-[11px] text-slate-400 uppercase">1. x-component (A<sub>x</sub> î)</div>
+                                <div class="font-mono mt-1 text-rose-400 bg-rose-950/20 p-2 rounded border border-rose-900/30 flex justify-between items-center flex-wrap gap-2 text-xs">
+                                    <span>A<sub>x</sub> = |A| cos(θ)</span>
+                                    <span id="calcXProj">A<sub>x</sub> = 3.61 × cos(123.69°) = -2.00</span>
+                                </div>
+                            </div>
+                            <!-- Y Projection component -->
+                            <div>
+                                <div class="text-[11px] text-slate-400 uppercase">2. y-component (A<sub>y</sub> ĵ)</div>
+                                <div class="font-mono mt-1 text-sky-400 bg-sky-950/20 p-2 rounded border border-sky-900/30 flex justify-between items-center flex-wrap gap-2 text-xs">
+                                    <span>A<sub>y</sub> = |A| sin(θ)</span>
+                                    <span id="calcYProj">A<sub>y</sub> = 3.61 × sin(123.69°) = 3.00</span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                </div>
+            </div>
+
+            <!-- Embedded Infographic Sheet -->
+            <div class="bg-slate-900 border border-slate-800 rounded-2xl p-6 shadow-xl relative overflow-hidden">
+                <div class="absolute -right-16 -bottom-16 w-40 h-40 bg-indigo-500/10 rounded-full blur-3xl"></div>
+                
+                <h3 class="text-base font-bold text-slate-100 flex items-center gap-2 mb-4 border-b border-slate-800 pb-3">
+                    <i class="fa-solid fa-circle-info text-emerald-400"></i>
+                    Vector Infographic & Quadrant Logic
+                </h3>
+
+                <div class="space-y-4 text-xs">
+                    <!-- Concept summary -->
+                    <p class="text-slate-300 leading-relaxed font-sans">
+                        Any 2D vector can be described in two ways: by its components on orthogonal axes (<span class="text-rose-400 font-bold">A<sub>x</sub></span>, <span class="text-sky-400 font-bold">A<sub>y</sub></span>) or by its total length (<span class="text-indigo-400 font-bold">|A|</span>) and heading angle (<span class="text-amber-400 font-bold">θ</span>) relative to the positive x-axis.
+                    </p>
+
+                    <!-- Quadrant Map Grid visual cheat sheet -->
+                    <div class="bg-slate-950 border border-slate-800 rounded-xl p-3 grid grid-cols-2 gap-2 text-center font-mono relative">
+                        <!-- Quadrant I -->
+                        <div class="p-2 bg-slate-900/40 rounded border border-slate-850">
+                            <div class="text-[10px] text-emerald-400 font-bold">Quad I (x+, y+)</div>
+                            <div class="text-[11px] text-slate-300 mt-1">θ = θ<sub>base</sub></div>
+                            <div class="text-[9px] text-slate-500 mt-0.5">0° to 90°</div>
+                        </div>
+                        <!-- Quadrant II -->
+                        <div class="p-2 bg-slate-900/40 rounded border border-slate-850">
+                            <div class="text-[10px] text-indigo-400 font-bold">Quad II (x-, y+)</div>
+                            <div class="text-[11px] text-slate-300 mt-1">θ = 180° - |θ<sub>base</sub>|</div>
+                            <div class="text-[9px] text-slate-500 mt-0.5">90° to 180°</div>
+                        </div>
+                        <!-- Quadrant III -->
+                        <div class="p-2 bg-slate-900/40 rounded border border-slate-850">
+                            <div class="text-[10px] text-rose-400 font-bold">Quad III (x-, y-)</div>
+                            <div class="text-[11px] text-slate-300 mt-1">θ = 180° + |θ<sub>base</sub>|</div>
+                            <div class="text-[9px] text-slate-500 mt-0.5">180° to 270°</div>
+                        </div>
+                        <!-- Quadrant IV -->
+                        <div class="p-2 bg-slate-900/40 rounded border border-slate-850">
+                            <div class="text-[10px] text-amber-500 font-bold">Quad IV (x+, y-)</div>
+                            <div class="text-[11px] text-slate-300 mt-1">θ = 360° - |θ<sub>base</sub>|</div>
+                            <div class="text-[9px] text-slate-500 mt-0.5">270° to 360°</div>
+                        </div>
+                        <!-- Quadrant center point -->
+                        <div class="absolute left-1/2 top-1/2 w-4 h-4 bg-slate-850 border border-slate-700 rounded-full transform -translate-x-1/2 -translate-y-1/2 flex items-center justify-center text-[8px] text-slate-400">+</div>
+                    </div>
+
+                    <!-- Note about quadrants -->
+                    <div class="p-3 bg-indigo-950/20 border border-indigo-900/30 rounded-xl text-indigo-300 flex items-start gap-2.5">
+                        <i class="fa-solid fa-circle-exclamation text-indigo-400 mt-0.5"></i>
+                        <span class="leading-relaxed">
+                            <strong>Note on tan⁻¹:</strong> Standard calculator inverse tangent returns results between <strong>-90° and +90°</strong>. Always review your component signs to choose the true quadrant!
+                        </span>
+                    </div>
+                </div>
+            </div>
+
+        </div>
+
+    </main>
+
+    <!-- Alert Notification System -->
+    <div id="toast" class="fixed bottom-6 right-6 z-50 transform translate-y-24 opacity-0 transition-all duration-300 bg-slate-900 border border-emerald-500/30 text-emerald-300 px-4 py-3 rounded-xl shadow-2xl flex items-center gap-2 text-sm">
+        <i class="fa-solid fa-circle-check text-emerald-400"></i>
+        <span id="toastMessage">Default text</span>
+    </div>
+
+    <!-- Interactive Bottom Info Panel explaining vectors in Physics -->
+    <footer class="mt-auto border-t border-slate-900 bg-slate-950/80 px-4 py-6 sm:px-6">
+        <div class="max-w-7xl mx-auto flex flex-col md:flex-row items-center justify-between gap-4 text-xs text-slate-500">
+            <p>© 2026 Physics Vectors Interactive. Developed for conceptual physics, static mechanics, and vector calculus instruction.</p>
+            <div class="flex items-center gap-4">
+                <span class="hover:text-slate-300 cursor-help"><i class="fa-solid fa-code-branch mr-1"></i> Version 2.2</span>
+                <span class="hover:text-slate-300 cursor-help"><i class="fa-solid fa-graduation-cap mr-1"></i> Mechanics I</span>
+            </div>
+        </div>
+    </footer>
+
+    <script>
+        // State variables
+        let vector = { x: -2, y: 3 }; // Matches transcript example starting out
+        let snapToGrid = true;
+        let activeControlMode = 'cartesian'; // 'cartesian' or 'polar'
+
+        // DOM Elements
+        const vectorGrid = document.getElementById('vectorGrid');
+        const dragHandle = document.getElementById('dragHandle');
+        const resultantLine = document.getElementById('resultantLine');
+        const compXLine = document.getElementById('compXLine');
+        const compYLine = document.getElementById('compYLine');
+        const projXGhost = document.getElementById('projXGhost');
+        const projYGhost = document.getElementById('projYGhost');
+        const angleArc = document.getElementById('angleArc');
+
+        const inputX = document.getElementById('inputX');
+        const inputY = document.getElementById('inputY');
+        const inputMag = document.getElementById('inputMag');
+        const inputAngle = document.getElementById('inputAngle');
+
+        const sliderXVal = document.getElementById('sliderXVal');
+        const sliderYVal = document.getElementById('sliderYVal');
+        const sliderMagVal = document.getElementById('sliderMagVal');
+        const sliderAngleVal = document.getElementById('sliderAngleVal');
+
+        const coordDisplay = document.getElementById('coordDisplay');
+        const calcMagStep = document.getElementById('calcMagStep');
+        const calcTanStep = document.getElementById('calcTanStep');
+        const calcQuadrantStep = document.getElementById('calcQuadrantStep');
+        const calcXProj = document.getElementById('calcXProj');
+        const calcYProj = document.getElementById('calcYProj');
+
+        // Coordinate space mapping (Vector units [-5, 5] -> SVG space [0, 500])
+        // Grid scale: 1 unit = 50px. Origin (0,0) = SVG (250, 250)
+        const SVG_CENTER = 250;
+        const UNIT_PIXELS = 50;
+
+        function vectorToSvg(x, y) {
+            return {
+                x: SVG_CENTER + (x * UNIT_PIXELS),
+                y: SVG_CENTER - (y * UNIT_PIXELS) // SVG Y is inverted
+            };
+        }
+
+        function svgToVector(svgX, svgY) {
+            return {
+                x: (svgX - SVG_CENTER) / UNIT_PIXELS,
+                y: (SVG_CENTER - svgY) / UNIT_PIXELS
+            };
+        }
+
+        // Initialize state & elements
+        window.onload = function() {
+            updateUI();
+            setupDragging();
+        };
+
+        function setupDragging() {
+            let isDragging = false;
+            const container = document.getElementById('gridContainer');
+
+            // Interactive handlers
+            const dragStart = (e) => {
+                isDragging = true;
+                document.body.classList.add('dragging');
+                if (e.cancelable) {
+                    e.preventDefault();
+                }
+            };
+
+            const dragMove = (e) => {
+                if (!isDragging) return;
+
+                // Absolute lockout of mobile standard scroll bounces
+                if (e.cancelable) {
+                    e.preventDefault();
+                }
+
+                const rect = container.getBoundingClientRect();
+                // Get mouse/touch coordinates relative to SVG
+                let clientX = e.clientX;
+                let clientY = e.clientY;
+
+                if (e.touches && e.touches.length > 0) {
+                    clientX = e.touches[0].clientX;
+                    clientY = e.touches[0].clientY;
+                }
+
+                let relativeX = clientX - rect.left;
+                let relativeY = clientY - rect.top;
+
+                // Scale to SVG aspect ratio boundaries
+                let svgX = (relativeX / rect.width) * 500;
+                let svgY = (relativeY / rect.height) * 500;
+
+                // Constraints within bounds (-5 to +5 vector units)
+                svgX = Math.max(0, Math.min(500, svgX));
+                svgY = Math.max(0, Math.min(500, svgY));
+
+                let rawCoords = svgToVector(svgX, svgY);
+
+                if (snapToGrid) {
+                    rawCoords.x = Math.round(rawCoords.x * 2) / 2; // Snaps to nearest 0.5 unit
+                    rawCoords.y = Math.round(rawCoords.y * 2) / 2;
+                }
+
+                vector.x = rawCoords.x;
+                vector.y = rawCoords.y;
+
+                updateUI();
+            };
+
+            const dragEnd = () => {
+                if (isDragging) {
+                    isDragging = false;
+                    document.body.classList.remove('dragging');
+                }
+            };
+
+            // Mouse Events
+            dragHandle.addEventListener('mousedown', dragStart);
+            window.addEventListener('mousemove', dragMove, { passive: false });
+            window.addEventListener('mouseup', dragEnd);
+
+            // Touch Events
+            dragHandle.addEventListener('touchstart', dragStart, { passive: false });
+            window.addEventListener('touchmove', dragMove, { passive: false });
+            window.addEventListener('touchend', dragEnd);
+
+            // Direct click on Grid to set coordinates instantly
+            container.addEventListener('click', (e) => {
+                if (e.target === dragHandle) return; // ignore click on handle
+                const rect = container.getBoundingClientRect();
+                let svgX = ((e.clientX - rect.left) / rect.width) * 500;
+                let svgY = ((e.clientY - rect.top) / rect.height) * 500;
+
+                let clickedCoords = svgToVector(svgX, svgY);
+                if (snapToGrid) {
+                    clickedCoords.x = Math.round(clickedCoords.x);
+                    clickedCoords.y = Math.round(clickedCoords.y);
+                }
+
+                vector.x = clickedCoords.x;
+                vector.y = clickedCoords.y;
+                updateUI();
+                showToast(`Vector head placed at (${vector.x.toFixed(1)}, ${vector.y.toFixed(1)})`);
+            });
+        }
+
+        function toggleSnap() {
+            snapToGrid = document.getElementById('snapCheck').checked;
+            showToast(snapToGrid ? "Snapping enabled (0.5 unit steps)" : "Snapping disabled");
+        }
+
+        function setControlMode(mode) {
+            activeControlMode = mode;
+            const cartesianPanel = document.getElementById('cartesianControls');
+            const polarPanel = document.getElementById('polarControls');
+            const cBtn = document.getElementById('modeCartesianBtn');
+            const pBtn = document.getElementById('modePolarBtn');
+
+            if (mode === 'cartesian') {
+                cartesianPanel.classList.remove('opacity-40');
+                polarPanel.classList.add('opacity-40');
+                
+                // Toggle attributes
+                inputX.removeAttribute('disabled');
+                inputY.removeAttribute('disabled');
+                inputMag.setAttribute('disabled', 'true');
+                inputAngle.setAttribute('disabled', 'true');
+
+                inputX.classList.remove('cursor-not-allowed');
+                inputY.classList.remove('cursor-not-allowed');
+                inputMag.classList.add('cursor-not-allowed');
+                inputAngle.classList.add('cursor-not-allowed');
+
+                cBtn.className = "flex-1 py-2 text-xs font-bold rounded-lg transition-all duration-200 bg-indigo-600 text-white shadow";
+                pBtn.className = "flex-1 py-2 text-xs font-bold rounded-lg transition-all duration-200 text-slate-400 hover:text-slate-200";
+            } else {
+                cartesianPanel.classList.add('opacity-40');
+                polarPanel.classList.remove('opacity-40');
+                
+                // Toggle attributes
+                inputX.setAttribute('disabled', 'true');
+                inputY.setAttribute('disabled', 'true');
+                inputMag.removeAttribute('disabled');
+                inputAngle.removeAttribute('disabled');
+
+                inputX.classList.add('cursor-not-allowed');
+                inputY.classList.add('cursor-not-allowed');
+                inputMag.classList.remove('cursor-not-allowed');
+                inputAngle.classList.remove('cursor-not-allowed');
+
+                pBtn.className = "flex-1 py-2 text-xs font-bold rounded-lg transition-all duration-200 bg-indigo-600 text-white shadow";
+                cBtn.className = "flex-1 py-2 text-xs font-bold rounded-lg transition-all duration-200 text-slate-400 hover:text-slate-200";
+            }
+            updateUI();
+        }
+
+        function handleCartesianSlider() {
+            if (activeControlMode !== 'cartesian') return;
+            vector.x = parseFloat(inputX.value);
+            vector.y = parseFloat(inputY.value);
+            updateUI();
+        }
+
+        function handlePolarSlider() {
+            if (activeControlMode !== 'polar') return;
+            const r = parseFloat(inputMag.value);
+            const deg = parseFloat(inputAngle.value);
+            const rad = deg * (Math.PI / 180);
+
+            vector.x = r * Math.cos(rad);
+            vector.y = r * Math.sin(rad);
+            updateUI();
+        }
+
+        function updateUI() {
+            // Bounds control (clamp slightly inside boundaries to prevent out-of-screen)
+            vector.x = Math.max(-5, Math.min(5, vector.x));
+            vector.y = Math.max(-5, Math.min(5, vector.y));
+
+            // Calculations
+            const x = vector.x;
+            const y = vector.y;
+            const magnitude = Math.sqrt(x*x + y*y);
+            
+            // Standard Polar Angle θ in [0, 360) counterclockwise from positive X
+            let angleRad = Math.atan2(y, x);
+            let angleDeg = angleRad * (180 / Math.PI);
+            if (angleDeg < 0) angleDeg += 360;
+
+            // Update sliders depending on which mode is active
+            if (activeControlMode === 'cartesian') {
+                inputX.value = x.toFixed(2);
+                inputY.value = y.toFixed(2);
+                inputMag.value = magnitude.toFixed(2);
+                inputAngle.value = angleDeg.toFixed(1);
+            } else {
+                inputMag.value = magnitude.toFixed(2);
+                inputAngle.value = angleDeg.toFixed(1);
+                inputX.value = x.toFixed(2);
+                inputY.value = y.toFixed(2);
+            }
+
+            // Sync visual numerical values on controls
+            sliderXVal.innerText = (x >= 0 ? "+" : "") + x.toFixed(2);
+            sliderYVal.innerText = (y >= 0 ? "+" : "") + y.toFixed(2);
+            sliderMagVal.innerText = magnitude.toFixed(2);
+            sliderAngleVal.innerText = angleDeg.toFixed(1) + "°";
+
+            coordDisplay.innerText = `A = (${x.toFixed(2)}, ${y.toFixed(2)})`;
+
+            // Draw Vector components on Canvas
+            const originSvg = { x: SVG_CENTER, y: SVG_CENTER };
+            const tipSvg = vectorToSvg(x, y);
+            const compXSvg = vectorToSvg(x, 0);
+
+            // Set main arrow properties
+            dragHandle.setAttribute('cx', tipSvg.x);
+            dragHandle.setAttribute('cy', tipSvg.y);
+
+            resultantLine.setAttribute('x1', originSvg.x);
+            resultantLine.setAttribute('y1', originSvg.y);
+            resultantLine.setAttribute('x2', tipSvg.x);
+            resultantLine.setAttribute('y2', tipSvg.y);
+
+            // Draw components
+            // X path: along x-axis starting from origin
+            compXLine.setAttribute('x1', originSvg.x);
+            compXLine.setAttribute('y1', originSvg.y);
+            compXLine.setAttribute('x2', compXSvg.x);
+            compXLine.setAttribute('y2', originSvg.y);
+
+            // Y path: displaced upwards starting from the end of X component
+            compYLine.setAttribute('x1', compXSvg.x);
+            compYLine.setAttribute('y1', originSvg.y);
+            compYLine.setAttribute('x2', tipSvg.x);
+            compYLine.setAttribute('y2', tipSvg.y);
+
+            // Ghost Projections
+            projXGhost.setAttribute('x1', originSvg.x);
+            projXGhost.setAttribute('y1', tipSvg.y);
+            projXGhost.setAttribute('x2', tipSvg.x);
+            projXGhost.setAttribute('y2', tipSvg.y);
+
+            projYGhost.setAttribute('x1', originSvg.x);
+            projYGhost.setAttribute('y1', originSvg.y);
+            projYGhost.setAttribute('x2', originSvg.x);
+            projYGhost.setAttribute('y2', tipSvg.y);
+
+            // Render Dynamic Angle Arc
+            renderAngleArc(angleDeg, magnitude);
+
+            // Real-time Equations Generator Update
+            calcMagStep.innerHTML = `|A| = √(${x < 0 ? `(${x.toFixed(2)})` : x.toFixed(2)}² + ${y < 0 ? `(${y.toFixed(2)})` : y.toFixed(2)}²) = <strong>${magnitude.toFixed(2)}</strong>`;
+            
+            let tanValStr = x === 0 ? "undefined" : (y/x).toFixed(2);
+            calcTanStep.innerHTML = `θ<sub>base</sub> = tan⁻¹(${y.toFixed(2)} / ${x.toFixed(2)}) = ${x === 0 ? "90°" : Math.abs(Math.atan(y/x) * 180 / Math.PI).toFixed(2) + "°"}`;
+
+            // Evaluate Quadrant context logic text
+            let quadStatement = "";
+            if (x > 0 && y >= 0) {
+                quadStatement = `Quadrant I: Both components (+, +) are positive. θ is simply the base angle: <strong>${angleDeg.toFixed(2)}°</strong>`;
+            } else if (x < 0 && y >= 0) {
+                let baseAng = Math.abs(Math.atan(y/x) * 180 / Math.PI);
+                quadStatement = `Quadrant II: Components are (-, +). Shift angle: 180° - θ<sub>base</sub> (${baseAng.toFixed(2)}°) = <strong>${angleDeg.toFixed(2)}°</strong>`;
+            } else if (x < 0 && y < 0) {
+                let baseAng = Math.abs(Math.atan(y/x) * 180 / Math.PI);
+                quadStatement = `Quadrant III: Components are (-, -). Shift angle: 180° + θ<sub>base</sub> (${baseAng.toFixed(2)}°) = <strong>${angleDeg.toFixed(2)}°</strong>`;
+            } else if (x > 0 && y < 0) {
+                let baseAng = Math.abs(Math.atan(y/x) * 180 / Math.PI);
+                quadStatement = `Quadrant IV: Components are (+, -). Shift angle: 360° - θ<sub>base</sub> (${baseAng.toFixed(2)}°) = <strong>${angleDeg.toFixed(2)}°</strong>`;
+            } else if (x === 0) {
+                quadStatement = y > 0 ? "Strictly on the positive Y-axis. θ = <strong>90.00°</strong>" : "Strictly on the negative Y-axis. θ = <strong>270.00°</strong>";
+            } else if (y === 0) {
+                quadStatement = x > 0 ? "Strictly on the positive X-axis. θ = <strong>0.00°</strong>" : "Strictly on the negative X-axis. θ = <strong>180.00°</strong>";
+            }
+            calcQuadrantStep.innerHTML = quadStatement;
+
+            // Reverse Conversions
+            calcXProj.innerHTML = `A<sub>x</sub> = ${magnitude.toFixed(2)} × cos(${angleDeg.toFixed(1)}°) = <strong>${x.toFixed(2)}</strong>`;
+            calcYProj.innerHTML = `A<sub>y</sub> = ${magnitude.toFixed(2)} × sin(${angleDeg.toFixed(1)}°) = <strong>${y.toFixed(2)}</strong>`;
+        }
+
+        // Helper to draw angle curve arc on canvas dynamically
+        function renderAngleArc(angleDeg, magnitude) {
+            if (magnitude < 0.3) {
+                angleArc.setAttribute('d', "M 250,250 A 0,0 0 0,0 250,250");
+                return;
+            }
+
+            // Fixed radius for the arc representation
+            const arcRadius = 35;
+            const startX = SVG_CENTER + arcRadius; // Along Positive X-axis (0 deg)
+            const startY = SVG_CENTER;
+
+            // Map target angle endpoint coordinates
+            const radAngle = angleDeg * (Math.PI / 180);
+            const endX = SVG_CENTER + arcRadius * Math.cos(radAngle);
+            const endY = SVG_CENTER - arcRadius * Math.sin(radAngle); // Inverted Y
+
+            // Large-arc flag is 1 if angle is > 180
+            const largeArcFlag = angleDeg > 180 ? 1 : 0;
+            // Sweep-flag is 0 because SVG y-axis direction is inverted, creating clockwise/counterclockwise mirror
+            const sweepFlag = 0; 
+
+            if (angleDeg === 0) {
+                angleArc.setAttribute('d', `M ${startX},${startY} A 0,0 0 0,0 ${startX},${startY}`);
+                return;
+            }
+
+            // Path string
+            const pathData = `M ${startX},${startY} A ${arcRadius},${arcRadius} 0 ${largeArcFlag},${sweepFlag} ${endX},${endY}`;
+            angleArc.setAttribute('d', pathData);
+        }
+
+        // Presets Loading Functions
+        function loadTranscriptPreset1() {
+            // From Transcript: -2i + 3j
+            setControlMode('cartesian');
+            vector.x = -2;
+            vector.y = 3;
+            updateUI();
+            showToast("Loaded Preset 1: -2î + 3ĵ (Vector A)");
+        }
+
+        function loadTranscriptPreset2() {
+            // From Transcript: Magnitude 2, Angle 30 degrees
+            setControlMode('polar');
+            const r = 2.0;
+            const deg = 30.0;
+            const rad = deg * (Math.PI / 180);
+            vector.x = r * Math.cos(rad);
+            vector.y = r * Math.sin(rad);
+            updateUI();
+            showToast("Loaded Preset 2: Magnitude = 2.0, θ = 30°");
+        }
+
+        function resetVector() {
+            setControlMode('cartesian');
+            vector = { x: 3, y: 3 };
+            updateUI();
+            showToast("Grid Workspace Reset to (3.0, 3.0)");
+        }
+
+        // Toast notifications logic
+        function showToast(message) {
+            const toast = document.getElementById('toast');
+            const toastMsg = document.getElementById('toastMessage');
+            
+            toastMsg.innerText = message;
+            toast.classList.remove('opacity-0', 'translate-y-24');
+            toast.classList.add('opacity-100', 'translate-y-0');
+
+            setTimeout(() => {
+                toast.classList.remove('opacity-100', 'translate-y-0');
+                toast.classList.add('opacity-0', 'translate-y-24');
+            }, 3000);
+        }
+    </script>
+</body>
+</html>

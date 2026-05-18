@@ -31,7 +31,7 @@
         11. SC0Q5 - Vector Decomposition - Practice
         12. SC0Q6 - Vector Decomposition and Rotation of Coordinate System - Part I
         13. SC0Q7 - Vector Decomposition and Rotation of Coordinate System - Part II
-        14. SC0v6 - Going Between Representations
+        14. [SC0v6] - Going Between Representations
         15. SC0Q8 - Magnitude and Direction or Components - Practice
         16. SC0Q9 - Magnitude and Direction
         17. SC0Q10 - Adding and Subtracting Vectors - Practice
