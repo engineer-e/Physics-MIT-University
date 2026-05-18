@@ -25,7 +25,7 @@
         5. SC0Q2 - Adding Vectors Graphically
         6. [SC0v3](https://engineer-e.github.io/Physics-MIT-University/8.01.1x.%20Mechanics%20-%20Kinematics%20and%20Dynamics/course_html/Mechanics%20-%20Kinematics%20and%20Dynamics/Prerequisite%20Math%20and%20Survey/Survey%20and%20Skill%20Challenge%20-%20Vectors/SC0v3%20-%20Coordinate%20Systems%20and%20Unit%20Vectors/SC0v3_ai1.html) - Coordinate Systems and Unit Vectors
         7. SC0Q3 - Unit Vectors - Practice
-        8. [SC0v4](https://engineer-e.github.io/Physics-MIT-University/8.01.1x.%20Mechanics%20-%20Kinematics%20and%20Dynamics/course_html/Mechanics%20-%20Kinematics%20and%20Dynamics/Prerequisite%20Math%20and%20Survey/Survey%20and%20Skill%20Challenge%20-%20Vectors/SC0v4%20-%20Vectors %20-%20Magnitude%20and%20Direction/SC0v4_ai4.html) - Vectors - Magnitude and Direction
+        8. [SC0v4](https://engineer-e.github.io/Physics-MIT-University/8.01.1x.%20Mechanics%20-%20Kinematics%20and%20Dynamics/course_html/Mechanics%20-%20Kinematics%20and%20Dynamics/Prerequisite%20Math%20and%20Survey/Survey%20and%20Skill%20Challenge%20-%20Vectors/SC0v4%20-%20Vectors%20-%20Magnitude%20and%20Direction/SC0v4_ai4.html) - Vectors - Magnitude and Direction
         9. SC0Q4 - Magnitude and Direction - Practice
         10. SC0v5 - Vector Decomposition into components
         11. SC0Q5 - Vector Decomposition - Practice

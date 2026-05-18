@@ -1,251 +1,700 @@
-import React, { useState, useEffect, useRef } from 'react';
-import { 
-  Play, 
-  Pause, 
-  RotateCcw, 
-  Sliders, 
-  Info, 
-  Compass, 
-  Activity, 
-  BookOpen, 
-  ArrowRight, 
-  Move,
-  CheckCircle2,
-  HelpCircle,
-  Eye,
-  Layers,
-  LayoutGrid
-} from 'lucide-react';
-
-// ==========================================
-// DYNAMIC KATEX MATH RENDERING COMPONENTS
-// ==========================================
-function MathEquation({ tex, display = false }) {
-  const containerRef = useRef(null);
-  const [ready, setReady] = useState(!!window.katex);
-
-  useEffect(() => {
-    if (ready) return;
-    const interval = setInterval(() => {
-      if (window.katex) {
-        setReady(true);
-        clearInterval(interval);
-      }
-    }, 50);
-    return () => clearInterval(interval);
-  }, [ready]);
-
-  useEffect(() => {
-    if (window.katex && containerRef.current) {
-      try {
-        window.katex.render(tex, containerRef.current, {
-          displayMode: display,
-          throwOnError: false
-        });
-      } catch (e) {
-        containerRef.current.textContent = tex;
-      }
-    } else if (containerRef.current) {
-      containerRef.current.textContent = display ? `$$${tex}$$` : `$${tex}$`;
-    }
-  }, [tex, display, ready]);
-
-  return <span ref={containerRef} className={display ? "block my-2 text-center" : "inline-block"} />;
-}
-
-// Custom parser to split inline & block math elements beautifully
-function MathText({ children }) {
-  if (typeof children !== 'string') return children;
+<!DOCTYPE html>
+<html lang="en" class="dark">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Vector Lab: Magnitude & Direction</title>
   
-  const parts = children.split(/(\$\$[\s\S]+?\ExternalRef\$\$|\$[\s\S]+?\$)/g);
-  
-  return (
-    <>
-      {parts.map((part, index) => {
-        if (part.startsWith('$$') && part.endsWith('$$')) {
-          const tex = part.slice(2, -2);
-          return <MathEquation key={index} tex={tex} display={true} />;
-        } else if (part.startsWith('$') && part.endsWith('$')) {
-          const tex = part.slice(1, -1);
-          return <MathEquation key={index} tex={tex} display={false} />;
+  <!-- Tailwind CSS CDN -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script>
+    tailwind.config = {
+      darkMode: 'class',
+      theme: {
+        extend: {
+          fontFamily: {
+            sans: ['Inter', 'system-ui', '-apple-system', 'sans-serif'],
+          },
+          animation: {
+            'spin-slow': 'spin 12s linear infinite',
+            'fade-in': 'fadeIn 0.3s ease-out forwards',
+          },
+          keyframes: {
+            fadeIn: {
+              '0%': { opacity: '0', transform: 'translateY(8px)' },
+              '100%': { opacity: '1', transform: 'translateY(0)' },
+            }
+          }
         }
-        return <span key={index}>{part}</span>;
-      })}
-    </>
-  );
-}
-
-// ==========================================
-// MAIN APP COMPONENT
-// ==========================================
-export default function App() {
-  const [activeTab, setActiveTab] = useState('simulator');
-  const [theme, setTheme] = useState('dark');
-
-  // Load KaTeX Assets Dynamically
-  useEffect(() => {
-    if (!window.katex) {
-      // Stylesheet
-      const link = document.createElement('link');
-      link.rel = 'stylesheet';
-      link.href = 'https://cdn.jsdelivr.net/npm/katex@0.16.8/dist/katex.min.css';
-      document.head.appendChild(link);
-
-      // JavaScript Engine
-      const script = document.createElement('script');
-      script.src = 'https://cdn.jsdelivr.net/npm/katex@0.16.8/dist/katex.min.js';
-      script.async = true;
-      document.head.appendChild(script);
+      }
     }
-  }, []);
+  </script>
 
-  return (
-    <div className={`min-h-screen ${theme === 'dark' ? 'bg-slate-950 text-slate-100' : 'bg-slate-50 text-slate-900'} font-sans transition-colors duration-300`}>
-      {/* Header */}
-      <header className={`border-b ${theme === 'dark' ? 'border-slate-800 bg-slate-900/50' : 'border-slate-200 bg-white'} backdrop-blur-md sticky top-0 z-50 transition-colors`}>
-        <div className="max-w-7xl mx-auto px-4 py-4 flex flex-col sm:flex-row justify-between items-center gap-4">
-          <div className="flex items-center gap-3">
-            <div className="p-2 bg-indigo-600 rounded-lg text-white shadow-lg shadow-indigo-500/20">
-              <Compass className="w-6 h-6" />
-            </div>
-            <div>
-              <h1 className="text-xl font-bold tracking-tight">Vector Lab</h1>
-              <p className={`text-xs ${theme === 'dark' ? 'text-slate-400' : 'text-slate-500'}`}>Magnitude, Direction & Interactive Kinematics</p>
-            </div>
+  <!-- KaTeX CSS & JS for beautiful LaTeX rendering -->
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.8/dist/katex.min.css">
+  <script src="https://cdn.jsdelivr.net/npm/katex@0.16.8/dist/katex.min.js"></script>
+
+  <!-- Lucide Icons -->
+  <script src="https://unpkg.com/lucide@latest"></script>
+</head>
+<body class="bg-slate-950 text-slate-100 transition-colors duration-300">
+
+  <div id="app-wrapper" class="min-h-screen bg-slate-950 text-slate-100 transition-colors duration-300">
+    
+    <!-- HEADER -->
+    <header class="border-b border-slate-800 bg-slate-900/50 backdrop-blur-md sticky top-0 z-50">
+      <div class="max-w-7xl mx-auto px-4 py-4 flex flex-col sm:flex-row justify-between items-center gap-4">
+        
+        <div class="flex items-center gap-3">
+          <div class="p-2 bg-indigo-600 rounded-lg text-white shadow-lg shadow-indigo-500/20">
+            <i data-lucide="compass" class="w-6 h-6 animate-spin-slow"></i>
           </div>
-
-          {/* Navigation Tabs */}
-          <div className={`flex p-1 rounded-xl ${theme === 'dark' ? 'bg-slate-950 border border-slate-800' : 'bg-slate-100 border border-slate-200'}`}>
-            <button
-              onClick={() => setActiveTab('simulator')}
-              className={`flex items-center gap-2 px-4 py-2 text-sm font-medium rounded-lg transition-all ${
-                activeTab === 'simulator'
-                  ? 'bg-indigo-600 text-white shadow-md'
-                  : theme === 'dark' ? 'text-slate-400 hover:text-white' : 'text-slate-600 hover:text-slate-900'
-              }`}
-            >
-              <Activity className="w-4 h-4" />
-              <span>Simulator</span>
-            </button>
-            <button
-              onClick={() => setActiveTab('sandbox')}
-              className={`flex items-center gap-2 px-4 py-2 text-sm font-medium rounded-lg transition-all ${
-                activeTab === 'sandbox'
-                  ? 'bg-indigo-600 text-white shadow-md'
-                  : theme === 'dark' ? 'text-slate-400 hover:text-white' : 'text-slate-600 hover:text-slate-900'
-              }`}
-            >
-              <Compass className="w-4 h-4" />
-              <span>Vector Sandbox</span>
-            </button>
-            <button
-              onClick={() => setActiveTab('infographics')}
-              className={`flex items-center gap-2 px-4 py-2 text-sm font-medium rounded-lg transition-all ${
-                activeTab === 'infographics'
-                  ? 'bg-indigo-600 text-white shadow-md'
-                  : theme === 'dark' ? 'text-slate-400 hover:text-white' : 'text-slate-600 hover:text-slate-900'
-              }`}
-            >
-              <BookOpen className="w-4 h-4" />
-              <span>Infographics</span>
-            </button>
+          <div>
+            <h1 class="text-xl font-bold tracking-tight">Vector Lab</h1>
+            <p class="text-xs text-slate-400">Magnitude, Direction & Interactive Kinematics</p>
           </div>
+        </div>
 
-          {/* Theme Toggle */}
-          <button
-            onClick={() => setTheme(theme === 'dark' ? 'light' : 'dark')}
-            className={`px-3 py-1.5 text-xs font-semibold rounded-lg border transition-all ${
-              theme === 'dark' 
-                ? 'border-slate-800 bg-slate-900 hover:bg-slate-800 text-slate-300' 
-                : 'border-slate-200 bg-white hover:bg-slate-100 text-slate-700'
-            }`}
-          >
-            {theme === 'dark' ? '☀️ Light Mode' : '🌙 Dark Mode'}
+        <!-- Navigation Tabs -->
+        <div class="flex p-1 rounded-xl bg-slate-950 border border-slate-800" id="tabs-container">
+          <button id="tab-simulator" onclick="switchTab('simulator')" class="flex items-center gap-2 px-4 py-2 text-sm font-medium rounded-lg transition-all bg-indigo-600 text-white shadow-md">
+            <i data-lucide="activity" class="w-4 h-4"></i>
+            <span>Simulator</span>
+          </button>
+          <button id="tab-sandbox" onclick="switchTab('sandbox')" class="flex items-center gap-2 px-4 py-2 text-sm font-medium rounded-lg transition-all text-slate-400 hover:text-white">
+            <i data-lucide="compass" class="w-4 h-4"></i>
+            <span>Vector Sandbox</span>
+          </button>
+          <button id="tab-infographics" onclick="switchTab('infographics')" class="flex items-center gap-2 px-4 py-2 text-sm font-medium rounded-lg transition-all text-slate-400 hover:text-white">
+            <i data-lucide="book-open" class="w-4 h-4"></i>
+            <span>Infographics</span>
           </button>
         </div>
-      </header>
 
-      {/* Main Content Area */}
-      <main className="max-w-7xl mx-auto px-4 py-6">
-        {activeTab === 'simulator' && <TowingSimulator theme={theme} />}
-        {activeTab === 'sandbox' && <VectorSandbox theme={theme} />}
-        {activeTab === 'infographics' && <InfographicsTab theme={theme} />}
-      </main>
+        <!-- Theme Toggle -->
+        <button onclick="toggleTheme()" class="px-3 py-1.5 text-xs font-semibold rounded-lg border border-slate-800 bg-slate-900 hover:bg-slate-800 text-slate-300 transition-all" id="theme-btn">
+          🌙 Dark Mode
+        </button>
+      </div>
+    </header>
 
-      <footer className={`border-t mt-12 py-6 text-center text-xs ${theme === 'dark' ? 'border-slate-900 text-slate-500' : 'border-slate-200 text-slate-400'}`}>
-        <p>© Vector Lab Interactive. Created based on visual dynamics of force, angle constraints, and velocity translation.</p>
-      </footer>
-    </div>
-  );
-}
+    <!-- MAIN CONTENT -->
+    <main class="max-w-7xl mx-auto px-4 py-6">
 
-// ==========================================
-// 1. TOWING SIMULATOR COMPONENT
-// ==========================================
-function TowingSimulator({ theme }) {
-  const canvasRef = useRef(null);
-  const [isPlaying, setIsPlaying] = useState(false);
-  
-  // Simulator Parameters
-  const [forceMag, setForceMag] = useState(60);     // Pixels or arbitrary force scale
-  const [forceAngle, setForceAngle] = useState(25);  // Degrees relative to horizontal rope
-  const [wheelConstraint, setWheelConstraint] = useState(true); // Dinosaur is locked on horizontal ground track
-  const [dinoMass, setDinoMass] = useState(50);      // Affects acceleration/damping
-  const [ropeLength, setRopeLength] = useState(130);
+      <!-- ==========================================
+           1. TOWING SIMULATOR TAB
+           ========================================== -->
+      <section id="pane-simulator" class="tab-pane">
+        <div class="grid grid-cols-1 lg:grid-cols-12 gap-8">
+          
+          <!-- Control Panel -->
+          <div class="lg:col-span-4 p-6 rounded-2xl border border-slate-800 bg-slate-900 flex flex-col gap-6" id="sim-controls-card">
+            <div class="flex items-center gap-2 pb-3 border-b border-slate-800">
+              <i data-lucide="sliders" class="w-5 h-5 text-indigo-500"></i>
+              <h2 class="font-bold text-lg">Simulation Parameters</h2>
+            </div>
 
-  // Switching Frames of Representation: 'physical', 'fbd' (free body diagram), 'components'
-  const [frameOverlay, setFrameOverlay] = useState('physical');
+            <!-- Run/Pause Buttons -->
+            <div class="flex items-center gap-3">
+              <button id="btn-play-pause" onclick="togglePlayback()" class="flex-1 flex items-center justify-center gap-2 py-3 px-4 rounded-xl font-bold transition-all text-white bg-emerald-600 hover:bg-emerald-500 shadow-lg shadow-emerald-500/10">
+                <i data-lucide="play" class="w-5 h-5 fill-current"></i>
+                <span id="play-btn-text">Run Physics</span>
+              </button>
+              <button onclick="resetSimulator()" class="p-3 rounded-xl border border-slate-800 bg-slate-950 hover:bg-slate-800 text-slate-300 transition-all">
+                <i data-lucide="rotate-ccw" class="w-5 h-5"></i>
+              </button>
+            </div>
 
-  // Simulation State Variables
-  const simState = useRef({
-    dino: { vx: 0, vy: 0, width: 85, height: 60 },
-    virtualX: 180, // Virtual horizontal position loop
-    virtualY: 0,   // Virtual vertical displacement loop
-    time: 0,
-  });
+            <!-- Param 1: Force Angle -->
+            <div class="flex flex-col gap-2">
+              <div class="flex justify-between items-center text-sm font-semibold">
+                <span class="flex items-center gap-1.5">
+                  <span class="w-2.5 h-2.5 rounded-full bg-red-500"></span>
+                  <span>Pull Force Angle ( <span class="math-render" data-tex="\theta"></span> )</span>
+                </span>
+                <span id="label-force-angle" class="font-mono text-xs text-indigo-400 bg-indigo-950/40 px-2 py-0.5 rounded border border-indigo-900">25°</span>
+              </div>
+              <p class="text-xs text-slate-400">Changes the towing angle along the horizontal table plane.</p>
+              <input type="range" id="range-force-angle" min="-60" max="60" value="25" oninput="updateSimParams()" class="w-full accent-indigo-600 cursor-pointer">
+            </div>
 
-  // Reset Physics
-  const resetSimulation = () => {
-    simState.current.virtualX = 180;
-    simState.current.virtualY = 0;
-    simState.current.dino.vx = 0;
-    simState.current.dino.vy = 0;
-    simState.current.time = 0;
-    setIsPlaying(false);
-    draw();
-  };
+            <!-- Param 2: Force Magnitude -->
+            <div class="flex flex-col gap-2">
+              <div class="flex justify-between items-center text-sm font-semibold">
+                <span class="flex items-center gap-1.5">
+                  <span class="w-2.5 h-2.5 rounded-full bg-red-400"></span>
+                  <span>Force Magnitude ( <span class="math-render" data-tex="|\vec{F}|"></span> )</span>
+                </span>
+                <span id="label-force-mag" class="font-mono text-xs text-indigo-400 bg-indigo-950/40 px-2 py-0.5 rounded border border-indigo-900">60 N</span>
+              </div>
+              <p class="text-xs text-slate-400">Modifies vector magnitude (length of vector arrow). Minimum is 1 N.</p>
+              <input type="range" id="range-force-mag" min="1" max="120" value="60" oninput="updateSimParams()" class="w-full accent-indigo-600 cursor-pointer">
+            </div>
 
-  // Main Loop Draw Event (Triggers when parameters or frame selection updates)
-  useEffect(() => {
-    draw();
-  }, [forceMag, forceAngle, wheelConstraint, frameOverlay, theme]);
+            <!-- Param 3: Dinosaur Mass -->
+            <div class="flex flex-col gap-2">
+              <div class="flex justify-between items-center text-sm font-semibold">
+                <span class="flex items-center gap-1.5">
+                  <span class="w-2.5 h-2.5 rounded-full bg-slate-500"></span>
+                  <span>Dinosaur Mass ( <span class="math-render" data-tex="m"></span> )</span>
+                </span>
+                <span id="label-dino-mass" class="font-mono text-xs text-slate-400">50 kg</span>
+              </div>
+              <p class="text-xs text-slate-400">Affects inertia (acceleration response).</p>
+              <input type="range" id="range-dino-mass" min="20" max="100" value="50" oninput="updateSimParams()" class="w-full accent-slate-600 cursor-pointer">
+            </div>
 
-  // Handle Play/Pause Physics Loop
-  useEffect(() => {
-    let animationFrameId;
-    
-    const updatePhysics = () => {
-      const state = simState.current;
+            <!-- Param 4: Constraint toggle -->
+            <div class="p-4 rounded-xl border border-slate-800 bg-slate-950 flex flex-col gap-3" id="constraint-card">
+              <div class="flex items-center justify-between">
+                <span class="text-sm font-bold flex items-center gap-2">
+                  <i data-lucide="compass" class="w-4 h-4 text-cyan-400"></i>
+                  Wheel/Track Constraint
+                </span>
+                <label class="relative inline-flex items-center cursor-pointer">
+                  <input type="checkbox" id="check-constraint" checked onchange="updateSimParams()" class="sr-only peer">
+                  <div class="w-11 h-6 bg-slate-700 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:width-5 after:transition-all peer-checked:bg-indigo-600"></div>
+                </label>
+              </div>
+              <p id="constraint-desc" class="text-xs leading-relaxed text-slate-400">
+                🟢 Active: Dinosaur wheels are locked on the track. In Side View, both stay perfectly on the road. Perpendicular components are canceled.
+              </p>
+            </div>
+
+            <!-- Component readout -->
+            <div class="p-4 rounded-xl border border-slate-800 bg-slate-950 flex flex-col gap-2 font-mono text-xs" id="readout-card">
+              <div class="text-slate-400 font-sans font-bold border-b border-slate-800 pb-1 mb-1">
+                Component Analysis:
+              </div>
+              <div class="flex justify-between">
+                <span>Pull Force (F_total):</span>
+                <span id="readout-f-total" class="text-red-400 font-bold">60.0 N</span>
+              </div>
+              <div class="flex justify-between">
+                <span>F_x (Horizontal Component):</span>
+                <span id="readout-fx" class="text-indigo-400 font-bold">54.4 N</span>
+              </div>
+              <div class="flex justify-between">
+                <span>F_y (Lateral Component):</span>
+                <span id="readout-fy" class="text-indigo-400 font-bold">25.4 N</span>
+              </div>
+              <div class="flex justify-between">
+                <span>Actual Velocity Angle:</span>
+                <span id="readout-vel-angle" class="text-cyan-400 font-bold">0.0° (Strict Horizontal)</span>
+              </div>
+            </div>
+          </div>
+
+          <!-- Canvas Panel -->
+          <div class="lg:col-span-8 flex flex-col gap-6">
+            
+            <!-- Switchable Representation Frame Overlays -->
+            <div class="p-1.5 rounded-xl flex gap-2 border border-slate-800 bg-slate-900 w-fit" id="frame-controls-card">
+              <button onclick="switchFrame('physical')" id="frame-btn-physical" class="flex items-center gap-1.5 px-3.5 py-1.5 text-xs font-bold rounded-lg transition-all bg-indigo-600 text-white shadow-md">
+                <i data-lucide="eye" class="w-3.5 h-3.5"></i>
+                <span>Physical Frame</span>
+              </button>
+              <button onclick="switchFrame('fbd')" id="frame-btn-fbd" class="flex items-center gap-1.5 px-3.5 py-1.5 text-xs font-bold rounded-lg transition-all text-slate-400 hover:text-slate-200">
+                <i data-lucide="layers" class="w-3.5 h-3.5"></i>
+                <span>Free Body Diagram (FBD)</span>
+              </button>
+              <button onclick="switchFrame('components')" id="frame-btn-components" class="flex items-center gap-1.5 px-3.5 py-1.5 text-xs font-bold rounded-lg transition-all text-slate-400 hover:text-slate-200">
+                <i data-lucide="layout-grid" class="w-3.5 h-3.5"></i>
+                <span>Trig Components</span>
+              </button>
+            </div>
+
+            <!-- Simulated Canvas box -->
+            <div class="p-4 rounded-2xl border border-slate-800 bg-slate-900 overflow-hidden" id="canvas-wrapper-card">
+              <div class="flex items-center justify-between mb-2">
+                <div class="flex items-center gap-2">
+                  <span class="w-2.5 h-2.5 rounded-full bg-emerald-500 animate-pulse"></span>
+                  <span class="text-xs font-semibold text-slate-400 uppercase tracking-widest">Real-Time Sync Sandbox</span>
+                </div>
+                <div class="flex gap-4 text-xs font-bold">
+                  <span class="flex items-center gap-1.5"><span class="w-2 h-2 rounded bg-red-500"></span> Force vector</span>
+                  <span class="flex items-center gap-1.5"><span class="w-2 h-2 rounded bg-cyan-500"></span> Velocity vector</span>
+                </div>
+              </div>
+
+              <div class="relative">
+                <canvas id="sim-canvas" width="800" height="320" class="w-full h-auto rounded-xl border border-slate-800 bg-slate-950"></canvas>
+              </div>
+
+              <!-- Observation banner -->
+              <div class="mt-3 p-3 rounded-xl border border-indigo-900/50 bg-indigo-950/20 text-indigo-300 text-xs flex items-start gap-2.5">
+                <i data-lucide="info" class="w-4 h-4 flex-shrink-0 mt-0.5 text-indigo-500"></i>
+                <div>
+                  <span class="font-bold">Active Representational Frame:</span> <span id="observation-text" class="leading-relaxed">Demonstrating the classic toy car dragging the wooden dinosaur along the floor.</span>
+                </div>
+              </div>
+            </div>
+
+            <!-- Video Context card -->
+            <div class="p-6 rounded-2xl border border-slate-800 bg-slate-900" id="video-context-card">
+              <h3 class="font-bold text-base mb-2">How this maps to the video clip:</h3>
+              <p class="text-sm leading-relaxed text-slate-400">
+                In the video, a blue classic Corvette pulls a wooden dinosaur horizontally across a tabletop. When the car pulls slightly diagonally on the table, it generates a pull force at an angle <span class="math-render" data-tex="\theta"></span> relative to the dinosaur's track. Because the dinosaur's wheels keep it constrained to horizontal movement, the dinosaur moves strictly along the track (velocity is horizontal), while the force acts at an angle. This visual separation shows why vector properties must be resolved into individual geometric components.
+              </p>
+            </div>
+
+          </div>
+        </div>
+      </section>
+
+      <!-- ==========================================
+           2. VECTOR SANDBOX TAB
+           ========================================== -->
+      <section id="pane-sandbox" class="tab-pane hidden">
+        <div class="grid grid-cols-1 lg:grid-cols-12 gap-8 animate-fade-in">
+          
+          <!-- Sandbox Canvas (7 cols) -->
+          <div class="lg:col-span-7 flex flex-col gap-4">
+            <div class="p-4 rounded-2xl border border-slate-800 bg-slate-900" id="sandbox-card">
+              <div class="flex justify-between items-center mb-3">
+                <h2 class="font-bold text-lg flex items-center gap-2">
+                  <i data-lucide="move" class="text-pink-500"></i>
+                  Interactive Graph Plane
+                </h2>
+                <span class="text-xs px-2.5 py-1 rounded-full font-semibold bg-pink-950/40 text-pink-300 border border-pink-900/30">
+                  Drag the arrowhead to study components
+                </span>
+              </div>
+
+              <div class="relative cursor-crosshair touch-none">
+                <canvas id="sandbox-canvas" width="540" height="400" class="w-full rounded-xl border border-slate-800 bg-slate-950 touch-none"></canvas>
+              </div>
+            </div>
+          </div>
+
+          <!-- Sidebar Readout (5 cols) -->
+          <div class="lg:col-span-5 flex flex-col gap-6">
+            <div class="p-6 rounded-2xl border border-slate-800 bg-slate-900" id="sandbox-results-card">
+              <h3 class="font-bold text-lg mb-4 text-pink-500 border-b pb-2 border-slate-800">Vector Properties</h3>
+
+              <div class="grid grid-cols-2 gap-4 mb-6">
+                <!-- Mag card -->
+                <div class="p-4 rounded-xl border border-slate-800 bg-slate-950">
+                  <div class="text-xs text-slate-400 font-semibold tracking-wider mb-1.5">
+                    Magnitude ( <span class="math-render" data-tex="|\vec{V}|"></span> )
+                  </div>
+                  <div class="text-xl sm:text-2xl font-black text-white font-mono flex items-center gap-1 flex-wrap">
+                    <span class="text-pink-500 font-bold"><span class="math-render" data-tex="|\vec{V}| ="></span></span>
+                    <span id="sandbox-mag-val">156.2</span>
+                    <span class="text-xs font-normal text-slate-400">units</span>
+                  </div>
+                </div>
+
+                <!-- Angle card -->
+                <div class="p-4 rounded-xl border border-slate-800 bg-slate-950">
+                  <div class="text-xs text-slate-400 font-semibold tracking-wider mb-1.5">
+                    Direction ( <span class="math-render" data-tex="\theta"></span> )
+                  </div>
+                  <div class="text-xl sm:text-2xl font-black text-white font-mono flex items-center gap-1 flex-wrap">
+                    <span class="text-pink-500 font-bold"><span class="math-render" data-tex="\theta ="></span></span>
+                    <span id="sandbox-angle-val">39.8</span>
+                    <span class="text-xs font-normal text-slate-400">deg</span>
+                  </div>
+                </div>
+              </div>
+
+              <h3 class="font-bold text-sm text-slate-400 mb-2 uppercase tracking-wide">Resolved Components</h3>
+              <div class="space-y-3 font-mono text-xs mb-6">
+                <div class="flex justify-between items-center py-2 px-3 bg-slate-950/40 rounded border border-slate-800/40">
+                  <span class="text-indigo-400">Horizontal Component (X):</span>
+                  <span id="sandbox-comp-x" class="font-bold text-sm text-white">120 units</span>
+                </div>
+                <div class="flex justify-between items-center py-2 px-3 bg-slate-950/40 rounded border border-slate-800/40">
+                  <span class="text-purple-400">Vertical Component (Y):</span>
+                  <span id="sandbox-comp-y" class="font-bold text-sm text-white">100 units</span>
+                </div>
+              </div>
+
+              <h3 class="font-bold text-sm text-slate-400 mb-2 uppercase tracking-wide">Trigonometric Proof</h3>
+              <div class="p-4 rounded-xl border border-slate-800 bg-slate-950 space-y-3 text-xs leading-relaxed text-slate-300">
+                <div class="flex flex-col gap-1">
+                  <span class="text-slate-400 font-semibold">1. Magnitude Formula:</span>
+                  <code id="math-proof-mag" class="bg-slate-900/60 p-2 rounded text-indigo-300 border border-indigo-950 block overflow-x-auto whitespace-nowrap">
+                    <!-- filled dynamically -->
+                  </code>
+                </div>
+
+                <div class="flex flex-col gap-1">
+                  <span class="text-slate-400 font-semibold">2. Angle Formula:</span>
+                  <code id="math-proof-angle" class="bg-slate-900/60 p-2 rounded text-indigo-300 border border-indigo-950 block overflow-x-auto whitespace-nowrap">
+                    <!-- filled dynamically -->
+                  </code>
+                </div>
+
+                <div class="flex flex-col gap-1">
+                  <span class="text-slate-400 font-semibold">3. Reconstruction Check:</span>
+                  <code id="math-proof-reconstruct" class="bg-slate-900/60 p-2 rounded text-indigo-300 border border-indigo-950 block space-y-1 overflow-x-auto">
+                    <!-- filled dynamically -->
+                  </code>
+                </div>
+              </div>
+            </div>
+          </div>
+
+        </div>
+      </section>
+
+      <!-- ==========================================
+           3. INFOGRAPHICS TAB
+           ========================================== -->
+      <section id="pane-infographics" class="tab-pane hidden">
+        <div class="flex flex-col gap-8 animate-fade-in">
+          
+          <!-- Banner -->
+          <div class="p-8 rounded-3xl border border-slate-800 bg-gradient-to-r from-slate-900 via-indigo-950/40 to-slate-900">
+            <div class="max-w-3xl">
+              <span class="text-indigo-500 font-bold text-xs uppercase tracking-widest bg-indigo-500/10 px-3 py-1 rounded-full border border-indigo-500/20">The Core Concepts</span>
+              <h2 class="text-2xl sm:text-3xl font-black mt-3 mb-4 tracking-tight">Understanding Vectors: Magnitude & Direction</h2>
+              <p class="text-sm leading-relaxed text-slate-400">
+                Unlike scalar quantities (like temperature, mass, or time) which only have a magnitude, a vector represents a physical quantity with both a magnitude (how much) and a direction (which way). This workspace breaks down these properties as explained in physics curriculum modules.
+              </p>
+            </div>
+          </div>
+
+          <!-- Cards Grid -->
+          <div class="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6">
+            
+            <!-- Card 1 -->
+            <div class="p-6 rounded-2xl border border-slate-800 bg-slate-900 flex flex-col justify-between">
+              <div>
+                <div class="flex items-center gap-3 mb-4">
+                  <span class="w-8 h-8 rounded-lg bg-pink-500/10 border border-pink-500/20 text-pink-500 flex items-center justify-center font-bold text-sm">01</span>
+                  <h3 class="font-bold text-lg">Vectors vs Scalars</h3>
+                </div>
+                <p class="text-sm leading-relaxed text-slate-400 mb-4">
+                  A vector is represented visually as an arrow. The length of the arrow represents the magnitude, and the angle it points relative to a reference coordinate system represents its direction.
+                </p>
+
+                <!-- Small compare block -->
+                <div class="space-y-2 mb-4">
+                  <div class="p-3 rounded-xl border border-slate-800 bg-slate-950 text-xs">
+                    <span class="font-bold text-emerald-400">Scalar Examples</span>
+                    <div class="text-slate-400 mt-1">Mass (50 kg), Speed (10 m/s), Temp (30°C)</div>
+                  </div>
+                  <div class="p-3 rounded-xl border border-slate-800 bg-slate-950 text-xs">
+                    <span class="font-bold text-pink-500">Vector Examples</span>
+                    <div class="text-slate-400 mt-1">Force (50 N East), Velocity (10 m/s North)</div>
+                  </div>
+                </div>
+              </div>
+              <div class="text-xs text-slate-500 italic mt-2">Vectors possess full dimensional spatial info.</div>
+            </div>
+
+            <!-- Card 2 -->
+            <div class="p-6 rounded-2xl border border-slate-800 bg-slate-900 flex flex-col justify-between">
+              <div>
+                <div class="flex items-center gap-3 mb-4">
+                  <span class="w-8 h-8 rounded-lg bg-indigo-500/10 border border-indigo-500/20 text-indigo-500 flex items-center justify-center font-bold text-sm">02</span>
+                  <h3 class="font-bold text-lg">Resolving 2D Components</h3>
+                </div>
+                <p class="text-sm leading-relaxed text-slate-400 mb-4">
+                  Any vector in a 2D plane can be broken down into vertical and horizontal components using trigonometry. If we know the magnitude <span class="math-render" data-tex="V"></span> and angle <span class="math-render" data-tex="\theta"></span>:
+                </p>
+
+                <div class="p-4 rounded-xl border border-slate-800 bg-slate-950 space-y-2.5 font-mono text-xs">
+                  <div class="flex justify-between items-center">
+                    <span class="text-indigo-400">Horizontal Component:</span>
+                    <code class="font-bold text-slate-100 bg-indigo-950/40 px-2 py-1 rounded border border-indigo-900">
+                      <span class="math-render" data-tex="V_x = V \cdot \cos(\theta)"></span>
+                    </code>
+                  </div>
+                  <div class="flex justify-between items-center">
+                    <span class="text-purple-400">Vertical Component:</span>
+                    <code class="font-bold text-slate-100 bg-purple-950/40 px-2 py-1 rounded border border-purple-900">
+                      <span class="math-render" data-tex="V_y = V \cdot \sin(\theta)"></span>
+                    </code>
+                  </div>
+                </div>
+              </div>
+              <div class="text-xs text-slate-500 italic mt-4">This math is critical for resolving forces in civil engineering & mechanics.</div>
+            </div>
+
+            <!-- Card 3 -->
+            <div class="p-6 rounded-2xl border border-slate-800 bg-slate-900 flex flex-col justify-between">
+              <div>
+                <div class="flex items-center gap-3 mb-4">
+                  <span class="w-8 h-8 rounded-lg bg-cyan-500/10 border border-cyan-500/20 text-cyan-500 flex items-center justify-center font-bold text-sm">03</span>
+                  <h3 class="font-bold text-lg">Force vs. Velocity Direction</h3>
+                </div>
+                <p class="text-sm leading-relaxed text-slate-400 mb-4">
+                  Many beginner physics students assume that the velocity vector ( <span class="math-render" data-tex="\vec{v}"></span> ) of an object must always point in the same direction as the force vector ( <span class="math-render" data-tex="\vec{F}"></span> ) being applied. This is a misconception!
+                </p>
+
+                <div class="p-3 rounded-xl border border-slate-800 bg-slate-950 text-xs leading-relaxed space-y-2 text-slate-400">
+                  <div class="font-bold text-cyan-400">Why can they point in different directions?</div>
+                  <ul class="list-disc pl-4 space-y-1">
+                    <li>Mechanical Constraints: Wheels or rails restrict an object to move only in one direction. Any diagonal force gets corrected by track normal force.</li>
+                    <li>Momentum/Inertia: A flying space shuttle moving forward that turns its thrusters sideways has velocity forward, but thrust force directed sideways.</li>
+                  </ul>
+                </div>
+              </div>
+              <div class="text-xs text-slate-500 italic mt-4">This dynamic was highlighted in the towing-toy video demonstration.</div>
+            </div>
+
+          </div>
+
+          <!-- Misconceptions Block -->
+          <div class="p-6 rounded-2xl border border-slate-800 bg-gradient-to-b from-slate-900 to-slate-950" id="misconception-card">
+            <h3 class="font-bold text-lg mb-4 flex items-center gap-2">
+              <i data-lucide="help-circle" class="text-amber-500"></i>
+              Common Misconceptions Addressed:
+            </h3>
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-4 text-xs sm:text-sm">
+              <div class="p-4 rounded-xl border border-slate-800 bg-slate-950/20">
+                <h4 class="font-bold text-rose-400 mb-1">❌ "Negative vector means negative value"</h4>
+                <p class="text-xs text-slate-400">
+                  No. A negative sign in vector coordinates indicates direction only (e.g. going left or going down), not a negative physical amount. Magnitude is always an absolute positive value.
+                </p>
+              </div>
+              <div class="p-4 rounded-xl border border-slate-800 bg-slate-950/20">
+                <h4 class="font-bold text-rose-400 mb-1">❌ "Adding vectors is simple arithmetic"</h4>
+                <p class="text-xs text-slate-400 leading-relaxed">
+                  No. You cannot add vectors like simple scalars ( <span class="math-render" data-tex="10\text{ N} + 10\text{ N} \neq 20\text{ N}"></span> unless they point in exact same direction). Instead, vectors must be broken into <span class="math-render" data-tex="x"></span> and <span class="math-render" data-tex="y"></span> components and added independently (head-to-tail method).
+                </p>
+              </div>
+            </div>
+          </div>
+
+        </div>
+      </section>
+
+    </main>
+  </div>
+
+  <!-- ==========================================
+       VANILLA JAVASCRIPT STATE & PHYSICS ENGINE
+       ========================================== -->
+  <script>
+    // Global App State
+    let activeTab = 'simulator';
+    let theme = 'dark';
+    let frameOverlay = 'physical';
+    let isPlaying = false;
+    let animationFrameId = null;
+
+    // Simulation Constants & State
+    let forceMag = 60;
+    let forceAngle = 25;
+    let wheelConstraint = true;
+    let dinoMass = 50;
+    let ropeLength = 130;
+
+    const simState = {
+      dino: { vx: 0, vy: 0, width: 85, height: 60 },
+      virtualX: 180,
+      virtualY: 0
+    };
+
+    // Vector Sandbox State
+    let vectorX = 120;
+    let vectorY = -100; // negative is UP in raw Canvas coords
+    let isDragging = false;
+
+    // DOM Reference caches
+    let simCanvas, simCtx;
+    let sandboxCanvas, sandboxCtx;
+
+    window.onload = function () {
+      // Initialize Icons
+      lucide.createIcons();
+
+      // Initialize Canvases
+      simCanvas = document.getElementById('sim-canvas');
+      simCtx = simCanvas.getContext('2d');
+      sandboxCanvas = document.getElementById('sandbox-canvas');
+      sandboxCtx = sandboxCanvas.getContext('2d');
+
+      // Bind Pointer Events on Sandbox Canvas (Touch/Mouse Unified with scaling support)
+      sandboxCanvas.addEventListener('pointerdown', handlePointerDown);
+      sandboxCanvas.addEventListener('pointermove', handlePointerMove);
+      sandboxCanvas.addEventListener('pointerup', handlePointerUp);
+      sandboxCanvas.addEventListener('pointerleave', handlePointerUp);
+
+      // Render Static LaTeX Elements
+      renderAllMath();
+
+      // Initial Draws
+      drawSimCanvas();
+      drawSandboxCanvas();
+    };
+
+    // TAB SWITCHER
+    function switchTab(tabId) {
+      activeTab = tabId;
       
-      // Calculate effective pull force on the dinosaur
-      // Force vector angle in radians
+      // Update Tab Button Classes
+      ['simulator', 'sandbox', 'infographics'].forEach(id => {
+        const btn = document.getElementById(`tab-${id}`);
+        const pane = document.getElementById(`pane-${id}`);
+        if (id === tabId) {
+          btn.className = "flex items-center gap-2 px-4 py-2 text-sm font-medium rounded-lg transition-all bg-indigo-600 text-white shadow-md";
+          pane.classList.remove('hidden');
+        } else {
+          btn.className = "flex items-center gap-2 px-4 py-2 text-sm font-medium rounded-lg transition-all text-slate-400 hover:text-white";
+          pane.classList.add('hidden');
+        }
+      });
+
+      // Refit canvases
+      if (tabId === 'simulator') {
+        drawSimCanvas();
+      } else if (tabId === 'sandbox') {
+        drawSandboxCanvas();
+      }
+
+      // Re-trigger math parse
+      renderAllMath();
+    }
+
+    // THEME TOGGLER
+    function toggleTheme() {
+      theme = theme === 'dark' ? 'light' : 'dark';
+      const root = document.documentElement;
+      const appWrapper = document.getElementById('app-wrapper');
+      const themeBtn = document.getElementById('theme-btn');
+
+      if (theme === 'dark') {
+        root.classList.add('dark');
+        appWrapper.className = "min-h-screen bg-slate-950 text-slate-100 transition-colors duration-300";
+        themeBtn.textContent = "🌙 Dark Mode";
+        themeBtn.className = "px-3 py-1.5 text-xs font-semibold rounded-lg border border-slate-800 bg-slate-900 hover:bg-slate-800 text-slate-300 transition-all";
+      } else {
+        root.classList.remove('dark');
+        appWrapper.className = "min-h-screen bg-slate-50 text-slate-900 transition-colors duration-300";
+        themeBtn.textContent = "☀️ Light Mode";
+        themeBtn.className = "px-3 py-1.5 text-xs font-semibold rounded-lg border border-slate-200 bg-white hover:bg-slate-100 text-slate-700 transition-all";
+      }
+
+      // Update control cards to match themes dynamically
+      updateThemedCards();
+
+      // Redraw canvases with new theme backgrounds
+      drawSimCanvas();
+      drawSandboxCanvas();
+    }
+
+    function updateThemedCards() {
+      const isDark = theme === 'dark';
+      const simControlsCard = document.getElementById('sim-controls-card');
+      const constraintCard = document.getElementById('constraint-card');
+      const readoutCard = document.getElementById('readout-card');
+      const canvasWrapperCard = document.getElementById('canvas-wrapper-card');
+      const videoContextCard = document.getElementById('video-context-card');
+      const frameControlsCard = document.getElementById('frame-controls-card');
+      const tabsContainer = document.getElementById('tabs-container');
+      const sandboxCard = document.getElementById('sandbox-card');
+      const sandboxResultsCard = document.getElementById('sandbox-results-card');
+
+      const borderClass = isDark ? 'border-slate-800' : 'border-slate-200';
+      const bgClass = isDark ? 'bg-slate-900' : 'bg-white';
+      const bgSubClass = isDark ? 'bg-slate-950' : 'bg-slate-50';
+
+      // Update general classes
+      if (simControlsCard) simControlsCard.className = `lg:col-span-4 p-6 rounded-2xl border ${borderClass} ${bgClass} flex flex-col gap-6`;
+      if (constraintCard) constraintCard.className = `p-4 rounded-xl border ${borderClass} ${bgSubClass} flex flex-col gap-3`;
+      if (readoutCard) readoutCard.className = `p-4 rounded-xl border ${borderClass} ${bgSubClass} flex flex-col gap-2 font-mono text-xs`;
+      if (canvasWrapperCard) canvasWrapperCard.className = `p-4 rounded-2xl border ${borderClass} ${bgClass} overflow-hidden`;
+      if (videoContextCard) videoContextCard.className = `p-6 rounded-2xl border ${borderClass} ${bgClass}`;
+      if (frameControlsCard) frameControlsCard.className = `p-1.5 rounded-xl flex gap-2 border ${borderClass} ${bgClass} w-fit`;
+      if (tabsContainer) tabsContainer.className = `flex p-1 rounded-xl ${bgSubClass} border ${borderClass}`;
+      if (sandboxCard) sandboxCard.className = `p-4 rounded-2xl border ${borderClass} ${bgClass}`;
+      if (sandboxResultsCard) sandboxResultsCard.className = `p-6 rounded-2xl border ${borderClass} ${bgClass}`;
+    }
+
+    // SIMULATOR FRAME ACTIONS
+    function switchFrame(frameId) {
+      frameOverlay = frameId;
+      ['physical', 'fbd', 'components'].forEach(id => {
+        const btn = document.getElementById(`frame-btn-${id}`);
+        if (id === frameId) {
+          btn.className = "flex items-center gap-1.5 px-3.5 py-1.5 text-xs font-bold rounded-lg transition-all bg-indigo-600 text-white shadow-md";
+        } else {
+          btn.className = "flex items-center gap-1.5 px-3.5 py-1.5 text-xs font-bold rounded-lg transition-all text-slate-400 hover:text-slate-200";
+        }
+      });
+
+      // Update Observation Info Text
+      const obsText = document.getElementById('observation-text');
+      if (frameId === 'physical') {
+        obsText.textContent = "Demonstrating the classic toy car dragging the wooden dinosaur along the floor.";
+      } else if (frameId === 'fbd') {
+        obsText.textContent = "Representing both systems as isolated mass nodes with vertical gravity, tabletop support normal forces, and resultant net horizontal pulling vectors.";
+      } else if (frameId === 'components') {
+        obsText.textContent = "Isolate the pulling vector into standard trigonometric right-triangle components along standard horizontal coordinate projections.";
+      }
+
+      drawSimCanvas();
+    }
+
+    // UPDATE PHYSICS PARAMETERS
+    function updateSimParams() {
+      forceAngle = parseInt(document.getElementById('range-force-angle').value);
+      forceMag = parseInt(document.getElementById('range-force-mag').value);
+      dinoMass = parseInt(document.getElementById('range-dino-mass').value);
+      wheelConstraint = document.getElementById('check-constraint').checked;
+
+      // Update Slider Labels
+      document.getElementById('label-force-angle').textContent = `${forceAngle}°`;
+      document.getElementById('label-force-mag').textContent = `${forceMag} N`;
+      document.getElementById('label-dino-mass').textContent = `${dinoMass} kg`;
+
+      // Update Constraint Description Block
+      const desc = document.getElementById('constraint-desc');
+      if (wheelConstraint) {
+        desc.textContent = "🟢 Active: Dinosaur wheels are locked on the track. In Side View, both stay perfectly on the road. Perpendicular components are canceled.";
+      } else {
+        desc.textContent = "🔴 Disabled: Dinosaur drifts frictionless in both directions on top-down table surface.";
+      }
+
+      // Update Side Component Analysis Block
+      const angleRad = (forceAngle * Math.PI) / 180;
+      document.getElementById('readout-f-total').textContent = `${forceMag.toFixed(1)} N`;
+      document.getElementById('readout-fx').textContent = `${(forceMag * Math.cos(angleRad)).toFixed(1)} N`;
+      document.getElementById('readout-fy').textContent = `${(forceMag * Math.sin(angleRad)).toFixed(1)} N`;
+      document.getElementById('readout-vel-angle').textContent = wheelConstraint ? "0.0° (Strict Horizontal)" : `${forceAngle.toFixed(1)}°`;
+
+      drawSimCanvas();
+    }
+
+    // PLAYBACK LOOP ENGINE
+    function togglePlayback() {
+      isPlaying = !isPlaying;
+      const playBtn = document.getElementById('btn-play-pause');
+
+      if (isPlaying) {
+        playBtn.className = "flex-1 flex items-center justify-center gap-2 py-3 px-4 rounded-xl font-bold transition-all text-white bg-amber-600 hover:bg-amber-500 shadow-lg shadow-amber-500/10";
+        playBtn.innerHTML = `<i data-lucide="pause" class="w-5 h-5"></i><span id="play-btn-text">Pause</span>`;
+        lucide.createIcons();
+        runPhysicsLoop();
+      } else {
+        playBtn.className = "flex-1 flex items-center justify-center gap-2 py-3 px-4 rounded-xl font-bold transition-all text-white bg-emerald-600 hover:bg-emerald-500 shadow-lg shadow-emerald-500/10";
+        playBtn.innerHTML = `<i data-lucide="play" class="w-5 h-5 fill-current"></i><span id="play-btn-text">Run Physics</span>`;
+        lucide.createIcons();
+        cancelAnimationFrame(animationFrameId);
+      }
+    }
+
+    function runPhysicsLoop() {
+      const state = simState;
       const angleRad = (forceAngle * Math.PI) / 180;
       
-      // Pull Force Components
-      const Fx = forceMag * Math.cos(angleRad) * 0.15; // Scaled down for readable motion
-      const Fy = -forceMag * Math.sin(angleRad) * 0.15; // Negative is UP in standard Canvas coordinates
+      const Fx = forceMag * Math.cos(angleRad) * 0.15;
+      const Fy = -forceMag * Math.sin(angleRad) * 0.15;
 
       const massFactor = 5 / (dinoMass / 10);
 
-      // Dinosaur Physics Model
       if (wheelConstraint) {
         const ax = Fx * massFactor;
         state.dino.vx += ax;
-        state.dino.vx *= 0.93; // Friction damping
+        state.dino.vx *= 0.93;
         state.dino.vy = 0;
-        state.virtualY = 0; // Constrained perfectly to horizontal plane
+        state.virtualY = 0;
       } else {
-        // Unconstrained sliding sandbox
         const ax = Fx * massFactor;
         const ay = Fy * massFactor;
         
@@ -256,1280 +705,596 @@ function TowingSimulator({ theme }) {
         state.dino.vy *= 0.93;
 
         state.virtualY += state.dino.vy;
-        
-        // Clamp virtual vertical drift so dino stays on-screen in Top-down view
-        if (state.virtualY > 80) {
-          state.virtualY = 80;
-          state.dino.vy = 0;
-        }
-        if (state.virtualY < -80) {
-          state.virtualY = -80;
-          state.dino.vy = 0;
-        }
+
+        // Keep Top-Down bounded
+        if (state.virtualY > 80) { state.virtualY = 80; state.dino.vy = 0; }
+        if (state.virtualY < -80) { state.virtualY = -80; state.dino.vy = 0; }
       }
 
-      // Progress virtual horizontal position
       state.virtualX += state.dino.vx;
 
-      draw();
+      drawSimCanvas();
+
+      if (isPlaying) {
+        animationFrameId = requestAnimationFrame(runPhysicsLoop);
+      }
+    }
+
+    function resetSimulator() {
+      simState.virtualX = 180;
+      simState.virtualY = 0;
+      simState.dino.vx = 0;
+      simState.dino.vy = 0;
       
       if (isPlaying) {
-        animationFrameId = requestAnimationFrame(updatePhysics);
+        togglePlayback();
       }
-    };
-
-    if (isPlaying) {
-      animationFrameId = requestAnimationFrame(updatePhysics);
-    }
-    
-    return () => cancelAnimationFrame(animationFrameId);
-  }, [isPlaying, forceMag, forceAngle, wheelConstraint, dinoMass, ropeLength]);
-
-  // DRAW FUNCTIONS FOR CANVAS
-  const draw = () => {
-    const canvas = canvasRef.current;
-    if (!canvas) return;
-    const ctx = canvas.getContext('2d');
-    
-    // Clear Canvas
-    ctx.clearRect(0, 0, canvas.width, canvas.height);
-    
-    // Set theme colors
-    const isDark = theme === 'dark';
-    const bgGridColor = isDark ? 'rgba(30, 41, 59, 0.5)' : 'rgba(226, 232, 240, 0.8)';
-    const textMainColor = isDark ? '#f8fafc' : '#0f172a';
-    const labelSubColor = isDark ? '#64748b' : '#475569';
-    const dividerColor = isDark ? '#334155' : '#cbd5e1';
-    const trackColor = isDark ? '#1e293b' : '#e2e8f0';
-
-    // Draw grid background on both panels
-    ctx.strokeStyle = bgGridColor;
-    ctx.lineWidth = 1;
-    const gridSize = 40;
-    for (let x = 0; x < canvas.width; x += gridSize) {
-      ctx.beginPath();
-      ctx.moveTo(x, 0);
-      ctx.lineTo(x, canvas.height);
-      ctx.stroke();
-    }
-    for (let y = 0; y < canvas.height; y += gridSize) {
-      ctx.beginPath();
-      ctx.moveTo(0, y);
-      ctx.lineTo(canvas.width, y);
-      ctx.stroke();
-    }
-
-    // Split Divider Line
-    ctx.strokeStyle = dividerColor;
-    ctx.lineWidth = 3;
-    ctx.beginPath();
-    ctx.moveTo(400, 0);
-    ctx.lineTo(400, canvas.height);
-    ctx.stroke();
-
-    const state = simState.current;
-    const angleRad = (forceAngle * Math.PI) / 180;
-
-    // Synchronized loop coordinate for clean horizontal wrap-around
-    const dinoLoopX_Left = (state.virtualX % 220) + 120; // Side View Dinosaur X (clamped horizontally)
-    const dinoLoopX_Right = (state.virtualX % 220) + 520; // Top Down View Dinosaur X (clamped horizontally)
-
-    // ==========================================
-    // LEFT PANEL: SIDE VIEW (PROFILE)
-    // ==========================================
-    // 1. Draw Ground Road Surface
-    ctx.fillStyle = isDark ? '#334155' : '#94a3b8';
-    ctx.fillRect(0, 245, 400, 8);
-
-    // 2. Dinosaur Placement (Flipped, sitting strictly on the road)
-    const sideDino = {
-      x: dinoLoopX_Left,
-      y: 185, // sits perfectly on road at y=245
-      width: state.dino.width,
-      height: state.dino.height
-    };
-
-    // If FBD Frame is selected, render the Dinosaur translucently to highlight textbook forces
-    const alpha = frameOverlay === 'fbd' ? 0.25 : 1.0;
-    ctx.save();
-    ctx.globalAlpha = alpha;
-    drawDinoAsset(ctx, sideDino.x, sideDino.y, sideDino.width, sideDino.height, true); // true = flipped face left
-    ctx.restore();
-
-    // 3. Toy Car Placement (Flipped, pulling on the road, fixed horizontal distance)
-    const sideCar = {
-      x: sideDino.x - 100, // Car is on the left, pulling left
-      y: 205, // sits perfectly on road
-      width: 90,
-      height: 40
-    };
-    
-    ctx.save();
-    ctx.globalAlpha = frameOverlay === 'fbd' ? 0.35 : 1.0;
-    drawCarAsset(ctx, sideCar.x, sideCar.y, sideCar.width, sideCar.height, true); // true = flipped face left
-    ctx.restore();
-
-    // 4. Rope (Connecting Rear of Car to Front of Dinosaur - Flat and grounded on table)
-    const sideRopeStart = { x: sideDino.x + 5, y: sideDino.y + sideDino.height / 2 + 5 };
-    const sideRopeEnd = { x: sideCar.x + 85, y: sideCar.y + sideCar.height - 12 };
-
-    ctx.save();
-    ctx.globalAlpha = frameOverlay === 'fbd' ? 0.2 : 1.0;
-    ctx.strokeStyle = isDark ? '#94a3b8' : '#475569';
-    ctx.lineWidth = 2;
-    ctx.beginPath();
-    ctx.moveTo(sideRopeStart.x, sideRopeStart.y);
-    ctx.lineTo(sideRopeEnd.x, sideRopeEnd.y);
-    ctx.stroke();
-
-    // Rope braiding texture
-    ctx.strokeStyle = isDark ? '#1e293b' : '#e2e8f0';
-    ctx.lineWidth = 1;
-    ctx.setLineDash([3, 3]);
-    ctx.beginPath();
-    ctx.moveTo(sideRopeStart.x, sideRopeStart.y);
-    ctx.lineTo(sideRopeEnd.x, sideRopeEnd.y);
-    ctx.stroke();
-    ctx.setLineDash([]);
-    ctx.restore();
-
-    // Profile View Title
-    ctx.fillStyle = textMainColor;
-    ctx.font = 'bold 11px system-ui';
-    ctx.fillText("PANEL A: SIDE PROFILE VIEW (TABLETOP)", 15, 25);
-    ctx.fillStyle = labelSubColor;
-    ctx.font = '10px system-ui';
-    ctx.fillText("Both vehicles remain constrained flat on tabletop", 15, 40);
-
-    // ==========================================
-    // RIGHT PANEL: TOP-DOWN VIEW (HORIZONTAL PLANE)
-    // ==========================================
-    // 1. Draw Track Constraints (Horizontal rail markers along centerline)
-    const trackCenterY = 160;
-    ctx.fillStyle = trackColor;
-    ctx.fillRect(400, trackCenterY - 12, 400, 24);
-    
-    // Draw Center dashed guide line
-    ctx.strokeStyle = isDark ? 'rgba(99, 102, 241, 0.3)' : 'rgba(99, 102, 241, 0.4)';
-    ctx.lineWidth = 1.5;
-    ctx.setLineDash([6, 4]);
-    ctx.beginPath();
-    ctx.moveTo(400, trackCenterY);
-    ctx.lineTo(800, trackCenterY);
-    ctx.stroke();
-    ctx.setLineDash([]);
-
-    // 2. Dinosaur Placement (Top-Down outline projection)
-    const topDino = {
-      x: dinoLoopX_Right,
-      y: trackCenterY + state.virtualY, // drifts vertically if unconstrained!
-      width: 55,
-      height: 35
-    };
-    
-    // Draw top-down wooden box representing toy dinosaur
-    ctx.save();
-    ctx.globalAlpha = frameOverlay === 'fbd' ? 0.25 : 1.0;
-    ctx.translate(topDino.x, topDino.y);
-    ctx.fillStyle = '#b45309'; // Rich wood
-    ctx.strokeStyle = '#78350f';
-    ctx.lineWidth = 2.5;
-    ctx.beginPath();
-    ctx.roundRect(-topDino.width / 2, -topDino.height / 2, topDino.width, topDino.height, 6);
-    ctx.fill();
-    ctx.stroke();
-    
-    // Wooden grain details from top view
-    ctx.strokeStyle = 'rgba(120, 53, 15, 0.3)';
-    ctx.lineWidth = 1.5;
-    ctx.beginPath();
-    ctx.moveTo(-topDino.width / 3, -topDino.height / 3);
-    ctx.lineTo(topDino.width / 3, -topDino.height / 4);
-    ctx.moveTo(-topDino.width / 2.5, topDino.height / 4);
-    ctx.lineTo(topDino.width / 3.5, topDino.height / 3);
-    ctx.stroke();
-
-    // Wheel markers if constrained
-    if (wheelConstraint) {
-      ctx.fillStyle = '#1e293b';
-      ctx.fillRect(-topDino.width / 2.5, -topDino.height / 2 - 4, 10, 4);
-      ctx.fillRect(-topDino.width / 2.5, topDino.height / 2, 10, 4);
-      ctx.fillRect(topDino.width / 4, -topDino.height / 2 - 4, 10, 4);
-      ctx.fillRect(topDino.width / 4, topDino.height / 2, 10, 4);
-    }
-    ctx.restore();
-
-    // 3. Toy Car Placement (Top-down projection, pulled at angle forceAngle relative to dino)
-    const topCar = {
-      x: topDino.x - ropeLength * Math.cos(angleRad),
-      y: topDino.y + ropeLength * Math.sin(angleRad), 
-      width: 58,
-      height: 32
-    };
-
-    // Draw top-down blue toy car
-    ctx.save();
-    ctx.globalAlpha = frameOverlay === 'fbd' ? 0.25 : 1.0;
-    ctx.translate(topCar.x, topCar.y);
-    ctx.rotate(angleRad); // Car aligns with towing rope tension angle
-    ctx.fillStyle = '#3b82f6'; // Corvette Blue
-    ctx.strokeStyle = '#1d4ed8';
-    ctx.lineWidth = 2.5;
-    ctx.beginPath();
-    ctx.roundRect(-topCar.width / 2, -topCar.height / 2, topCar.width, topCar.height, 6);
-    ctx.fill();
-    ctx.stroke();
-
-    // Windshield/convertible cabin top-down view
-    ctx.fillStyle = 'rgba(241, 245, 249, 0.5)';
-    ctx.fillRect(-topCar.width / 6, -topCar.height / 3, topCar.width / 3, topCar.height / 1.5);
-
-    // Car Wheels
-    ctx.fillStyle = '#0f172a';
-    ctx.fillRect(-topCar.width / 2.5, -topCar.height / 2 - 3, 10, 3);
-    ctx.fillRect(-topCar.width / 2.5, topCar.height / 2, 10, 3);
-    ctx.fillRect(topCar.width / 4, -topCar.height / 2 - 3, 10, 3);
-    ctx.fillRect(topCar.width / 4, topCar.height / 2, 10, 3);
-    ctx.restore();
-
-    // 4. Diagonal Rope
-    ctx.save();
-    ctx.globalAlpha = frameOverlay === 'fbd' ? 0.2 : 1.0;
-    ctx.strokeStyle = isDark ? '#94a3b8' : '#475569';
-    ctx.lineWidth = 2;
-    ctx.beginPath();
-    ctx.moveTo(topDino.x, topDino.y);
-    ctx.lineTo(topCar.x, topCar.y);
-    ctx.stroke();
-    ctx.restore();
-
-    // Top-down view Title
-    ctx.fillStyle = textMainColor;
-    ctx.font = 'bold 11px system-ui';
-    ctx.fillText("PANEL B: TOP-DOWN SURFACE VIEW (BIRD'S EYE)", 415, 25);
-    ctx.fillStyle = labelSubColor;
-    ctx.font = '10px system-ui';
-    ctx.fillText("Visualizes lateral angle and vector dynamics", 415, 40);
-
-    // ==========================================
-    // RENDERING CORE FRAMES & VECTORS
-    // ==========================================
-    const sideDinoCM = { x: sideDino.x + sideDino.width / 2 - 5, y: sideDino.y + sideDino.height / 2 };
-    const topDinoCM = { x: topDino.x, y: topDino.y };
-
-    // Common vector measurements
-    const forceVecX = forceMag * Math.cos(angleRad);
-    const forceVecY = -forceMag * Math.sin(angleRad);
-    const velScale = 12;
-    const velocityVecX = state.dino.vx * velScale;
-    const velocityVecY = state.dino.vy * velScale;
-
-    // --- FRAME OVERLAY 1: PHYSICAL WORLD FRAME ---
-    if (frameOverlay === 'physical') {
-      // Draw standard vectors overlaid over physical entities
-      // 1. Force Vector on Dinosaur pointing towards car
-      drawVector(
-        ctx,
-        topDinoCM.x,
-        topDinoCM.y,
-        topDinoCM.x - forceVecX,
-        topDinoCM.y + forceVecY,
-        '#ef4444',
-        'Pull Force (F_pull)',
-        3,
-        theme,
-        false,
-        'mid-below' // Place label below force vector shaft to prevent arrowhead overlapping
-      );
-
-      // 2. Velocity Vector
-      if (isPlaying || Math.abs(state.dino.vx) > 0.05) {
-        drawVector(
-          ctx,
-          topDinoCM.x,
-          topDinoCM.y,
-          topDinoCM.x - velocityVecX,
-          topDinoCM.y + velocityVecY,
-          '#06b6d4',
-          'Velocity (v)',
-          3,
-          theme,
-          false,
-          'mid-above' // Place label cleanly above velocity shaft
-        );
-      } else {
-        // Draw static potential motion vector
-        const potentialVX = (forceMag * Math.cos(angleRad) * 0.15) * velScale * 0.93;
-        const potentialVY = wheelConstraint ? 0 : (-forceMag * Math.sin(angleRad) * 0.15) * velScale * 0.93;
-        drawVector(
-          ctx,
-          topDinoCM.x,
-          topDinoCM.y,
-          topDinoCM.x - potentialVX,
-          topDinoCM.y + potentialVY,
-          'rgba(6, 182, 212, 0.45)',
-          'Velocity (v)',
-          2,
-          theme,
-          true,
-          'mid-above'
-        );
-      }
-
-      // Draw angle indicators
-      ctx.strokeStyle = isDark ? '#f1f5f9' : '#1e293b';
-      ctx.lineWidth = 1;
-      ctx.beginPath();
-      ctx.arc(topDinoCM.x, topDinoCM.y, 35, Math.PI, Math.PI + angleRad, angleRad < 0);
-      ctx.stroke();
-
-    }
-
-    // --- FRAME OVERLAY 2: FREE BODY DIAGRAM (FBD) FRAME ---
-    else if (frameOverlay === 'fbd') {
-      // Draw Isolated Point Mass Nodes
-      ctx.fillStyle = '#6366f1';
-      ctx.beginPath();
-      ctx.arc(sideDinoCM.x, sideDinoCM.y, 8, 0, Math.PI * 2);
-      ctx.arc(topDinoCM.x, topDinoCM.y, 8, 0, Math.PI * 2);
-      ctx.fill();
-
-      // PANEL A (Side Profile FBD)
-      // Gravity force vector (pointing straight down)
-      const gravityMagnitude = dinoMass * 1.5;
-      drawVector(ctx, sideDinoCM.x, sideDinoCM.y, sideDinoCM.x, sideDinoCM.y + gravityMagnitude, '#a855f7', 'Gravity (F_g)', 2.5, theme, false, 'mid-below');
       
-      // Pulling force (drawn forward-horizontal on the profile, since profile rope is parallel to table)
-      drawVector(ctx, sideDinoCM.x, sideDinoCM.y, sideDinoCM.x - (forceMag * 1.2), sideDinoCM.y, '#ef4444', 'Tension (T)', 2.5, theme, false, 'mid-above');
-
-      // Normal Force vector (pointing straight up)
-      drawVector(ctx, sideDinoCM.x, sideDinoCM.y, sideDinoCM.x, sideDinoCM.y - gravityMagnitude, '#3b82f6', 'Normal (F_N)', 2.5, theme, false, 'mid-above');
-
-      // PANEL B (Top-Down FBD - Horizontal Plane Force balance)
-      // Pull Force acting diagonally left
-      drawVector(ctx, topDinoCM.x, topDinoCM.y, topDinoCM.x - forceVecX, topDinoCM.y + forceVecY, '#ef4444', 'Applied Pull (F)', 3, theme, false, 'mid-above');
-
-      if (wheelConstraint) {
-        // Track constraint exerts normal cancel force laterally to balance horizontal slide
-        drawVector(ctx, topDinoCM.x, topDinoCM.y, topDinoCM.x, topDinoCM.y - forceVecY, '#eab308', 'Lateral Track Force', 2, theme, false, 'mid-below');
-        // Resulting Net Force strictly horizontally
-        drawVector(ctx, topDinoCM.x, topDinoCM.y, topDinoCM.x - forceVecX, topDinoCM.y, '#10b981', 'Net Force (F_net)', 3, theme, false, 'mid-above');
-      } else {
-        // Unconstrained: Net force points directly in direction of pull
-        drawVector(ctx, topDinoCM.x, topDinoCM.y, topDinoCM.x - forceVecX, topDinoCM.y + forceVecY, '#10b981', 'Net Force (F_net)', 3, theme, false, 'mid-above');
-      }
+      drawSimCanvas();
     }
 
-    // --- FRAME OVERLAY 3: COMPONENT RESOLUTION FRAME ---
-    else if (frameOverlay === 'components') {
-      // Highlight exact trigonometric projections on Panel B (Top-Down Plane)
-      // Draw Right Angle Component Box
-      ctx.strokeStyle = 'rgba(239, 68, 68, 0.15)';
-      ctx.lineWidth = 1;
-      ctx.fillStyle = isDark ? 'rgba(99, 102, 241, 0.05)' : 'rgba(99, 102, 241, 0.03)';
-      ctx.beginPath();
-      ctx.moveTo(topDinoCM.x, topDinoCM.y);
-      ctx.lineTo(topDinoCM.x - forceVecX, topDinoCM.y);
-      ctx.lineTo(topDinoCM.x - forceVecX, topDinoCM.y + forceVecY);
-      ctx.closePath();
-      ctx.fill();
-      ctx.stroke();
-
-      // FIXED overlap by rendering labels along respective midpoints of vector segments
-      // 1. Hypotenuse vector: Applied Force F
-      drawVector(ctx, topDinoCM.x, topDinoCM.y, topDinoCM.x - forceVecX, topDinoCM.y + forceVecY, '#ef4444', 'Hypotenuse: Pull (F)', 3, theme, false, 'mid-above');
-
-      // 2. Adjacent Vector: F_x = F * cos(theta)
-      drawVector(ctx, topDinoCM.x, topDinoCM.y, topDinoCM.x - forceVecX, topDinoCM.y, '#6366f1', 'Adjacent: F_x = F·cos(θ)', 2.5, theme, false, 'mid-below');
-
-      // 3. Opposite Vector: F_y = F * sin(theta)
-      drawVector(ctx, topDinoCM.x - forceVecX, topDinoCM.y, topDinoCM.x - forceVecX, topDinoCM.y + forceVecY, '#a855f7', 'Opposite: F_y = F·sin(θ)', 2.5, theme, false, 'mid-above');
-
-      // Angle mark
-      ctx.strokeStyle = isDark ? '#f1f5f9' : '#1e293b';
-      ctx.lineWidth = 1.5;
-      ctx.beginPath();
-      ctx.arc(topDinoCM.x, topDinoCM.y, 35, Math.PI, Math.PI + angleRad, angleRad < 0);
-      ctx.stroke();
-    }
-  };
-
-  // ASSET RENDERERS
-  const drawCarAsset = (ctx, x, y, w, h, isFlipped = false) => {
-    ctx.save();
-    ctx.translate(x, y);
-    if (isFlipped) {
-      ctx.translate(w, 0);
-      ctx.scale(-1, 1);
-    }
-    
-    // Car Body Base
-    ctx.fillStyle = '#60a5fa'; 
-    ctx.beginPath();
-    ctx.roundRect(5, 15, w - 10, h - 20, 8);
-    ctx.fill();
-
-    // Classic Tailfin contour
-    ctx.fillStyle = '#3b82f6';
-    ctx.beginPath();
-    ctx.moveTo(5, 15);
-    ctx.quadraticCurveTo(15, 5, 30, 15);
-    ctx.lineTo(5, 15);
-    ctx.fill();
-
-    // Car Cabin 
-    ctx.fillStyle = theme === 'dark' ? 'rgba(255, 255, 255, 0.15)' : 'rgba(0, 0, 0, 0.1)';
-    ctx.strokeStyle = '#e2e8f0';
-    ctx.lineWidth = 1.5;
-    ctx.beginPath();
-    ctx.roundRect(35, 5, 30, 15, [10, 10, 0, 0]);
-    ctx.fill();
-    ctx.stroke();
-
-    // Chrome Side Stripes
-    ctx.strokeStyle = '#f1f5f9';
-    ctx.lineWidth = 2;
-    ctx.beginPath();
-    ctx.moveTo(25, 25);
-    ctx.bezierCurveTo(45, 20, 65, 28, 80, 23);
-    ctx.stroke();
-
-    // Wheels
-    ctx.fillStyle = '#0f172a';
-    ctx.strokeStyle = '#cbd5e1';
-    ctx.lineWidth = 2;
-    ctx.beginPath();
-    ctx.arc(22, 35, 9, 0, Math.PI * 2);
-    ctx.fill();
-    ctx.stroke();
-
-    ctx.beginPath();
-    ctx.arc(w - 22, 35, 9, 0, Math.PI * 2);
-    ctx.fill();
-    ctx.stroke();
-
-    ctx.restore();
-  };
-
-  const drawDinoAsset = (ctx, x, y, w, h, isFlipped = false) => {
-    ctx.save();
-    ctx.translate(x, y);
-    if (isFlipped) {
-      ctx.translate(w, 0);
-      ctx.scale(-1, 1);
-    }
-
-    // Outer Wooden Boundary
-    ctx.fillStyle = '#d97706'; 
-    ctx.strokeStyle = '#78350f'; 
-    ctx.lineWidth = 2.5;
-
-    ctx.beginPath();
-    ctx.moveTo(10, h - 15); 
-    ctx.quadraticCurveTo(5, h - 40, 25, h - 30); 
-    ctx.quadraticCurveTo(40, h - 55, 60, h - 50); 
-    ctx.lineTo(70, h - 55); 
-    ctx.quadraticCurveTo(85, h - 60, 85, h - 35); 
-    ctx.quadraticCurveTo(80, h - 25, 70, h - 30); 
-    ctx.quadraticCurveTo(65, h - 20, 65, h - 15); 
-    ctx.lineTo(55, h - 10);
-    ctx.lineTo(50, h); 
-    ctx.lineTo(40, h); 
-    ctx.lineTo(43, h - 12); 
-    ctx.lineTo(25, h); 
-    ctx.lineTo(15, h);
-    ctx.closePath();
-    ctx.fill();
-    ctx.stroke();
-
-    // Wooden Grain Details
-    ctx.strokeStyle = 'rgba(120, 53, 15, 0.25)';
-    ctx.lineWidth = 1.5;
-    for (let i = 1; i <= 3; i++) {
-      ctx.beginPath();
-      ctx.moveTo(15 + i * 5, h - 20);
-      ctx.bezierCurveTo(40, h - 35 + i * 2, 60, h - 35 - i * 2, 70, h - 35);
-      ctx.stroke();
-    }
-
-    // eye
-    ctx.fillStyle = '#78350f';
-    ctx.beginPath();
-    ctx.arc(77, h - 45, 2.5, 0, Math.PI * 2);
-    ctx.fill();
-
-    // Wheels for Dino if constraint active
-    if (wheelConstraint) {
-      ctx.fillStyle = '#451a03';
-      ctx.beginPath();
-      ctx.arc(20, h, 6, 0, Math.PI * 2);
-      ctx.arc(45, h, 6, 0, Math.PI * 2);
-      ctx.fill();
-    }
-
-    ctx.restore();
-  };
-
-  // FIXED drawVector function to properly separate, support, and pad midpoint component text labels
-  const drawVector = (ctx, fromx, fromy, tox, toy, color, label, width = 3, theme = 'dark', isDashed = false, labelPos = 'head') => {
-    ctx.save();
-    ctx.strokeStyle = color;
-    ctx.fillStyle = color;
-    ctx.lineWidth = width;
-
-    if (isDashed) {
-      ctx.setLineDash([4, 4]);
-    }
-
-    ctx.beginPath();
-    ctx.moveTo(fromx, fromy);
-    ctx.lineTo(tox, toy);
-    ctx.stroke();
-    ctx.setLineDash([]); // Reset
-
-    // Draw arrowhead
-    const angle = Math.atan2(toy - fromy, tox - fromx);
-    const headLength = 10;
-    
-    ctx.beginPath();
-    ctx.moveTo(tox, toy);
-    ctx.lineTo(tox - headLength * Math.cos(angle - Math.PI / 6), toy - headLength * Math.sin(angle - Math.PI / 6));
-    ctx.lineTo(tox - headLength * Math.cos(angle + Math.PI / 6), toy - headLength * Math.sin(angle + Math.PI / 6));
-    ctx.closePath();
-    ctx.fill();
-
-    // Render Label
-    if (label) {
+    // DRAW TOWING CANVAS
+    function drawSimCanvas() {
+      if (!simCtx) return;
+      
+      const ctx = simCtx;
+      const canvas = simCanvas;
       const isDark = theme === 'dark';
-      ctx.font = 'bold 13px system-ui'; // Increased size to be "visible big"
 
-      let labelX, labelY;
-      
-      if (labelPos.startsWith('mid')) {
-        // Calculate vector segment midpoint
-        const midX = (fromx + tox) / 2;
-        const midY = (fromy + toy) / 2;
-        
-        // Offset perpendicular to the vector shaft to prevent line overlaps
-        const perpAngle = angle + Math.PI / 2;
-        const offsetDist = labelPos === 'mid-above' ? -18 : 18; // Increased padding distance
-        
-        labelX = midX + Math.cos(perpAngle) * offsetDist;
-        labelY = midY + Math.sin(perpAngle) * offsetDist;
-      } else {
-        // Default relative to arrowhead (displaced cleanly to prevent overlapping)
-        const offsetX = Math.cos(angle) * 20;
-        const offsetY = Math.sin(angle) * 20;
-        labelX = tox + offsetX;
-        labelY = toy + offsetY;
+      ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+      // Grid Colors
+      const bgGridColor = isDark ? 'rgba(30, 41, 59, 0.5)' : 'rgba(226, 232, 240, 0.8)';
+      const textMainColor = isDark ? '#f8fafc' : '#0f172a';
+      const labelSubColor = isDark ? '#64748b' : '#475569';
+      const dividerColor = isDark ? '#334155' : '#cbd5e1';
+      const trackColor = isDark ? '#1e293b' : '#e2e8f0';
+
+      // Background grid lines
+      ctx.strokeStyle = bgGridColor;
+      ctx.lineWidth = 1;
+      const gridSize = 40;
+      for (let x = 0; x < canvas.width; x += gridSize) {
+        ctx.beginPath(); ctx.moveTo(x, 0); ctx.lineTo(x, canvas.height); ctx.stroke();
+      }
+      for (let y = 0; y < canvas.height; y += gridSize) {
+        ctx.beginPath(); ctx.moveTo(0, y); ctx.lineTo(canvas.width, y); ctx.stroke();
       }
 
-      // Draw a clean background card around midpoint labels so grid lines don't clutter them
-      ctx.save();
-      const textWidth = ctx.measureText(label).width;
-      const paddingX = 8;
-      const paddingY = 4;
-      const boxWidth = textWidth + paddingX * 2;
-      const boxHeight = 18 + paddingY * 2;
+      // Vertical Split line
+      ctx.strokeStyle = dividerColor;
+      ctx.lineWidth = 3;
+      ctx.beginPath(); ctx.moveTo(400, 0); ctx.lineTo(400, canvas.height); ctx.stroke();
 
-      ctx.fillStyle = isDark ? 'rgba(15, 23, 42, 0.95)' : 'rgba(255, 255, 255, 0.95)';
-      ctx.strokeStyle = color; // Colored border matching the vector color looks incredible!
-      ctx.lineWidth = 1.5;
-      
+      const state = simState;
+      const angleRad = (forceAngle * Math.PI) / 180;
+
+      const dinoLoopX_Left = (state.virtualX % 220) + 120;
+      const dinoLoopX_Right = (state.virtualX % 220) + 520;
+
+      // ------------------------------------------
+      // PROFILE SIDE VIEW (Left)
+      // ------------------------------------------
+      ctx.fillStyle = isDark ? '#334155' : '#94a3b8';
+      ctx.fillRect(0, 245, 400, 8);
+
+      const sideDino = { x: dinoLoopX_Left, y: 185, width: 85, height: 60 };
+      const sideCar = { x: sideDino.x - 100, y: 205, width: 90, height: 40 };
+
+      // Render Dino & Car Profile
+      const alphaVal = frameOverlay === 'fbd' ? 0.25 : 1.0;
+      ctx.save();
+      ctx.globalAlpha = alphaVal;
+      drawDinoAsset(ctx, sideDino.x, sideDino.y, sideDino.width, sideDino.height, true);
+      drawCarAsset(ctx, sideCar.x, sideCar.y, sideCar.width, sideCar.height, true);
+      ctx.restore();
+
+      // Rope Profile
+      ctx.save();
+      ctx.globalAlpha = frameOverlay === 'fbd' ? 0.2 : 1.0;
+      ctx.strokeStyle = isDark ? '#94a3b8' : '#475569';
+      ctx.lineWidth = 2;
       ctx.beginPath();
-      ctx.roundRect(labelX - boxWidth / 2, labelY - boxHeight / 2, boxWidth, boxHeight, 6);
-      ctx.fill();
+      ctx.moveTo(sideDino.x + 5, sideDino.y + sideDino.height / 2 + 5);
+      ctx.lineTo(sideCar.x + 85, sideCar.y + sideCar.height - 12);
       ctx.stroke();
       ctx.restore();
 
-      ctx.fillStyle = isDark ? '#f1f5f9' : '#1e293b';
-      ctx.textAlign = 'center';
+      // Panel Header Label
+      ctx.fillStyle = textMainColor;
+      ctx.font = 'bold 11px system-ui';
+      ctx.fillText("PANEL A: SIDE PROFILE VIEW (TABLETOP)", 15, 25);
+      ctx.fillStyle = labelSubColor;
+      ctx.font = '10px system-ui';
+      ctx.fillText("Both vehicles remain constrained flat on tabletop", 15, 40);
+
+
+      // ------------------------------------------
+      // TOP-DOWN BIRD'S EYE VIEW (Right)
+      // ------------------------------------------
+      const trackCenterY = 160;
+      ctx.fillStyle = trackColor;
+      ctx.fillRect(400, trackCenterY - 12, 400, 24);
+
+      // Rails
+      ctx.strokeStyle = isDark ? 'rgba(99, 102, 241, 0.3)' : 'rgba(99, 102, 241, 0.4)';
+      ctx.lineWidth = 1.5;
+      ctx.setLineDash([6, 4]);
+      ctx.beginPath(); ctx.moveTo(400, trackCenterY); ctx.lineTo(800, trackCenterY); ctx.stroke();
+      ctx.setLineDash([]);
+
+      // Top Dino
+      const topDino = { x: dinoLoopX_Right, y: trackCenterY + state.virtualY, width: 55, height: 35 };
+      ctx.save();
+      ctx.globalAlpha = frameOverlay === 'fbd' ? 0.25 : 1.0;
+      ctx.translate(topDino.x, topDino.y);
+      ctx.fillStyle = '#b45309';
+      ctx.strokeStyle = '#78350f';
+      ctx.lineWidth = 2.5;
+      ctx.beginPath();
+      ctx.roundRect(-topDino.width / 2, -topDino.height / 2, topDino.width, topDino.height, 6);
+      ctx.fill(); ctx.stroke();
+      if (wheelConstraint) {
+        ctx.fillStyle = '#1e293b';
+        ctx.fillRect(-topDino.width / 2.5, -topDino.height / 2 - 4, 10, 4);
+        ctx.fillRect(-topDino.width / 2.5, topDino.height / 2, 10, 4);
+        ctx.fillRect(topDino.width / 4, -topDino.height / 2 - 4, 10, 4);
+        ctx.fillRect(topDino.width / 4, topDino.height / 2, 10, 4);
+      }
+      ctx.restore();
+
+      // Top Car
+      const topCar = { x: topDino.x - ropeLength * Math.cos(angleRad), y: topDino.y + ropeLength * Math.sin(angleRad), width: 58, height: 32 };
+      ctx.save();
+      ctx.globalAlpha = frameOverlay === 'fbd' ? 0.25 : 1.0;
+      ctx.translate(topCar.x, topCar.y);
+      ctx.rotate(angleRad);
+      ctx.fillStyle = '#3b82f6';
+      ctx.strokeStyle = '#1d4ed8';
+      ctx.lineWidth = 2.5;
+      ctx.beginPath();
+      ctx.roundRect(-topCar.width / 2, -topCar.height / 2, topCar.width, topCar.height, 6);
+      ctx.fill(); ctx.stroke();
+      ctx.fillStyle = '#0f172a';
+      ctx.fillRect(-topCar.width / 2.5, -topCar.height / 2 - 3, 10, 3);
+      ctx.fillRect(-topCar.width / 2.5, topCar.height / 2, 10, 3);
+      ctx.fillRect(topCar.width / 4, -topCar.height / 2 - 3, 10, 3);
+      ctx.fillRect(topCar.width / 4, topCar.height / 2, 10, 3);
+      ctx.restore();
+
+      // Diagonal string
+      ctx.save();
+      ctx.globalAlpha = frameOverlay === 'fbd' ? 0.2 : 1.0;
+      ctx.strokeStyle = isDark ? '#94a3b8' : '#475569';
+      ctx.lineWidth = 2;
+      ctx.beginPath(); ctx.moveTo(topDino.x, topDino.y); ctx.lineTo(topCar.x, topCar.y); ctx.stroke();
+      ctx.restore();
+
+      // Side title text
+      ctx.fillStyle = textMainColor;
+      ctx.font = 'bold 11px system-ui';
+      ctx.fillText("PANEL B: TOP-DOWN SURFACE VIEW (BIRD'S EYE)", 415, 25);
+      ctx.fillStyle = labelSubColor;
+      ctx.font = '10px system-ui';
+      ctx.fillText("Visualizes lateral angle and vector dynamics", 415, 40);
+
+      // Vector Render Overlays
+      const sideDinoCM = { x: sideDino.x + sideDino.width / 2 - 5, y: sideDino.y + sideDino.height / 2 };
+      const topDinoCM = { x: topDino.x, y: topDino.y };
+
+      const velScale = 12; // FIXED: Defined missing local variable velScale
+      const forceVecX = forceMag * Math.cos(angleRad);
+      const forceVecY = -forceMag * Math.sin(angleRad);
+      const velocityVecX = state.dino.vx * velScale;
+      const velocityVecY = state.dino.vy * velScale;
+
+      if (frameOverlay === 'physical') {
+        drawVector(ctx, topDinoCM.x, topDinoCM.y, topDinoCM.x - forceVecX, topDinoCM.y + forceVecY, '#ef4444', 'Pull Force (F_pull)', 3, theme, false, 'mid-below');
+
+        if (isPlaying || Math.abs(state.dino.vx) > 0.05) {
+          drawVector(ctx, topDinoCM.x, topDinoCM.y, topDinoCM.x - velocityVecX, topDinoCM.y + velocityVecY, '#06b6d4', 'Velocity (v)', 3, theme, false, 'mid-above');
+        } else {
+          const potentialVX = (forceMag * Math.cos(angleRad) * 0.15) * velScale * 0.93;
+          const potentialVY = wheelConstraint ? 0 : (-forceMag * Math.sin(angleRad) * 0.15) * velScale * 0.93;
+          drawVector(ctx, topDinoCM.x, topDinoCM.y, topDinoCM.x - potentialVX, topDinoCM.y + potentialVY, 'rgba(6, 182, 212, 0.45)', 'Velocity (v)', 2, theme, true, 'mid-above');
+        }
+
+        ctx.strokeStyle = isDark ? '#f1f5f9' : '#1e293b';
+        ctx.lineWidth = 1;
+        ctx.beginPath();
+        ctx.arc(topDinoCM.x, topDinoCM.y, 35, Math.PI, Math.PI + angleRad, angleRad < 0);
+        ctx.stroke();
+
+        ctx.fillStyle = textMainColor;
+        ctx.font = '11px system-ui';
+        ctx.fillText(`θ = ${forceAngle}°`, topDinoCM.x - 65, topDinoCM.y - 12);
+      }
+
+      else if (frameOverlay === 'fbd') {
+        ctx.fillStyle = '#6366f1';
+        ctx.beginPath();
+        ctx.arc(sideDinoCM.x, sideDinoCM.y, 8, 0, Math.PI * 2);
+        ctx.arc(topDinoCM.x, topDinoCM.y, 8, 0, Math.PI * 2);
+        ctx.fill();
+
+        const gravityMagnitude = dinoMass * 1.5;
+        drawVector(ctx, sideDinoCM.x, sideDinoCM.y, sideDinoCM.x, sideDinoCM.y + gravityMagnitude, '#a855f7', 'Gravity (F_g)', 2.5, theme, false, 'mid-below');
+        drawVector(ctx, sideDinoCM.x, sideDinoCM.y, sideDinoCM.x - (forceMag * 1.2), sideDinoCM.y, '#ef4444', 'Tension (T)', 2.5, theme, false, 'mid-above');
+        drawVector(ctx, sideDinoCM.x, sideDinoCM.y, sideDinoCM.x, sideDinoCM.y - gravityMagnitude, '#3b82f6', 'Normal (F_N)', 2.5, theme, false, 'mid-above');
+
+        drawVector(ctx, topDinoCM.x, topDinoCM.y, topDinoCM.x - forceVecX, topDinoCM.y + forceVecY, '#ef4444', 'Applied Pull (F)', 3, theme, false, 'mid-above');
+
+        if (wheelConstraint) {
+          drawVector(ctx, topDinoCM.x, topDinoCM.y, topDinoCM.x, topDinoCM.y - forceVecY, '#eab308', 'Lateral Track Force', 2, theme, false, 'mid-below');
+          drawVector(ctx, topDinoCM.x, topDinoCM.y, topDinoCM.x - forceVecX, topDinoCM.y, '#10b981', 'Net Force (F_net)', 3, theme, false, 'mid-above');
+        } else {
+          drawVector(ctx, topDinoCM.x, topDinoCM.y, topDinoCM.x - forceVecX, topDinoCM.y + forceVecY, '#10b981', 'Net Force (F_net)', 3, theme, false, 'mid-above');
+        }
+      }
+
+      else if (frameOverlay === 'components') {
+        ctx.strokeStyle = 'rgba(239, 68, 68, 0.15)';
+        ctx.lineWidth = 1;
+        ctx.fillStyle = isDark ? 'rgba(99, 102, 241, 0.05)' : 'rgba(99, 102, 241, 0.03)';
+        ctx.beginPath();
+        ctx.moveTo(topDinoCM.x, topDinoCM.y);
+        ctx.lineTo(topDinoCM.x - forceVecX, topDinoCM.y);
+        ctx.lineTo(topDinoCM.x - forceVecX, topDinoCM.y + forceVecY);
+        ctx.closePath(); ctx.fill(); ctx.stroke();
+
+        drawVector(ctx, topDinoCM.x, topDinoCM.y, topDinoCM.x - forceVecX, topDinoCM.y + forceVecY, '#ef4444', 'Hypotenuse: Pull (F)', 3, theme, false, 'mid-above');
+        drawVector(ctx, topDinoCM.x, topDinoCM.y, topDinoCM.x - forceVecX, topDinoCM.y, '#6366f1', 'Adjacent: F_x = F·cos(θ)', 2.5, theme, false, 'mid-below');
+        drawVector(ctx, topDinoCM.x - forceVecX, topDinoCM.y, topDinoCM.x - forceVecX, topDinoCM.y + forceVecY, '#a855f7', 'Opposite: F_y = F·sin(θ)', 2.5, theme, false, 'mid-above');
+
+        ctx.strokeStyle = isDark ? '#f1f5f9' : '#1e293b';
+        ctx.lineWidth = 1.5;
+        ctx.beginPath();
+        ctx.arc(topDinoCM.x, topDinoCM.y, 35, Math.PI, Math.PI + angleRad, angleRad < 0);
+        ctx.stroke();
+      }
+    }
+
+    // DRAW SANDBOX COORDINATE CANVAS
+    function drawSandboxCanvas() {
+      if (!sandboxCtx) return;
+
+      const ctx = sandboxCtx;
+      const canvas = sandboxCanvas;
+      const isDark = theme === 'dark';
+
+      ctx.clearRect(0, 0, canvas.width, canvas.height);
+      ctx.fillStyle = isDark ? '#020617' : '#f8fafc';
+      ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+      const originX = canvas.width / 2;
+      const originY = canvas.height / 2;
+
+      // Draw Grid
+      ctx.strokeStyle = isDark ? 'rgba(51, 65, 85, 0.4)' : 'rgba(203, 213, 225, 0.8)';
+      ctx.lineWidth = 1;
+      const spacing = 40;
+      for (let x = originX; x < canvas.width; x += spacing) {
+        ctx.beginPath(); ctx.moveTo(x, 0); ctx.lineTo(x, canvas.height); ctx.stroke();
+      }
+      for (let x = originX - spacing; x > 0; x -= spacing) {
+        ctx.beginPath(); ctx.moveTo(x, 0); ctx.lineTo(x, canvas.height); ctx.stroke();
+      }
+      for (let y = originY; y < canvas.height; y += spacing) {
+        ctx.beginPath(); ctx.moveTo(0, y); ctx.lineTo(canvas.width, y); ctx.stroke();
+      }
+      for (let y = originY - spacing; y > 0; y -= spacing) {
+        ctx.beginPath(); ctx.moveTo(0, y); ctx.lineTo(canvas.width, y); ctx.stroke();
+      }
+
+      // Draw Axis lines
+      ctx.strokeStyle = isDark ? '#64748b' : '#334155';
+      ctx.lineWidth = 2;
+      ctx.beginPath(); ctx.moveTo(0, originY); ctx.lineTo(canvas.width, originY); ctx.stroke();
+      ctx.beginPath(); ctx.moveTo(originX, 0); ctx.lineTo(originX, canvas.height); ctx.stroke();
+
+      const headX = originX + vectorX;
+      const headY = originY + vectorY;
+
+      // Components
+      ctx.strokeStyle = '#818cf8';
+      ctx.lineWidth = 2;
+      ctx.setLineDash([5, 5]);
+      ctx.beginPath(); ctx.moveTo(originX, originY); ctx.lineTo(headX, originY); ctx.stroke();
+
+      ctx.strokeStyle = '#a78bfa';
+      ctx.beginPath(); ctx.moveTo(headX, originY); ctx.lineTo(headX, headY); ctx.stroke();
+      ctx.setLineDash([]);
+
+      // Arrow
+      ctx.strokeStyle = '#ec4899';
+      ctx.lineWidth = 4.5;
+      ctx.beginPath(); ctx.moveTo(originX, originY); ctx.lineTo(headX, headY); ctx.stroke();
+
+      // Arrow head
+      const angle = Math.atan2(headY - originY, headX - originX);
+      const headLength = 14;
+      ctx.fillStyle = '#ec4899';
+      ctx.beginPath();
+      ctx.moveTo(headX, headY);
+      ctx.lineTo(headX - headLength * Math.cos(angle - Math.PI / 6), headY - headLength * Math.sin(angle - Math.PI / 6));
+      ctx.lineTo(headX - headLength * Math.cos(angle + Math.PI / 6), headY - headLength * Math.sin(angle + Math.PI / 6));
+      ctx.closePath(); ctx.fill();
+
+      // Handle circle
+      ctx.strokeStyle = 'rgba(236, 72, 153, 0.5)';
+      ctx.lineWidth = 3;
+      ctx.beginPath(); ctx.arc(headX, headY, 10, 0, Math.PI * 2); ctx.stroke();
+
+      // Arc
+      ctx.strokeStyle = '#f43f5e';
+      ctx.lineWidth = 1.5;
+      const vectorAngleRad = Math.atan2(-vectorY, vectorX);
+      ctx.beginPath();
+      ctx.arc(originX, originY, 35, 0, -vectorAngleRad, vectorX >= 0 && vectorY <= 0 ? true : vectorY > 0);
+      ctx.stroke();
+
+      // Text labels
+      ctx.fillStyle = isDark ? '#ffffff' : '#000000';
+      ctx.font = '12px system-ui';
+      ctx.fillText("X", canvas.width - 15, originY - 5);
+      ctx.fillText("Y", originX + 8, 15);
+      ctx.fillText("(0,0)", originX - 35, originY + 15);
+
+      // Label background card
+      ctx.save();
+      ctx.font = 'bold 13px system-ui';
+      const textW = ctx.measureText("Vector (V)").width;
+      ctx.fillStyle = isDark ? 'rgba(15, 23, 42, 0.95)' : 'rgba(255, 255, 255, 0.95)';
+      ctx.strokeStyle = '#ec4899';
+      ctx.lineWidth = 1.5;
+      ctx.beginPath();
+      ctx.roundRect(headX + 15 - 5, headY - 10 - 12, textW + 10, 20, 4);
+      ctx.fill(); ctx.stroke();
+
+      ctx.fillStyle = '#ec4899';
+      ctx.textAlign = 'left';
       ctx.textBaseline = 'middle';
-      ctx.fillText(label, labelX, labelY);
-    }
-    ctx.restore();
-  };
+      ctx.fillText("Vector (V)", headX + 15, headY - 10 - 2);
+      ctx.restore();
 
-  return (
-    <div className="grid grid-cols-1 lg:grid-cols-12 gap-8">
-      {/* Simulation Controls Sidebar (4 Columns) */}
-      <div className={`lg:col-span-4 p-6 rounded-2xl border flex flex-col gap-6 ${theme === 'dark' ? 'bg-slate-900 border-slate-800' : 'bg-white border-slate-200 shadow-sm'}`}>
-        <div className="flex items-center gap-2 pb-3 border-b border-slate-800">
-          <Sliders className="w-5 h-5 text-indigo-500" />
-          <h2 className="font-bold text-lg">Simulation Parameters</h2>
-        </div>
-
-        {/* Playback Controls */}
-        <div className="flex items-center gap-3">
-          <button
-            onClick={() => setIsPlaying(!isPlaying)}
-            className={`flex-1 flex items-center justify-center gap-2 py-3 px-4 rounded-xl font-bold transition-all text-white shadow-lg ${
-              isPlaying 
-                ? 'bg-amber-600 hover:bg-amber-500 shadow-amber-500/10' 
-                : 'bg-emerald-600 hover:bg-emerald-500 shadow-emerald-500/10'
-            }`}
-          >
-            {isPlaying ? (
-              <>
-                <Pause className="w-5 h-5" />
-                <span>Pause</span>
-              </>
-            ) : (
-              <>
-                <Play className="w-5 h-5 fill-current" />
-                <span>Run Physics</span>
-              </>
-            )}
-          </button>
-
-          <button
-            onClick={resetSimulation}
-            title="Reset Simulation"
-            className={`p-3 rounded-xl border transition-all ${
-              theme === 'dark' 
-                ? 'border-slate-800 bg-slate-950 hover:bg-slate-800 text-slate-300' 
-                : 'border-slate-200 bg-slate-100 hover:bg-slate-200 text-slate-700'
-            }`}
-          >
-            <RotateCcw className="w-5 h-5" />
-          </button>
-        </div>
-
-        {/* 1. Pulling Force Angle Slider */}
-        <div className="flex flex-col gap-2">
-          <div className="flex justify-between items-center text-sm font-semibold">
-            <span className="flex items-center gap-1.5">
-              <span className="w-2.5 h-2.5 rounded-full bg-red-500"></span>
-              {/* Rendered as clean inline LaTeX math instead of broken blocks */}
-              <MathText>{"Pull Force Angle ( $\\theta$ )"}</MathText>
-            </span>
-            <span className="font-mono text-xs text-indigo-400 bg-indigo-950/40 px-2 py-0.5 rounded border border-indigo-900">{forceAngle}°</span>
-          </div>
-          <p className={`text-xs ${theme === 'dark' ? 'text-slate-400' : 'text-slate-500'}`}>
-            Changes the towing angle along the horizontal table plane.
-          </p>
-          <input
-            type="range"
-            min="-60"
-            max="60"
-            value={forceAngle}
-            onChange={(e) => setForceAngle(parseInt(e.target.value))}
-            className="w-full accent-indigo-600 cursor-pointer"
-          />
-        </div>
-
-        {/* 2. Pulling Force Magnitude Slider (starts from 1 N now) */}
-        <div className="flex flex-col gap-2">
-          <div className="flex justify-between items-center text-sm font-semibold">
-            <span className="flex items-center gap-1.5">
-              <span className="w-2.5 h-2.5 rounded-full bg-red-400"></span>
-              <MathText>{"Force Magnitude ( $|\\vec{F}|$ )"}</MathText>
-            </span>
-            <span className="font-mono text-xs text-indigo-400 bg-indigo-950/40 px-2 py-0.5 rounded border border-indigo-900">{forceMag} N</span>
-          </div>
-          <p className={`text-xs ${theme === 'dark' ? 'text-slate-400' : 'text-slate-500'}`}>
-            Modifies vector magnitude (length of vector arrow). Minimum is 1 N.
-          </p>
-          <input
-            type="range"
-            min="1"
-            max="120"
-            value={forceMag}
-            onChange={(e) => setForceMag(parseInt(e.target.value))}
-            className="w-full accent-indigo-600 cursor-pointer"
-          />
-        </div>
-
-        {/* 3. Dinosaur Mass Slider */}
-        <div className="flex flex-col gap-2">
-          <div className="flex justify-between items-center text-sm font-semibold">
-            <span className="flex items-center gap-1.5">
-              <span className="w-2.5 h-2.5 rounded-full bg-slate-500"></span>
-              <MathText>{"Dinosaur Mass ( $m$ )"}</MathText>
-            </span>
-            <span className="font-mono text-xs text-slate-400">{dinoMass} kg</span>
-          </div>
-          <p className={`text-xs ${theme === 'dark' ? 'text-slate-400' : 'text-slate-500'}`}>
-            Affects inertia (acceleration response).
-          </p>
-          <input
-            type="range"
-            min="20"
-            max="100"
-            value={dinoMass}
-            onChange={(e) => setDinoMass(parseInt(e.target.value))}
-            className="w-full accent-slate-600 cursor-pointer"
-          />
-        </div>
-
-        {/* 4. Wheels Constraint Toggle */}
-        <div className={`p-4 rounded-xl border flex flex-col gap-3 ${theme === 'dark' ? 'bg-slate-950 border-slate-800' : 'bg-slate-50 border-slate-200'}`}>
-          <div className="flex items-center justify-between">
-            <span className="text-sm font-bold flex items-center gap-2">
-              <Compass className="w-4 h-4 text-cyan-400" />
-              Wheel/Track Constraint
-            </span>
-            <label className="relative inline-flex items-center cursor-pointer">
-              <input 
-                type="checkbox" 
-                checked={wheelConstraint} 
-                onChange={() => setWheelConstraint(!wheelConstraint)}
-                className="sr-only peer" 
-              />
-              <div className="w-11 h-6 bg-slate-700 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:width-5 after:transition-all peer-checked:bg-indigo-600"></div>
-            </label>
-          </div>
-          <p className={`text-xs leading-relaxed ${theme === 'dark' ? 'text-slate-400' : 'text-slate-500'}`}>
-            {wheelConstraint 
-              ? "🟢 Active: Dinosaur wheels are locked on the track. In Side View, both stay perfectly on the road. Perpendicular components are canceled."
-              : "🔴 Disabled: Dinosaur drifts frictionless in both directions on top-down table surface."}
-          </p>
-        </div>
-
-        {/* Real-time Component Resolution Panel */}
-        <div className={`p-4 rounded-xl border flex flex-col gap-2 font-mono text-xs ${theme === 'dark' ? 'bg-slate-950 border-slate-800' : 'bg-slate-50 border-slate-200'}`}>
-          <div className="text-slate-400 font-sans font-bold border-b border-slate-800 pb-1 mb-1">
-            Component Analysis:
-          </div>
-          <div className="flex justify-between">
-            <span>Pull Force (F_total):</span>
-            <span className="text-red-400 font-bold">{forceMag} N</span>
-          </div>
-          <div className="flex justify-between">
-            <span>F_x (Horizontal Component):</span>
-            <span className="text-indigo-400 font-bold">{(forceMag * Math.cos((forceAngle * Math.PI)/180)).toFixed(1)} N</span>
-          </div>
-          <div className="flex justify-between">
-            <span>F_y (Vertical/Lateral Component):</span>
-            <span className="text-indigo-400 font-bold">{(forceMag * Math.sin((forceAngle * Math.PI)/180)).toFixed(1)} N</span>
-          </div>
-          <div className="flex justify-between">
-            <span>Actual Velocity Angle:</span>
-            <span className="text-cyan-400 font-bold">{wheelConstraint ? "0.0° (Strict Horizontal)" : `${forceAngle.toFixed(1)}°`}</span>
-          </div>
-        </div>
-      </div>
-
-      {/* Interactive Simulation Sandbox (8 Columns) */}
-      <div className="lg:col-span-8 flex flex-col gap-6">
-        
-        {/* SWITCHABLE REPRESENTATION OVERLAYS (THE "FRAME SYSTEM") */}
-        <div className={`p-1.5 rounded-xl flex gap-2 border w-fit ${theme === 'dark' ? 'bg-slate-900 border-slate-850' : 'bg-white border-slate-200 shadow-sm'}`}>
-          <button
-            onClick={() => setFrameOverlay('physical')}
-            className={`flex items-center gap-1.5 px-3.5 py-1.5 text-xs font-bold rounded-lg transition-all ${
-              frameOverlay === 'physical'
-                ? 'bg-indigo-600 text-white shadow-md'
-                : 'text-slate-400 hover:text-slate-200'
-            }`}
-          >
-            <Eye className="w-3.5 h-3.5" />
-            <span>Physical Frame</span>
-          </button>
-          <button
-            onClick={() => setFrameOverlay('fbd')}
-            className={`flex items-center gap-1.5 px-3.5 py-1.5 text-xs font-bold rounded-lg transition-all ${
-              frameOverlay === 'fbd'
-                ? 'bg-indigo-600 text-white shadow-md'
-                : 'text-slate-400 hover:text-slate-200'
-            }`}
-          >
-            <Layers className="w-3.5 h-3.5" />
-            <span>Free Body Diagram (FBD)</span>
-          </button>
-          <button
-            onClick={() => setFrameOverlay('components')}
-            className={`flex items-center gap-1.5 px-3.5 py-1.5 text-xs font-bold rounded-lg transition-all ${
-              frameOverlay === 'components'
-                ? 'bg-indigo-600 text-white shadow-md'
-                : 'text-slate-400 hover:text-slate-200'
-            }`}
-          >
-            <LayoutGrid className="w-3.5 h-3.5" />
-            <span>Trig Components</span>
-          </button>
-        </div>
-
-        {/* Interactive Canvas */}
-        <div className={`p-4 rounded-2xl border overflow-hidden ${theme === 'dark' ? 'bg-slate-900 border-slate-800' : 'bg-white border-slate-200 shadow-sm'}`}>
-          <div className="flex items-center justify-between mb-2">
-            <div className="flex items-center gap-2">
-              <span className="w-2.5 h-2.5 rounded-full bg-emerald-500 animate-pulse"></span>
-              <span className="text-xs font-semibold text-slate-400 uppercase tracking-widest">Real-Time Sync Sandbox</span>
-            </div>
-            <div className="flex gap-4 text-xs font-bold">
-              <span className="flex items-center gap-1.5"><span className="w-2 h-2 rounded bg-red-500"></span> Force vector</span>
-              <span className="flex items-center gap-1.5"><span className="w-2 h-2 rounded bg-cyan-500"></span> Velocity vector</span>
-            </div>
-          </div>
-          
-          <div className="relative">
-            <canvas
-              ref={canvasRef}
-              width={800}
-              height={320}
-              className={`w-full h-auto rounded-xl border ${theme === 'dark' ? 'bg-slate-950 border-slate-800' : 'bg-slate-50 border-slate-200'}`}
-            />
-          </div>
-          
-          <div className={`mt-3 p-3 rounded-xl border flex items-start gap-2.5 text-xs ${theme === 'dark' ? 'bg-indigo-950/20 border-indigo-900/50 text-indigo-300' : 'bg-indigo-50 border-indigo-200 text-indigo-800'}`}>
-            <Info className="w-4 h-4 flex-shrink-0 mt-0.5 text-indigo-500" />
-            <div>
-              <span className="font-bold">Active Representational Frame:</span> You are currently viewing the system in the {" "}
-              <span className="underline font-bold capitalize">{frameOverlay} Mode</span>. 
-              {frameOverlay === 'physical' && " Demonstrating the classic toy car dragging the wooden dinosaur along the floor."}
-              {frameOverlay === 'fbd' && " Representing both systems as isolated mass nodes with vertical gravity, tabletop support normal forces, and resultant net horizontal pulling vectors."}
-              {frameOverlay === 'components' && " Isolate the pulling vector into standard trigonometric right-triangle components along standard horizontal coordinate projections."}
-            </div>
-          </div>
-        </div>
-
-        {/* Video Connection / Real-world match */}
-        <div className={`p-6 rounded-2xl border ${theme === 'dark' ? 'bg-slate-900 border-slate-800' : 'bg-white border-slate-200 shadow-sm'}`}>
-          <h3 className="font-bold text-base mb-2">How this maps to the video clip:</h3>
-          <p className={`text-sm leading-relaxed ${theme === 'dark' ? 'text-slate-400' : 'text-slate-500'}`}>
-            In the video, a blue classic Corvette pulls a wooden dinosaur horizontally across a tabletop. When the car pulls slightly diagonally on the table, it generates a pull force at an angle $\theta$ relative to the dinosaur's track. Because the dinosaur's wheels keep it constrained to horizontal movement, the dinosaur moves strictly along the track (velocity is horizontal), while the force acts at an angle. This visual separation shows why vector properties must be resolved into individual geometric components.
-          </p>
-        </div>
-      </div>
-    </div>
-  );
-}
-
-// ==========================================
-// 2. VECTOR SANDBOX COMPONENT
-// ==========================================
-function VectorSandbox({ theme }) {
-  const canvasRef = useRef(null);
-  const [vectorX, setVectorX] = useState(120); // endpoint offset x
-  const [vectorY, setVectorY] = useState(-100); // endpoint offset y (screen coords negative is UP)
-  const isDragging = useRef(false);
-
-  useEffect(() => {
-    drawSandbox();
-  }, [vectorX, vectorY, theme]);
-
-  const drawSandbox = () => {
-    const canvas = canvasRef.current;
-    if (!canvas) return;
-    const ctx = canvas.getContext('2d');
-    const isDark = theme === 'dark';
-
-    // Clear and Fill
-    ctx.clearRect(0, 0, canvas.width, canvas.height);
-    ctx.fillStyle = isDark ? '#020617' : '#f8fafc';
-    ctx.fillRect(0, 0, canvas.width, canvas.height);
-
-    const originX = canvas.width / 2;
-    const originY = canvas.height / 2;
-
-    // Draw Grid
-    ctx.strokeStyle = isDark ? 'rgba(51, 65, 85, 0.4)' : 'rgba(203, 213, 225, 0.8)';
-    ctx.lineWidth = 1;
-    const spacing = 40;
-    
-    // Vertical gridlines
-    for (let x = originX; x < canvas.width; x += spacing) {
-      ctx.beginPath(); ctx.moveTo(x, 0); ctx.lineTo(x, canvas.height); ctx.stroke();
-    }
-    for (let x = originX - spacing; x > 0; x -= spacing) {
-      ctx.beginPath(); ctx.moveTo(x, 0); ctx.lineTo(x, canvas.height); ctx.stroke();
-    }
-    // Horizontal gridlines
-    for (let y = originY; y < canvas.height; y += spacing) {
-      ctx.beginPath(); ctx.moveTo(0, y); ctx.lineTo(canvas.width, y); ctx.stroke();
-    }
-    for (let y = originY - spacing; y > 0; y -= spacing) {
-      ctx.beginPath(); ctx.moveTo(0, y); ctx.lineTo(canvas.width, y); ctx.stroke();
+      // Update values in sidebar readouts
+      updateSandboxReadouts();
     }
 
-    // Draw Axis lines
-    ctx.strokeStyle = isDark ? '#64748b' : '#334155';
-    ctx.lineWidth = 2;
-    // X-Axis
-    ctx.beginPath(); ctx.moveTo(0, originY); ctx.lineTo(canvas.width, originY); ctx.stroke();
-    // Y-Axis
-    ctx.beginPath(); ctx.moveTo(originX, 0); ctx.lineTo(originX, canvas.height); ctx.stroke();
+    // UPDATE SIDEBAR MATH FORMULAS
+    function updateSandboxReadouts() {
+      const actualY = -vectorY;
+      const magnitude = Math.hypot(vectorX, actualY).toFixed(1);
+      let angleDegrees = (Math.atan2(actualY, vectorX) * 180) / Math.PI;
+      if (angleDegrees < 0) angleDegrees += 360;
 
-    // End points
-    const headX = originX + vectorX;
-    const headY = originY + vectorY;
+      document.getElementById('sandbox-mag-val').textContent = magnitude;
+      document.getElementById('sandbox-angle-val').textContent = angleDegrees.toFixed(1);
+      document.getElementById('sandbox-comp-x').textContent = `${vectorX} units`;
+      document.getElementById('sandbox-comp-y').textContent = `${actualY} units`;
 
-    // Draw resolved components (Dashed Lines)
-    ctx.strokeStyle = '#818cf8'; // horizontal component (purple-400)
-    ctx.lineWidth = 2;
-    ctx.setLineDash([5, 5]);
-    ctx.beginPath();
-    ctx.moveTo(originX, originY);
-    ctx.lineTo(headX, originY);
-    ctx.stroke();
+      // Update Trigonometric Proof labels beautifully inside KaTeX blocks
+      const katexMagCode = `V = \\sqrt{x^2 + y^2} = \\sqrt{(${vectorX})^2 + (${actualY})^2} = ${magnitude}`;
+      const katexAngleCode = `\\theta = \\arctan(y/x) = \\arctan(${actualY}/${vectorX}) = ${angleDegrees.toFixed(1)}^\\circ`;
+      const katexReconCode = `V_x = V \\cdot \\cos(\\theta) = ${magnitude} \\cdot \\cos(${angleDegrees.toFixed(0)}^\\circ) = ${vectorX}\\\\V_y = V \\cdot \\sin(\\theta) = ${magnitude} \\cdot \\sin(${angleDegrees.toFixed(0)}^\\circ) = ${actualY}`;
 
-    ctx.strokeStyle = '#a78bfa'; // violet-400
-    ctx.beginPath();
-    ctx.moveTo(headX, originY);
-    ctx.lineTo(headX, headY);
-    ctx.stroke();
-    ctx.setLineDash([]); // Reset
+      renderFormula('math-proof-mag', katexMagCode, false);
+      renderFormula('math-proof-angle', katexAngleCode, false);
+      renderFormula('math-proof-reconstruct', katexReconCode, true);
+    }
 
-    // Draw Vector Main Vector Arrow (Bold Gradient color)
-    ctx.strokeStyle = '#ec4899'; // pink-500
-    ctx.lineWidth = 4.5;
-    ctx.beginPath();
-    ctx.moveTo(originX, originY);
-    ctx.lineTo(headX, headY);
-    ctx.stroke();
+    // SANDBOX INTERACTIVE POINTER DRAG CONTROLS (Unified coordinates with scaling ratio)
+    function handlePointerDown(e) {
+      const canvas = sandboxCanvas;
+      const rect = canvas.getBoundingClientRect();
 
-    // Main Arrowhead
-    const angle = Math.atan2(headY - originY, headX - originX);
-    const headLength = 14;
-    ctx.fillStyle = '#ec4899';
-    ctx.beginPath();
-    ctx.moveTo(headX, headY);
-    ctx.lineTo(headX - headLength * Math.cos(angle - Math.PI / 6), headY - headLength * Math.sin(angle - Math.PI / 6));
-    ctx.lineTo(headX - headLength * Math.cos(angle + Math.PI / 6), headY - headLength * Math.sin(angle + Math.PI / 6));
-    ctx.closePath();
-    ctx.fill();
+      // Dynamic pointer coordinate mapping supporting viewport resize scaling
+      const x = (e.clientX - rect.left) * (canvas.width / rect.width);
+      const y = (e.clientY - rect.top) * (canvas.height / rect.height);
 
-    // Draw Drag handle circle
-    ctx.strokeStyle = 'rgba(236, 72, 153, 0.5)';
-    ctx.lineWidth = 3;
-    ctx.beginPath();
-    ctx.arc(headX, headY, 10, 0, Math.PI * 2);
-    ctx.stroke();
+      const originX = canvas.width / 2;
+      const originY = canvas.height / 2;
+      const headX = originX + vectorX;
+      const headY = originY + vectorY;
 
-    // Angle indicator arc
-    ctx.strokeStyle = '#f43f5e';
-    ctx.lineWidth = 1.5;
-    const vectorAngleRad = Math.atan2(-vectorY, vectorX); 
-    ctx.beginPath();
-    ctx.arc(originX, originY, 35, 0, -vectorAngleRad, vectorX >= 0 && vectorY <= 0 ? true : vectorY > 0);
-    ctx.stroke();
+      const distance = Math.hypot(x - headX, y - headY);
+      if (distance < 30) {
+        canvas.setPointerCapture(e.pointerId);
+        isDragging = true;
+        updateDragPosition(e);
+      }
+    }
 
-    // Text labels
-    ctx.fillStyle = isDark ? '#ffffff' : '#000000';
-    ctx.font = '12px system-ui';
-    ctx.fillText("X", canvas.width - 15, originY - 5);
-    ctx.fillText("Y", originX + 8, 15);
-    ctx.fillText("(0,0)", originX - 35, originY + 15);
-
-    // Vector (V) Text Label with padded background card for perfect visual clarity
-    ctx.save();
-    ctx.font = 'bold 13px system-ui';
-    const sandboxLabel = "Vector (V)";
-    const textW = ctx.measureText(sandboxLabel).width;
-    ctx.fillStyle = isDark ? 'rgba(15, 23, 42, 0.95)' : 'rgba(255, 255, 255, 0.95)';
-    ctx.strokeStyle = '#ec4899';
-    ctx.lineWidth = 1.5;
-    ctx.beginPath();
-    ctx.roundRect(headX + 15 - 5, headY - 10 - 12, textW + 10, 20, 4);
-    ctx.fill();
-    ctx.stroke();
-    
-    ctx.fillStyle = '#ec4899';
-    ctx.textAlign = 'left';
-    ctx.textBaseline = 'middle';
-    ctx.fillText(sandboxLabel, headX + 15, headY - 10 - 2);
-    ctx.restore();
-  };
-
-  // Dragging using Pointer Events with capture binding for seamless cross-device compatibility
-  const handlePointerDown = (e) => {
-    const canvas = canvasRef.current;
-    if (!canvas) return;
-    const rect = canvas.getBoundingClientRect();
-    
-    // Scale standard screen pointer coordinates back into internal coordinate space (540x400)
-    const x = (e.clientX - rect.left) * (canvas.width / rect.width);
-    const y = (e.clientY - rect.top) * (canvas.height / rect.height);
-    
-    const originX = canvas.width / 2;
-    const originY = canvas.height / 2;
-    const headX = originX + vectorX;
-    const headY = originY + vectorY;
-    
-    const distance = Math.hypot(x - headX, y - headY);
-    if (distance < 30) { // generous touchscreen handle size
-      e.target.setPointerCapture(e.pointerId);
-      isDragging.current = true;
+    // Dynamic scale vector capture
+    function handlePointerMove(e) {
+      if (!isDragging) return;
       updateDragPosition(e);
     }
-  };
 
-  const handlePointerMove = (e) => {
-    if (!isDragging.current) return;
-    updateDragPosition(e);
-  };
+    function handlePointerUp(e) {
+      isDragging = false;
+      try {
+        sandboxCanvas.releasePointerCapture(e.pointerId);
+      } catch (err) {}
+    }
 
-  const handlePointerUp = (e) => {
-    isDragging.current = false;
-    try {
-      e.target.releasePointerCapture(e.pointerId);
-    } catch (err) {}
-  };
+    function updateDragPosition(e) {
+      const canvas = sandboxCanvas;
+      const rect = canvas.getBoundingClientRect();
 
-  const updateDragPosition = (e) => {
-    const canvas = canvasRef.current;
-    if (!canvas) return;
-    const rect = canvas.getBoundingClientRect();
-    
-    // Scale coordinates on move to support fluid responsive scaling
-    const x = (e.clientX - rect.left) * (canvas.width / rect.width);
-    const y = (e.clientY - rect.top) * (canvas.height / rect.height);
+      const x = (e.clientX - rect.left) * (canvas.width / rect.width);
+      const y = (e.clientY - rect.top) * (canvas.height / rect.height);
 
-    const originX = canvas.width / 2;
-    const originY = canvas.height / 2;
+      const originX = canvas.width / 2;
+      const originY = canvas.height / 2;
 
-    let targetX = x - originX;
-    let targetY = y - originY;
+      let targetX = x - originX;
+      let targetY = y - originY;
 
-    targetX = Math.max(-originX + 20, Math.min(originX - 20, targetX));
-    targetY = Math.max(-originY + 20, Math.min(originY - 20, targetY));
+      targetX = Math.max(-originX + 20, Math.min(originX - 20, targetX));
+      targetY = Math.max(-originY + 20, Math.min(originY - 20, targetY));
 
-    setVectorX(Math.round(targetX));
-    setVectorY(Math.round(targetY));
-  };
+      vectorX = Math.round(targetX);
+      vectorY = Math.round(targetY);
 
-  const actualY = -vectorY;
-  const magnitude = Math.hypot(vectorX, actualY).toFixed(1);
-  let angleDegrees = (Math.atan2(actualY, vectorX) * 180) / Math.PI;
-  if (angleDegrees < 0) {
-    angleDegrees += 360; 
-  }
+      drawSandboxCanvas();
+    }
 
-  return (
-    <div className="grid grid-cols-1 lg:grid-cols-12 gap-8">
-      {/* Visual Sandbox Window (8 cols) */}
-      <div className="lg:col-span-7 flex flex-col gap-4">
-        <div className={`p-4 rounded-2xl border ${theme === 'dark' ? 'bg-slate-900 border-slate-800' : 'bg-white border-slate-200 shadow-sm'}`}>
-          <div className="flex justify-between items-center mb-3">
-            <h2 className="font-bold text-lg flex items-center gap-2">
-              <Move className="text-pink-500" />
-              Interactive Graph Plane
-            </h2>
-            <span className={`text-xs px-2.5 py-1 rounded-full font-semibold ${theme === 'dark' ? 'bg-pink-950/40 text-pink-300' : 'bg-pink-50 text-pink-700'}`}>
-              Drag the arrowhead to study components
-            </span>
-          </div>
+    // MATHEMATICAL RENDERING HELPERS
+    function renderFormula(id, tex, isDisplay = false) {
+      const el = document.getElementById(id);
+      if (el && window.katex) {
+        try {
+          window.katex.render(tex, el, { displayMode: isDisplay, throwOnError: false });
+        } catch (e) {
+          el.textContent = tex;
+        }
+      }
+    }
 
-          <div className="relative cursor-crosshair touch-none">
-            <canvas
-              ref={canvasRef}
-              width={540}
-              height={400}
-              onPointerDown={handlePointerDown}
-              onPointerMove={handlePointerMove}
-              onPointerUp={handlePointerUp}
-              onPointerLeave={handlePointerUp}
-              className={`w-full rounded-xl border touch-none ${theme === 'dark' ? 'border-slate-800 animate-fade-in' : 'border-slate-200'}`}
-            />
-          </div>
-        </div>
-      </div>
+    // Fixed math render parser to handle typo from previous generation
+    function renderAllMath() {
+      document.querySelectorAll('.math-render').forEach(el => {
+        const tex = el.getAttribute('data-tex');
+        if (tex && window.katex) {
+          window.katex.render(tex, el, { throwOnError: false });
+        }
+      });
+    }
 
-      {/* Vector Math Readout Sidebar (5 cols) */}
-      <div className="lg:col-span-5 flex flex-col gap-6">
-        {/* Dynamic Vector Stats Card */}
-        <div className={`p-6 rounded-2xl border ${theme === 'dark' ? 'bg-slate-900 border-slate-800' : 'bg-white border-slate-200 shadow-sm'}`}>
-          <h3 className="font-bold text-lg mb-4 text-pink-500 border-b pb-2 border-slate-800">Vector Properties</h3>
-          
-          <div className="grid grid-cols-2 gap-4 mb-6">
-            <div className={`p-4 rounded-xl border ${theme === 'dark' ? 'bg-slate-950 border-slate-800' : 'bg-slate-50 border-slate-200'}`}>
-              <div className="text-xs text-slate-400 font-semibold tracking-wider mb-1.5">
-                <MathText>{"Magnitude ( $|\\vec{V}|$ )"}</MathText>
-              </div>
-              <div className="text-xl sm:text-2xl font-black text-white font-mono flex items-center gap-1 flex-wrap">
-                <span className="text-pink-500"><MathText>{"$|\\vec{V}| =$"}</MathText></span>
-                <span className={theme === 'dark' ? 'text-white' : 'text-slate-900'}>{magnitude}</span>
-                <span className="text-xs font-normal text-slate-400">units</span>
-              </div>
-            </div>
+    // VECTOR DRAWING HELPER (With beautiful colored padded midpoint cards)
+    function drawVector(ctx, fromx, fromy, tox, toy, color, label, width = 3, theme = 'dark', isDashed = false, labelPos = 'head') {
+      ctx.save();
+      ctx.strokeStyle = color;
+      ctx.fillStyle = color;
+      ctx.lineWidth = width;
 
-            <div className={`p-4 rounded-xl border ${theme === 'dark' ? 'bg-slate-950 border-slate-800' : 'bg-slate-50 border-slate-200'}`}>
-              <div className="text-xs text-slate-400 font-semibold tracking-wider mb-1.5">
-                <MathText>{"Direction ( $\\theta$ )"}</MathText>
-              </div>
-              <div className="text-xl sm:text-2xl font-black text-white font-mono flex items-center gap-1 flex-wrap">
-                <span className="text-pink-500"><MathText>{"$\\theta =$"}</MathText></span>
-                <span className={theme === 'dark' ? 'text-white' : 'text-slate-900'}>{angleDegrees.toFixed(1)}°</span>
-              </div>
-            </div>
-          </div>
+      if (isDashed) {
+        ctx.setLineDash([4, 4]);
+      }
 
-          <h3 className="font-bold text-sm text-slate-400 mb-2 uppercase tracking-wide">Resolved Components</h3>
-          <div className="space-y-3 font-mono text-xs mb-6">
-            <div className="flex justify-between items-center py-2 px-3 bg-slate-950/40 rounded border border-slate-800/40">
-              <span className="text-indigo-400">Horizontal Component (X):</span>
-              <span className="font-bold text-sm text-white">{vectorX} units</span>
-            </div>
-            <div className="flex justify-between items-center py-2 px-3 bg-slate-950/40 rounded border border-slate-800/40">
-              <span className="text-purple-400">Vertical Component (Y):</span>
-              <span className="font-bold text-sm text-white">{actualY} units</span>
-            </div>
-          </div>
+      ctx.beginPath();
+      ctx.moveTo(fromx, fromy);
+      ctx.lineTo(tox, toy);
+      ctx.stroke();
+      ctx.setLineDash([]);
 
-          <h3 className="font-bold text-sm text-slate-400 mb-2 uppercase tracking-wide">Trigonometric Proof</h3>
-          <div className={`p-4 rounded-xl border space-y-3 text-xs leading-relaxed ${theme === 'dark' ? 'bg-slate-950 border-slate-850 text-slate-300' : 'bg-slate-50 border-slate-200 text-slate-700'}`}>
-            <div className="flex flex-col gap-1">
-              <span className="text-slate-400 font-semibold">1. Magnitude Formula:</span>
-              <code className="bg-slate-900/60 p-2 rounded text-indigo-300 border border-indigo-950 block overflow-x-auto whitespace-nowrap">
-                <MathText>{"$V = \\sqrt{x^2 + y^2} = \\sqrt{(" + vectorX + ")^2 + (" + actualY + ")^2} = " + magnitude + "$"}</MathText>
-              </code>
-            </div>
+      const angle = Math.atan2(toy - fromy, tox - fromx);
+      const headLength = 10;
 
-            <div className="flex flex-col gap-1">
-              <span className="text-slate-400 font-semibold">2. Angle Formula:</span>
-              <code className="bg-slate-900/60 p-2 rounded text-indigo-300 border border-indigo-950 block overflow-x-auto whitespace-nowrap">
-                <MathText>{"$\\theta = \\arctan(y/x) = \\arctan(" + actualY + "/" + vectorX + ") = " + angleDegrees.toFixed(1) + "°$"}</MathText>
-              </code>
-            </div>
+      ctx.beginPath();
+      ctx.moveTo(tox, toy);
+      ctx.lineTo(tox - headLength * Math.cos(angle - Math.PI / 6), toy - headLength * Math.sin(angle - Math.PI / 6));
+      ctx.lineTo(tox - headLength * Math.cos(angle + Math.PI / 6), toy - headLength * Math.sin(angle + Math.PI / 6));
+      ctx.closePath(); ctx.fill();
 
-            <div className="flex flex-col gap-1">
-              <span className="text-slate-400 font-semibold">3. Reconstruction check:</span>
-              <code className="bg-slate-900/60 p-2 rounded text-indigo-300 border border-indigo-950 block space-y-1 overflow-x-auto">
-                <div className="whitespace-nowrap">
-                  <MathText>{"$V_x = V \\cdot \\cos(\\theta) = " + magnitude + " \\cdot \\cos(" + angleDegrees.toFixed(0) + "°) = " + vectorX + "$"}</MathText>
-                </div>
-                <div className="whitespace-nowrap">
-                  <MathText>{"$V_y = V \\cdot \\sin(\\theta) = " + magnitude + " \\cdot \\sin(" + angleDegrees.toFixed(0) + "°) = " + actualY + "$"}</MathText>
-                </div>
-              </code>
-            </div>
-          </div>
-        </div>
-      </div>
-    </div>
-  );
-}
+      if (label) {
+        const isDark = theme === 'dark';
+        ctx.font = 'bold 13px system-ui';
 
-// ==========================================
-// 3. INFOGRAPHICS COMPONENT
-// ==========================================
-function InfographicsTab({ theme }) {
-  const isDark = theme === 'dark';
+        let labelX, labelY;
+        if (labelPos.startsWith('mid')) {
+          const midX = (fromx + tox) / 2;
+          const midY = (fromy + toy) / 2;
+          const perpAngle = angle + Math.PI / 2;
+          const offsetDist = labelPos === 'mid-above' ? -18 : 18;
+          labelX = midX + Math.cos(perpAngle) * offsetDist;
+          labelY = midY + Math.sin(perpAngle) * offsetDist;
+        } else {
+          const offsetX = Math.cos(angle) * 20;
+          const offsetY = Math.sin(angle) * 20;
+          labelX = tox + offsetX;
+          labelY = toy + offsetY;
+        }
 
-  return (
-    <div className="flex flex-col gap-8">
-      {/* Intro Header banner */}
-      <div className={`p-8 rounded-3xl border relative overflow-hidden ${isDark ? 'bg-gradient-to-r from-slate-900 via-indigo-950/40 to-slate-900 border-slate-800' : 'bg-gradient-to-r from-slate-100 via-indigo-50 to-slate-100 border-slate-200 shadow-sm'}`}>
-        <div className="max-w-3xl">
-          <span className="text-indigo-500 font-bold text-xs uppercase tracking-widest bg-indigo-500/10 px-3 py-1 rounded-full border border-indigo-500/20">The Core Concepts</span>
-          <h2 className="text-2xl sm:text-3xl font-black mt-3 mb-4 tracking-tight">{"Understanding Vectors: Magnitude & Direction"}</h2>
-          <p className={`text-sm leading-relaxed ${isDark ? 'text-slate-400' : 'text-slate-600'}`}>
-            {"Unlike scalar quantities (like temperature, mass, or time) which only have a magnitude, a vector represents a physical quantity with both a magnitude (how much) and a direction (which way). This workspace breaks down these properties as explained in physics curriculum modules."}
-          </p>
-        </div>
-      </div>
+        ctx.save();
+        const textWidth = ctx.measureText(label).width;
+        const paddingX = 8;
+        const paddingY = 4;
+        const boxWidth = textWidth + paddingX * 2;
+        const boxHeight = 18 + paddingY * 2;
 
-      {/* Main Infographic Grid */}
-      <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6">
-        
-        {/* Card 1: What is a Vector? */}
-        <div className={`p-6 rounded-2xl border flex flex-col justify-between ${isDark ? 'bg-slate-900 border-slate-850' : 'bg-white border-slate-200 shadow-sm'}`}>
-          <div>
-            <div className="flex items-center gap-3 mb-4">
-              <span className="w-8 h-8 rounded-lg bg-pink-500/10 border border-pink-500/20 text-pink-500 flex items-center justify-center font-bold text-sm">01</span>
-              <h3 className="font-bold text-lg">Vectors vs Scalars</h3>
-            </div>
-            
-            <p className={`text-sm leading-relaxed mb-4 ${isDark ? 'text-slate-400' : 'text-slate-500'}`}>
-              {"A vector is represented visually as an arrow. The length of the arrow represents the magnitude, and the angle it points relative to a reference coordinate system represents its direction."}
-            </p>
+        ctx.fillStyle = isDark ? 'rgba(15, 23, 42, 0.95)' : 'rgba(255, 255, 255, 0.95)';
+        ctx.strokeStyle = color;
+        ctx.lineWidth = 1.5;
 
-            {/* Visual Mini Comparison Grid */}
-            <div className="space-y-2 mb-4">
-              <div className={`p-3 rounded-xl border text-xs flex justify-between ${isDark ? 'bg-slate-950 border-slate-800' : 'bg-slate-50 border-slate-200'}`}>
-                <div>
-                  <span className="font-bold text-emerald-400">Scalar Examples</span>
-                  <div className="text-slate-400 mt-1">Mass (50 kg), Speed (10 m/s), Temp (30°C)</div>
-                </div>
-              </div>
-              <div className={`p-3 rounded-xl border text-xs flex justify-between ${isDark ? 'bg-slate-950 border-slate-800' : 'bg-slate-50 border-slate-200'}`}>
-                <div>
-                  <span className="font-bold text-pink-500">Vector Examples</span>
-                  <div className="text-slate-400 mt-1">Force (50 N East), Velocity (10 m/s North)</div>
-                </div>
-              </div>
-            </div>
-          </div>
-          <div className="text-xs text-slate-500 italic mt-2">Vectors possess full dimensional spatial info.</div>
-        </div>
+        ctx.beginPath();
+        ctx.roundRect(labelX - boxWidth / 2, labelY - boxHeight / 2, boxWidth, boxHeight, 6);
+        ctx.fill(); ctx.stroke();
+        ctx.restore();
 
-        {/* Card 2: Splitting Components */}
-        <div className={`p-6 rounded-2xl border flex flex-col justify-between ${isDark ? 'bg-slate-900 border-slate-850' : 'bg-white border-slate-200 shadow-sm'}`}>
-          <div>
-            <div className="flex items-center gap-3 mb-4">
-              <span className="w-8 h-8 rounded-lg bg-indigo-500/10 border border-indigo-500/20 text-indigo-500 flex items-center justify-center font-bold text-sm">02</span>
-              <h3 className="font-bold text-lg">Resolving 2D Components</h3>
-            </div>
-            
-            <p className={`text-sm leading-relaxed mb-4 ${isDark ? 'text-slate-400' : 'text-slate-500'}`}>
-              <MathText>{"Any vector in a 2D plane can be broken down into vertical and horizontal components using trigonometry. If we know the magnitude $V$ and angle $\\theta$:"}</MathText>
-            </p>
+        ctx.fillStyle = isDark ? '#f1f5f9' : '#1e293b';
+        ctx.textAlign = 'center';
+        ctx.textBaseline = 'middle';
+        ctx.fillText(label, labelX, labelY);
+      }
+      ctx.restore();
+    }
 
-            <div className={`p-4 rounded-xl border space-y-2.5 font-mono text-xs ${isDark ? 'bg-slate-950 border-slate-850' : 'bg-slate-50 border-slate-200'}`}>
-              <div className="flex justify-between items-center">
-                <span className="text-indigo-400">Horizontal Component:</span>
-                <code className="font-bold text-slate-100 bg-indigo-950/40 px-2 py-1 rounded border border-indigo-900">
-                  <MathText>{"$V_x = V \\cdot \\cos(\\theta)$"}</MathText>
-                </code>
-              </div>
-              <div className="flex justify-between items-center">
-                <span className="text-purple-400">Vertical Component:</span>
-                <code className="font-bold text-slate-100 bg-purple-950/40 px-2 py-1 rounded border border-purple-900">
-                  <MathText>{"$V_y = V \\cdot \\sin(\\theta)$"}</MathText>
-                </code>
-              </div>
-            </div>
-          </div>
-          <div className="text-xs text-slate-500 italic mt-4">This math is critical for resolving forces in civil engineering & mechanics.</div>
-        </div>
+    // VEHICLE PROFILE VIEW DRAWER
+    function drawCarAsset(ctx, x, y, w, h, isFlipped = false) {
+      ctx.save();
+      ctx.translate(x, y);
+      if (isFlipped) {
+        ctx.translate(w, 0); ctx.scale(-1, 1);
+      }
 
-        {/* Card 3: When F != v */}
-        <div className={`p-6 rounded-2xl border flex flex-col justify-between ${isDark ? 'bg-slate-900 border-slate-850' : 'bg-white border-slate-200 shadow-sm'}`}>
-          <div>
-            <div className="flex items-center gap-3 mb-4">
-              <span className="w-8 h-8 rounded-lg bg-cyan-500/10 border border-cyan-500/20 text-cyan-500 flex items-center justify-center font-bold text-sm">03</span>
-              <h3 className="font-bold text-lg">Force vs. Velocity Direction</h3>
-            </div>
-            
-            <p className={`text-sm leading-relaxed mb-4 ${isDark ? 'text-slate-400' : 'text-slate-500'}`}>
-              <MathText>{"Many beginner physics students assume that the velocity vector ($\\vec{v}$) of an object must always point in the same direction as the force vector ($\\vec{F}$) being applied. This is a misconception!"}</MathText>
-            </p>
+      ctx.fillStyle = '#60a5fa';
+      ctx.beginPath(); ctx.roundRect(5, 15, w - 10, h - 20, 8); ctx.fill();
 
-            <div className={`p-3 rounded-xl border text-xs leading-relaxed space-y-2 ${isDark ? 'bg-slate-950 border-slate-850' : 'bg-slate-50 border-slate-200'}`}>
-              <div className="font-bold text-cyan-400">Why can they point in different directions?</div>
-              <ul className="list-disc pl-4 space-y-1 text-slate-400">
-                <li>{"Mechanical Constraints: Wheels or rails restrict an object to move only in one direction. Any diagonal force gets corrected by track normal force."}</li>
-                <li>{"Momentum/Inertia: A flying space shuttle moving forward that turns its thrusters sideways has velocity forward, but thrust force directed sideways."}</li>
-              </ul>
-            </div>
-          </div>
-          <div className="text-xs text-slate-500 italic mt-4">This dynamic was highlighted in the towing-toy video demonstration.</div>
-        </div>
+      ctx.fillStyle = '#3b82f6';
+      ctx.beginPath(); ctx.moveTo(5, 15); ctx.quadraticCurveTo(15, 5, 30, 15); ctx.lineTo(5, 15); ctx.fill();
 
-      </div>
+      ctx.fillStyle = theme === 'dark' ? 'rgba(255, 255, 255, 0.15)' : 'rgba(0, 0, 0, 0.1)';
+      ctx.strokeStyle = '#e2e8f0'; ctx.lineWidth = 1.5;
+      ctx.beginPath(); ctx.roundRect(35, 5, 30, 15, [10, 10, 0, 0]); ctx.fill(); ctx.stroke();
 
-      {/* Common Physics Misconceptions Box */}
-      <div className={`p-6 rounded-2xl border ${isDark ? 'bg-slate-950 border-slate-800' : 'bg-white border-slate-200 shadow-sm'}`}>
-        <h3 className="font-bold text-lg mb-4 flex items-center gap-2">
-          <HelpCircle className="text-amber-500" />
-          Common Misconceptions Addressed:
-        </h3>
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-xs sm:text-sm">
-          <div className="p-4 rounded-xl border border-slate-800 bg-slate-950/20">
-            <h4 className="font-bold text-rose-400 mb-1">{"❌ \"Negative vector means negative value\""}</h4>
-            <p className={`text-xs ${isDark ? 'text-slate-400' : 'text-slate-600'}`}>
-              {"No. A negative sign in vector coordinates indicates direction only (e.g. going left or going down), not a negative physical amount. Magnitude is always an absolute positive value."}
-            </p>
-          </div>
-          <div className="p-4 rounded-xl border border-slate-800 bg-slate-950/20">
-            <h4 className="font-bold text-rose-400 mb-1">{"❌ \"Adding vectors is simple arithmetic\""}</h4>
-            <p className={`text-xs ${isDark ? 'text-slate-400' : 'text-slate-600'}`}>
-              <MathText>{"No. You cannot add vectors like simple scalars ($10\\text{ N} + 10\\text{ N} \\neq 20\\text{ N}$ unless they point in exact same direction). Instead, vectors must be broken into $x$ and $y$ components and added independently (head-to-tail method)."}</MathText>
-            </p>
-          </div>
-        </div>
-      </div>
-    </div>
-  );
-}
+      ctx.strokeStyle = '#f1f5f9'; ctx.lineWidth = 2;
+      ctx.beginPath(); ctx.moveTo(25, 25); ctx.bezierCurveTo(45, 20, 65, 28, 80, 23); ctx.stroke();
+
+      ctx.fillStyle = '#0f172a'; ctx.strokeStyle = '#cbd5e1'; ctx.lineWidth = 2;
+      ctx.beginPath(); ctx.arc(22, 35, 9, 0, Math.PI * 2); ctx.fill(); ctx.stroke();
+      ctx.beginPath(); ctx.arc(w - 22, 35, 9, 0, Math.PI * 2); ctx.fill(); ctx.stroke();
+
+      ctx.restore();
+    }
+
+    // TOY DINOSAUR PROFILE VIEW DRAWER
+    function drawDinoAsset(ctx, x, y, w, h, isFlipped = false) {
+      ctx.save();
+      ctx.translate(x, y);
+      if (isFlipped) {
+        ctx.translate(w, 0); ctx.scale(-1, 1);
+      }
+
+      ctx.fillStyle = '#d97706'; ctx.strokeStyle = '#78350f'; ctx.lineWidth = 2.5;
+      ctx.beginPath();
+      ctx.moveTo(10, h - 15);
+      ctx.quadraticCurveTo(5, h - 40, 25, h - 30);
+      ctx.quadraticCurveTo(40, h - 55, 60, h - 50);
+      ctx.lineTo(70, h - 55);
+      ctx.quadraticCurveTo(85, h - 60, 85, h - 35);
+      ctx.quadraticCurveTo(80, h - 25, 70, h - 30);
+      ctx.quadraticCurveTo(65, h - 20, 65, h - 15);
+      ctx.lineTo(55, h - 10); ctx.lineTo(50, h); ctx.lineTo(40, h);
+      ctx.lineTo(43, h - 12); ctx.lineTo(25, h); ctx.lineTo(15, h);
+      ctx.closePath(); ctx.fill(); ctx.stroke();
+
+      ctx.strokeStyle = 'rgba(120, 53, 15, 0.25)'; ctx.lineWidth = 1.5;
+      for (let i = 1; i <= 3; i++) {
+        ctx.beginPath(); ctx.moveTo(15 + i * 5, h - 20); ctx.bezierCurveTo(40, h - 35 + i * 2, 60, h - 35 - i * 2, 70, h - 35); ctx.stroke();
+      }
+
+      ctx.fillStyle = '#78350f';
+      ctx.beginPath(); ctx.arc(77, h - 45, 2.5, 0, Math.PI * 2); ctx.fill();
+
+      if (wheelConstraint) {
+        ctx.fillStyle = '#451a03';
+        ctx.beginPath(); ctx.arc(20, h, 6, 0, Math.PI * 2); ctx.arc(45, h, 6, 0, Math.PI * 2); ctx.fill();
+      }
+
+      ctx.restore();
+    }
+  </script>
+</body>
+</html>
