@@ -1,0 +1,903 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Kinematics vs Dynamics: The Bridge of Classical Mechanics</title>
+    <!-- Tailwind CSS CDN -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Inter Font -->
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    
+    <!-- MathJax Configuration and Script -->
+    <script>
+        window.MathJax = {
+            tex: {
+                inlineMath: [['$', '$'], ['\\(', '\\)']],
+                displayMath: [['$$', '$$'], ['\\[', '\\]']]
+            },
+            options: {
+                skipHtmlTags: ['script', 'noscript', 'style', 'textarea', 'pre', 'code']
+            }
+        };
+    </script>
+    <script id="MathJax-script" async src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
+
+    <style>
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: #0b0f19;
+        }
+        /* Custom styled scrollbar */
+        ::-webkit-scrollbar {
+            width: 8px;
+            height: 8px;
+        }
+        ::-webkit-scrollbar-track {
+            background: #111827;
+        }
+        ::-webkit-scrollbar-thumb {
+            background: #374151;
+            border-radius: 4px;
+        }
+        ::-webkit-scrollbar-thumb:hover {
+            background: #4b5563;
+        }
+    </style>
+</head>
+<body class="text-slate-100 min-h-screen flex flex-col justify-between overflow-x-hidden">
+
+    <!-- Header -->
+    <header class="border-b border-slate-800 bg-slate-900/80 backdrop-blur-md sticky top-0 z-50 px-4 py-4 sm:px-6 lg:px-8">
+        <div class="max-w-7xl mx-auto flex flex-col sm:flex-row items-center justify-between gap-4">
+            <div class="flex items-center gap-3">
+                <div class="p-2.5 bg-indigo-600/20 text-indigo-400 rounded-xl border border-indigo-500/30">
+                    <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z" />
+                    </svg>
+                </div>
+                <div>
+                    <h1 class="text-xl font-extrabold tracking-tight text-white flex items-center gap-2">
+                        Newton's Bridge <span class="text-xs font-semibold px-2 py-0.5 bg-indigo-500/20 text-indigo-300 rounded-full border border-indigo-500/30">F = ma</span>
+                    </h1>
+                    <p class="text-xs text-slate-400">An interactive study of Causes (Dynamics) & Effects (Kinematics)</p>
+                </div>
+            </div>
+            <div class="flex items-center gap-2 text-xs bg-slate-950 p-1.5 rounded-lg border border-slate-800">
+                <span class="text-slate-500 px-2">Interactive Guide</span>
+            </div>
+        </div>
+    </header>
+
+    <!-- Main Container -->
+    <main class="flex-grow max-w-7xl w-full mx-auto px-4 py-8 sm:px-6 lg:px-8 space-y-8">
+        
+        <!-- Introductory Interactive Infographic -->
+        <section class="bg-gradient-to-br from-slate-900 to-slate-950 border border-slate-800 rounded-2xl p-6 sm:p-8 shadow-xl">
+            <div class="text-center max-w-3xl mx-auto mb-8">
+                <h2 class="text-2xl sm:text-3xl font-extrabold text-white">How vs. Why: The Great Physics Divide</h2>
+                <p class="text-slate-400 mt-2 text-sm sm:text-base">
+                    Classical mechanics asks two entirely distinct questions. Newton's Second Law serves as the profound intellectual bridge connecting them.
+                </p>
+            </div>
+
+            <!-- Big Interactive Formula Bridge -->
+            <div class="grid grid-cols-1 lg:grid-cols-3 items-center gap-6 bg-slate-950/60 p-6 rounded-2xl border border-slate-800/80 mb-8">
+                
+                <!-- Dynamics LHS (Why) -->
+                <div id="card-dynamics" class="flex flex-col h-full justify-between p-5 rounded-xl border-2 border-rose-500/30 bg-rose-950/10 transition-all duration-300 hover:border-rose-500/60 hover:bg-rose-950/20 cursor-pointer" onclick="highlightPart('dynamics')">
+                    <div>
+                        <div class="flex items-center justify-between mb-2">
+                            <span class="text-xs font-bold text-rose-400 uppercase tracking-wider">Left-Hand Side (LHS)</span>
+                            <span class="px-2 py-0.5 text-[10px] bg-rose-500/10 text-rose-300 rounded border border-rose-500/20">The Cause</span>
+                        </div>
+                        <h3 class="text-lg font-bold text-white mb-2">Dynamics</h3>
+                        <p class="text-xs text-slate-400 leading-relaxed">
+                            Focuses on <strong>Forces</strong> ($\Sigma F$). It details the physical interactions (gravity, friction, tension) pushing or pulling an object to alter its state of rest or motion.
+                        </p>
+                    </div>
+                    <div class="mt-4 pt-3 border-t border-rose-500/20 text-rose-400 text-sm font-semibold flex items-center justify-between">
+                        <span>Active Forces Vector Panel</span>
+                        <svg class="w-4 h-4 animate-pulse" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14 5l7 7m0 0l-7 7m7-7H3"/></svg>
+                    </div>
+                </div>
+
+                <!-- Equation Center -->
+                <div class="flex flex-col items-center justify-center py-6">
+                    <div class="text-center mb-3">
+                        <span class="text-xs text-indigo-400 font-medium">Newton's Unified Equation</span>
+                    </div>
+                    <div class="flex items-center justify-center font-extrabold text-5xl sm:text-6xl tracking-tight select-none">
+                        <span id="eq-f" class="text-rose-500 transition-all duration-300 scale-105 inline-block cursor-pointer hover:scale-110" onclick="highlightPart('dynamics')">F</span>
+                        <span id="eq-eq" class="mx-4 text-slate-500 cursor-pointer hover:text-white" onclick="highlightPart('equals')">=</span>
+                        <span id="eq-m" class="text-amber-500 transition-all duration-300 inline-block cursor-pointer hover:scale-110" onclick="highlightPart('mass')">m</span>
+                        <span id="eq-a" class="text-emerald-400 transition-all duration-300 inline-block cursor-pointer hover:scale-110" onclick="highlightPart('kinematics')">a</span>
+                    </div>
+                    <div class="text-center mt-4 max-w-xs">
+                        <p id="eq-explain" class="text-xs text-slate-400 leading-normal">
+                            Click parts of the equation to unpack their mechanical role!
+                        </p>
+                    </div>
+                </div>
+
+                <!-- Kinematics RHS (How) -->
+                <div id="card-kinematics" class="flex flex-col h-full justify-between p-5 rounded-xl border-2 border-emerald-500/30 bg-emerald-950/10 transition-all duration-300 hover:border-emerald-500/60 hover:bg-emerald-950/20 cursor-pointer" onclick="highlightPart('kinematics')">
+                    <div>
+                        <div class="flex items-center justify-between mb-2">
+                            <span class="text-xs font-bold text-emerald-400 uppercase tracking-wider">Right-Hand Side (RHS)</span>
+                            <span class="px-2 py-0.5 text-[10px] bg-emerald-500/10 text-emerald-300 rounded border border-emerald-500/20">The Effect</span>
+                        </div>
+                        <h3 class="text-lg font-bold text-white mb-2">Kinematics</h3>
+                        <p class="text-xs text-slate-400 leading-relaxed">
+                            Focuses on the **Geometry of Motion** ($m \cdot a$). It describes the trajectory, speed, position, and acceleration over time without asking what caused them.
+                        </p>
+                    </div>
+                    <div class="mt-4 pt-3 border-t border-emerald-500/20 text-emerald-400 text-sm font-semibold flex items-center justify-between">
+                        <span>Geometry & Graph Panel</span>
+                        <svg class="w-4 h-4 animate-pulse" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14 5l7 7m0 0l-7 7m7-7H3"/></svg>
+                    </div>
+                </div>
+
+            </div>
+
+            <!-- Conceptual Grid Details -->
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <div class="p-5 rounded-xl bg-slate-900/60 border border-slate-800 hover:border-slate-700 transition">
+                    <div class="flex items-center gap-2 mb-3">
+                        <div class="p-1.5 bg-rose-500/10 text-rose-400 rounded-lg">
+                            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"/></svg>
+                        </div>
+                        <h4 class="font-bold text-white text-sm sm:text-base">Dynamics (The Catalyst)</h4>
+                    </div>
+                    <ul class="space-y-2 text-xs text-slate-300">
+                        <li class="flex items-start gap-2">
+                            <span class="text-rose-500 font-bold">•</span>
+                            <span><strong>Fundamental Question:</strong> What forces are acting? Why is motion changing?</span>
+                        </li>
+                        <li class="flex items-start gap-2">
+                            <span class="text-rose-500 font-bold">•</span>
+                            <span><strong>Primary Entities:</strong> Gravitational Attraction, Tension Force, Surface Friction, Active Propulsion thrusts ($F_{\text{net}}$).</span>
+                        </li>
+                    </ul>
+                </div>
+                <div class="p-5 rounded-xl bg-slate-900/60 border border-slate-800 hover:border-slate-700 transition">
+                    <div class="flex items-center gap-2 mb-3">
+                        <div class="p-1.5 bg-emerald-500/10 text-emerald-400 rounded-lg">
+                            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"/></svg>
+                        </div>
+                        <h4 class="font-bold text-white text-sm sm:text-base">Kinematics (The Description)</h4>
+                    </div>
+                    <ul class="space-y-2 text-xs text-slate-300">
+                        <li class="flex items-start gap-2">
+                            <span class="text-emerald-500 font-bold">•</span>
+                            <span><strong>Fundamental Question:</strong> Where is the object? How fast is it moving? Which path does it take?</span>
+                        </li>
+                        <li class="flex items-start gap-2">
+                            <span class="text-emerald-500 font-bold">•</span>
+                            <span><strong>Primary Entities:</strong> Position ($x$), Velocity ($v$), Rate of Speed Change ($a$), Visual Trajectory pathing.</span>
+                        </li>
+                    </ul>
+                </div>
+            </div>
+        </section>
+
+        <!-- Physics Simulator Workspace -->
+        <section class="grid grid-cols-1 lg:grid-cols-12 gap-8 items-start">
+            
+            <!-- Controls Sidebar (4 Cols) -->
+            <div class="lg:col-span-4 bg-slate-900 border border-slate-800 rounded-2xl p-5 space-y-6 shadow-xl">
+                <div>
+                    <h3 class="text-lg font-bold text-white">Simulation Controls</h3>
+                    <p class="text-xs text-slate-400 mt-1">Adjust the causes (Dynamics) to inspect the geometric changes (Kinematics).</p>
+                </div>
+
+                <!-- Simulation Presets -->
+                <div class="space-y-2">
+                    <label class="text-xs font-semibold text-slate-300 uppercase tracking-wider block">Real-world Scenarios</label>
+                    <div class="grid grid-cols-2 gap-2">
+                        <button onclick="applyPreset('frictionless')" class="preset-btn px-3 py-2 bg-slate-800 hover:bg-slate-700 text-xs text-slate-300 rounded-lg transition border border-slate-700 flex flex-col items-center justify-center gap-1">
+                            <span class="font-bold text-white">Frictionless Space</span>
+                            <span class="text-[9px] text-slate-400">Constant velocity</span>
+                        </button>
+                        <button onclick="applyPreset('heavy-friction')" class="preset-btn px-3 py-2 bg-slate-800 hover:bg-slate-700 text-xs text-slate-300 rounded-lg transition border border-slate-700 flex flex-col items-center justify-center gap-1">
+                            <span class="font-bold text-white">Rough Road</span>
+                            <span class="text-[9px] text-slate-400">Forces stop it fast</span>
+                        </button>
+                        <button onclick="applyPreset('rocket-thrust')" class="preset-btn px-3 py-2 bg-slate-800 hover:bg-slate-700 text-xs text-slate-300 rounded-lg transition border border-slate-700 flex flex-col items-center justify-center gap-1">
+                            <span class="font-bold text-white">Constant Thruster</span>
+                            <span class="text-[9px] text-slate-400">Infinite acceleration</span>
+                        </button>
+                        <button onclick="applyPreset('heavy-inertia')" class="preset-btn px-3 py-2 bg-slate-800 hover:bg-slate-700 text-xs text-slate-300 rounded-lg transition border border-slate-700 flex flex-col items-center justify-center gap-1">
+                            <span class="font-bold text-white">Massive Object</span>
+                            <span class="text-[9px] text-slate-400">Resists acceleration</span>
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Live Sliders -->
+                <div class="space-y-4 pt-4 border-t border-slate-800">
+                    
+                    <!-- Dynamic Cause: Applied Thrust -->
+                    <div>
+                        <div class="flex justify-between items-center mb-1.5">
+                            <label class="text-xs font-semibold text-rose-400 flex items-center gap-1">
+                                <span>Thrust Force (F<sub>applied</sub>)</span>
+                            </label>
+                            <span id="val-thrust" class="text-xs font-mono bg-rose-500/10 text-rose-300 px-2 py-0.5 rounded border border-rose-500/20">0 N</span>
+                        </div>
+                        <input type="range" id="input-thrust" min="-100" max="100" step="1" value="0" class="w-full accent-rose-500 bg-slate-800 h-2 rounded-lg cursor-pointer">
+                        <div class="flex justify-between text-[10px] text-slate-500 mt-1">
+                            <span>← Push Left (-100N)</span>
+                            <span>Stop</span>
+                            <span>Push Right (+100N) →</span>
+                        </div>
+                    </div>
+
+                    <!-- Dynamic Resistor: Friction Coefficient -->
+                    <div>
+                        <div class="flex justify-between items-center mb-1.5">
+                            <label class="text-xs font-semibold text-amber-400 flex items-center gap-1">
+                                <span>Friction Coeff (&mu;)</span>
+                            </label>
+                            <span id="val-friction" class="text-xs font-mono bg-amber-500/10 text-amber-300 px-2 py-0.5 rounded border border-amber-500/20">0.20</span>
+                        </div>
+                        <input type="range" id="input-friction" min="0" max="1" step="0.05" value="0.2" class="w-full accent-amber-500 bg-slate-800 h-2 rounded-lg cursor-pointer">
+                    </div>
+
+                    <!-- The Mass Factor (m) -->
+                    <div>
+                        <div class="flex justify-between items-center mb-1.5">
+                            <label class="text-xs font-semibold text-indigo-400">
+                                Object Mass (m)
+                            </label>
+                            <span id="val-mass" class="text-xs font-mono bg-indigo-500/10 text-indigo-300 px-2 py-0.5 rounded border border-indigo-500/20">5.0 kg</span>
+                        </div>
+                        <input type="range" id="input-mass" min="1" max="25" step="0.5" value="5" class="w-full accent-indigo-500 bg-slate-800 h-2 rounded-lg cursor-pointer">
+                        <div class="flex justify-between text-[10px] text-slate-500 mt-1">
+                            <span>Light (Easy acceleration)</span>
+                            <span>Heavy</span>
+                        </div>
+                    </div>
+
+                </div>
+
+                <!-- Sim Actions -->
+                <div class="pt-4 border-t border-slate-800 space-y-2">
+                    <div class="flex gap-2">
+                        <button id="btn-play-pause" onclick="togglePlay()" class="flex-1 py-2.5 bg-emerald-600 hover:bg-emerald-500 active:translate-y-0.5 text-white text-xs font-bold rounded-lg transition shadow-md flex items-center justify-center gap-2">
+                            <svg id="icon-play" class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14.752 11.168l-3.197-2.132A1 1 0 0010 9.87v4.263a1 1 0 001.555.832l3.197-2.132a1 1 0 000-1.664z"/></svg>
+                            <svg id="icon-pause" class="w-4 h-4 hidden" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 9v6m4-6v6"/></svg>
+                            <span id="text-play">Start Simulator</span>
+                        </button>
+                        <button onclick="resetSimulation()" class="py-2.5 px-4 bg-slate-800 hover:bg-slate-700 active:translate-y-0.5 text-slate-300 text-xs font-bold rounded-lg transition border border-slate-700 flex items-center justify-center gap-1">
+                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 1121.21 12H16"/></svg>
+                        </button>
+                    </div>
+                    <button onclick="applyImpulse()" class="w-full py-2 bg-indigo-600/30 hover:bg-indigo-600/40 text-indigo-200 border border-indigo-500/30 text-xs font-semibold rounded-lg transition active:scale-[0.99] flex items-center justify-center gap-1">
+                        🚀 Apply Quick Instant Kick (+50 Ns Impulse)
+                    </button>
+                </div>
+
+            </div>
+
+            <!-- Simulation Arena & Graphs (8 Cols) -->
+            <div class="lg:col-span-8 space-y-6">
+                
+                <!-- The Visual Track Canvas -->
+                <div class="bg-slate-900 border border-slate-800 rounded-2xl p-4 shadow-xl">
+                    <div class="flex items-center justify-between mb-2">
+                        <span class="text-xs font-bold text-slate-400 uppercase tracking-wider flex items-center gap-1">
+                            <span class="w-2 h-2 rounded-full bg-rose-500 animate-ping"></span> Real-Time Physics Arena
+                        </span>
+                        <div class="flex items-center gap-4 text-xs font-mono">
+                            <span class="text-rose-400">F<sub>net</sub>: <strong id="val-net-force">0.00</strong> N</span>
+                            <span class="text-emerald-400">Acc (a): <strong id="val-acc">0.00</strong> m/s²</span>
+                        </div>
+                    </div>
+                    
+                    <div class="relative overflow-hidden bg-slate-950 rounded-xl border border-slate-800 h-44">
+                        <canvas id="arena-canvas" class="w-full h-full block"></canvas>
+                        <!-- Spring Bumper Indicators -->
+                        <div class="absolute left-1 top-2 px-1.5 py-0.5 bg-rose-500/10 text-[9px] font-mono text-rose-400 rounded border border-rose-500/20">Elastic Bumper Limit (-10m)</div>
+                        <div class="absolute right-1 top-2 px-1.5 py-0.5 bg-rose-500/10 text-[9px] font-mono text-rose-400 rounded border border-rose-500/20">Elastic Bumper Limit (+10m)</div>
+                    </div>
+                </div>
+
+                <!-- Live Kinematics Plotter Graphs -->
+                <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+                    
+                    <!-- Position Graph -->
+                    <div class="bg-slate-900 border border-slate-800 rounded-xl p-4 shadow">
+                        <div class="flex items-center justify-between mb-1.5">
+                            <span class="text-xs font-bold text-sky-400 uppercase tracking-wider">Position - x(t)</span>
+                            <span id="live-pos" class="text-xs font-mono text-sky-400 font-bold">0.00 m</span>
+                        </div>
+                        <div class="bg-slate-950 rounded-lg border border-slate-850 h-28 overflow-hidden">
+                            <canvas id="graph-pos" class="w-full h-full block"></canvas>
+                        </div>
+                    </div>
+
+                    <!-- Velocity Graph -->
+                    <div class="bg-slate-900 border border-slate-800 rounded-xl p-4 shadow">
+                        <div class="flex items-center justify-between mb-1.5">
+                            <span class="text-xs font-bold text-amber-400 uppercase tracking-wider">Velocity - v(t)</span>
+                            <span id="live-vel" class="text-xs font-mono text-amber-400 font-bold">0.00 m/s</span>
+                        </div>
+                        <div class="bg-slate-950 rounded-lg border border-slate-850 h-28 overflow-hidden">
+                            <canvas id="graph-vel" class="w-full h-full block"></canvas>
+                        </div>
+                    </div>
+
+                    <!-- Acceleration Graph -->
+                    <div class="bg-slate-900 border border-slate-800 rounded-xl p-4 shadow">
+                        <div class="flex items-center justify-between mb-1.5">
+                            <span class="text-xs font-bold text-rose-400 uppercase tracking-wider">Acceleration - a(t)</span>
+                            <span id="live-acc-val" class="text-xs font-mono text-rose-400 font-bold">0.00 m/s²</span>
+                        </div>
+                        <div class="bg-slate-950 rounded-lg border border-slate-850 h-28 overflow-hidden">
+                            <canvas id="graph-acc" class="w-full h-full block"></canvas>
+                        </div>
+                    </div>
+
+                </div>
+
+            </div>
+
+        </section>
+
+        <!-- Interactive Self-Assessment Quiz -->
+        <section class="bg-slate-900 border border-slate-800 rounded-2xl p-6 sm:p-8 shadow-xl">
+            <div class="max-w-3xl mb-6">
+                <h3 class="text-xl font-bold text-white flex items-center gap-2">
+                    <svg class="w-5 h-5 text-indigo-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-6 9l2 2 4-4"/></svg>
+                    Conceptual Check: Kinematics vs. Dynamics
+                </h3>
+                <p class="text-slate-400 text-xs sm:text-sm">Verify your understanding of these core mechanical concepts. Review questions derived directly from classical mechanics definitions.</p>
+            </div>
+
+            <div class="space-y-6">
+                <!-- Q1 -->
+                <div class="bg-slate-950/60 p-4 rounded-xl border border-slate-850">
+                    <p class="text-sm font-semibold text-slate-200 mb-3"><span class="text-indigo-400 mr-1">Q1.</span> If a spaceship's engine provides a constant force of $F = 50\text{ N}$ in deep vacuum, what field of physics focuses strictly on the resulting straight-line path, recording its coordinates and speed step-by-step?</p>
+                    <div class="grid grid-cols-1 sm:grid-cols-2 gap-2 text-xs">
+                        <button onclick="checkAnswer(1, 'A', this)" class="option-btn text-left p-3 rounded-lg bg-slate-900 border border-slate-850 hover:bg-slate-800 hover:border-slate-700 transition">
+                            <strong class="text-indigo-400 mr-1">A.</strong> Kinematics (How it moves)
+                        </button>
+                        <button onclick="checkAnswer(1, 'B', this)" class="option-btn text-left p-3 rounded-lg bg-slate-900 border border-slate-850 hover:bg-slate-800 hover:border-slate-700 transition">
+                            <strong class="text-indigo-400 mr-1">B.</strong> Dynamics (Why it moves)
+                        </button>
+                    </div>
+                    <div id="feedback-1" class="mt-3 text-xs font-medium hidden"></div>
+                </div>
+
+                <!-- Q2 -->
+                <div class="bg-slate-950/60 p-4 rounded-xl border border-slate-850">
+                    <p class="text-sm font-semibold text-slate-200 mb-3"><span class="text-indigo-400 mr-1">Q2.</span> When we write down $F = ma$, which side of the equation represents the "Why" (forces acting on the system) and what happens physically if you increase the mass while keeping the force constant?</p>
+                    <div class="grid grid-cols-1 sm:grid-cols-2 gap-2 text-xs">
+                        <button onclick="checkAnswer(2, 'A', this)" class="option-btn text-left p-3 rounded-lg bg-slate-900 border border-slate-850 hover:bg-slate-800 hover:border-slate-700 transition">
+                            <strong class="text-indigo-400 mr-1">A.</strong> LHS ($F$) is "Why"; Larger mass will increase the acceleration rate.
+                        </button>
+                        <button onclick="checkAnswer(2, 'B', this)" class="option-btn text-left p-3 rounded-lg bg-slate-900 border border-slate-850 hover:bg-slate-800 hover:border-slate-700 transition">
+                            <strong class="text-indigo-400 mr-1">B.</strong> LHS ($F$) is "Why"; Larger mass will reduce the acceleration rate because mass resists acceleration changes ($a = F/m$).
+                        </button>
+                    </div>
+                    <div id="feedback-2" class="mt-3 text-xs font-medium hidden"></div>
+                </div>
+            </div>
+        </section>
+
+    </main>
+
+    <!-- Footer -->
+    <footer class="border-t border-slate-800 bg-slate-950 py-6 px-4 text-center text-xs text-slate-500">
+        <p>&copy; 2026 Physics Interactive Labs. Dedicated to clarifying classical Newtonian concepts.</p>
+    </footer>
+
+    <script>
+        // --- PHYSICS STATE & PARAMS ---
+        let isRunning = false;
+        let animationFrameId = null;
+
+        // Simulator parameters
+        let state = {
+            x: 0,        // Position (meters) - Bounded between -10m and 10m
+            v: 0,        // Velocity (m/s)
+            a: 0,        // Acceleration (m/s^2)
+            appliedF: 0, // Applied force (Newtons)
+            mass: 5,     // Object mass (kg)
+            frictionCoeff: 0.20, // Friction coeff (mu)
+            bumperK: 350,// Elastic spring constant for boundaries (N/m)
+            dampingC: 15 // Elastic spring damping (prevents wild bounce buildup)
+        };
+
+        const GRAVITY = 9.81; // m/s^2
+
+        // History trackers for kinematics graphing
+        let history = {
+            time: [],
+            pos: [],
+            vel: [],
+            acc: []
+        };
+        const MAX_HISTORY_LEN = 200;
+        let timeElapsed = 0;
+
+        // Elements
+        const canvasArena = document.getElementById('arena-canvas');
+        const ctxArena = canvasArena.getContext('2d');
+
+        const canvasPos = document.getElementById('graph-pos');
+        const ctxPos = canvasPos.getContext('2d');
+
+        const canvasVel = document.getElementById('graph-vel');
+        const ctxVel = canvasVel.getContext('2d');
+
+        const canvasAcc = document.getElementById('graph-acc');
+        const ctxAcc = canvasAcc.getContext('2d');
+
+        const btnPlayPause = document.getElementById('btn-play-pause');
+        const iconPlay = document.getElementById('icon-play');
+        const iconPause = document.getElementById('icon-pause');
+        const textPlay = document.getElementById('text-play');
+
+        const inputThrust = document.getElementById('input-thrust');
+        const inputFriction = document.getElementById('input-friction');
+        const inputMass = document.getElementById('input-mass');
+
+        const valThrust = document.getElementById('val-thrust');
+        const valFriction = document.getElementById('val-friction');
+        const valMass = document.getElementById('val-mass');
+
+        const livePos = document.getElementById('live-pos');
+        const liveVel = document.getElementById('live-vel');
+        const liveAccVal = document.getElementById('live-acc-val');
+        const valNetForce = document.getElementById('val-net-force');
+        const valAcc = document.getElementById('val-acc');
+
+        // Initialize parameters from slider values
+        function syncSliders() {
+            state.appliedF = parseFloat(inputThrust.value);
+            state.frictionCoeff = parseFloat(inputFriction.value);
+            state.mass = parseFloat(inputMass.value);
+
+            valThrust.textContent = `${state.appliedF} N`;
+            valFriction.textContent = state.frictionCoeff.toFixed(2);
+            valMass.textContent = `${state.mass.toFixed(1)} kg`;
+        }
+
+        // Setup sliders interactive listeners
+        inputThrust.addEventListener('input', () => { syncSliders(); highlightPart('dynamics'); });
+        inputFriction.addEventListener('input', () => { syncSliders(); highlightPart('dynamics'); });
+        inputMass.addEventListener('input', () => { syncSliders(); highlightPart('mass'); });
+
+        // Set up Canvas Resolution Correctly for Retina displays
+        function setupCanvas(canvas) {
+            const rect = canvas.getBoundingClientRect();
+            canvas.width = rect.width * window.devicePixelRatio;
+            canvas.height = rect.height * window.devicePixelRatio;
+            const ctx = canvas.getContext('2d');
+            ctx.scale(window.devicePixelRatio, window.devicePixelRatio);
+        }
+
+        function setupAllCanvases() {
+            setupCanvas(canvasArena);
+            setupCanvas(canvasPos);
+            setupCanvas(canvasVel);
+            setupCanvas(canvasAcc);
+        }
+
+        // Physics integration loop step
+        let lastTime = 0;
+        function updatePhysics(timestamp) {
+            if (!lastTime) lastTime = timestamp;
+            let dt = (timestamp - lastTime) / 1000;
+            // Cap delta time to prevent giant instability jumps
+            if (dt > 0.05) dt = 0.05; 
+            lastTime = timestamp;
+
+            if (isRunning) {
+                timeElapsed += dt;
+
+                // --- Calculate Forces (Dynamics - The WHY) ---
+                let F_normal = state.mass * GRAVITY;
+                let F_friction = 0;
+
+                // Simple Friction model
+                if (Math.abs(state.v) > 0.01) {
+                    // Kinetic Friction opposes motion direction
+                    F_friction = -Math.sign(state.v) * state.frictionCoeff * F_normal;
+                } else {
+                    // Static Friction opposes applied force
+                    let maxStatic = state.frictionCoeff * F_normal;
+                    if (Math.abs(state.appliedF) <= maxStatic) {
+                        F_friction = -state.appliedF;
+                    } else {
+                        F_friction = -Math.sign(state.appliedF) * maxStatic;
+                    }
+                }
+
+                let F_net = state.appliedF + F_friction;
+
+                // Add Elastic Bumpers at Limits (-10m and +10m)
+                const Limit = 10;
+                let F_bumper = 0;
+                if (state.x > Limit) {
+                    let penetration = state.x - Limit;
+                    F_bumper = -state.bumperK * penetration - state.dampingC * state.v;
+                } else if (state.x < -Limit) {
+                    let penetration = state.x + Limit;
+                    F_bumper = -state.bumperK * penetration - state.dampingC * state.v;
+                }
+                F_net += F_bumper;
+
+                // --- Calculate Accelerations (Newton's Connection: a = F / m) ---
+                state.a = F_net / state.mass;
+
+                // --- Integrate Motion (Kinematics - The HOW) ---
+                state.v += state.a * dt;
+                state.x += state.v * dt;
+
+                // Snap near zero values to absolute rest to prevent continuous micro-jitter
+                if (Math.abs(state.v) < 0.005 && Math.abs(state.appliedF) <= state.frictionCoeff * F_normal && Math.abs(state.x) < Limit) {
+                    state.v = 0;
+                    state.a = 0;
+                }
+
+                // Record history data
+                history.time.push(timeElapsed);
+                history.pos.push(state.x);
+                history.vel.push(state.v);
+                history.acc.push(state.a);
+
+                if (history.time.length > MAX_HISTORY_LEN) {
+                    history.time.shift();
+                    history.pos.shift();
+                    history.vel.shift();
+                    history.acc.shift();
+                }
+
+                // Update UI text values
+                livePos.textContent = `${state.x.toFixed(2)} m`;
+                liveVel.textContent = `${state.v.toFixed(2)} m/s`;
+                liveAccVal.textContent = `${state.a.toFixed(2)} m/s²`;
+                valNetForce.textContent = F_net.toFixed(2);
+                valAcc.textContent = state.a.toFixed(2);
+            }
+
+            // Draw displays
+            drawArena();
+            drawGraphs();
+
+            animationFrameId = requestAnimationFrame(updatePhysics);
+        }
+
+        // Draw the main visual track and moving block
+        function drawArena() {
+            const w = canvasArena.width / window.devicePixelRatio;
+            const h = canvasArena.height / window.devicePixelRatio;
+
+            ctxArena.clearRect(0, 0, w, h);
+
+            // Track Ground line
+            const groundY = h * 0.7;
+            ctxArena.beginPath();
+            ctxArena.strokeStyle = '#334155';
+            ctxArena.lineWidth = 4;
+            ctxArena.moveTo(0, groundY);
+            ctxArena.lineTo(w, groundY);
+            ctxArena.stroke();
+
+            // Bumper limits indicator
+            const limitXLeft = w * 0.15;
+            const limitXRight = w * 0.85;
+
+            // Bumper Posts drawing
+            ctxArena.fillStyle = '#475569';
+            ctxArena.fillRect(limitXLeft - 8, groundY - 40, 8, 40);
+            ctxArena.fillRect(limitXRight, groundY - 40, 8, 40);
+
+            // Bumper Springs representation
+            ctxArena.strokeStyle = '#64748b';
+            ctxArena.lineWidth = 2;
+            for (let side of [limitXLeft, limitXRight]) {
+                ctxArena.beginPath();
+                ctxArena.moveTo(side, groundY - 20);
+                let springDir = side === limitXLeft ? -1 : 1;
+                ctxArena.lineTo(side + springDir * 15, groundY - 20);
+                ctxArena.stroke();
+            }
+
+            // Translate physics space [-10m, 10m] to pixel space [limitXLeft, limitXRight]
+            const mapX = (physX) => {
+                const ratio = (physX + 10) / 20; // 0 to 1
+                return limitXLeft + ratio * (limitXRight - limitXLeft);
+            };
+
+            const blockX = mapX(state.x);
+            const blockWidth = 40 + state.mass * 1.2; // Size reflects weight/mass visually
+            const blockHeight = 25 + state.mass * 0.6;
+            const blockY = groundY - blockHeight;
+
+            // Draw Block (representing Mass)
+            ctxArena.fillStyle = '#6366f1'; // Indigo base
+            ctxArena.strokeStyle = '#818cf8';
+            ctxArena.lineWidth = 2;
+            ctxArena.beginPath();
+            ctxArena.roundRect(blockX - blockWidth / 2, blockY, blockWidth, blockHeight, 6);
+            ctxArena.fill();
+            ctxArena.stroke();
+
+            // Label mass inside block
+            ctxArena.fillStyle = '#0f172a';
+            ctxArena.font = 'bold 10px Inter';
+            ctxArena.textAlign = 'center';
+            ctxArena.fillText(`${state.mass.toFixed(1)}kg`, blockX, blockY + blockHeight / 2 + 4);
+
+            // --- DRAW FORCE VECTORS (Dynamics Causes - Red Arrows) ---
+            if (state.appliedF !== 0) {
+                drawArrow(blockX, blockY - 12, state.appliedF * 0.8, '#f43f5e', `F_appl: ${state.appliedF}N`);
+            }
+
+            // Draw friction vector
+            let F_normal = state.mass * GRAVITY;
+            let currentFriction = Math.abs(state.v) > 0.01 ? -Math.sign(state.v) * state.frictionCoeff * F_normal : -Math.sign(state.appliedF) * Math.min(Math.abs(state.appliedF), state.frictionCoeff * F_normal);
+            if (Math.abs(currentFriction) > 0.5) {
+                drawArrow(blockX, blockY + blockHeight + 10, currentFriction * 1.2, '#f59e0b', `F_fric: ${currentFriction.toFixed(1)}N`, true);
+            }
+
+            // --- DRAW KINEMATICS ACCELERATION VECTOR (Green Arrow) ---
+            if (Math.abs(state.a) > 0.1) {
+                drawArrow(blockX, blockY - blockHeight / 2, state.a * 8, '#10b981', `a: ${state.a.toFixed(1)}m/s²`);
+            }
+        }
+
+        // Draw Helper arrow vector
+        function drawArrow(startX, startY, length, color, text, labelBelow = false) {
+            if (length === 0) return;
+            // Cap visual lengths so arrows don't fly offscreen
+            const sign = Math.sign(length);
+            let visualLength = Math.min(Math.abs(length), 85) * sign;
+
+            ctxArena.strokeStyle = color;
+            ctxArena.fillStyle = color;
+            ctxArena.lineWidth = 3;
+
+            const endX = startX + visualLength;
+
+            ctxArena.beginPath();
+            ctxArena.moveTo(startX, startY);
+            ctxArena.lineTo(endX, startY);
+            ctxArena.stroke();
+
+            // Draw arrow head
+            const headSize = 6;
+            ctxArena.beginPath();
+            ctxArena.moveTo(endX, startY);
+            ctxArena.lineTo(endX - headSize * sign, startY - headSize / 1.5);
+            ctxArena.lineTo(endX - headSize * sign, startY + headSize / 1.5);
+            ctxArena.fill();
+
+            // Label vector
+            ctxArena.font = 'bold 9px Inter';
+            ctxArena.fillStyle = color;
+            ctxArena.textAlign = 'center';
+            ctxArena.fillText(text, startX + visualLength / 2, labelBelow ? startY + 12 : startY - 8);
+        }
+
+        // Custom canvas graph plots function
+        function drawGraphs() {
+            plotToCanvas(canvasPos, ctxPos, history.pos, '#38bdf8', [-12, 12]);
+            plotToCanvas(canvasVel, ctxVel, history.vel, '#fbbf24', [-20, 20]);
+            plotToCanvas(canvasAcc, ctxAcc, history.acc, '#f43f5e', [-30, 30]);
+        }
+
+        function plotToCanvas(canvas, ctx, data, strokeColor, fixedRange) {
+            const w = canvas.width / window.devicePixelRatio;
+            const h = canvas.height / window.devicePixelRatio;
+
+            ctx.clearRect(0, 0, w, h);
+
+            // Draw grid backdrop lines
+            ctx.strokeStyle = '#1e293b';
+            ctx.lineWidth = 1;
+            ctx.beginPath();
+            ctx.moveTo(0, h / 2);
+            ctx.lineTo(w, h / 2); // Zero baseline
+            ctx.stroke();
+
+            if (data.length < 2) return;
+
+            // Find min/max ranges
+            let min = fixedRange[0];
+            let max = fixedRange[1];
+
+            ctx.strokeStyle = strokeColor;
+            ctx.lineWidth = 2;
+            ctx.beginPath();
+
+            const totalPoints = Math.max(MAX_HISTORY_LEN, data.length);
+            
+            for (let i = 0; i < data.length; i++) {
+                const xPct = i / (totalPoints - 1);
+                const xCoord = xPct * w;
+
+                // Normalize value inside coordinate range
+                const val = data[i];
+                const normVal = (val - min) / (max - min); // 0 to 1
+                const yCoord = h - (normVal * h); // invert because pixels start top
+
+                if (i === 0) {
+                    ctx.moveTo(xCoord, yCoord);
+                } else {
+                    ctx.lineTo(xCoord, yCoord);
+                }
+            }
+            ctx.stroke();
+        }
+
+        // Action controls
+        function togglePlay() {
+            isRunning = !isRunning;
+            if (isRunning) {
+                iconPlay.classList.add('hidden');
+                iconPause.classList.remove('hidden');
+                textPlay.textContent = 'Pause Simulator';
+                btnPlayPause.classList.remove('bg-emerald-600', 'hover:bg-emerald-500');
+                btnPlayPause.classList.add('bg-amber-600', 'hover:bg-amber-500');
+            } else {
+                iconPlay.classList.remove('hidden');
+                iconPause.classList.add('hidden');
+                textPlay.textContent = 'Resume Simulator';
+                btnPlayPause.classList.remove('bg-amber-600', 'hover:bg-amber-500');
+                btnPlayPause.classList.add('bg-emerald-600', 'hover:bg-emerald-500');
+            }
+        }
+
+        function resetSimulation() {
+            state.x = 0;
+            state.v = 0;
+            state.a = 0;
+            history = { time: [], pos: [], vel: [], acc: [] };
+            timeElapsed = 0;
+            
+            livePos.textContent = "0.00 m";
+            liveVel.textContent = "0.00 m/s";
+            liveAccVal.textContent = "0.00 m/s²";
+            valNetForce.textContent = "0.00";
+            valAcc.textContent = "0.00";
+            
+            drawArena();
+            drawGraphs();
+        }
+
+        function applyImpulse() {
+            state.v += 50 / state.mass; // Delta v = J / m
+            highlightPart('kinematics');
+        }
+
+        // Simulation scenarios presets loader
+        function applyPreset(presetType) {
+            resetSimulation();
+            
+            // Clean active border indicators
+            document.querySelectorAll('.preset-btn').forEach(btn => btn.classList.remove('border-indigo-500', 'bg-indigo-950/20'));
+
+            switch (presetType) {
+                case 'frictionless':
+                    inputThrust.value = 0;
+                    inputFriction.value = 0;
+                    inputMass.value = 5.0;
+                    applyImpulse(); // Start with motion
+                    break;
+                case 'heavy-friction':
+                    inputThrust.value = 40;
+                    inputFriction.value = 0.8;
+                    inputMass.value = 6.0;
+                    break;
+                case 'rocket-thrust':
+                    inputThrust.value = 85;
+                    inputFriction.value = 0.1;
+                    inputMass.value = 3.5;
+                    break;
+                case 'heavy-inertia':
+                    inputThrust.value = 100;
+                    inputFriction.value = 0.15;
+                    inputMass.value = 25.0;
+                    break;
+            }
+
+            syncSliders();
+            if (!isRunning) togglePlay();
+        }
+
+        // Equation explainer text interactive highlighting
+        function highlightPart(part) {
+            const expText = document.getElementById('eq-explain');
+            
+            // Reset scale classes
+            document.getElementById('eq-f').className = "text-rose-500 transition-all duration-300 inline-block cursor-pointer hover:scale-110";
+            document.getElementById('eq-m').className = "text-amber-500 transition-all duration-300 inline-block cursor-pointer hover:scale-110";
+            document.getElementById('eq-a').className = "text-emerald-400 transition-all duration-300 inline-block cursor-pointer hover:scale-110";
+
+            document.getElementById('card-dynamics').className = "flex flex-col h-full justify-between p-5 rounded-xl border-2 border-rose-500/30 bg-rose-950/10 transition-all duration-300 cursor-pointer";
+            document.getElementById('card-kinematics').className = "flex flex-col h-full justify-between p-5 rounded-xl border-2 border-emerald-500/30 bg-emerald-950/10 transition-all duration-300 cursor-pointer";
+
+            if (part === 'dynamics') {
+                document.getElementById('eq-f').classList.add('scale-125', 'font-black');
+                document.getElementById('card-dynamics').className = "flex flex-col h-full justify-between p-5 rounded-xl border-2 border-rose-500 bg-rose-950/30 transition-all duration-300 cursor-pointer";
+                expText.innerHTML = "<strong>F (Dynamics / Cause)</strong>: Sum of active forces acting on mass. Friction resists, Applied thrust sparks change. This answers the question of <em>why</em> an object accelerates.";
+            } else if (part === 'mass') {
+                document.getElementById('eq-m').classList.add('scale-125', 'font-black');
+                expText.innerHTML = "<strong>m (Inertial Mass)</strong>: The mediator of motion. Mass scales how heavily an object resists changes in velocity (acceleration) when dynamic forces are active.";
+            } else if (part === 'kinematics') {
+                document.getElementById('eq-a').classList.add('scale-125', 'font-black');
+                document.getElementById('card-kinematics').className = "flex flex-col h-full justify-between p-5 rounded-xl border-2 border-emerald-500 bg-emerald-950/30 transition-all duration-300 cursor-pointer";
+                expText.innerHTML = "<strong>a (Kinematics / Effect)</strong>: Acceleration. Represents the resulting geometry of movement, telling us exactly <em>how</em> velocity is mutating over time.";
+            } else if (part === 'equals') {
+                expText.innerHTML = "<strong>= (The Great Newton Bridge)</strong>: Equates physical cause directly to measurable physical effect, merging dynamics and kinematics into a predictive reality!";
+            }
+
+            // Trigger MathJax re-render for dynamically modified explanations
+            if (window.MathJax) {
+                MathJax.typesetPromise();
+            }
+        }
+
+        // --- CONCEPT QUIZ CHECK LOGIC ---
+        function checkAnswer(questionNum, chosenOption, btnElement) {
+            const container = btnElement.closest('.bg-slate-950\\/60');
+            const allButtons = container.querySelectorAll('.option-btn');
+            const feedbackDiv = document.getElementById(`feedback-${questionNum}`);
+
+            // Reset background colors
+            allButtons.forEach(btn => {
+                btn.className = "option-btn text-left p-3 rounded-lg bg-slate-900 border border-slate-850 hover:bg-slate-800 hover:border-slate-700 transition";
+            });
+
+            feedbackDiv.classList.remove('hidden');
+
+            if (questionNum === 1) {
+                if (chosenOption === 'A') {
+                    btnElement.className = "option-btn text-left p-3 rounded-lg bg-emerald-500/10 border-2 border-emerald-500 text-emerald-200 transition";
+                    feedbackDiv.className = "mt-3 text-xs font-semibold text-emerald-400";
+                    feedbackDiv.innerHTML = "Correct! Recording position coordinates, charting speed, and drawing paths is purely a geometrical question. That is Kinematics.";
+                } else {
+                    btnElement.className = "option-btn text-left p-3 rounded-lg bg-rose-500/10 border-2 border-rose-500 text-rose-200 transition";
+                    feedbackDiv.className = "mt-3 text-xs font-semibold text-rose-400";
+                    feedbackDiv.innerHTML = "Incorrect. Dynamics focuses on physical causes (like engine thrust). Charting the resulting coordinates and path is the domain of Kinematics.";
+                }
+            } else if (questionNum === 2) {
+                if (chosenOption === 'B') {
+                    btnElement.className = "option-btn text-left p-3 rounded-lg bg-emerald-500/10 border-2 border-emerald-500 text-emerald-200 transition";
+                    feedbackDiv.className = "mt-3 text-xs font-semibold text-emerald-400";
+                    feedbackDiv.innerHTML = "Correct! The left side (Forces) represents physical cause. Since $a = F/m$, a larger mass heavily resists changes, slowing overall acceleration rate.";
+                } else {
+                    btnElement.className = "option-btn text-left p-3 rounded-lg bg-rose-500/10 border-2 border-rose-500 text-rose-200 transition";
+                    feedbackDiv.className = "mt-3 text-xs font-semibold text-rose-400";
+                    feedbackDiv.innerHTML = "Incorrect. While LHS is indeed 'Why', larger mass makes objects more sluggish, meaning acceleration decreases ($a = F/m$), rather than increases.";
+                }
+            }
+
+            // Trigger MathJax re-render for dynamically appended feedback texts
+            if (window.MathJax) {
+                MathJax.typesetPromise();
+            }
+        }
+
+        // Initialize Window Actions
+        window.onload = function() {
+            setupAllCanvases();
+            syncSliders();
+            
+            // Fire off animation loop
+            lastTime = performance.now();
+            requestAnimationFrame(updatePhysics);
+        };
+
+        window.onresize = function() {
+            setupAllCanvases();
+        };
+    </script>
+
+</body>
+</html>
