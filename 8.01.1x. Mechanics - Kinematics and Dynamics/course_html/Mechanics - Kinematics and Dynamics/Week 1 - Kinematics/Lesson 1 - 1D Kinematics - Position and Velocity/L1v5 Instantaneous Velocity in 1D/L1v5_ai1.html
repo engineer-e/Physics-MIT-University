@@ -1,0 +1,1438 @@
+<!DOCTYPE html>
+<html lang="en" class="dark">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Calculus of Motion: Average vs. Instantaneous Velocity</title>
+    <!-- Tailwind CSS for modern adaptive styling -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Inter Font and Fira Code for clean reading -->
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=Fira+Code:wght@400;500&display=swap" rel="stylesheet">
+    <!-- KaTeX for math typesetting -->
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.8/dist/katex.min.css">
+    <script src="https://cdn.jsdelivr.net/npm/katex@0.16.8/dist/katex.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/katex@0.16.8/dist/contrib/auto-render.min.js"></script>
+    <!-- FontAwesome for robust physics icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+
+    <script>
+        tailwind.config = {
+            darkMode: 'class',
+            theme: {
+                extend: {
+                    fontFamily: {
+                        sans: ['Inter', 'sans-serif'],
+                        mono: ['Fira Code', 'monospace'],
+                    },
+                    colors: {
+                        slate: {
+                            950: '#070b19',
+                        }
+                    }
+                }
+            }
+        }
+    </script>
+    <style>
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: #070b19;
+            color: #f1f5f9;
+        }
+        /* Custom styled range input for consistent premium UI across systems */
+        input[type="range"] {
+            -webkit-appearance: none;
+            appearance: none;
+            background: transparent;
+        }
+        input[type="range"]::-webkit-slider-runnable-track {
+            background: #1e293b;
+            border-radius: 9999px;
+            height: 8px;
+        }
+        input[type="range"]::-webkit-slider-thumb {
+            -webkit-appearance: none;
+            appearance: none;
+            margin-top: -4px;
+            background-color: #6366f1;
+            border-radius: 9999px;
+            height: 16px;
+            width: 16px;
+            box-shadow: 0 10px 15px -3px rgba(99, 102, 241, 0.4);
+            cursor: ew-resize;
+            transition: background-color 0.15s;
+        }
+        input[type="range"]::-webkit-slider-thumb:hover {
+            background-color: #818cf8;
+        }
+        /* Glass effect panels */
+        .glass-panel {
+            background: rgba(15, 23, 42, 0.7);
+            backdrop-filter: blur(12px);
+            -webkit-backdrop-filter: blur(12px);
+            border: 1px solid rgba(255, 255, 255, 0.08);
+        }
+    </style>
+</head>
+<body class="min-h-screen flex flex-col justify-between overflow-x-hidden selection:bg-indigo-500/30">
+
+    <!-- HEADER -->
+    <header class="glass-panel sticky top-0 z-40 w-full px-6 py-4 border-b border-slate-800">
+        <div class="max-w-7xl mx-auto flex flex-col md:flex-row items-center justify-between gap-4">
+            <div class="flex items-center gap-3.5">
+                <div class="bg-gradient-to-tr from-indigo-500 to-violet-500 p-2.5 rounded-xl shadow-lg shadow-indigo-500/20">
+                    <i class="fa-solid fa-person-running text-white text-xl"></i>
+                </div>
+                <div>
+                    <h1 class="text-xl md:text-2xl font-extrabold tracking-tight text-white flex items-center gap-2">
+                        Limits of Motion <span class="text-xs font-normal tracking-wide px-2.5 py-0.5 rounded-full bg-indigo-500/10 border border-indigo-500/30 text-indigo-300">Lab & Infographic</span>
+                    </h1>
+                    <p class="text-xs text-slate-300">Verbatim lecture concept mapping &bull; Average to Instantaneous Velocity</p>
+                </div>
+            </div>
+
+            <!-- Tab Selectors -->
+            <div class="flex items-center bg-slate-900/90 border border-slate-800 p-1 rounded-xl">
+                <button id="tab-btn-sim" onclick="setTab('sim')" class="px-4 py-2 text-xs md:text-sm font-semibold rounded-lg transition-all duration-200 flex items-center gap-2 bg-indigo-600 text-white shadow">
+                    <i class="fa-solid fa-circle-nodes"></i> Interactive Simulator
+                </button>
+                <button id="tab-btn-lecture" onclick="setTab('lecture')" class="px-4 py-2 text-xs md:text-sm font-semibold rounded-lg transition-all duration-200 flex items-center gap-2 text-slate-300 hover:text-white">
+                    <i class="fa-solid fa-list-check"></i> Lecture Guide
+                </button>
+                <button id="tab-btn-info" onclick="setTab('info')" class="px-4 py-2 text-xs md:text-sm font-semibold rounded-lg transition-all duration-200 flex items-center gap-2 text-slate-300 hover:text-white">
+                    <i class="fa-solid fa-layer-group"></i> Infographic & Quiz
+                </button>
+            </div>
+        </div>
+    </header>
+
+    <!-- MAIN BODY -->
+    <main class="flex-grow w-full max-w-7xl mx-auto px-4 py-6 md:px-8">
+
+        <!-- TAB 1: INTERACTIVE SIMULATOR -->
+        <section id="tab-content-sim" class="grid grid-cols-1 lg:grid-cols-12 gap-6 transition-all duration-300">
+            
+            <!-- CONTROLS SIDE PANEL (4 Columns) -->
+            <div class="lg:col-span-4 flex flex-col gap-6">
+                
+                <!-- Curve Selector Card -->
+                <div class="glass-panel p-5 rounded-2xl flex flex-col gap-3">
+                    <h3 class="text-xs font-bold uppercase tracking-wider text-slate-200 flex items-center gap-2">
+                        <i class="fa-solid fa-bezier-curve text-indigo-400"></i> Position Curve \(x(t)\)
+                    </h3>
+                    <div class="flex flex-col gap-2">
+                        <button onclick="changeCurve('cubic')" id="curve-btn-cubic" class="w-full text-left p-3 rounded-xl border border-indigo-500 bg-indigo-500/10 text-white font-medium transition-all flex justify-between items-center">
+                            <div>
+                                <span class="block text-[11px] text-slate-300 font-semibold">Lecture Curve (Non-linear Runner)</span>
+                                <span class="font-mono text-xs text-indigo-300">\(x(t) = 0.05t^3 - 0.65t^2 + 2.8t\)</span>
+                            </div>
+                            <i class="fa-solid fa-circle-check text-indigo-400"></i>
+                        </button>
+                        <button onclick="changeCurve('oscillatory')" id="curve-btn-oscillatory" class="w-full text-left p-3 rounded-xl border border-slate-800 hover:border-slate-700 bg-slate-900/40 text-slate-200 hover:text-white font-medium transition-all flex justify-between items-center">
+                            <div>
+                                <span class="block text-[11px] text-slate-300 font-semibold">Alternating Acceleration & Decel</span>
+                                <span class="font-mono text-xs text-slate-400">\(x(t) = 1.6 \sin(0.9t) + 0.6t + 2\)</span>
+                            </div>
+                            <i class="fa-regular fa-circle text-slate-600"></i>
+                        </button>
+                        <button onclick="changeCurve('logistic')" id="curve-btn-logistic" class="w-full text-left p-3 rounded-xl border border-slate-800 hover:border-slate-700 bg-slate-900/40 text-slate-200 hover:text-white font-medium transition-all flex justify-between items-center">
+                            <div>
+                                <span class="block text-[11px] text-slate-300 font-semibold">Rapid Sprint Phase (S-Curve)</span>
+                                <span class="font-mono text-xs text-slate-400">\(x(t) = \frac{7.5}{1 + e^{-(t-4.5)}}\)</span>
+                            </div>
+                            <i class="fa-regular fa-circle text-slate-600"></i>
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Live Interface Parameters Card -->
+                <div class="glass-panel p-5 rounded-2xl flex flex-col gap-4">
+                    <h3 class="text-xs font-bold uppercase tracking-wider text-slate-200 flex items-center gap-2">
+                        <i class="fa-solid fa-sliders text-amber-400"></i> Variable Tuning
+                    </h3>
+                    
+                    <!-- Time T1 Slider -->
+                    <div>
+                        <div class="flex items-center justify-between mb-1.5">
+                            <label class="text-xs font-semibold text-slate-200 flex items-center gap-2">
+                                <span class="w-2.5 h-2.5 rounded-full bg-indigo-500 block"></span> Time Coordinate \(T_1\)
+                            </label>
+                            <span id="t1-display" class="font-mono text-xs font-bold px-2 py-0.5 rounded bg-slate-900 text-indigo-300 border border-slate-850">3.50s</span>
+                        </div>
+                        <input type="range" id="t1-input" min="0.5" max="8.0" step="0.05" value="3.50" oninput="onParamChange()" class="w-full">
+                    </div>
+
+                    <!-- Delta T Slider -->
+                    <div>
+                        <div class="flex items-center justify-between mb-1.5">
+                            <label class="text-xs font-semibold text-slate-200 flex items-center gap-2">
+                                <span class="w-2.5 h-2.5 rounded-full bg-amber-500 block"></span> Time Interval \(\Delta t\)
+                            </label>
+                            <span id="dt-display" class="font-mono text-xs font-bold px-2 py-0.5 rounded bg-slate-900 text-amber-300 border border-slate-850">2.50s</span>
+                        </div>
+                        <input type="range" id="dt-input" min="0.01" max="4.0" step="0.01" value="2.50" oninput="onParamChange()" class="w-full">
+                        <div class="flex justify-between items-center mt-1 text-[10px] text-slate-400">
+                            <span>Wide average window</span>
+                            <span class="text-indigo-300 font-semibold">\(\Delta t \to 0\)</span>
+                        </div>
+                    </div>
+
+                    <!-- Simulator control Actions -->
+                    <div class="grid grid-cols-2 gap-2.5 mt-2">
+                        <button onclick="animateIntervalShrink()" class="bg-gradient-to-r from-amber-500 to-amber-600 hover:from-amber-600 hover:to-amber-700 text-slate-950 font-bold text-xs py-2.5 rounded-xl shadow-md shadow-amber-500/15 transition-all flex items-center justify-center gap-1.5">
+                            <i class="fa-solid fa-compress"></i> Shrink \(\Delta t \to 0\)
+                        </button>
+                        <button id="runner-playback-btn" onclick="toggleRunnerPlayback()" class="bg-slate-900 hover:bg-slate-850 border border-slate-800 text-indigo-300 font-bold text-xs py-2.5 rounded-xl transition-all flex items-center justify-center gap-1.5">
+                            <i id="playback-icon" class="fa-solid fa-play"></i> <span id="playback-text">Play Motion</span>
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Live Mathematical Equations Output Panel -->
+                <div class="glass-panel p-5 rounded-2xl flex flex-col gap-3">
+                    <h3 class="text-xs font-bold uppercase tracking-wider text-slate-200 flex items-center gap-2">
+                        <i class="fa-solid fa-square-root-variable text-emerald-400"></i> Numerical Mapping
+                    </h3>
+                    <div class="space-y-2.5 text-xs text-slate-200">
+                        <div class="flex justify-between items-center pb-2 border-b border-slate-800/60">
+                            <span class="text-slate-400 font-medium">Position \(x(T_1)\)</span>
+                            <span id="num-x1" class="font-mono font-bold text-slate-100">2.14 m</span>
+                        </div>
+                        <div class="flex justify-between items-center pb-2 border-b border-slate-800/60">
+                            <span class="text-slate-400 font-medium">Position \(x(T_1 + \Delta t)\)</span>
+                            <span id="num-x2" class="font-mono font-bold text-slate-100">4.82 m</span>
+                        </div>
+                        <div class="flex justify-between items-center pb-2 border-b border-slate-800/60">
+                            <span class="text-slate-400 font-bold">Displacement \(\Delta x\)</span>
+                            <span id="num-dx" class="font-mono font-bold text-indigo-300">+2.68 m</span>
+                        </div>
+                        <div class="p-2.5 bg-amber-500/5 rounded-xl border border-amber-500/10 flex items-center justify-between">
+                            <div>
+                                <span class="block text-[10px] text-amber-400 font-bold tracking-wider uppercase">Average Velocity</span>
+                                <span class="text-[10px] text-slate-400 font-mono">Slope of Secant line</span>
+                            </div>
+                            <span id="num-vavg" class="font-mono text-base font-bold text-amber-400">1.07 m/s</span>
+                        </div>
+                        <div class="p-2.5 bg-emerald-500/5 rounded-xl border border-emerald-500/10 flex items-center justify-between">
+                            <div>
+                                <span class="block text-[10px] text-emerald-400 font-bold tracking-wider uppercase">Instantaneous Velocity</span>
+                                <span class="text-[10px] text-slate-400 font-mono">Slope of Tangent line</span>
+                            </div>
+                            <span id="num-vinst" class="font-mono text-base font-bold text-emerald-400">0.82 m/s</span>
+                        </div>
+                    </div>
+                </div>
+
+            </div>
+
+            <!-- VISUALIZATION CANVAS & PHYSICS TRACK (8 Columns) -->
+            <div class="lg:col-span-8 flex flex-col gap-6">
+                
+                <!-- Position-Time Graph Visual Window -->
+                <div class="glass-panel p-5 rounded-2xl flex flex-col flex-grow relative">
+                    <div class="flex flex-wrap items-center justify-between gap-4 mb-4">
+                        <div>
+                            <h3 class="text-sm font-bold text-white flex items-center gap-2">
+                                <i class="fa-solid fa-chart-line text-indigo-400"></i> Position vs. Time Graph
+                            </h3>
+                            <p class="text-[11px] text-slate-300">Click/drag inside the coordinate space to set \(T_1\). Watch the secant converge to the tangent line.</p>
+                        </div>
+                        <!-- Toggle toggles -->
+                        <div class="flex items-center gap-2 text-[10px]">
+                            <button id="toggle-sec" onclick="toggleSecantLine()" class="px-2.5 py-1 rounded bg-amber-500/10 text-amber-300 border border-amber-500/20 font-semibold transition-all">
+                                <span class="w-1.5 h-1.5 rounded-full bg-amber-400 inline-block mr-1"></span> Secant
+                            </button>
+                            <button id="toggle-tan" onclick="toggleTangentLine()" class="px-2.5 py-1 rounded bg-emerald-500/10 text-emerald-300 border border-emerald-500/20 font-semibold transition-all">
+                                <span class="w-1.5 h-1.5 rounded-full bg-emerald-400 inline-block mr-1"></span> Tangent
+                            </button>
+                        </div>
+                    </div>
+
+                    <!-- Graphic Canvas -->
+                    <div class="relative bg-slate-950 rounded-xl overflow-hidden border border-slate-900" style="min-height: 380px;">
+                        <canvas id="graphCanvas" class="absolute inset-0 w-full h-full cursor-crosshair"></canvas>
+                        
+                        <!-- Mini dynamic overlay labeling math concepts -->
+                        <div class="absolute top-3 left-3 bg-slate-900/95 border border-slate-800 text-[10px] p-2.5 rounded-lg space-y-1.5 backdrop-blur shadow-md pointer-events-none">
+                            <div class="flex items-center gap-2">
+                                <span class="w-3 h-0.5 bg-indigo-500 inline-block"></span>
+                                <span class="text-slate-200">Position Curve \(x(t)\)</span>
+                            </div>
+                            <div class="flex items-center gap-2">
+                                <span class="w-3 h-0.5 bg-amber-500 inline-block"></span>
+                                <span class="text-slate-200">Secant Line (Average Slope \(= \frac{\Delta x}{\Delta t}\))</span>
+                            </div>
+                            <div class="flex items-center gap-2">
+                                <span class="w-3 h-0.5 bg-emerald-500 inline-block"></span>
+                                <span class="text-slate-200">Tangent Line (Instantaneous Slope \(= \frac{dx}{dt}\))</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Live "Sequence of Slopes" Monitor Panel -->
+                <div class="glass-panel p-5 rounded-2xl">
+                    <div class="flex justify-between items-center mb-3">
+                        <div>
+                            <h3 class="text-xs font-bold uppercase tracking-wider text-slate-200 flex items-center gap-1.5">
+                                <i class="fa-solid fa-list-ol text-blue-400"></i> Convergence Monitor: Sequence of Slopes
+                            </h3>
+                            <p class="text-[10px] text-slate-400">"What a limit is, is a sequence of numbers... as \(\Delta t\) goes to 0" — Transcript</p>
+                        </div>
+                        <button onclick="clearSlopeSequence()" class="text-[10px] font-bold text-slate-400 hover:text-slate-200 transition-all flex items-center gap-1">
+                            <i class="fa-solid fa-trash-can"></i> Clear History
+                        </button>
+                    </div>
+
+                    <!-- Horizontally scrolling slope queue -->
+                    <div class="grid grid-cols-2 sm:grid-cols-4 md:grid-cols-5 gap-3" id="sequence-container">
+                        <!-- Dynamic Slope Blocks will be populated here -->
+                    </div>
+                </div>
+
+                <!-- Physical Track & Vector Display -->
+                <div class="glass-panel p-5 rounded-2xl flex flex-col gap-3">
+                    <div class="flex items-center justify-between">
+                        <div>
+                            <h3 class="text-xs font-bold uppercase tracking-wider text-slate-200 flex items-center gap-1.5">
+                                <i class="fa-solid fa-person-running text-indigo-400"></i> Track Simulation: Real-time Runner Vector
+                            </h3>
+                            <p class="text-[10px] text-slate-400">Exact whiteboard mapping: Direction vectors \(\vec{r}(t)\) and displacement \(\Delta\vec{r}\) relative to \(\hat{i}\)</p>
+                        </div>
+                        <div class="flex gap-4 font-mono text-[11px]">
+                            <div><span class="text-slate-400">Pos:</span> <span id="track-pos-text" class="text-indigo-300 font-bold ml-1">0.00 m</span></div>
+                            <div><span class="text-slate-400">Vel:</span> <span id="track-vel-text" class="text-emerald-300 font-bold ml-1">0.00 m/s</span></div>
+                        </div>
+                    </div>
+
+                    <!-- Visual track zone (Taller space to hold beautiful dynamic whiteboard vectors) -->
+                    <div class="relative bg-slate-950 border border-slate-900 rounded-xl overflow-hidden p-2">
+                        <!-- Dynamic SVG Vector and Stick Runner Overlay -->
+                        <svg id="trackSvg" viewBox="0 0 1000 165" class="w-full h-auto max-h-48 select-none" xmlns="http://www.w3.org/2000/svg">
+                            <!-- Populated dynamically via JS -->
+                        </svg>
+                    </div>
+                </div>
+
+            </div>
+        </section>
+
+        <!-- TAB 2: INTERACTIVE LECTURE WALKTHROUGH -->
+        <section id="tab-content-lecture" class="hidden flex flex-col gap-6 transition-all duration-300">
+            <div class="glass-panel p-6 rounded-2xl">
+                <h3 class="text-base font-bold text-white mb-2 flex items-center gap-2">
+                    <i class="fa-solid fa-circle-play text-indigo-400"></i> Dynamic Lecture Guide
+                </h3>
+                <p class="text-xs text-slate-300 mb-6">Step through the core narrative verbatim from the video transcript. Each milestone automatically tunes the simulator interface to illustrate the concept physically.</p>
+
+                <!-- Audio-style Timeline slides -->
+                <div class="grid grid-cols-1 md:grid-cols-5 gap-4">
+                    <!-- Slide 1 -->
+                    <div onclick="selectLectureStep(1)" id="lecture-step-1" class="cursor-pointer p-4 rounded-xl border border-indigo-500/40 bg-indigo-500/5 transition-all hover:bg-slate-900 flex flex-col justify-between">
+                        <div>
+                            <span class="text-[10px] font-bold text-indigo-400 tracking-wider block mb-1">STEP 1</span>
+                            <h4 class="text-xs font-bold text-slate-100 mb-2">Average Velocity Component</h4>
+                            <p class="text-[11px] text-slate-300 leading-relaxed font-sans">We divide the component of displacement vector by the time interval \(\Delta t\).</p>
+                        </div>
+                        <span class="text-[10px] font-mono text-indigo-300 mt-4 block">Select step &rarr;</span>
+                    </div>
+
+                    <!-- Slide 2 -->
+                    <div onclick="selectLectureStep(2)" id="lecture-step-2" class="cursor-pointer p-4 rounded-xl border border-slate-800 bg-slate-900/30 transition-all hover:bg-slate-900 flex flex-col justify-between">
+                        <div>
+                            <span class="text-[10px] font-bold text-slate-400 tracking-wider block mb-1">STEP 2</span>
+                            <h4 class="text-xs font-bold text-slate-100 mb-2">What is Velocity at \(T_1\)?</h4>
+                            <p class="text-[11px] text-slate-300 leading-relaxed font-sans">Let's plot the position function \(x(t)\) to see the physical coordinates of the runner.</p>
+                        </div>
+                        <span class="text-[10px] font-mono text-slate-400 mt-4 block">Select step &rarr;</span>
+                    </div>
+
+                    <!-- Slide 3 -->
+                    <div onclick="selectLectureStep(3)" id="lecture-step-3" class="cursor-pointer p-4 rounded-xl border border-slate-800 bg-slate-900/30 transition-all hover:bg-slate-900 flex flex-col justify-between">
+                        <div>
+                            <span class="text-[10px] font-bold text-slate-400 tracking-wider block mb-1">STEP 3</span>
+                            <h4 class="text-xs font-bold text-slate-100 mb-2">Calculating Secant Slopes</h4>
+                            <p class="text-[11px] text-slate-300 leading-relaxed font-sans">The average velocity on this interval represents just rise over run of the secant line.</p>
+                        </div>
+                        <span class="text-[10px] font-mono text-slate-400 mt-4 block">Select step &rarr;</span>
+                    </div>
+
+                    <!-- Slide 4 -->
+                    <div onclick="selectLectureStep(4)" id="lecture-step-4" class="cursor-pointer p-4 rounded-xl border border-slate-800 bg-slate-900/30 transition-all hover:bg-slate-900 flex flex-col justify-between">
+                        <div>
+                            <span class="text-[10px] font-bold text-slate-400 tracking-wider block mb-1">STEP 4</span>
+                            <h4 class="text-xs font-bold text-slate-100 mb-2">A Sequence of Slopes</h4>
+                            <p class="text-[11px] text-slate-300 leading-relaxed font-sans">We shrink \(\Delta t\) again and again, creating a sequence of changing slopes.</p>
+                        </div>
+                        <span class="text-[10px] font-mono text-slate-400 mt-4 block">Select step &rarr;</span>
+                    </div>
+
+                    <!-- Slide 5 -->
+                    <div onclick="selectLectureStep(5)" id="lecture-step-5" class="cursor-pointer p-4 rounded-xl border border-slate-800 bg-slate-900/30 transition-all hover:bg-slate-900 flex flex-col justify-between">
+                        <div>
+                            <span class="text-[10px] font-bold text-slate-400 tracking-wider block mb-1">STEP 5</span>
+                            <h4 class="text-xs font-bold text-slate-100 mb-2">Tangent Line & Derivative</h4>
+                            <p class="text-[11px] text-slate-300 leading-relaxed font-sans">As \(\Delta t \to 0\), the sequence limit becomes the instantaneous derivative.</p>
+                        </div>
+                        <span class="text-[10px] font-mono text-slate-400 mt-4 block">Select step &rarr;</span>
+                    </div>
+                </div>
+
+                <!-- Live Sub-Simulator Sandbox for selected step -->
+                <div class="mt-6 bg-slate-950 p-5 rounded-2xl border border-slate-900 flex flex-col md:flex-row items-center justify-between gap-6">
+                    <div class="flex-grow max-w-xl">
+                        <span class="text-[10px] text-indigo-450 font-bold tracking-wider uppercase">Active Slide Focus</span>
+                        <h4 id="guide-title" class="text-sm font-bold text-white mt-1 mb-2">Step 1: The Average Velocity Component</h4>
+                        <p id="guide-desc" class="text-xs text-slate-300 leading-relaxed">Currently, the simulator is set to show a wide interval between $T_1$ and $T_1 + \Delta t$. Look closely at the average secant line drawn on the position graph above.</p>
+                    </div>
+                    <div class="flex gap-2.5 shrink-0">
+                        <button onclick="setTab('sim')" class="bg-indigo-600 hover:bg-indigo-700 text-white text-xs font-bold px-4 py-2.5 rounded-xl transition-all shadow-md shadow-indigo-500/15">
+                            Jump to Simulator <i class="fa-solid fa-arrow-right ml-1"></i>
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- TAB 3: INFOGRAPHIC & KNOWLEDGE QUIZ -->
+        <section id="tab-content-info" class="hidden flex flex-col gap-6 transition-all duration-300">
+            
+            <div class="grid grid-cols-1 lg:grid-cols-12 gap-6 items-stretch">
+                
+                <!-- Math derivation summary board (7 columns) -->
+                <div class="lg:col-span-7 glass-panel p-6 rounded-2xl flex flex-col justify-between">
+                    <div>
+                        <h3 class="text-sm font-bold uppercase tracking-wider text-slate-200 flex items-center gap-2 mb-4">
+                            <i class="fa-solid fa-graduation-cap text-indigo-400"></i> Calculus of Motion Infographic
+                        </h3>
+
+                        <!-- Derivation steps -->
+                        <div class="space-y-4 text-xs md:text-sm">
+                            <div class="bg-slate-950/80 p-4 rounded-xl border border-slate-900">
+                                <span class="text-[10px] font-bold text-indigo-400 tracking-widest block uppercase mb-1">Position Vector</span>
+                                <p class="text-slate-300 text-xs mb-2">The location of a runner moving forward on a 1D track relative to origin & unit direction vector \(\hat{i}\):</p>
+                                <div class="font-mono text-center text-indigo-300 py-1.5 rounded bg-slate-900/60 font-semibold">
+                                    \(\vec{x}(t) = x(t) \hat{i}\)
+                                </div>
+                            </div>
+
+                            <div class="bg-slate-950/80 p-4 rounded-xl border border-slate-900">
+                                <span class="text-[10px] font-bold text-amber-400 tracking-widest block uppercase mb-1">Average Velocity Component</span>
+                                <p class="text-slate-300 text-xs mb-2">The slope of the secant connecting two finite points across interval \(\Delta t\):</p>
+                                <div class="font-mono text-center text-amber-300 py-1.5 rounded bg-slate-900/60 font-semibold">
+                                    \(\vec{v}_{\text{ave}} = \frac{x(t + \Delta t) - x(t)}{\Delta t} \hat{i} = \frac{\Delta x}{\Delta t} \hat{i}\)
+                                </div>
+                            </div>
+
+                            <div class="bg-slate-950/80 p-4 rounded-xl border border-slate-900">
+                                <span class="text-[10px] font-bold text-emerald-400 tracking-widest block uppercase mb-1">The Limit Process (\(\Delta t \to 0\))</span>
+                                <p class="text-slate-300 text-xs mb-2">Shrinking \(\Delta t\) creates a sequence of values converging on the instantaneous tangent slope:</p>
+                                <div class="font-mono text-center text-emerald-300 py-1.5 rounded bg-slate-900/60 font-semibold">
+                                    \(\vec{v}(T_1) = \lim_{\Delta t \to 0} \frac{x(T_1 + \Delta t) - x(T_1)}{\Delta t} \hat{i} = \frac{dx}{dt} \hat{i}\)
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="mt-6 p-4 bg-indigo-500/5 rounded-xl border border-indigo-500/10 flex items-start gap-3">
+                        <i class="fa-solid fa-circle-info text-indigo-400 text-lg mt-0.5 shrink-0"></i>
+                        <p class="text-xs text-slate-300 leading-relaxed">
+                            <strong class="text-slate-100">Key takeaway:</strong> An average velocity measures net spatial displacement across a span of time. An instantaneous velocity is a single-moment derivative, calculated from the infinite limit of average velocities.
+                        </p>
+                    </div>
+                </div>
+
+                <!-- Interactive Classroom Quiz (5 columns) -->
+                <div class="lg:col-span-5 glass-panel p-6 rounded-2xl flex flex-col justify-between">
+                    <div>
+                        <h3 class="text-sm font-bold uppercase tracking-wider text-slate-200 flex items-center gap-2 mb-4">
+                            <i class="fa-solid fa-clipboard-question text-sky-400"></i> Interactive Knowledge Check
+                        </h3>
+
+                        <!-- Quiz body -->
+                        <div id="quiz-block" class="space-y-4">
+                            <div class="bg-slate-950 p-4 rounded-xl border border-slate-900">
+                                <span id="quiz-badge" class="text-[10px] font-bold text-sky-400 tracking-wider block mb-1">QUESTION 1 of 3</span>
+                                <p id="quiz-question" class="text-xs font-semibold text-slate-100 leading-relaxed"></p>
+                            </div>
+                            <div id="quiz-options-container" class="flex flex-col gap-2">
+                                <!-- Option buttons loaded dynamically -->
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Quiz Navigation controls -->
+                    <div class="mt-6 pt-4 border-t border-slate-800 flex items-center justify-between">
+                        <span id="quiz-score-tracker" class="text-xs text-slate-300 font-semibold">Score: 0 / 3</span>
+                        <button id="quiz-action-btn" onclick="onQuizAction()" class="px-4 py-2 bg-slate-800 text-slate-500 text-xs font-bold rounded-xl transition-all cursor-not-allowed" disabled>
+                            Submit Answer
+                        </button>
+                    </div>
+                </div>
+
+            </div>
+
+        </section>
+
+    </main>
+
+    <!-- FOOTER -->
+    <footer class="glass-panel text-center py-5 border-t border-slate-900 mt-10">
+        <p class="text-xs text-slate-400">Interactive Calculus Visualizer &bull; Generated dynamically for active classroom demonstration.</p>
+    </footer>
+
+    <!-- INTERACTIVE LAB LOGIC -->
+    <script>
+        // Configuration state
+        let currentTab = 'sim';
+        let curveType = 'cubic';
+        let t1 = 3.50;
+        let dt = 2.50;
+        let showSecant = true;
+        let showTangent = true;
+
+        // Sequence of slopes track
+        let slopeSequence = [];
+
+        // Continuous Runner simulation properties
+        let playbackInterval = null;
+        let isPlaybackPlaying = false;
+        let playbackTime = 0.5;
+
+        // Mathematical definitions
+        const mathCurves = {
+            cubic: {
+                x: (t) => 0.05 * Math.pow(t, 3) - 0.65 * Math.pow(t, 2) + 2.8 * t,
+                dx: (t) => 0.15 * Math.pow(t, 2) - 1.3 * t + 2.8,
+                label: 'x(t) = 0.05t³ - 0.65t² + 2.8t'
+            },
+            oscillatory: {
+                x: (t) => 1.6 * Math.sin(0.9 * t) + 0.6 * t + 2,
+                dx: (t) => 1.44 * Math.cos(0.9 * t) + 0.6,
+                label: 'x(t) = 1.6 \\sin(0.9t) + 0.6t + 2'
+            },
+            logistic: {
+                x: (t) => 7.5 / (1 + Math.exp(-(t - 4.5))),
+                dx: (t) => {
+                    const denominator = 1 + Math.exp(-(t - 4.5));
+                    return (7.5 * Math.exp(-(t - 4.5))) / Math.pow(denominator, 2);
+                },
+                label: 'x(t) = \\frac{7.5}{1 + e^{-(t-4.5)}}'
+            }
+        };
+
+        // Graph boundaries
+        const range = {
+            minT: 0,
+            maxT: 10,
+            minX: 0,
+            maxX: 10
+        };
+
+        // Canvas element configuration
+        const canvas = document.getElementById('graphCanvas');
+        const ctx = canvas.getContext('2d');
+        const dpr = window.devicePixelRatio || 1;
+
+        // Dynamic formula/Latex compiler hook
+        function renderMathForElement(element) {
+            if (typeof renderMathInElement !== 'undefined') {
+                renderMathInElement(element, {
+                    delimiters: [
+                        {left: '$$', right: '$$', display: true},
+                        {left: '$', right: '$', display: false},
+                        {left: '\\(', right: '\\)', display: false},
+                        {left: '\\[', right: '\\]', display: true}
+                    ],
+                    throwOnError: false
+                });
+            }
+        }
+
+        // Setup Canvas Coordinates
+        function setupCanvasSize() {
+            const bbox = canvas.parentNode.getBoundingClientRect();
+            canvas.width = bbox.width * dpr;
+            canvas.height = bbox.height * dpr;
+            ctx.scale(dpr, dpr);
+            drawAll();
+        }
+
+        // Convert Math coordinate space to pixel space
+        function mathToPixel(t, x, width, height) {
+            const paddingLeft = 50;
+            const paddingRight = 20;
+            const paddingTop = 30;
+            const paddingBottom = 40;
+
+            const plotW = width - paddingLeft - paddingRight;
+            const plotH = height - paddingTop - paddingBottom;
+
+            const px = paddingLeft + ((t - range.minT) / (range.maxT - range.minT)) * plotW;
+            const py = height - paddingBottom - ((x - range.minX) / (range.maxX - range.minX)) * plotH;
+
+            return { x: px, y: py };
+        }
+
+        // Convert pixel coordinate space back to Math coordinate space
+        function pixelToMath(px, py, width, height) {
+            const paddingLeft = 50;
+            const paddingRight = 20;
+            const paddingTop = 30;
+            const paddingBottom = 40;
+
+            const plotW = width - paddingLeft - paddingRight;
+            const plotH = height - paddingTop - paddingBottom;
+
+            const t = range.minT + ((px - paddingLeft) / plotW) * (range.maxT - range.minT);
+            const x = range.minX + ((height - paddingBottom - py) / plotH) * (range.maxX - range.minX);
+
+            return { t: t, x: x };
+        }
+
+        // Main draw loop for Canvas coordinate space
+        function drawAll() {
+            const bbox = canvas.parentNode.getBoundingClientRect();
+            const width = bbox.width;
+            const height = bbox.height;
+
+            // Clean background
+            ctx.clearRect(0, 0, width, height);
+
+            // Draw clean background coordinate lines
+            ctx.strokeStyle = '#111827';
+            ctx.lineWidth = 1;
+            ctx.font = '10px monospace';
+            ctx.fillStyle = '#6b7280';
+
+            // Vertical timeline lines
+            for (let t = 1; t <= 9; t++) {
+                const p = mathToPixel(t, 0, width, height);
+                ctx.beginPath();
+                ctx.moveTo(p.x, 20);
+                ctx.lineTo(p.x, height - 40);
+                ctx.stroke();
+                ctx.fillText(t + 's', p.x - 8, height - 20);
+            }
+
+            // Horizontal displacement position lines
+            for (let x = 1; x <= 9; x++) {
+                const p = mathToPixel(0, x, width, height);
+                ctx.beginPath();
+                ctx.moveTo(50, p.y);
+                ctx.lineTo(width - 20, p.y);
+                ctx.stroke();
+                ctx.fillText(x + 'm', 15, p.y + 4);
+            }
+
+            // Draw primary coordinate axes
+            ctx.strokeStyle = '#374151';
+            ctx.lineWidth = 2;
+            ctx.beginPath();
+            ctx.moveTo(50, 20);
+            ctx.lineTo(50, height - 40);
+            ctx.lineTo(width - 15, height - 40);
+            ctx.stroke();
+
+            // Label main axes
+            ctx.fillStyle = '#9ca3af';
+            ctx.font = 'bold 10px Inter, sans-serif';
+            ctx.fillText('Displacement Component x (m)', 60, 20);
+            ctx.fillText('Time t (seconds)', width - 110, height - 10);
+
+            // Draw selected position curve
+            const activeCurve = mathCurves[curveType];
+            ctx.strokeStyle = '#6366f1';
+            ctx.lineWidth = 3;
+            ctx.beginPath();
+            let firstPt = true;
+            for (let t = 0; t <= 10; t += 0.1) {
+                const xVal = activeCurve.x(t);
+                const p = mathToPixel(t, xVal, width, height);
+                if (firstPt) {
+                    ctx.moveTo(p.x, p.y);
+                    firstPt = false;
+                } else {
+                    ctx.lineTo(p.x, p.y);
+                }
+            }
+            ctx.stroke();
+
+            // Calculate active positions
+            const x1 = activeCurve.x(t1);
+            const x2 = activeCurve.x(t1 + dt);
+            const pA = mathToPixel(t1, x1, width, height);
+            const pB = mathToPixel(t1 + dt, x2, width, height);
+
+            // Draw average velocity (Secant Line)
+            if (showSecant) {
+                ctx.strokeStyle = '#f59e0b';
+                ctx.lineWidth = 2;
+                ctx.setLineDash([5, 5]);
+
+                const avgSlope = (x2 - x1) / dt;
+                
+                // Draw line projecting across coordinates
+                const sT = 0;
+                const sX = x1 - avgSlope * t1;
+                const eT = 10;
+                const eX = x1 + avgSlope * (10 - t1);
+
+                const pStart = mathToPixel(sT, sX, width, height);
+                const pEnd = mathToPixel(eT, eX, width, height);
+
+                ctx.beginPath();
+                ctx.moveTo(pStart.x, pStart.y);
+                ctx.lineTo(pEnd.x, pEnd.y);
+                ctx.stroke();
+                ctx.setLineDash([]); // Reset
+            }
+
+            // Draw instantaneous velocity (Tangent Line)
+            if (showTangent) {
+                ctx.strokeStyle = '#10b981';
+                ctx.lineWidth = 2;
+
+                const instSlope = activeCurve.dx(t1);
+
+                const sT = Math.max(0, t1 - 3);
+                const sX = x1 - instSlope * (t1 - sT);
+                const eT = Math.min(10, t1 + 3);
+                const eX = x1 + instSlope * (eT - t1);
+
+                const pStart = mathToPixel(sT, sX, width, height);
+                const pEnd = mathToPixel(eT, eX, width, height);
+
+                ctx.beginPath();
+                ctx.moveTo(pStart.x, pStart.y);
+                ctx.lineTo(pEnd.x, pEnd.y);
+                ctx.stroke();
+            }
+
+            // Draw guidelines to coordinate axis tick anchors
+            ctx.strokeStyle = '#1e293b';
+            ctx.lineWidth = 1;
+            ctx.setLineDash([3, 3]);
+            
+            // Point A anchors
+            ctx.beginPath();
+            ctx.moveTo(pA.x, pA.y); ctx.lineTo(pA.x, height - 40);
+            ctx.moveTo(pA.x, pA.y); ctx.lineTo(50, pA.y);
+            ctx.stroke();
+
+            // Point B anchors
+            ctx.beginPath();
+            ctx.moveTo(pB.x, pB.y); ctx.lineTo(pB.x, height - 40);
+            ctx.moveTo(pB.x, pB.y); ctx.lineTo(50, pB.y);
+            ctx.stroke();
+            ctx.setLineDash([]);
+
+            // Draw physical point indicators
+            // T1 checkpoint dot
+            ctx.fillStyle = '#6366f1';
+            ctx.strokeStyle = '#ffffff';
+            ctx.lineWidth = 2;
+            ctx.beginPath();
+            ctx.arc(pA.x, pA.y, 6, 0, 2 * Math.PI);
+            ctx.fill();
+            ctx.stroke();
+
+            // Label coordinate A
+            ctx.fillStyle = '#ffffff';
+            ctx.font = 'bold 10px Inter, sans-serif';
+            ctx.fillText('A (T₁)', pA.x - 30, pA.y - 10);
+
+            // T1 + dt checkpoint dot
+            ctx.fillStyle = '#f59e0b';
+            ctx.strokeStyle = '#ffffff';
+            ctx.lineWidth = 2;
+            ctx.beginPath();
+            ctx.arc(pB.x, pB.y, 6, 0, 2 * Math.PI);
+            ctx.fill();
+            ctx.stroke();
+
+            // Label coordinate B
+            ctx.fillStyle = '#f59e0b';
+            ctx.fillText('B (T₁ + Δt)', pB.x + 10, pB.y - 10);
+        }
+
+        // Canvas drag / click interactions
+        let userIsDragging = false;
+
+        function handleCanvasClick(evt) {
+            const bbox = canvas.getBoundingClientRect();
+            const mouseX = evt.clientX - bbox.left;
+            const mouseY = evt.clientY - bbox.top;
+
+            const mathCoordinates = pixelToMath(mouseX, mouseY, bbox.width, bbox.height);
+            let targetT1 = Math.max(0.5, Math.min(8.0, mathCoordinates.t));
+
+            document.getElementById('t1-input').value = targetT1.toFixed(2);
+            onParamChange();
+        }
+
+        canvas.addEventListener('mousedown', (e) => {
+            userIsDragging = true;
+            handleCanvasClick(e);
+        });
+
+        canvas.addEventListener('mousemove', (e) => {
+            if (userIsDragging) {
+                handleCanvasClick(e);
+            }
+        });
+
+        window.addEventListener('mouseup', () => {
+            userIsDragging = false;
+        });
+
+        // Touch handlers for responsive mobile control
+        canvas.addEventListener('touchstart', (e) => {
+            if (e.touches.length === 1) {
+                userIsDragging = true;
+                handleCanvasClick(e.touches[0]);
+                e.preventDefault();
+            }
+        }, { passive: false });
+
+        canvas.addEventListener('touchmove', (e) => {
+            if (userIsDragging && e.touches.length === 1) {
+                handleCanvasClick(e.touches[0]);
+                e.preventDefault();
+            }
+        }, { passive: false });
+
+        // Action: Param update dispatcher
+        function onParamChange() {
+            t1 = parseFloat(document.getElementById('t1-input').value);
+            dt = parseFloat(document.getElementById('dt-input').value);
+
+            // Auto constrain boundary bounds
+            if (t1 + dt > 10.0) {
+                dt = 10.0 - t1;
+                document.getElementById('dt-input').value = dt.toFixed(2);
+            }
+
+            // Sync visual numeric labels
+            document.getElementById('t1-display').innerText = t1.toFixed(2) + 's';
+            document.getElementById('dt-display').innerText = dt.toFixed(2) + 's';
+
+            // Extract position values
+            const curve = mathCurves[curveType];
+            const x1 = curve.x(t1);
+            const x2 = curve.x(t1 + dt);
+            const dx = x2 - x1;
+            const avgVel = dx / dt;
+            const instVel = curve.dx(t1);
+
+            document.getElementById('num-x1').innerText = x1.toFixed(2) + ' m';
+            document.getElementById('num-x2').innerText = x2.toFixed(2) + ' m';
+            document.getElementById('num-dx').innerText = (dx >= 0 ? '+' : '') + dx.toFixed(2) + ' m';
+            document.getElementById('num-vavg').innerText = avgVel.toFixed(2) + ' m/s';
+            document.getElementById('num-vinst').innerText = instVel.toFixed(2) + ' m/s';
+
+            // Push the current average velocity to the limit queue sequence
+            recordSlopeInSequence(dt, avgVel);
+
+            // Redraw everything
+            drawAll();
+            updatePhysicalTrack(x1, x2, instVel);
+        }
+
+        // Convergence sequence builder: "A limit of that sequence... is the slope of the tangent line"
+        function recordSlopeInSequence(currentDt, currentSlope) {
+            // Keep unique recordings of dt values to avoid overflow
+            // Only add if not already in queue to prevent slider spam
+            const exists = slopeSequence.some(item => Math.abs(item.dt - currentDt) < 0.05);
+            if (!exists) {
+                // Keep the sequence limited to 5 points max
+                if (slopeSequence.length >= 5) {
+                    slopeSequence.shift();
+                }
+                slopeSequence.push({
+                    dt: currentDt,
+                    slope: currentSlope
+                });
+                
+                // Sort sequence descending by dt so it illustrates shrinking toward 0
+                slopeSequence.sort((a, b) => b.dt - a.dt);
+                renderSlopeSequence();
+            }
+        }
+
+        function clearSlopeSequence() {
+            slopeSequence = [];
+            renderSlopeSequence();
+        }
+
+        function renderSlopeSequence() {
+            const container = document.getElementById('sequence-container');
+            container.innerHTML = '';
+
+            if (slopeSequence.length === 0) {
+                container.innerHTML = `
+                    <div class="col-span-full py-4 text-center text-xs text-slate-500 italic">
+                        Adjust sliders or click "Shrink" to construct a sequence of slope values.
+                    </div>
+                `;
+                return;
+            }
+
+            slopeSequence.forEach((item, index) => {
+                const itemDiv = document.createElement('div');
+                itemDiv.className = "p-3 rounded-xl border border-slate-800 bg-slate-900/60 text-center flex flex-col justify-between";
+                itemDiv.innerHTML = `
+                    <div class="text-[9px] text-slate-400 font-bold uppercase">Step ${index+1} (\u0394t = ${item.dt.toFixed(2)}s)</div>
+                    <div class="text-sm font-mono font-bold text-amber-400 my-1">${item.slope.toFixed(2)} m/s</div>
+                    <div class="text-[8px] text-slate-500 font-mono">Secant Slope</div>
+                `;
+                container.appendChild(itemDiv);
+            });
+        }
+
+        // Helper to generate dynamic chalkboard style stick-runners scaled to the new y-level
+        function getRunnerSvg(xCoord, color, opacity, isBouncing) {
+            const bounceY = isBouncing ? Math.sin(Date.now() / 120) * 1.5 : 0;
+            const headY = 86 + bounceY;
+            const hipY = 100 + bounceY;
+            return `
+            <g opacity="${opacity}">
+                <!-- Head -->
+                <circle cx="${xCoord}" cy="${headY}" r="3.5" stroke="${color}" stroke-width="1.8" fill="#070b19" />
+                <!-- Torso -->
+                <line x1="${xCoord}" y1="${headY + 3.5}" x2="${xCoord - 1.5}" y2="${hipY}" stroke="${color}" stroke-width="2" />
+                <!-- Arms -->
+                <!-- Front arm (Flexed) -->
+                <line x1="${xCoord}" y1="${headY + 5}" x2="${xCoord + 4}" y2="${headY + 9}" stroke="${color}" stroke-width="1.5" stroke-linecap="round" />
+                <line x1="${xCoord + 4}" y1="${headY + 9}" x2="${xCoord + 7}" y2="${headY + 7}" stroke="${color}" stroke-width="1.5" stroke-linecap="round" />
+                <!-- Back arm -->
+                <line x1="${xCoord}" y1="${headY + 5}" x2="${xCoord - 3}" y2="${headY + 8}" stroke="${color}" stroke-width="1.5" stroke-linecap="round" />
+                <line x1="${xCoord - 3}" y1="${headY + 8}" x2="${xCoord - 2}" y2="${headY + 12}" stroke="${color}" stroke-width="1.5" stroke-linecap="round" />
+                <!-- Legs -->
+                <!-- Front leg -->
+                <line x1="${xCoord - 1.5}" y1="${hipY}" x2="${xCoord + 3}" y2="${hipY + 5}" stroke="${color}" stroke-width="2" stroke-linecap="round" />
+                <line x1="${xCoord + 3}" y1="${hipY + 5}" x2="${xCoord + 1}" y2="${hipY + 15}" stroke="${color}" stroke-width="2" stroke-linecap="round" />
+                <!-- Back leg -->
+                <line x1="${xCoord - 1.5}" y1="${hipY}" x2="${xCoord - 5}" y2="${hipY + 4}" stroke="${color}" stroke-width="2" stroke-linecap="round" />
+                <line x1="${xCoord - 5}" y1="${hipY + 4}" x2="${xCoord - 3}" y2="${hipY + 15}" stroke="${color}" stroke-width="2" stroke-linecap="round" />
+            </g>
+            `;
+        }
+
+        // Position elements along physical track using the dynamic vector space
+        function updatePhysicalTrack(pos1, pos2, runnerSpeed) {
+            const activeCurve = mathCurves[curveType];
+            
+            // Handle continuous playback position
+            const activePos1 = isPlaybackPlaying ? activeCurve.x(playbackTime) : pos1;
+            const activeSpeed = isPlaybackPlaying ? activeCurve.dx(playbackTime) : runnerSpeed;
+            const activePos2 = isPlaybackPlaying ? activePos1 : pos2;
+
+            // Map position (0 to 10) to SVG viewbox range (50 to 950)
+            const getSvgX = (val) => {
+                const clamped = Math.max(0, Math.min(10, val));
+                return 50 + clamped * 90;
+            };
+
+            const svgX1 = getSvgX(activePos1);
+            const svgX2 = getSvgX(activePos2);
+
+            const minX = Math.min(svgX1, svgX2);
+            const maxX = Math.max(svgX1, svgX2);
+            const intervalWidth = maxX - minX;
+
+            const svgContainer = document.getElementById('trackSvg');
+            if (!svgContainer) return;
+
+            // Generate Runners
+            const runnerA = getRunnerSvg(svgX1, '#818cf8', 1.0, isPlaybackPlaying);
+            const runnerB = (!isPlaybackPlaying && Math.abs(pos2 - pos1) > 0.05) 
+                ? getRunnerSvg(getSvgX(pos2), '#f59e0b', 0.5, false) 
+                : '';
+
+            // Generate scale tick marks
+            let ticksHtml = '';
+            for (let i = 0; i <= 10; i++) {
+                const tx = 50 + i * 90;
+                ticksHtml += `
+                    <line x1="${tx}" y1="110" x2="${tx}" y2="120" stroke="#374151" stroke-width="1.5" />
+                    <text x="${tx}" y="134" fill="#9ca3af" font-size="10" font-family="monospace" text-anchor="middle">${i}m</text>
+                `;
+            }
+
+            // Draw vector arrows - Recalculated positions with text outlines for flawless contrast
+            let vectorsHtml = '';
+            const textOutline = 'stroke="#070b19" stroke-width="4" paint-order="stroke fill" stroke-linejoin="round"';
+            
+            // Vector 1: Position r(T1) -> Indigo arrow
+            if (svgX1 > 50) {
+                vectorsHtml += `
+                    <line x1="50" y1="48" x2="${svgX1}" y2="48" stroke="#6366f1" stroke-width="2.2" marker-end="url(#arrow-indigo)" />
+                    <text x="${50 + (svgX1 - 50)/2}" y="41" fill="#a5b4fc" font-size="11" font-family="sans-serif" font-weight="bold" text-anchor="middle" ${textOutline}>r(T₁) = x(T₁)\u00EE</text>
+                `;
+            }
+
+            // Vector 2: Position r(T1 + dt) -> Orange arrow (dashed, drawn further up to avoid clutter)
+            if (!isPlaybackPlaying && svgX2 > 50 && Math.abs(pos2 - pos1) > 0.1) {
+                vectorsHtml += `
+                    <line x1="50" y1="25" x2="${svgX2}" y2="25" stroke="#f59e0b" stroke-width="1.5" stroke-dasharray="3,3" marker-end="url(#arrow-amber)" />
+                    <text x="${50 + (svgX2 - 50)/2}" y="18" fill="#fde047" font-size="11" font-family="sans-serif" font-weight="bold" text-anchor="middle" ${textOutline}>r(T₁ + \u0394t)</text>
+                `;
+            }
+
+            // Vector 3: Displacement dr -> Sky Blue arrow pointing between runners
+            if (!isPlaybackPlaying && Math.abs(svgX2 - svgX1) > 8) {
+                vectorsHtml += `
+                    <line x1="${svgX1}" y1="72" x2="${svgX2}" y2="72" stroke="#38bdf8" stroke-width="2.5" marker-end="url(#arrow-sky)" />
+                    <text x="${svgX1 + (svgX2 - svgX1)/2}" y="65" fill="#7dd3fc" font-size="11" font-family="sans-serif" font-weight="bold" text-anchor="middle" ${textOutline}>\u0394r = \u0394x \u00EE</text>
+                `;
+            }
+
+            // Unit vector pointing right next to the origin scale
+            const unitVecHtml = `
+                <line x1="50" y1="145" x2="90" y2="145" stroke="#10b981" stroke-width="1.5" marker-end="url(#arrow-green)" />
+                <text x="100" y="148" fill="#10b981" font-size="12" font-family="serif" font-weight="bold" ${textOutline}>\u00EE</text>
+            `;
+
+            svgContainer.innerHTML = `
+                <defs>
+                    <marker id="arrow-indigo" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
+                        <path d="M 0 1.5 L 8 5 L 0 8.5 z" fill="#6366f1" />
+                    </marker>
+                    <marker id="arrow-amber" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="5" markerHeight="5" orient="auto-start-reverse">
+                        <path d="M 0 1.5 L 8 5 L 0 8.5 z" fill="#f59e0b" />
+                    </marker>
+                    <marker id="arrow-sky" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
+                        <path d="M 0 1.5 L 8 5 L 0 8.5 z" fill="#38bdf8" />
+                    </marker>
+                    <marker id="arrow-green" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="5" markerHeight="5" orient="auto-start-reverse">
+                        <path d="M 0 1.5 L 8 5 L 0 8.5 z" fill="#10b981" />
+                    </marker>
+                </defs>
+                
+                <!-- Interval shade background track -->
+                ${!isPlaybackPlaying && intervalWidth > 2 ? `
+                    <rect class="transition-all" x="${minX}" y="10" width="${intervalWidth}" height="105" fill="rgba(245, 158, 11, 0.04)" rx="4" />
+                ` : ''}
+
+                <!-- Main Track Line -->
+                <line x1="30" y1="115" x2="970" y2="115" stroke="#1f2937" stroke-width="3" stroke-linecap="round" />
+                <line x1="50" y1="115" x2="950" y2="115" stroke="#4b5563" stroke-width="1.5" />
+
+                <!-- Scale Tick Marks -->
+                ${ticksHtml}
+
+                <!-- Origin Text Label -->
+                <text x="50" y="10" fill="#818cf8" font-size="8" font-family="sans-serif" font-weight="bold" text-anchor="middle">ORIGIN (O)</text>
+                <line x1="50" y1="15" x2="50" y2="110" stroke="#818cf8" stroke-width="0.5" stroke-dasharray="2,2" />
+
+                <!-- Unit Vector i-hat -->
+                ${unitVecHtml}
+
+                <!-- Dynamic Vector Arrows -->
+                ${vectorsHtml}
+
+                <!-- Dynamic Runner Sketches -->
+                ${runnerA}
+                ${runnerB}
+            `;
+
+            // Sync text readouts
+            document.getElementById('track-pos-text').innerText = activePos1.toFixed(2) + ' m';
+            document.getElementById('track-vel-text').innerText = activeSpeed.toFixed(2) + ' m/s';
+        }
+
+        // Action: Selection of mathematical curve models
+        function changeCurve(selected) {
+            curveType = selected;
+            
+            const list = ['cubic', 'oscillatory', 'logistic'];
+            list.forEach(item => {
+                const btn = document.getElementById('curve-btn-' + item);
+                const icon = btn.querySelector('i');
+                if (item === selected) {
+                    btn.className = "w-full text-left p-3 rounded-xl border border-indigo-500 bg-indigo-500/10 text-white font-medium transition-all flex justify-between items-center";
+                    icon.className = "fa-solid fa-circle-check text-indigo-400";
+                } else {
+                    btn.className = "w-full text-left p-3 rounded-xl border border-slate-800 hover:border-slate-700 bg-slate-900/40 text-slate-300 hover:text-white font-medium transition-all flex justify-between items-center";
+                    icon.className = "fa-regular fa-circle text-slate-600";
+                }
+            });
+
+            clearSlopeSequence();
+            onParamChange();
+        }
+
+        // Visibility Toggles
+        function toggleSecantLine() {
+            showSecant = !showSecant;
+            const btn = document.getElementById('toggle-sec');
+            if (showSecant) {
+                btn.className = 'px-2.5 py-1 rounded bg-amber-500/10 text-amber-300 border border-amber-500/20 font-semibold transition-all';
+            } else {
+                btn.className = 'px-2.5 py-1 rounded bg-slate-900 text-slate-400 border border-slate-850 transition-all';
+            }
+            drawAll();
+        }
+
+        // Visibility Toggles
+        function toggleTangentLine() {
+            showTangent = !showTangent;
+            const btn = document.getElementById('toggle-tan');
+            if (showTangent) {
+                btn.className = 'px-2.5 py-1 rounded bg-emerald-500/10 text-emerald-300 border border-emerald-500/20 font-semibold transition-all';
+            } else {
+                btn.className = 'px-2.5 py-1 rounded bg-slate-900 text-slate-400 border border-slate-850 transition-all';
+            }
+            drawAll();
+        }
+
+        // Animation: Shrink Delta T to 0 (Limit sequence constructor)
+        function animateIntervalShrink() {
+            const dtSlider = document.getElementById('dt-input');
+            const startDt = parseFloat(dtSlider.value);
+            const targetDt = 0.01;
+            const duration = 1800; // ms
+            const startTime = performance.now();
+
+            function updateFrame(now) {
+                const elapsed = now - startTime;
+                const progress = Math.min(1.0, elapsed / duration);
+                
+                // Ease-out cubic curve
+                const easeValue = 1 - Math.pow(1 - progress, 3);
+                const currentDtValue = startDt + (targetDt - startDt) * easeValue;
+
+                dtSlider.value = currentDtValue.toFixed(2);
+                onParamChange();
+
+                if (progress < 1.0) {
+                    requestAnimationFrame(updateFrame);
+                }
+            }
+            requestAnimationFrame(updateFrame);
+        }
+
+        // Animation: Continuous Playback Movement Loop
+        function toggleRunnerPlayback() {
+            isPlaybackPlaying = !isPlaybackPlaying;
+            const btn = document.getElementById('runner-playback-btn');
+            const icon = document.getElementById('playback-icon');
+            const txt = document.getElementById('playback-text');
+
+            if (isPlaybackPlaying) {
+                btn.className = "bg-indigo-600 border border-indigo-500 text-white font-bold text-xs py-2.5 rounded-xl transition-all flex items-center justify-center gap-1.5 shadow-md shadow-indigo-500/20";
+                icon.className = "fa-solid fa-pause";
+                txt.innerText = "Pause Motion";
+                
+                playbackTime = 0.1;
+                playbackInterval = setInterval(() => {
+                    playbackTime += 0.05;
+                    if (playbackTime > 9.9) {
+                        playbackTime = 0.1; // loop
+                    }
+                    onParamChange();
+                }, 1000 / 40); // 40 FPS
+            } else {
+                btn.className = "bg-slate-900 hover:bg-slate-850 border border-slate-800 text-indigo-400 font-bold text-xs py-2.5 rounded-xl transition-all flex items-center justify-center gap-1.5";
+                icon.className = "fa-solid fa-play";
+                txt.innerText = "Play Motion";
+
+                clearInterval(playbackInterval);
+                onParamChange();
+            }
+        }
+
+        // Navigation Controller
+        function setTab(selectedTab) {
+            currentTab = selectedTab;
+            
+            const tabs = ['sim', 'lecture', 'info'];
+            tabs.forEach(tab => {
+                const btn = document.getElementById('tab-btn-' + tab);
+                const content = document.getElementById('tab-content-' + tab);
+                if (tab === selectedTab) {
+                    btn.className = 'px-4 py-2 text-xs md:text-sm font-semibold rounded-lg transition-all duration-200 flex items-center gap-2 bg-indigo-600 text-white shadow';
+                    content.classList.remove('hidden');
+                } else {
+                    btn.className = 'px-4 py-2 text-xs md:text-sm font-semibold rounded-lg transition-all duration-200 flex items-center gap-2 text-slate-300 hover:text-white';
+                    content.classList.add('hidden');
+                }
+            });
+
+            if (selectedTab === 'sim') {
+                setTimeout(setupCanvasSize, 50);
+            } else if (selectedTab === 'lecture') {
+                renderMathForElement(document.getElementById('tab-content-lecture'));
+            } else if (selectedTab === 'info') {
+                renderMathForElement(document.getElementById('tab-content-info'));
+            }
+        }
+
+        // Lecture Step walkthrough controller
+        function selectLectureStep(stepNum) {
+            const steps = [1, 2, 3, 4, 5];
+            steps.forEach(s => {
+                const item = document.getElementById('lecture-step-' + s);
+                if (s === stepNum) {
+                    item.className = "cursor-pointer p-4 rounded-xl border border-indigo-500 bg-indigo-500/5 transition-all flex flex-col justify-between";
+                } else {
+                    item.className = "cursor-pointer p-4 rounded-xl border border-slate-800 bg-slate-900/30 transition-all hover:bg-slate-900 flex flex-col justify-between";
+                }
+            });
+
+            // Set variables depending on step description
+            const gTitle = document.getElementById('guide-title');
+            const gDesc = document.getElementById('guide-desc');
+
+            if (stepNum === 1) {
+                gTitle.innerHTML = "Step 1: The Average Velocity Component";
+                gDesc.innerHTML = "The lecture defines average velocity over a time interval from \\(t\\) to \\(t + \\Delta t\\). This corresponds directly to our coordinate indicators A & B with a broad interval of time. Average velocity measures change over a finite span: \\(\\vec{v}_{\\text{ave}} = \\frac{\\Delta x}{\\Delta t}\\hat{i}\\).";
+                
+                t1 = 2.0;
+                dt = 3.5;
+                showSecant = true;
+                showTangent = false;
+            } else if (stepNum === 2) {
+                gTitle.innerHTML = "Step 2: Plotting Position Function \\(x(t)\\)";
+                gDesc.innerHTML = "To understand velocity at a single specific moment \\(T_1\\), we construct a coordinate plot mapping position to elapsed time. Look at the blue position curve \\(x(t)\\) on our coordinate space.";
+                
+                t1 = 4.0;
+                dt = 3.0;
+                showSecant = false;
+                showTangent = false;
+            } else if (stepNum === 3) {
+                gTitle.innerHTML = "Step 3: Slope of the Secant line (Rise over Run)";
+                gDesc.innerHTML = "The average velocity across this interval is the slope of the straight secant line shown in yellow. It is calculated by dividing total displacement component \\(\\Delta x\\) by elapsed interval \\(\\Delta t\\).";
+                
+                t1 = 4.0;
+                dt = 2.50;
+                showSecant = true;
+                showTangent = false;
+            } else if (stepNum === 4) {
+                gTitle.innerHTML = "Step 4: A Sequence of Slopes";
+                gDesc.innerHTML = "We shrink \\(\\Delta t\\) again and again. Look at the dynamic 'Sequence of Slopes' panel. Each time you make \\(\\Delta t\\) smaller, a new number is recorded into the limit sequence as the secant line rotates.";
+                
+                t1 = 4.00;
+                dt = 1.20;
+                showSecant = true;
+                showTangent = true;
+            } else if (stepNum === 5) {
+                gTitle.innerHTML = "Step 5: Tangent Line & Time Derivative";
+                gDesc.innerHTML = "In the limit as \\(\\Delta t \\to 0\\), the rotating secant line merges perfectly with the green tangent line at coordinate \\(T_1\\). This unique limit value represents the exact derivative: \\(\\vec{v}(T_1) = \\frac{dx}{dt}\\hat{i}\\).";
+                
+                t1 = 4.00;
+                dt = 0.01;
+                showSecant = true;
+                showTangent = true;
+            }
+
+            // Update parameters
+            document.getElementById('t1-input').value = t1.toFixed(2);
+            document.getElementById('dt-input').value = dt.toFixed(2);
+            onParamChange();
+
+            // Recompile Math tags in Lecture block
+            renderMathForElement(gTitle);
+            renderMathForElement(gDesc);
+        }
+
+        // QUIZ MANAGEMENT
+        const quizDataset = [
+            {
+                question: "As \\(\\Delta t\\) decreases toward zero, what visual feature does the secant line converge into?",
+                options: [
+                    "A horizontal line representing uniform velocity",
+                    "The tangent line touching the curve exactly at point A",
+                    "An exponential curve bending upwards",
+                    "The origin point \\(O\\) of the grid coordinate plane"
+                ],
+                correct: 1,
+                hint: "The rotating secant converges onto the local slope of the single point on the curve."
+            },
+            {
+                question: "According to the lecture transcript, what fundamentally is a limit in this physical sequence?",
+                options: [
+                    "A sequence of numbers (slopes of shrinking intervals)",
+                    "A fixed hardware boundary on the running track",
+                    "The maximum top speed a runner can achieve",
+                    "The coordinate position divided by two"
+                ],
+                correct: 0,
+                hint: "Recall: 'So what a limit is, is a sequence of numbers... each time we do that, the slopes represent a sequence of numbers.'"
+            },
+            {
+                question: "What is the common name given to the limit of average velocity as the elapsed time interval vanishes?",
+                options: [
+                    "The acceleration function",
+                    "The coordinate axis vector product",
+                    "The derivative of the position function",
+                    "The displacement vector distance"
+                ],
+                correct: 2,
+                hint: "The transcript notes: 'This quantity, the limit, is awkward to write... it has a name: the derivative of the position function.'"
+            }
+        ];
+
+        let quizIndex = 0;
+        let quizScore = 0;
+        let selectedOptionIdx = null;
+        let isAnswerSubmitted = false;
+
+        function renderQuiz() {
+            const container = document.getElementById('quiz-options-container');
+            const item = quizDataset[quizIndex];
+
+            document.getElementById('quiz-badge').innerText = `QUESTION ${quizIndex + 1} of ${quizDataset.length}`;
+            document.getElementById('quiz-question').innerHTML = item.question;
+
+            container.innerHTML = '';
+            item.options.forEach((opt, idx) => {
+                const btn = document.createElement('button');
+                btn.className = "w-full text-left p-3.5 rounded-xl border border-slate-800 bg-slate-900/40 text-xs md:text-sm text-slate-300 hover:text-white hover:border-slate-700 transition-all flex items-start gap-3.5";
+                btn.innerHTML = `
+                    <span id="opt-badge-${idx}" class="w-5 h-5 rounded-full bg-slate-800 text-slate-400 font-bold flex items-center justify-center shrink-0 text-[10px] border border-slate-700">${String.fromCharCode(65 + idx)}</span>
+                    <span class="pt-0.5 leading-relaxed">${opt}</span>
+                `;
+                btn.onclick = () => selectQuizOption(idx);
+                container.appendChild(btn);
+            });
+
+            // Compile Math in Option buttons
+            renderMathForElement(document.getElementById('quiz-block'));
+
+            // Reset submit button
+            const actionBtn = document.getElementById('quiz-action-btn');
+            actionBtn.innerText = "Submit Answer";
+            actionBtn.disabled = true;
+            actionBtn.className = "px-4 py-2 bg-slate-800 text-slate-500 text-xs font-bold rounded-xl transition-all cursor-not-allowed";
+            selectedOptionIdx = null;
+            isAnswerSubmitted = false;
+        }
+
+        function selectQuizOption(idx) {
+            if (isAnswerSubmitted) return;
+
+            const item = quizDataset[quizIndex];
+            selectedOptionIdx = idx;
+
+            // Paint border selection on options
+            const container = document.getElementById('quiz-options-container');
+            for (let i = 0; i < item.options.length; i++) {
+                const btn = container.children[i];
+                const badge = btn.querySelector('[id^="opt-badge-"]');
+                if (i === idx) {
+                    btn.className = "w-full text-left p-3.5 rounded-xl border border-indigo-500 bg-indigo-500/10 text-white transition-all flex items-start gap-3.5";
+                    badge.className = "w-5 h-5 rounded-full bg-indigo-600 text-white font-bold flex items-center justify-center shrink-0 text-[10px]";
+                } else {
+                    btn.className = "w-full text-left p-3.5 rounded-xl border border-slate-800 bg-slate-900/40 text-xs text-slate-300 hover:text-white transition-all flex items-start gap-3.5";
+                    badge.className = "w-5 h-5 rounded-full bg-slate-800 text-slate-400 font-bold flex items-center justify-center shrink-0 text-[10px] border border-slate-700";
+                }
+            }
+
+            // Unlock submit button
+            const actionBtn = document.getElementById('quiz-action-btn');
+            actionBtn.disabled = false;
+            actionBtn.className = "px-4 py-2 bg-indigo-600 text-white text-xs font-bold rounded-xl hover:bg-indigo-700 shadow-md shadow-indigo-500/15 transition-all cursor-pointer";
+        }
+
+        function onQuizAction() {
+            const item = quizDataset[quizIndex];
+            const actionBtn = document.getElementById('quiz-action-btn');
+
+            if (!isAnswerSubmitted) {
+                // Submit phase
+                isAnswerSubmitted = true;
+                const container = document.getElementById('quiz-options-container');
+                const isCorrect = selectedOptionIdx === item.correct;
+
+                if (isCorrect) {
+                    quizScore++;
+                    const btn = container.children[selectedOptionIdx];
+                    btn.className = "w-full text-left p-3.5 rounded-xl border border-emerald-500 bg-emerald-500/10 text-emerald-300 transition-all flex items-start gap-3.5";
+                    const badge = btn.querySelector('[id^="opt-badge-"]');
+                    badge.className = "w-5 h-5 rounded-full bg-emerald-600 text-white flex items-center justify-center shrink-0 text-[10px]";
+                    badge.innerHTML = '<i class="fa-solid fa-check"></i>';
+                } else {
+                    // Paint wrong selection red
+                    const btnWrong = container.children[selectedOptionIdx];
+                    btnWrong.className = "w-full text-left p-3.5 rounded-xl border border-rose-500 bg-rose-500/10 text-rose-300 transition-all flex items-start gap-3.5";
+                    const badgeWrong = btnWrong.querySelector('[id^="opt-badge-"]');
+                    badgeWrong.className = "w-5 h-5 rounded-full bg-rose-600 text-white flex items-center justify-center shrink-0 text-[10px]";
+                    badgeWrong.innerHTML = '<i class="fa-solid fa-xmark"></i>';
+
+                    // Highlight correct answer in green
+                    const btnRight = container.children[item.correct];
+                    btnRight.className = "w-full text-left p-3.5 rounded-xl border border-emerald-500 bg-emerald-500/10 text-emerald-300 transition-all flex items-start gap-3.5";
+                    const badgeRight = btnRight.querySelector('[id^="opt-badge-"]');
+                    badgeRight.className = "w-5 h-5 rounded-full bg-emerald-600 text-white flex items-center justify-center shrink-0 text-[10px]";
+                    badgeRight.innerHTML = '<i class="fa-solid fa-check"></i>';
+                }
+
+                // Update score tracker
+                document.getElementById('quiz-score-tracker').innerText = `Score: ${quizScore} / ${quizDataset.length}`;
+
+                actionBtn.innerText = quizIndex < quizDataset.length - 1 ? "Next Question" : "Finish Quiz";
+            } else {
+                // Next phase
+                if (quizIndex < quizDataset.length - 1) {
+                    quizIndex++;
+                    renderQuiz();
+                } else {
+                    // Quiz completion screen
+                    const quizBlock = document.getElementById('quiz-block');
+                    const percentage = Math.round((quizScore / quizDataset.length) * 100);
+                    let encouragement = "Excellent! You have a firm grasp of calculus limits.";
+                    if (percentage < 70) {
+                        encouragement = "Good attempt! Review the interactive slides in the Lecture tab to boost your score.";
+                    }
+
+                    quizBlock.innerHTML = `
+                        <div class="bg-slate-950 p-6 rounded-xl border border-slate-900 text-center">
+                            <i class="fa-solid fa-trophy text-amber-400 text-4xl mb-3"></i>
+                            <h4 class="font-bold text-white text-base">Quiz Completed!</h4>
+                            <p class="text-xs text-slate-300 my-2 leading-relaxed">${encouragement}</p>
+                            <div class="text-3xl font-extrabold text-indigo-400 my-3">${quizScore} / ${quizDataset.length}</div>
+                            <button onclick="restartQuiz()" class="w-full py-2.5 rounded-xl text-xs font-bold bg-slate-900 border border-slate-800 text-slate-300 hover:text-white transition-all">
+                                <i class="fa-solid fa-arrows-rotate mr-1"></i> Restart Quiz
+                            </button>
+                        </div>
+                    `;
+                    actionBtn.style.display = 'none';
+                }
+            }
+        }
+
+        function restartQuiz() {
+            quizIndex = 0;
+            quizScore = 0;
+            document.getElementById('quiz-score-tracker').innerText = `Score: 0 / ${quizDataset.length}`;
+            
+            const actionBtn = document.getElementById('quiz-action-btn');
+            actionBtn.style.display = 'inline-block';
+
+            const quizBlock = document.getElementById('quiz-block');
+            quizBlock.innerHTML = `
+                <div class="bg-slate-950 p-4 rounded-xl border border-slate-900">
+                    <span id="quiz-badge" class="text-[10px] font-bold text-sky-400 tracking-wider block mb-1">QUESTION 1 of 3</span>
+                    <p id="quiz-question" class="text-xs font-semibold text-slate-100 leading-relaxed"></p>
+                </div>
+                <div id="quiz-options-container" class="flex flex-col gap-2"></div>
+            `;
+            renderQuiz();
+        }
+
+        // Initialize state
+        window.onload = function () {
+            setupCanvasSize();
+            onParamChange();
+            renderQuiz();
+
+            // Perform a global LaTeX pass on load
+            renderMathForElement(document.body);
+        };
+
+        window.addEventListener('resize', setupCanvasSize);
+    </script>
+</body>
+</html>

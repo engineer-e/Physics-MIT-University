@@ -48,9 +48,9 @@
         3. [L1v2](https://engineer-e.github.io/Physics-MIT-University/8.01.1x.%20Mechanics%20-%20Kinematics%20and%20Dynamics/course_html/Mechanics%20-%20Kinematics%20and%20Dynamics/Week%201%20-%20Kinematics/Lesson%201%20-%201D%20Kinematics%20-%20Position%20and%20Velocity/L1v2%20Position%20Vector%20in%201D/L1v2_ai1.html): Position Vector in 1D
         4. [L1v3](https://engineer-e.github.io/Physics-MIT-University/8.01.1x.%20Mechanics%20-%20Kinematics%20and%20Dynamics/course_html/Mechanics%20-%20Kinematics%20and%20Dynamics/Week%201%20-%20Kinematics/Lesson%201%20-%201D%20Kinematics%20-%20Position%20and%20Velocity/L1v3%20Displacement%20Vector%20in%201D/L1v3_ai1.html#textbook-definitions): Displacement Vector in 1D
         5. L1Q1: Displacement vs. Distance, 1D
-        6. [L1v4](): Average Velocity in 1D
+        6. [L1v4](https://engineer-e.github.io/Physics-MIT-University/8.01.1x.%20Mechanics%20-%20Kinematics%20and%20Dynamics/course_html/Mechanics%20-%20Kinematics%20and%20Dynamics/Week%201%20-%20Kinematics/Lesson%201%20-%201D%20Kinematics%20-%20Position%20and%20Velocity/L1v4%20Average%20Velocity%20in%201D/L1v4_ai1.html): Average Velocity in 1D
         7. L1Q2: Average Velocity and Average Speed
-        8. L1v5: Instantaneous Velocity in 1D
+        8. [L1v5](): Instantaneous Velocity in 1D
         9. L1Q3: Instantaneous Velocity
         10. Derivatives
         11. L1Q4: Instantaneous Velocity from Position

@@ -1,0 +1,1022 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Model Rocket Kinematics & Calculus Simulator</title>
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Lucide Icons -->
+    <script src="https://unpkg.com/lucide@latest"></script>
+    <!-- MathJax for high-quality LaTeX rendering -->
+    <script src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600&display=swap');
+        body {
+            font-family: 'Plus Jakarta Sans', sans-serif;
+        }
+        .code-font {
+            font-family: 'JetBrains Mono', monospace;
+        }
+        /* Custom scrollbars */
+        ::-webkit-scrollbar {
+            width: 6px;
+            height: 6px;
+        }
+        ::-webkit-scrollbar-track {
+            background: #1e293b;
+        }
+        ::-webkit-scrollbar-thumb {
+            background: #475569;
+            border-radius: 4px;
+        }
+        ::-webkit-scrollbar-thumb:hover {
+            background: #64748b;
+        }
+    </style>
+</head>
+<body class="bg-slate-950 text-slate-100 min-h-screen flex flex-col antialiased selection:bg-indigo-500 selection:text-white">
+
+    <!-- Top Navigation Header -->
+    <header class="border-b border-slate-800 bg-slate-900/80 backdrop-blur-md sticky top-0 z-50 px-4 py-3 lg:px-8">
+        <div class="max-w-7xl mx-auto flex flex-col sm:flex-row items-center justify-between gap-4">
+            <div class="flex items-center gap-3">
+                <div class="bg-gradient-to-tr from-indigo-500 to-rose-500 p-2.5 rounded-xl shadow-lg shadow-indigo-500/10">
+                    <i data-lucide="rocket" class="h-6 w-6 text-white animate-pulse"></i>
+                </div>
+                <div>
+                    <h1 class="font-extrabold text-xl tracking-tight bg-gradient-to-r from-white via-indigo-100 to-indigo-400 bg-clip-text text-transparent">L1WE1: Non-Uniform Rocket Flight</h1>
+                    <p class="text-xs text-slate-400">Kinematic Simulator & Interactive Calculus Infographic</p>
+                </div>
+            </div>
+            
+            <!-- Navigation Tabs -->
+            <div class="flex bg-slate-950 p-1 rounded-xl border border-slate-800/80 w-full sm:w-auto">
+                <button onclick="switchTab('simulator')" id="btn-simulator" class="flex-1 sm:flex-none flex items-center justify-center gap-2 px-4 py-2 text-sm font-semibold rounded-lg transition-all duration-200 bg-indigo-600 text-white shadow-md">
+                    <i data-lucide="gauge" class="h-4 w-4"></i>
+                    Simulator
+                </button>
+                <button onclick="switchTab('infographic')" id="btn-infographic" class="flex-1 sm:flex-none flex items-center justify-center gap-2 px-4 py-2 text-sm font-semibold rounded-lg transition-all duration-200 text-slate-400 hover:text-white hover:bg-slate-900">
+                    <i data-lucide="file-text" class="h-4 w-4"></i>
+                    Interactive Proof
+                </button>
+            </div>
+        </div>
+    </header>
+
+    <main class="flex-1 max-w-7xl w-full mx-auto p-4 lg:p-8 flex flex-col gap-6">
+        
+        <!-- SECTION 1: SIMULATOR TAB -->
+        <div id="tab-simulator" class="grid grid-cols-1 lg:grid-cols-12 gap-6 transition-all duration-300">
+            
+            <!-- Left Panel: Control Center & Visualizer -->
+            <div class="lg:col-span-5 flex flex-col gap-6">
+                
+                <!-- Parameters Slider Card -->
+                <div class="bg-slate-900/50 border border-slate-800 rounded-2xl p-6 backdrop-blur-sm shadow-xl flex flex-col gap-5">
+                    <div class="flex items-center justify-between border-b border-slate-800 pb-3">
+                        <div class="flex items-center gap-2">
+                            <i data-lucide="sliders" class="text-indigo-400 h-5 w-5"></i>
+                            <h2 class="font-bold text-base tracking-wide text-slate-200">Simulation Controls</h2>
+                        </div>
+                        <span class="px-2 py-0.5 text-xs font-semibold rounded-full bg-indigo-500/10 text-indigo-400 border border-indigo-500/20">Live Physics</span>
+                    </div>
+
+                    <!-- Parameter Slider: a_0 -->
+                    <div class="flex flex-col gap-2">
+                        <div class="flex justify-between items-center text-sm">
+                            <span class="text-slate-400 font-medium flex items-center gap-1">
+                                Thrust Constant <span class="code-font text-indigo-300">a₀</span>
+                            </span>
+                            <span class="text-indigo-400 font-bold code-font" id="val-a0">15.0 m/s²</span>
+                        </div>
+                        <input type="range" id="slider-a0" min="11" max="25" step="0.5" value="15" class="w-full accent-indigo-500 h-2 bg-slate-950 rounded-lg cursor-pointer">
+                        <span class="text-[10px] text-slate-500">Must be greater than gravity \(g\) to lift off.</span>
+                    </div>
+
+                    <!-- Parameter Slider: t_0 -->
+                    <div class="flex flex-col gap-2">
+                        <div class="flex justify-between items-center text-sm">
+                            <span class="text-slate-400 font-medium flex items-center gap-1">
+                                Burn Duration <span class="code-font text-rose-300">t₀</span>
+                            </span>
+                            <span class="text-rose-400 font-bold code-font" id="val-t0">4.0 s</span>
+                        </div>
+                        <input type="range" id="slider-t0" min="2" max="8" step="0.2" value="4.0" class="w-full accent-rose-500 h-2 bg-slate-950 rounded-lg cursor-pointer">
+                        <span class="text-[10px] text-slate-500">Duration during which the rocket engine actively fires.</span>
+                    </div>
+
+                    <!-- Parameter Slider: Gravity (g) -->
+                    <div class="flex flex-col gap-2">
+                        <div class="flex justify-between items-center text-sm">
+                            <span class="text-slate-400 font-medium flex items-center gap-1">
+                                Gravity <span class="code-font text-emerald-300">g</span>
+                            </span>
+                            <span class="text-emerald-400 font-bold code-font" id="val-g">9.81 m/s²</span>
+                        </div>
+                        <input type="range" id="slider-g" min="3.7" max="20" step="0.1" value="9.8" class="w-full accent-emerald-500 h-2 bg-slate-950 rounded-lg cursor-pointer">
+                        <span class="text-[10px] text-slate-500">Acceleration of gravity (Earth is ~9.8 m/s²).</span>
+                    </div>
+
+                    <!-- Interactive Physics Control Buttons -->
+                    <div class="flex gap-2 pt-2">
+                        <button id="btn-play-pause" class="flex-1 flex items-center justify-center gap-2 bg-indigo-600 hover:bg-indigo-500 text-white font-bold py-3 px-4 rounded-xl shadow-lg shadow-indigo-600/25 transition duration-150">
+                            <!-- Robust dual icons toggled via visibility classes -->
+                            <i data-lucide="play" class="h-4 w-4 fill-white" id="icon-play"></i>
+                            <i data-lucide="pause" class="h-4 w-4 fill-white hidden" id="icon-pause"></i>
+                            <span id="txt-play">Play Simulation</span>
+                        </button>
+                        <button id="btn-reset" class="px-4 py-3 bg-slate-800 hover:bg-slate-700 text-slate-200 font-bold rounded-xl border border-slate-700 transition duration-150">
+                            <i data-lucide="rotate-ccw" class="h-5 w-5"></i>
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Live Digital Readout Card -->
+                <div class="bg-slate-900/50 border border-slate-800 rounded-2xl p-6 backdrop-blur-sm flex flex-col gap-4">
+                    <h3 class="font-bold text-sm tracking-wide text-slate-400 uppercase">Live Telemetry</h3>
+                    <div class="grid grid-cols-3 gap-3">
+                        <div class="bg-slate-950/80 p-3 rounded-xl border border-slate-800/80 flex flex-col">
+                            <span class="text-[11px] text-slate-400">Position y(t)</span>
+                            <span class="text-lg font-extrabold text-blue-400 code-font mt-1" id="tele-y">0.00m</span>
+                        </div>
+                        <div class="bg-slate-950/80 p-3 rounded-xl border border-slate-800/80 flex flex-col">
+                            <span class="text-[11px] text-slate-400">Velocity v_y(t)</span>
+                            <span class="text-lg font-extrabold text-amber-400 code-font mt-1" id="tele-v">0.00m/s</span>
+                        </div>
+                        <div class="bg-slate-950/80 p-3 rounded-xl border border-slate-800/80 flex flex-col">
+                            <span class="text-[11px] text-slate-400">Accel. a_y(t)</span>
+                            <span class="text-lg font-extrabold text-rose-400 code-font mt-1" id="tele-a">0.00m/s²</span>
+                        </div>
+                    </div>
+                    
+                    <!-- Progress bar of Burn time -->
+                    <div class="flex flex-col gap-1.5 mt-2">
+                        <div class="flex justify-between text-xs font-semibold">
+                            <span class="flex items-center gap-1.5 text-slate-400">
+                                <span class="h-2 w-2 rounded-full bg-amber-500 animate-pulse" id="burn-dot"></span>
+                                <span id="burn-status-txt">Engine Active</span>
+                            </span>
+                            <span class="code-font text-slate-300" id="tele-t">t = 0.00s</span>
+                        </div>
+                        <div class="w-full bg-slate-950 h-3 rounded-full overflow-hidden border border-slate-800 p-0.5">
+                            <div id="burn-progress" class="bg-gradient-to-r from-amber-500 via-rose-500 to-indigo-600 h-full rounded-full transition-all duration-75" style="width: 0%"></div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Center Panel: Live 2D Physics Animation & Particle Canvas -->
+            <div class="lg:col-span-7 flex flex-col gap-6">
+                <div class="bg-slate-900/40 border border-slate-800 rounded-3xl p-4 backdrop-blur-sm flex flex-col lg:flex-row gap-4 h-[550px]">
+                    <!-- Canvas container representing the Launch Pad / sky -->
+                    <div class="flex-1 relative bg-gradient-to-b from-slate-950 via-slate-950 to-slate-900 rounded-2xl overflow-hidden border border-slate-800 flex items-center justify-center">
+                        <!-- Grid overlay -->
+                        <div class="absolute inset-0 bg-[linear-gradient(to_right,#1e293b1a_1px,transparent_1px),linear-gradient(to_bottom,#1e293b1a_1px,transparent_1px)] bg-[size:24px_24px] pointer-events-none"></div>
+                        
+                        <!-- Canvas element for rocket, flame, particles and milestones -->
+                        <canvas id="canvas-physics" class="w-full h-full block absolute inset-0 z-10"></canvas>
+                        
+                        <!-- Visual phase overlay labels inside sky -->
+                        <div class="absolute top-4 left-4 z-20 flex flex-col gap-1.5 pointer-events-none">
+                            <div class="flex items-center gap-2 bg-slate-900/90 border border-slate-700/80 px-3 py-1.5 rounded-lg backdrop-blur text-xs">
+                                <span class="h-2 w-2 rounded-full bg-orange-500" id="phase-badge"></span>
+                                <span class="font-bold text-slate-200" id="phase-lbl">Phase 1: Powered Ascent</span>
+                            </div>
+                        </div>
+                        
+                        <!-- Live Telemetry overlay on the side of the sky -->
+                        <div class="absolute bottom-4 right-4 z-20 bg-slate-950/80 backdrop-blur border border-slate-800 rounded-lg p-2.5 text-[10px] text-slate-400 pointer-events-none code-font">
+                            <div>Burn Limit t₀: <span class="text-rose-400" id="sky-t0">4.0s</span></div>
+                            <div>Max Height: <span class="text-blue-400" id="sky-ymax">0.0m</span></div>
+                        </div>
+                    </div>
+
+                    <!-- Side-by-Side Dynamic Graph panel (Integrated right into Canvas space) -->
+                    <div class="w-full lg:w-48 bg-slate-950/50 rounded-2xl border border-slate-800/80 p-3 flex flex-col gap-2 h-full justify-between">
+                        <div class="text-[11px] font-extrabold uppercase tracking-wider text-slate-500 border-b border-slate-800 pb-1 flex items-center gap-1">
+                            <i data-lucide="trending-up" class="h-3 w-3"></i> Kinematics
+                        </div>
+                        
+                        <!-- 3 compact dynamic plots -->
+                        <div class="flex-1 flex flex-col justify-around gap-2 py-1">
+                            <!-- Plot 1: y(t) -->
+                            <div class="flex-1 bg-slate-900/50 rounded-lg border border-slate-800/60 p-1.5 flex flex-col relative overflow-hidden">
+                                <div class="flex justify-between text-[9px] text-blue-400 font-semibold absolute top-1 left-2 right-2">
+                                    <span>y(t) (m)</span>
+                                    <span id="graph-y-val">0.0</span>
+                                </div>
+                                <canvas id="plot-y" class="w-full h-full mt-3"></canvas>
+                            </div>
+
+                            <!-- Plot 2: v_y(t) -->
+                            <div class="flex-1 bg-slate-900/50 rounded-lg border border-slate-800/60 p-1.5 flex flex-col relative overflow-hidden">
+                                <div class="flex justify-between text-[9px] text-amber-400 font-semibold absolute top-1 left-2 right-2">
+                                    <span>vy(t) (m/s)</span>
+                                    <span id="graph-v-val">0.0</span>
+                                </div>
+                                <canvas id="plot-v" class="w-full h-full mt-3"></canvas>
+                            </div>
+
+                            <!-- Plot 3: a_y(t) -->
+                            <div class="flex-1 bg-slate-900/50 rounded-lg border border-slate-800/60 p-1.5 flex flex-col relative overflow-hidden">
+                                <div class="flex justify-between text-[9px] text-rose-400 font-semibold absolute top-1 left-2 right-2">
+                                    <span>ay(t) (m/s²)</span>
+                                    <span id="graph-a-val">0.0</span>
+                                </div>
+                                <canvas id="plot-a" class="w-full h-full mt-3"></canvas>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Mathematical Context Quick Reference -->
+            <div class="lg:col-span-12 bg-slate-900/30 border border-slate-800 rounded-2xl p-6 flex flex-col gap-4">
+                <h3 class="font-bold text-slate-300 flex items-center gap-2">
+                    <i data-lucide="compass" class="h-5 w-5 text-indigo-400"></i>
+                    Kinematic Phase Analysis
+                </h3>
+                <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 text-sm">
+                    <div class="bg-slate-950/50 border border-slate-800/80 p-4 rounded-xl flex flex-col gap-2">
+                        <span class="font-bold text-indigo-400 flex items-center gap-1.5">
+                            <span class="px-1.5 py-0.5 text-[10px] bg-indigo-500/10 border border-indigo-500/20 rounded">Phase I</span>
+                            Powered Ascent (\(0 \le t \le t_0\))
+                        </span>
+                        <p class="text-xs text-slate-400 leading-relaxed">
+                            The rocket is accelerating upwards against gravity using its internal fuel motor. Acceleration is <strong>non-uniform</strong> because thrust decays continuously with time due to the \(-t^4\) term:
+                            <div class="text-xs code-font mt-1 bg-slate-900 p-2 rounded text-indigo-300">
+                                \(a_y(t) = (a_0 - g) - a_0 \frac{t^4}{t_0^4}\)
+                            </div>
+                        </p>
+                    </div>
+
+                    <div class="bg-slate-950/50 border border-slate-800/80 p-4 rounded-xl flex flex-col gap-2">
+                        <span class="font-bold text-rose-400 flex items-center gap-1.5">
+                            <span class="px-1.5 py-0.5 text-[10px] bg-rose-500/10 border border-rose-500/20 rounded">Transition</span>
+                            Engine Burnout (\(t = t_0\))
+                        </span>
+                        <p class="text-xs text-slate-400 leading-relaxed">
+                            At exact burnout \(t_0\), the variables cancel beautifully. Setting \(t = t_0\) inside \(a_y(t)\) yields:
+                            <div class="text-xs code-font mt-1 bg-slate-900 p-2 rounded text-rose-300">
+                                \(a_y(t_0) = (a_0 - g) - a_0(1) = -g\)
+                            </div>
+                            This ensures a completely <strong>continuous</strong> physical handover into ballistic free-fall!
+                        </p>
+                    </div>
+
+                    <div class="bg-slate-950/50 border border-slate-800/80 p-4 rounded-xl flex flex-col gap-2">
+                        <span class="font-bold text-emerald-400 flex items-center gap-1.5">
+                            <span class="px-1.5 py-0.5 text-[10px] bg-emerald-500/10 border border-emerald-500/20 rounded">Phase II</span>
+                            Free-Fall (\(t > t_0\))
+                        </span>
+                        <p class="text-xs text-slate-400 leading-relaxed">
+                            Once fuel is spent, the rocket is in free-fall. It continues coasting upward due to residual velocity until reaching peak height, then accelerates back down to Earth under constant gravity:
+                            <div class="text-xs code-font mt-1 bg-slate-900 p-2 rounded text-emerald-300">
+                                \(a_y(t) = -g\)
+                            </div>
+                        </p>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- SECTION 2: INFOGRAPHIC TAB -->
+        <div id="tab-infographic" class="hidden flex flex-col gap-6 transition-all duration-300">
+            <!-- Full interactive proof storyboard -->
+            <div class="bg-slate-900/40 border border-slate-800 rounded-3xl p-6 lg:p-8 backdrop-blur-sm flex flex-col gap-8">
+                
+                <div class="flex flex-col gap-2 max-w-2xl">
+                    <span class="text-xs font-semibold uppercase tracking-wider text-indigo-400">Step-by-Step Calculus Journey</span>
+                    <h2 class="text-2xl font-extrabold text-white">Deriving Rocket Kinematics via Differentiation</h2>
+                    <p class="text-sm text-slate-400">
+                        Explore the continuous change from position to acceleration. Click the interactive highlighting nodes below to see how constants are treated during derivative steps.
+                    </p>
+                </div>
+
+                <!-- Equation Interactive Storyboard -->
+                <div class="flex flex-col gap-6">
+                    
+                    <!-- STEP 1: POSITION -->
+                    <div class="group relative bg-slate-950 border border-slate-800/80 hover:border-slate-700/80 rounded-2xl p-6 transition-all duration-200">
+                        <div class="absolute -left-3 top-6 bg-blue-600 text-white font-bold h-7 w-7 rounded-full flex items-center justify-center text-xs shadow-md shadow-blue-500/20">1</div>
+                        <div class="pl-4 flex flex-col lg:flex-row lg:items-center justify-between gap-6">
+                            <div class="flex-1 flex flex-col gap-2">
+                                <span class="text-xs font-bold text-blue-400 uppercase tracking-widest">Original Position Function</span>
+                                <h4 class="text-lg font-bold text-slate-200">Start with defined vertical position \(y(t)\) for \(0 \le t \le t_0\)</h4>
+                                <p class="text-xs text-slate-400 leading-relaxed max-w-xl">
+                                    The equation balances a primary launch constant \(a_0\) against Earth gravity \(g\), plus an asymmetric high-order decay component designed to model burning through rocket fuel.
+                                </p>
+                            </div>
+                            <div class="bg-slate-900/50 border border-slate-800 p-5 rounded-xl flex items-center justify-center min-w-[280px] lg:min-w-[360px] cursor-pointer hover:bg-slate-900 transition-all" onclick="highlightInfographic(1)">
+                                <div class="text-lg font-medium text-slate-100 select-all tracking-wider text-center">
+                                    $$y(t) = \frac{1}{2}(a_0 - g)t^2 - \frac{1}{30}\frac{a_0}{t_0^4}t^6$$
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- DERIVATIVE TRANSITION ARROW -->
+                    <div class="flex justify-center -my-3 relative z-10">
+                        <div class="bg-slate-900 border border-slate-800 rounded-full px-4 py-1.5 text-xs font-semibold text-slate-400 flex items-center gap-2">
+                            <span>Differentiate with respect to time</span>
+                            <i data-lucide="arrow-down-narrow-wide" class="h-3.5 w-3.5 text-indigo-400"></i>
+                            <span class="code-font text-indigo-400">d/dt</span>
+                        </div>
+                    </div>
+
+                    <!-- STEP 2: VELOCITY -->
+                    <div class="group relative bg-slate-950 border border-slate-800/80 hover:border-slate-700/80 rounded-2xl p-6 transition-all duration-200">
+                        <div class="absolute -left-3 top-6 bg-amber-600 text-white font-bold h-7 w-7 rounded-full flex items-center justify-center text-xs shadow-md shadow-amber-500/20">2</div>
+                        <div class="pl-4 flex flex-col lg:flex-row lg:items-center justify-between gap-6">
+                            <div class="flex-1 flex flex-col gap-2">
+                                <span class="text-xs font-bold text-amber-400 uppercase tracking-widest">Velocity Function</span>
+                                <h4 class="text-lg font-bold text-slate-200">Take the First Derivative to find \(v_y(t)\)</h4>
+                                <p class="text-xs text-slate-400 leading-relaxed max-w-xl">
+                                    Apply the polynomial power rule: \(\frac{d}{dt}(t^n) = n t^{n-1}\).
+                                    <br>• The derivative of \(t^2\) is \(2t\), which cancels the \(\frac{1}{2}\) coefficient!
+                                    <br>• The derivative of \(t^6\) is \(6t^5\), modifying the \(\frac{1}{30}\) factor to \(\frac{6}{30} = \frac{1}{5}\).
+                                </p>
+                            </div>
+                            <div class="bg-slate-900/50 border border-slate-800 p-5 rounded-xl flex flex-col items-center justify-center min-w-[280px] lg:min-w-[360px] cursor-pointer hover:bg-slate-900 transition-all" onclick="highlightInfographic(2)">
+                                <div class="text-sm text-slate-500 mb-1 font-mono">\(v_y(t) = \frac{d}{dt}y(t)\)</div>
+                                <div class="text-lg font-medium text-slate-100 select-all tracking-wider text-center">
+                                    $$v_y(t) = (a_0 - g)t - \frac{1}{5}\frac{a_0}{t_0^4}t^5$$
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- DERIVATIVE TRANSITION ARROW -->
+                    <div class="flex justify-center -my-3 relative z-10">
+                        <div class="bg-slate-900 border border-slate-800 rounded-full px-4 py-1.5 text-xs font-semibold text-slate-400 flex items-center gap-2">
+                            <span>Differentiate with respect to time</span>
+                            <i data-lucide="arrow-down-narrow-wide" class="h-3.5 w-3.5 text-indigo-400"></i>
+                            <span class="code-font text-indigo-400">d/dt</span>
+                        </div>
+                    </div>
+
+                    <!-- STEP 3: ACCELERATION -->
+                    <div class="group relative bg-slate-950 border border-slate-800/80 hover:border-slate-700/80 rounded-2xl p-6 transition-all duration-200">
+                        <div class="absolute -left-3 top-6 bg-rose-600 text-white font-bold h-7 w-7 rounded-full flex items-center justify-center text-xs shadow-md shadow-rose-500/20">3</div>
+                        <div class="pl-4 flex flex-col lg:flex-row lg:items-center justify-between gap-6">
+                            <div class="flex-1 flex flex-col gap-2">
+                                <span class="text-xs font-bold text-rose-400 uppercase tracking-widest">Acceleration Function</span>
+                                <h4 class="text-lg font-bold text-slate-200">Take the Second Derivative to find \(a_y(t)\)</h4>
+                                <p class="text-xs text-slate-400 leading-relaxed max-w-xl">
+                                    Differentiating velocity once more:
+                                    <br>• The derivative of \((a_0 - g)t\) is simply the constant coefficient \((a_0 - g)\).
+                                    <br>• The derivative of \(t^5\) is \(5t^4\), which beautifully cancels with the \(\frac{1}{5}\) fraction!
+                                </p>
+                            </div>
+                            <div class="bg-slate-900/50 border border-slate-800 p-5 rounded-xl flex flex-col items-center justify-center min-w-[280px] lg:min-w-[360px] cursor-pointer hover:bg-slate-900 transition-all" onclick="highlightInfographic(3)">
+                                <div class="text-sm text-slate-500 mb-1 font-mono">\(a_y(t) = \frac{d}{dt}v_y(t)\)</div>
+                                <div class="text-lg font-medium text-slate-100 select-all tracking-wider text-center animate-pulse">
+                                    $$a_y(t) = (a_0 - g) - \frac{a_0}{t_0^4}t^4$$
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- FINAL DESTINATION: THE PERFECT HANDOVER AT BURNOUT -->
+                    <div class="bg-gradient-to-r from-slate-900 to-indigo-950 border border-indigo-900/50 rounded-2xl p-6 relative overflow-hidden">
+                        <div class="absolute right-0 top-0 h-48 w-48 bg-indigo-500/5 rounded-full blur-3xl pointer-events-none"></div>
+                        <div class="flex flex-col lg:flex-row items-center justify-between gap-6 relative z-10">
+                            <div class="flex-1 flex flex-col gap-3">
+                                <div class="flex items-center gap-2">
+                                    <span class="bg-indigo-500 text-white rounded-full p-1"><i data-lucide="check" class="h-4 w-4"></i></span>
+                                    <span class="text-xs font-extrabold text-indigo-400 uppercase tracking-wider">The Elegant Physical Result</span>
+                                </div>
+                                <h4 class="text-xl font-extrabold text-white">Burnout Check: What happens when \(t = t_0\)?</h4>
+                                <p class="text-sm text-slate-300 leading-relaxed max-w-xl">
+                                    Substitute \(t_0\) into our newly derived acceleration equation. Watch how the \(a_0\) terms vanish completely, resulting in instant constant gravity:
+                                </p>
+                            </div>
+                            
+                            <div class="bg-indigo-950/60 border border-indigo-800 p-6 rounded-xl min-w-[300px] flex flex-col gap-2 items-center text-center">
+                                <div class="text-xs text-indigo-300 font-semibold uppercase tracking-widest">Handover Result</div>
+                                <div class="text-xl font-bold text-white tracking-widest">
+                                    \(a_y(t_0) = -g\)
+                                </div>
+                                <div class="text-[11px] text-indigo-200 mt-2 max-w-[250px]">
+                                    This confirms the physical constraint that when the engine shuts down, the rocket immediately enters standard constant gravity free-fall!
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                </div>
+            </div>
+        </div>
+
+    </main>
+
+    <!-- Footer -->
+    <footer class="border-t border-slate-900 bg-slate-950/80 py-6 text-center text-xs text-slate-500 mt-auto">
+        <div class="max-w-7xl mx-auto px-4 flex flex-col sm:flex-row items-center justify-between gap-4">
+            <p>© 2026 Model Rocket Physics Workbench. Inspired by Physics 8.01 (Worked Example).</p>
+            <div class="flex items-center gap-4">
+                <a href="#" onclick="switchTab('simulator')" class="hover:text-slate-300 transition">Simulator</a>
+                <span>•</span>
+                <a href="#" onclick="switchTab('infographic')" class="hover:text-slate-300 transition">Calculus Derivation</a>
+            </div>
+        </div>
+    </footer>
+
+    <!-- Interactive JS Functionality -->
+    <script>
+        // Init Lucide Icons
+        lucide.createIcons();
+
+        // Active state tabs
+        let currentTab = 'simulator';
+        function switchTab(tabId) {
+            currentTab = tabId;
+            const tabSim = document.getElementById('tab-simulator');
+            const tabInfo = document.getElementById('tab-infographic');
+            const btnSim = document.getElementById('btn-simulator');
+            const btnInfo = document.getElementById('btn-infographic');
+
+            if (tabId === 'simulator') {
+                tabSim.classList.remove('hidden');
+                tabInfo.classList.add('hidden');
+                // Active button classes
+                btnSim.className = "flex-1 sm:flex-none flex items-center justify-center gap-2 px-4 py-2 text-sm font-semibold rounded-lg transition-all duration-200 bg-indigo-600 text-white shadow-md";
+                btnInfo.className = "flex-1 sm:flex-none flex items-center justify-center gap-2 px-4 py-2 text-sm font-semibold rounded-lg transition-all duration-200 text-slate-400 hover:text-white hover:bg-slate-900";
+            } else {
+                tabSim.classList.add('hidden');
+                tabInfo.classList.remove('hidden');
+                // Active button classes
+                btnInfo.className = "flex-1 sm:flex-none flex items-center justify-center gap-2 px-4 py-2 text-sm font-semibold rounded-lg transition-all duration-200 bg-indigo-600 text-white shadow-md";
+                btnSim.className = "flex-1 sm:flex-none flex items-center justify-center gap-2 px-4 py-2 text-sm font-semibold rounded-lg transition-all duration-200 text-slate-400 hover:text-white hover:bg-slate-900";
+                // Trigger LaTeX MathJax update to render newly visible equations beautifully
+                if (window.MathJax) {
+                    MathJax.typesetPromise();
+                }
+            }
+        }
+
+        // Highlight visualizer for step-by-step math proof
+        function highlightInfographic(stepNum) {
+            console.log("Analyzing Step: ", stepNum);
+        }
+
+        // Global Parameters & Physics Variables
+        let a0 = 15.0;  // m/s^2 (thrust multiplier constant)
+        let t0 = 4.0;   // seconds (burn duration)
+        let g = 9.81;   // m/s^2 (downward gravity acceleration)
+        
+        let simTime = 0.0;
+        let maxSimTime = 8.0; // Show total duration
+        let isPlaying = false;
+        let animationFrameId = null;
+        let lastTimestamp = 0;
+
+        // Visual simulation particles
+        let smokeParticles = [];
+
+        // Dynamic chart lists
+        const historyTime = [];
+        const historyY = [];
+        const historyV = [];
+        const historyA = [];
+
+        // DOM Inputs
+        const sliderA0 = document.getElementById('slider-a0');
+        const sliderT0 = document.getElementById('slider-t0');
+        const sliderG = document.getElementById('slider-g');
+
+        const valA0 = document.getElementById('val-a0');
+        const valT0 = document.getElementById('val-t0');
+        const valG = document.getElementById('val-g');
+
+        // Telemetry DOM Readouts
+        const teleY = document.getElementById('tele-y');
+        const teleV = document.getElementById('tele-v');
+        const teleA = document.getElementById('tele-a');
+        const teleT = document.getElementById('tele-t');
+        const burnProgress = document.getElementById('burn-progress');
+        const burnStatusTxt = document.getElementById('burn-status-txt');
+        const burnDot = document.getElementById('burn-dot');
+        const phaseBadge = document.getElementById('phase-badge');
+        const phaseLbl = document.getElementById('phase-lbl');
+
+        const skyT0 = document.getElementById('sky-t0');
+        const skyYmax = document.getElementById('sky-ymax');
+
+        const graphYVal = document.getElementById('graph-y-val');
+        const graphVVal = document.getElementById('graph-v-val');
+        const graphAVal = document.getElementById('graph-a-val');
+
+        // Playback Buttons & Icons
+        const btnPlayPause = document.getElementById('btn-play-pause');
+        const btnReset = document.getElementById('btn-reset');
+        const iconPlay = document.getElementById('icon-play');
+        const iconPause = document.getElementById('icon-pause');
+        const txtPlay = document.getElementById('txt-play');
+
+        // Canvases
+        const canvasPhysics = document.getElementById('canvas-physics');
+        const ctxPhysics = canvasPhysics.getContext('2d');
+
+        const canvasPlotY = document.getElementById('plot-y');
+        const canvasPlotV = document.getElementById('plot-v');
+        const canvasPlotA = document.getElementById('plot-a');
+
+        const ctxPlotY = canvasPlotY.getContext('2d');
+        const ctxPlotV = canvasPlotV.getContext('2d');
+        const ctxPlotA = canvasPlotA.getContext('2d');
+
+        // Setup canvas resolutions
+        function resizeCanvases() {
+            // Main animation canvas
+            canvasPhysics.width = canvasPhysics.parentElement.clientWidth;
+            canvasPhysics.height = canvasPhysics.parentElement.clientHeight;
+
+            // Mini plots
+            const resizePlot = (canvas) => {
+                canvas.width = canvas.parentElement.clientWidth;
+                canvas.height = canvas.parentElement.clientHeight;
+            };
+            resizePlot(canvasPlotY);
+            resizePlot(canvasPlotV);
+            resizePlot(canvasPlotA);
+
+            drawPlots();
+            drawSkySimulation();
+        }
+
+        // Core Physics Kinematics Equations
+        function calcY(t, customA0 = a0, customT0 = t0, customG = g) {
+            if (t <= 0) return 0;
+            if (t <= customT0) {
+                // Phase 1: Powered ascent
+                return 0.5 * (customA0 - customG) * Math.pow(t, 2) - (1.0/30.0) * (customA0 / Math.pow(customT0, 4)) * Math.pow(t, 6);
+            } else {
+                // Phase 2: Free-fall.
+                const y0 = 0.5 * (customA0 - customG) * Math.pow(customT0, 2) - (1.0/30.0) * (customA0 / Math.pow(customT0, 4)) * Math.pow(customT0, 6);
+                const vt0 = (customA0 - customG) * customT0 - 0.2 * customA0 * customT0;
+                const dt = t - customT0;
+                return y0 + vt0 * dt - 0.5 * customG * Math.pow(dt, 2);
+            }
+        }
+
+        function calcV(t, customA0 = a0, customT0 = t0, customG = g) {
+            if (t <= 0) return 0;
+            if (t <= customT0) {
+                // Phase 1: v_y(t)
+                return (customA0 - customG) * t - 0.2 * (customA0 / Math.pow(customT0, 4)) * Math.pow(t, 5);
+            } else {
+                // Phase 2: v_y(t)
+                const vt0 = (customA0 - customG) * customT0 - 0.2 * customA0 * customT0;
+                const dt = t - customT0;
+                return vt0 - customG * dt;
+            }
+        }
+
+        function calcA(t, customA0 = a0, customT0 = t0, customG = g) {
+            if (t <= 0) return customA0 - customG;
+            if (t <= customT0) {
+                // Phase 1: a_y(t)
+                return (customA0 - customG) - customA0 * (Math.pow(t, 4) / Math.pow(customT0, 4));
+            } else {
+                // Phase 2: Free-fall
+                return -customG;
+            }
+        }
+
+        function calculateKinematicHistory() {
+            historyTime.length = 0;
+            historyY.length = 0;
+            historyV.length = 0;
+            historyA.length = 0;
+
+            maxSimTime = t0 * 2.2;
+            
+            const steps = 120;
+            for (let i = 0; i <= steps; i++) {
+                const t = (i / steps) * maxSimTime;
+                historyTime.push(t);
+                historyY.push(calcY(t));
+                historyV.push(calcV(t));
+                historyA.push(calcA(t));
+            }
+
+            skyT0.innerText = t0.toFixed(1) + 's';
+            
+            let maxValY = 0;
+            for(let i=0; i <= steps; i++) {
+                const val = calcY((i/steps)*maxSimTime*1.5);
+                if (val > maxValY) maxValY = val;
+            }
+            skyYmax.innerText = maxValY.toFixed(0) + 'm';
+        }
+
+        function handleInput() {
+            a0 = parseFloat(sliderA0.value);
+            t0 = parseFloat(sliderT0.value);
+            g = parseFloat(sliderG.value);
+
+            if (a0 <= g) {
+                a0 = g + 1.0;
+                sliderA0.value = a0.toFixed(1);
+            }
+
+            valA0.innerText = a0.toFixed(1) + " m/s²";
+            valT0.innerText = t0.toFixed(1) + " s";
+            valG.innerText = g.toFixed(1) + " m/s²";
+
+            calculateKinematicHistory();
+            updateTelemetry();
+            drawPlots();
+            drawSkySimulation();
+        }
+
+        sliderA0.addEventListener('input', handleInput);
+        sliderT0.addEventListener('input', handleInput);
+        sliderG.addEventListener('input', handleInput);
+
+        function updateTelemetry() {
+            const currentY = calcY(simTime);
+            const currentV = calcV(simTime);
+            const currentA = calcA(simTime);
+
+            teleY.innerText = currentY.toFixed(1) + "m";
+            teleV.innerText = currentV.toFixed(1) + "m/s";
+            teleA.innerText = currentA.toFixed(1) + "m/s²";
+            teleT.innerText = "t = " + simTime.toFixed(2) + "s";
+
+            graphYVal.innerText = currentY.toFixed(1);
+            graphVVal.innerText = currentV.toFixed(1);
+            graphAVal.innerText = currentA.toFixed(1);
+
+            if (simTime <= 0) {
+                phaseBadge.className = "h-2 w-2 rounded-full bg-slate-500 animate-pulse";
+                phaseLbl.innerText = "Ready on Launchpad";
+                burnProgress.style.width = "0%";
+                burnStatusTxt.innerText = "Ready";
+                burnDot.className = "h-2 w-2 rounded-full bg-slate-500";
+            } else if (simTime <= t0) {
+                phaseBadge.className = "h-2 w-2 rounded-full bg-amber-500 animate-pulse";
+                phaseLbl.innerText = "Phase 1: Powered Ascent";
+                
+                const progressPct = (simTime / t0) * 100;
+                burnProgress.style.width = progressPct + "%";
+                burnStatusTxt.innerText = "Burning Fuel";
+                burnDot.className = "h-2 w-2 rounded-full bg-amber-500 animate-ping";
+            } else {
+                phaseBadge.className = "h-2 w-2 rounded-full bg-teal-500 animate-pulse";
+                if (currentV > 0.1) {
+                    phaseLbl.innerText = "Phase 2: Coasting (Free Fall)";
+                } else if (currentV < -0.1 && currentY > 0.5) {
+                    phaseLbl.innerText = "Phase 2: Descending (Free Fall)";
+                } else {
+                    phaseLbl.innerText = "Landed";
+                }
+                burnProgress.style.width = "100%";
+                burnStatusTxt.innerText = "Engine Burnout";
+                burnDot.className = "h-2 w-2 rounded-full bg-slate-600";
+            }
+        }
+
+        function drawPlot(canvas, ctx, xData, yData, currentX, currentY, colorTheme) {
+            const w = canvas.width;
+            const h = canvas.height;
+            ctx.clearRect(0, 0, w, h);
+
+            const topMargin = 12;
+            const bottomMargin = 16;
+            const leftMargin = 10;
+            const rightMargin = 10;
+
+            const graphW = w - leftMargin - rightMargin;
+            const graphH = h - topMargin - bottomMargin;
+
+            const xMin = 0;
+            const xMax = maxSimTime;
+            
+            let yMin = Math.min(...yData);
+            let yMax = Math.max(...yData);
+
+            if (Math.abs(yMax - yMin) < 0.1) {
+                yMax += 1.0;
+                yMin -= 1.0;
+            } else {
+                const range = yMax - yMin;
+                yMax += range * 0.1;
+                yMin -= range * 0.1;
+            }
+
+            const getXPixel = (x) => leftMargin + ((x - xMin) / (xMax - xMin)) * graphW;
+            const getYPixel = (y) => h - bottomMargin - ((y - yMin) / (yMax - yMin)) * graphH;
+
+            if (yMin < 0 && yMax > 0) {
+                ctx.beginPath();
+                ctx.strokeStyle = '#334155';
+                ctx.lineWidth = 1;
+                const zeroY = getYPixel(0);
+                ctx.moveTo(leftMargin, zeroY);
+                ctx.lineTo(w - rightMargin, zeroY);
+                ctx.stroke();
+            }
+
+            const burnoutX = getXPixel(t0);
+            if (burnoutX >= leftMargin && burnoutX <= w - rightMargin) {
+                ctx.setLineDash([2, 2]);
+                ctx.strokeStyle = '#f43f5e80';
+                ctx.beginPath();
+                ctx.moveTo(burnoutX, topMargin);
+                ctx.lineTo(burnoutX, h - bottomMargin);
+                ctx.stroke();
+                ctx.setLineDash([]);
+            }
+
+            ctx.beginPath();
+            ctx.strokeStyle = colorTheme;
+            ctx.lineWidth = 2.5;
+            for (let i = 0; i < xData.length; i++) {
+                const px = getXPixel(xData[i]);
+                const py = getYPixel(yData[i]);
+                if (i === 0) ctx.moveTo(px, py);
+                else ctx.lineTo(px, py);
+            }
+            ctx.stroke();
+
+            if (currentX <= maxSimTime) {
+                const pCurrentX = getXPixel(currentX);
+                const pCurrentY = getYPixel(currentY);
+
+                ctx.beginPath();
+                ctx.fillStyle = colorTheme;
+                ctx.arc(pCurrentX, pCurrentY, 5, 0, Math.PI * 2);
+                ctx.fill();
+
+                ctx.beginPath();
+                ctx.strokeStyle = '#ffffff';
+                ctx.lineWidth = 1.5;
+                ctx.arc(pCurrentX, pCurrentY, 5.5, 0, Math.PI * 2);
+                ctx.stroke();
+            }
+        }
+
+        function drawPlots() {
+            const currentY = calcY(simTime);
+            const currentV = calcV(simTime);
+            const currentA = calcA(simTime);
+
+            drawPlot(canvasPlotY, ctxPlotY, historyTime, historyY, simTime, currentY, '#60a5fa');
+            drawPlot(canvasPlotV, ctxPlotV, historyTime, historyV, simTime, currentV, '#fbbf24');
+            drawPlot(canvasPlotA, ctxPlotA, historyTime, historyA, simTime, currentA, '#f87171');
+        }
+
+        function drawSkySimulation() {
+            const w = canvasPhysics.width;
+            const h = canvasPhysics.height;
+            ctxPhysics.clearRect(0, 0, w, h);
+
+            const groundY = h - 45;
+
+            const currentY = calcY(simTime);
+            let maxHistoricalY = Math.max(...historyY);
+            if (maxHistoricalY < 10) maxHistoricalY = 50;
+            
+            const rocketPixelY = groundY - (currentY / maxHistoricalY) * (groundY - 80);
+
+            // Ground / Base
+            ctxPhysics.fillStyle = '#0f172a';
+            ctxPhysics.fillRect(0, groundY, w, h - groundY);
+
+            ctxPhysics.beginPath();
+            ctxPhysics.strokeStyle = '#334155';
+            ctxPhysics.lineWidth = 3;
+            ctxPhysics.moveTo(0, groundY);
+            ctxPhysics.lineTo(w, groundY);
+            ctxPhysics.stroke();
+
+            // Tower
+            ctxPhysics.beginPath();
+            ctxPhysics.strokeStyle = '#475569';
+            ctxPhysics.lineWidth = 2.5;
+            const centerX = w / 2;
+            ctxPhysics.moveTo(centerX - 35, groundY);
+            ctxPhysics.lineTo(centerX - 15, groundY - 65);
+            ctxPhysics.lineTo(centerX - 15, groundY - 140);
+            ctxPhysics.lineTo(centerX - 30, groundY - 140);
+            ctxPhysics.stroke();
+
+            ctxPhysics.strokeStyle = '#1e293b';
+            ctxPhysics.lineWidth = 1.5;
+            for(let yVal = groundY - 30; yVal > groundY - 140; yVal -= 25) {
+                ctxPhysics.beginPath();
+                ctxPhysics.moveTo(centerX - 35 + (groundY - yVal)*0.3, yVal);
+                ctxPhysics.lineTo(centerX - 15, yVal);
+                ctxPhysics.stroke();
+            }
+
+            // Particles
+            smokeParticles.forEach(p => {
+                ctxPhysics.beginPath();
+                ctxPhysics.fillStyle = `rgba(${p.r}, ${p.g}, ${p.b}, ${p.alpha})`;
+                ctxPhysics.arc(p.x, p.y, p.size, 0, Math.PI*2);
+                ctxPhysics.fill();
+            });
+
+            if (isPlaying && simTime > 0 && simTime <= t0) {
+                const count = Math.ceil(Math.random() * 4);
+                for (let i = 0; i < count; i++) {
+                    smokeParticles.push({
+                        x: centerX + (Math.random() - 0.5) * 8,
+                        y: rocketPixelY + 25,
+                        vx: (Math.random() - 0.5) * 1.5,
+                        vy: 2.5 + Math.random() * 4.0,
+                        size: 3 + Math.random() * 10,
+                        r: 230 + Math.floor(Math.random() * 25),
+                        g: 100 + Math.floor(Math.random() * 80),
+                        b: 30,
+                        alpha: 0.85,
+                        decay: 0.02 + Math.random() * 0.03
+                    });
+                }
+            } else if (isPlaying && simTime > t0 && currentY > 0.5) {
+                if (Math.random() < 0.2) {
+                    smokeParticles.push({
+                        x: centerX + (Math.random() - 0.5) * 4,
+                        y: rocketPixelY + 15,
+                        vx: (Math.random() - 0.5) * 0.8,
+                        vy: 0.2 + Math.random() * 0.5,
+                        size: 2 + Math.random() * 4,
+                        r: 200, g: 200, b: 200,
+                        alpha: 0.4,
+                        decay: 0.01
+                    });
+                }
+            }
+
+            smokeParticles.forEach(p => {
+                p.x += p.vx;
+                p.y += p.vy;
+                p.alpha -= p.decay;
+                p.size += 0.15;
+            });
+            smokeParticles = smokeParticles.filter(p => p.alpha > 0);
+
+            // Rocket
+            ctxPhysics.save();
+            ctxPhysics.translate(centerX, rocketPixelY);
+
+            if (simTime > 0 && simTime <= t0) {
+                ctxPhysics.beginPath();
+                ctxPhysics.fillStyle = '#ff6b35';
+                ctxPhysics.moveTo(-6, 18);
+                ctxPhysics.quadraticCurveTo(0, 38 + Math.random()*12, 0, 48 + Math.random()*8);
+                ctxPhysics.quadraticCurveTo(0, 38 + Math.random()*12, 6, 18);
+                ctxPhysics.closePath();
+                ctxPhysics.fill();
+
+                ctxPhysics.beginPath();
+                ctxPhysics.fillStyle = '#ffea00';
+                ctxPhysics.moveTo(-4, 18);
+                ctxPhysics.quadraticCurveTo(0, 28 + Math.random()*6, 0, 34 + Math.random()*5);
+                ctxPhysics.quadraticCurveTo(0, 28 + Math.random()*6, 4, 18);
+                ctxPhysics.closePath();
+                ctxPhysics.fill();
+            }
+
+            // Nose
+            ctxPhysics.beginPath();
+            ctxPhysics.fillStyle = '#f43f5e';
+            ctxPhysics.moveTo(0, -28);
+            ctxPhysics.quadraticCurveTo(-10, -10, -9, 0);
+            ctxPhysics.lineTo(9, 0);
+            ctxPhysics.quadraticCurveTo(10, -10, 0, -28);
+            ctxPhysics.closePath();
+            ctxPhysics.fill();
+
+            // Body
+            ctxPhysics.fillStyle = '#e2e8f0';
+            ctxPhysics.fillRect(-9, 0, 18, 18);
+
+            ctxPhysics.fillStyle = '#3b82f6';
+            ctxPhysics.fillRect(-9, 4, 18, 3.5);
+
+            // Window
+            ctxPhysics.beginPath();
+            ctxPhysics.fillStyle = '#0f172a';
+            ctxPhysics.strokeStyle = '#94a3b8';
+            ctxPhysics.lineWidth = 1.5;
+            ctxPhysics.arc(0, -4, 4, 0, Math.PI * 2);
+            ctxPhysics.fill();
+            ctxPhysics.stroke();
+
+            // Fins
+            ctxPhysics.beginPath();
+            ctxPhysics.fillStyle = '#f43f5e';
+            ctxPhysics.moveTo(-9, 6);
+            ctxPhysics.lineTo(-18, 18);
+            ctxPhysics.lineTo(-9, 18);
+            ctxPhysics.closePath();
+            ctxPhysics.fill();
+
+            ctxPhysics.beginPath();
+            ctxPhysics.fillStyle = '#f43f5e';
+            ctxPhysics.moveTo(9, 6);
+            ctxPhysics.lineTo(18, 18);
+            ctxPhysics.lineTo(9, 18);
+            ctxPhysics.closePath();
+            ctxPhysics.fill();
+
+            ctxPhysics.fillStyle = '#475569';
+            ctxPhysics.fillRect(-5, 18, 10, 3);
+
+            ctxPhysics.restore();
+        }
+
+        // Play/Pause Toggle Action
+        function togglePlayback() {
+            if (isPlaying) {
+                isPlaying = false;
+                // BUGFIX: Clean class toggles to avoid any rendering conflicts
+                iconPlay.classList.remove('hidden');
+                iconPause.classList.add('hidden');
+                txtPlay.innerText = "Resume Flight";
+                cancelAnimationFrame(animationFrameId);
+            } else {
+                isPlaying = true;
+                // BUGFIX: Clean class toggles
+                iconPlay.classList.add('hidden');
+                iconPause.classList.remove('hidden');
+                txtPlay.innerText = "Pause Simulation";
+                lastTimestamp = performance.now();
+                animationFrameId = requestAnimationFrame(simLoop);
+            }
+        }
+
+        // Reset state
+        function resetSimulation() {
+            isPlaying = false;
+            simTime = 0.0;
+            smokeParticles = [];
+            
+            // BUGFIX: Ensure proper icon resets with no mismatched state text
+            iconPlay.classList.remove('hidden');
+            iconPause.classList.add('hidden');
+            txtPlay.innerText = "Start Flight";
+            cancelAnimationFrame(animationFrameId);
+
+            calculateKinematicHistory();
+            updateTelemetry();
+            drawPlots();
+            drawSkySimulation();
+        }
+
+        btnPlayPause.addEventListener('click', togglePlayback);
+        btnReset.addEventListener('click', resetSimulation);
+
+        // Main Simulation Frame Loop
+        function simLoop(timestamp) {
+            if (!isPlaying) return;
+
+            const dt = (timestamp - lastTimestamp) / 1000;
+            lastTimestamp = timestamp;
+
+            simTime += dt * 0.75;
+
+            // Stop when rocket lands back
+            if (simTime > t0) {
+                const height = calcY(simTime);
+                if (height <= 0 && calcV(simTime) < 0) {
+                    simTime = 0;
+                    isPlaying = false;
+                    // BUGFIX: Revert play state correctly on touchdown
+                    iconPlay.classList.remove('hidden');
+                    iconPause.classList.add('hidden');
+                    txtPlay.innerText = "Launch Rocket Again";
+                    cancelAnimationFrame(animationFrameId);
+                    
+                    updateTelemetry();
+                    drawPlots();
+                    drawSkySimulation();
+                    return;
+                }
+            }
+
+            if (simTime > maxSimTime) {
+                simTime = 0;
+            }
+
+            updateTelemetry();
+            drawPlots();
+            drawSkySimulation();
+
+            animationFrameId = requestAnimationFrame(simLoop);
+        }
+
+        window.addEventListener('resize', resizeCanvases);
+        window.onload = function() {
+            resizeCanvases();
+            calculateKinematicHistory();
+            updateTelemetry();
+        };
+    </script>
+</body>
+</html>

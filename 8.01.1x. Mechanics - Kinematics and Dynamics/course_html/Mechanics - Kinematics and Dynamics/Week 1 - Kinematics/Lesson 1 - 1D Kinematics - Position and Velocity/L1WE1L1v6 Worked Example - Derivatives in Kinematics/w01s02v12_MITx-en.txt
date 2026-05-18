@@ -1,0 +1,53 @@
+Let's consider a one dimensional motion that
+has a non-uniform acceleration.
+What we'd like to do is explore how
+do you differentiate position functions,
+to get velocity functions, to get acceleration functions.
+So what we're going to consider is a rocket.
+So I'm going to choose a coordinate system y.
+And here's my rocket.
+And I have a function y of t.
+And I'll have a j-hat direction, but this will
+be a one dimensional motion.
+Now I want to express while the rocket is thrusting upwards
+and the engine is burning, we can describe a function y of t
+to be equal to 1/2 a constant a naught
+minus the gravitational acceleration, times t squared.
+And we're going to have a separate term here, which
+is minus 1 over 30.
+And you'll see where this 30 comes in
+as we start to differentiate.
+The same constant a naught, t to the 1/6 over t naught
+to the 1/4.
+Now in this expression, a naught is bigger than g.
+And also, this is only true, this
+holds for the time interval 0 less than
+or equal to t, less than t naught.
+And at time t equals to t naught, the engine shuts off.
+And at that moment, our expectation
+will be that the y component of the acceleration
+should just be minus g, for t greater than t naught.
+So now let's calculate the acceleration
+as the velocity and the position as functions of time.
+So the velocity-- in each case, we're
+going to use the polynomial rule.
+So the y component of the velocity
+is just the derivative of t squared, which is just 2t.
+And so we get a naught minus g times t.
+And when we differentiate t at the 1/6, the 6 over 30
+gives us factor 1 over 5.
+So we have minus 1 over 5 times a naught, t to the 1/5
+over t naught to the 1/4.
+And this is a combination of a linear term and a term
+that is decreasing by this t to the 1/5 factor.
+And finally, we now take the next derivative, ay of t,
+which is d dy dt.
+I'll just keep functions of t, but we don't really need that.
+And when we differentiate here, we get a naught minus g.
+Now you see the 5s are canceling,
+and we have minus a naught t to the 1/4 over t naught
+to the 1/4.
+Now at time t equals t naught, what do we have?
+Well, ay at t equals t naught.
+This is just a factor minus a naught.
+Those cancel, and we get minus g, which is what we expected.
