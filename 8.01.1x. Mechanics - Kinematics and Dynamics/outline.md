@@ -20,7 +20,7 @@
     1. Survey and Skill Challenge - Vectors
         1. Vector Skill Challenge Introduction
         2. [SC0v1](https://engineer-e.github.io/Physics-MIT-University/8.01.1x.%20Mechanics%20-%20Kinematics%20and%20Dynamics/course_html/Mechanics%20-%20Kinematics%20and%20Dynamics/Prerequisite%20Math%20and%20Survey/Survey%20and%20Skill%20Challenge%20-%20Vectors/SC0v1%20-%20Vectors%20vs%20Scalars/SC0v1_ai1.html) - Vectors vs Scalars 
-        3. SC0v2 - Vector Operators
+        3. [SC0v2](https://engineer-e.github.io/Physics-MIT-University/8.01.1x.%20Mechanics%20-%20Kinematics%20and%20Dynamics/course_html/Mechanics%20-%20Kinematics%20and%20Dynamics/Prerequisite%20Math%20and%20Survey/Survey%20and%20Skill%20Challenge%20-%20Vectors/SC0v2%20-%20Vector%20Operators/SC0v2_ai2.html) - Vector Operators
         4. SC0Q1 - Vector Operations Graphically - Practice
         5. SC0Q2 - Adding Vectors Graphically
         6. SC0v3 - Coordinate Systems and Unit Vectors
