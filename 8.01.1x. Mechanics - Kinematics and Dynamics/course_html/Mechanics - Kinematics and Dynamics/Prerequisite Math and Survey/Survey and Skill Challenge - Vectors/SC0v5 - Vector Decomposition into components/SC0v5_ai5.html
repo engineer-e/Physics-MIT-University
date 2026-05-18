@@ -1,0 +1,1178 @@
+<!DOCTYPE html>
+<html lang="en" class="dark">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Vector Components Simulator & Infographic</title>
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Inter Font -->
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=Fira+Code:wght@400;500&display=swap" rel="stylesheet">
+    <!-- FontAwesome Icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <!-- Three.js (For 3D Explorer) -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+    
+    <!-- KaTeX for high-fidelity LaTeX rendering -->
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.css">
+    <script src="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/contrib/auto-render.min.js"></script>
+    
+    <script>
+        tailwind.config = {
+            darkMode: 'class',
+            theme: {
+                extend: {
+                    fontFamily: {
+                        sans: ['Inter', 'sans-serif'],
+                        mono: ['Fira Code', 'monospace'],
+                    },
+                    colors: {
+                        brand: {
+                            vector: '#f59e0b', // Amber
+                            xComp: '#f43f5e',  // Rose
+                            yComp: '#3b82f6',  // Blue
+                            zComp: '#10b981',  // Emerald
+                        }
+                    }
+                }
+            }
+        }
+    </script>
+    <style>
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: #0f172a;
+            color: #f1f5f9;
+        }
+        /* Custom scrollbar */
+        ::-webkit-scrollbar {
+            width: 8px;
+            height: 8px;
+        }
+        ::-webkit-scrollbar-track {
+            background: #1e293b;
+        }
+        ::-webkit-scrollbar-thumb {
+            background: #475569;
+            border-radius: 4px;
+        }
+        ::-webkit-scrollbar-thumb:hover {
+            background: #64748b;
+        }
+        .math-font {
+            font-family: 'Fira Code', monospace;
+        }
+        .pulse-soft {
+            animation: softPulse 2s infinite ease-in-out;
+        }
+        @keyframes softPulse {
+            0%, 100% { transform: scale(1); opacity: 1; }
+            50% { transform: scale(1.1); opacity: 0.8; }
+        }
+        /* KaTeX Override to blend perfectly with layout */
+        .katex-display {
+            margin: 0.5em 0 !important;
+        }
+        .katex {
+            font-size: 1.05em;
+        }
+    </style>
+</head>
+<body class="min-h-screen flex flex-col justify-between overflow-x-hidden">
+
+    <!-- NAVIGATION HEADER -->
+    <header class="border-b border-slate-800 bg-slate-900/80 backdrop-blur-md sticky top-0 z-50 transition-all duration-300">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-16 flex items-center justify-between">
+            <div class="flex items-center space-x-3">
+                <div class="p-2 bg-gradient-to-br from-amber-500 to-rose-500 rounded-xl shadow-lg shadow-amber-500/10">
+                    <svg class="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M13 10V3L4 14h7v7l9-11h-7z" />
+                    </svg>
+                </div>
+                <div>
+                    <h1 class="text-lg font-bold tracking-tight bg-gradient-to-r from-amber-400 via-rose-400 to-indigo-400 bg-clip-text text-transparent">
+                        Vector Decomposition
+                    </h1>
+                    <p class="text-xs text-slate-400 font-medium hidden sm:block">Interactive Sandbox & Visual Infographic</p>
+                </div>
+            </div>
+
+            <!-- Tab Buttons -->
+            <nav class="flex space-x-1 bg-slate-950 p-1 rounded-xl border border-slate-800/80">
+                <button onclick="switchTab('tab-2d')" id="btn-tab-2d" class="px-4 py-1.5 rounded-lg text-xs sm:text-sm font-semibold transition-all duration-200 bg-gradient-to-r from-amber-500 to-rose-500 text-white shadow-md">
+                    <i class="fa-solid fa-vector-square mr-1.5"></i>2D Sandbox
+                </button>
+                <button onclick="switchTab('tab-3d')" id="btn-tab-3d" class="px-4 py-1.5 rounded-lg text-xs sm:text-sm font-semibold transition-all duration-200 text-slate-400 hover:text-slate-100 hover:bg-slate-900">
+                    <i class="fa-solid fa-cube mr-1.5"></i>3D Space
+                </button>
+                <button onclick="switchTab('tab-info')" id="btn-tab-info" class="px-4 py-1.5 rounded-lg text-xs sm:text-sm font-semibold transition-all duration-200 text-slate-400 hover:text-slate-100 hover:bg-slate-900">
+                    <i class="fa-solid fa-circle-info mr-1.5"></i>Infographic
+                </button>
+            </nav>
+        </div>
+    </header>
+
+    <!-- MAIN CONTAINER -->
+    <main class="flex-grow max-w-7xl w-full mx-auto p-4 sm:p-6 lg:p-8">
+
+        <!-- ==================== TAB 1: 2D VECTOR SANDBOX ==================== -->
+        <section id="tab-2d" class="space-y-6">
+            <!-- Alert banner highlighting key takeaway from transcript -->
+            <div class="bg-slate-900/60 border border-slate-800 rounded-2xl p-4 flex flex-col md:flex-row md:items-center justify-between gap-4">
+                <div class="flex items-start space-x-3">
+                    <div class="text-2xl mt-0.5">💡</div>
+                    <div>
+                        <h4 class="font-bold text-slate-200 text-sm">Key Concept: Vectors Are Free!</h4>
+                        <p class="text-xs text-slate-400 max-w-2xl mt-0.5">
+                            As the transcript states, <strong class="text-amber-400">"We can draw this vector anywhere. It doesn't have to start at the origin."</strong> Drag the tail of the vector to move it around and observe how its mathematical components stay absolutely unchanged!
+                        </p>
+                    </div>
+                </div>
+                <div class="flex gap-2 shrink-0">
+                    <button onclick="loadPreset(-2, -2, 0, 0)" class="px-3 py-1.5 bg-slate-800 hover:bg-slate-700 text-xs font-semibold text-slate-200 rounded-lg transition-all border border-slate-700">
+                        Preset: $-2\hat{i} - 2\hat{j}$
+                    </button>
+                    <button onclick="loadPreset(-3, 2, 2, 1)" class="px-3 py-1.5 bg-slate-800 hover:bg-slate-700 text-xs font-semibold text-slate-200 rounded-lg transition-all border border-slate-700">
+                        Preset: $-3\hat{i} + 2\hat{j}$ (Off-origin)
+                    </button>
+                </div>
+            </div>
+
+            <!-- Two-column workspace -->
+            <div class="grid grid-cols-1 lg:grid-cols-12 gap-6 items-stretch">
+                <!-- Sandbox Canvas (Right on desktop, Top on mobile) -->
+                <div class="lg:col-span-7 bg-slate-900/40 border border-slate-800 rounded-3xl p-4 sm:p-6 flex flex-col justify-between shadow-2xl relative overflow-hidden backdrop-blur-sm">
+                    <div class="absolute inset-0 bg-radial-grid pointer-events-none opacity-[0.03]"></div>
+                    
+                    <div class="flex items-center justify-between mb-4 z-10">
+                        <div class="flex items-center space-x-2">
+                            <span class="inline-block w-2.5 h-2.5 rounded-full bg-emerald-500 animate-pulse"></span>
+                            <span class="text-xs font-bold tracking-wider text-slate-300 uppercase">Interactive Grid</span>
+                        </div>
+                        <div class="flex items-center space-x-3">
+                            <label class="flex items-center space-x-2 text-xs text-slate-400 cursor-pointer">
+                                <input type="checkbox" id="chk-grid-snap" checked class="rounded border-slate-700 bg-slate-800 text-amber-500 focus:ring-0 focus:ring-offset-0">
+                                <span>Grid Snap</span>
+                            </label>
+                            <button onclick="resetVector()" class="p-1.5 hover:bg-slate-800 text-slate-400 hover:text-slate-200 rounded-lg transition" title="Recenter Vector">
+                                <i class="fa-solid fa-arrows-rotate"></i>
+                            </button>
+                        </div>
+                    </div>
+
+                    <!-- SVG 2D Grid Canvas -->
+                    <div class="relative w-full aspect-square bg-slate-950/80 rounded-2xl border border-slate-800 flex items-center justify-center overflow-hidden touch-none" id="canvas-container">
+                        <svg id="grid-svg" class="w-full h-full cursor-crosshair" viewBox="0 0 500 500">
+                            <!-- SVG elements injected dynamically -->
+                        </svg>
+                    </div>
+
+                    <!-- Grid Controls & Legends -->
+                    <div class="grid grid-cols-3 gap-2 mt-4 text-center z-10">
+                        <div class="p-2 bg-slate-950/50 rounded-xl border border-slate-800/80">
+                            <div class="text-[10px] uppercase tracking-wider text-slate-500 font-semibold">Active Vector</div>
+                            <div class="text-xs font-bold text-brand-vector flex items-center justify-center mt-1">
+                                <span class="w-2.5 h-0.5 bg-brand-vector inline-block mr-1.5"></span> $\vec{A}$
+                            </div>
+                        </div>
+                        <div class="p-2 bg-slate-950/50 rounded-xl border border-slate-800/80">
+                            <div class="text-[10px] uppercase tracking-wider text-slate-500 font-semibold">X Component</div>
+                            <div class="text-xs font-bold text-brand-xComp flex items-center justify-center mt-1">
+                                <span class="w-2.5 h-0.5 bg-brand-xComp inline-block mr-1.5"></span> $A_x \hat{i}$
+                            </div>
+                        </div>
+                        <div class="p-2 bg-slate-950/50 rounded-xl border border-slate-800/80">
+                            <div class="text-[10px] uppercase tracking-wider text-slate-500 font-semibold">Y Component</div>
+                            <div class="text-xs font-bold text-brand-yComp flex items-center justify-center mt-1">
+                                <span class="w-2.5 h-0.5 bg-brand-yComp inline-block mr-1.5"></span> $A_y \hat{j}$
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Mathematics Dashboard (Left on desktop) -->
+                <div class="lg:col-span-5 flex flex-col justify-between gap-6">
+                    <!-- Live Vector Equation Box -->
+                    <div class="bg-gradient-to-br from-slate-900 to-slate-950 border border-slate-800 rounded-3xl p-6 shadow-xl space-y-6">
+                        <div>
+                            <h3 class="text-lg font-bold text-slate-100 flex items-center">
+                                <i class="fa-solid fa-calculator text-amber-500 mr-2.5"></i> Real-time Calculus
+                            </h3>
+                            <p class="text-xs text-slate-400 mt-1">Live updates showing coordinates, projections and components.</p>
+                        </div>
+
+                        <!-- Mathematical Equation rendering -->
+                        <div class="p-4 bg-slate-950 rounded-2xl border border-slate-800/80 text-center relative overflow-hidden">
+                            <div class="absolute top-2 right-2 text-[10px] font-mono text-slate-600">DECOMPOSITION</div>
+                            <div class="text-[10px] text-slate-500 uppercase tracking-widest font-semibold mb-2">Vector Component Form</div>
+                            <div id="eq-2d-math" class="text-xl sm:text-2xl font-bold tracking-wide text-slate-100 py-1 flex items-center justify-center min-h-[44px]">
+                                <!-- KaTeX Rendered dynamic equation -->
+                            </div>
+                        </div>
+
+                        <!-- Interactive Metric Cards with perfect auto-height wrapping -->
+                        <div class="grid grid-cols-2 gap-4">
+                            <div class="p-3 bg-slate-950/40 border border-slate-800 rounded-2xl flex flex-col justify-between min-h-[105px]">
+                                <div class="text-[10px] text-slate-500 uppercase tracking-wider font-semibold">Magnitude ($|\vec{A}|$)</div>
+                                <div class="text-lg font-bold math-font text-slate-200 mt-1" id="val-magnitude">2.83</div>
+                                <div class="text-[10px] text-slate-400 mt-1 italic font-mono">$|\vec{A}| = \sqrt{A_x^2 + A_y^2}$</div>
+                            </div>
+                            <div class="p-3 bg-slate-950/40 border border-slate-800 rounded-2xl flex flex-col justify-between min-h-[105px]">
+                                <div class="text-[10px] text-slate-500 uppercase tracking-wider font-semibold">Direction ($\theta$)</div>
+                                <div class="text-lg font-bold math-font text-slate-200 mt-1" id="val-angle">225.0°</div>
+                                <div class="text-[10px] text-slate-400 mt-1 italic font-mono">$\theta = \tan^{-1}\left(\frac{A_y}{A_x}\right)$</div>
+                            </div>
+                        </div>
+
+                        <!-- Tail & Head Coordinates -->
+                        <div class="space-y-3 pt-2">
+                            <h4 class="text-xs font-semibold uppercase tracking-wider text-slate-400">Coordinate Positions</h4>
+                            <div class="grid grid-cols-2 gap-3">
+                                <div class="p-2.5 bg-slate-950/60 border border-slate-800/80 rounded-xl flex flex-col justify-between">
+                                    <span class="text-[10px] text-slate-500 font-semibold uppercase tracking-wider">Tail Point ($T$)</span>
+                                    <span class="font-mono text-sm font-bold text-slate-200 mt-1" id="val-tail">(0.0, 0.0)</span>
+                                </div>
+                                <div class="p-2.5 bg-slate-950/60 border border-slate-800/80 rounded-xl flex flex-col justify-between">
+                                    <span class="text-[10px] text-slate-500 font-semibold uppercase tracking-wider">Head Point ($H$)</span>
+                                    <span class="font-mono text-sm font-bold text-slate-200 mt-1" id="val-head">(-2.0, -2.0)</span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Interactive Sliders and Custom Options -->
+                    <div class="bg-slate-900/60 border border-slate-800 rounded-3xl p-6 space-y-4">
+                        <h4 class="text-sm font-bold text-slate-200"><i class="fa-solid fa-sliders text-rose-500 mr-2"></i>Component Controllers</h4>
+                        
+                        <div class="space-y-4">
+                            <!-- X component slider -->
+                            <div>
+                                <div class="flex justify-between items-center mb-1">
+                                    <label class="text-xs font-semibold text-slate-300">X-Component ($A_x$)</label>
+                                    <span class="text-xs font-mono font-bold text-brand-xComp" id="slider-ax-val">-2</span>
+                                </div>
+                                <input type="range" id="slider-ax" min="-10" max="10" step="1" value="-2" class="w-full h-1.5 bg-slate-850 rounded-lg appearance-none cursor-pointer accent-rose-500">
+                            </div>
+
+                            <!-- Y component slider -->
+                            <div>
+                                <div class="flex justify-between items-center mb-1">
+                                    <label class="text-xs font-semibold text-slate-300">Y-Component ($A_y$)</label>
+                                    <span class="text-xs font-mono font-bold text-brand-yComp" id="slider-ay-val">-2</span>
+                                </div>
+                                <input type="range" id="slider-ay" min="-10" max="10" step="1" value="-2" class="w-full h-1.5 bg-slate-850 rounded-lg appearance-none cursor-pointer accent-blue-500">
+                            </div>
+                        </div>
+
+                        <!-- Render Toggles -->
+                        <div class="grid grid-cols-2 gap-3 pt-2">
+                            <label class="flex items-center space-x-2 bg-slate-950/40 p-2.5 rounded-xl border border-slate-800/80 cursor-pointer hover:bg-slate-950 transition">
+                                <input type="checkbox" id="chk-show-projections" checked class="rounded border-slate-700 bg-slate-800 text-amber-500 focus:ring-0">
+                                <span class="text-xs text-slate-300 font-medium">Show Projections</span>
+                            </label>
+                            <label class="flex items-center space-x-2 bg-slate-950/40 p-2.5 rounded-xl border border-slate-800/80 cursor-pointer hover:bg-slate-950 transition">
+                                <input type="checkbox" id="chk-show-angle" checked class="rounded border-slate-700 bg-slate-800 text-amber-500 focus:ring-0">
+                                <span class="text-xs text-slate-300 font-medium">Show Angle Arc</span>
+                            </label>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- ==================== TAB 2: 3D COMPONENT SPACE ==================== -->
+        <section id="tab-3d" class="hidden space-y-6">
+            <div class="bg-slate-900/60 border border-slate-800 rounded-2xl p-4 flex items-start space-x-3">
+                <div class="text-2xl mt-0.5">🚀</div>
+                <div>
+                    <h4 class="font-bold text-slate-200 text-sm">3D Orthogonal Space: $A_z \hat{k}$ Added</h4>
+                    <p class="text-xs text-slate-400 max-w-3xl mt-0.5">
+                        As noted in the transcript, <strong class="text-indigo-400">"If the vector is in three dimensions, we will also have an Az times k hat."</strong> Drag the sliders below to modify the three dimensional vector. Grab the coordinate stage with your mouse or finger to rotate the space and view projections from different perspective angles!
+                    </p>
+                </div>
+            </div>
+
+            <!-- Two column layout for 3D simulation -->
+            <div class="grid grid-cols-1 lg:grid-cols-12 gap-6 items-stretch">
+                <!-- 3D Canvas Container -->
+                <div class="lg:col-span-8 bg-slate-950 border border-slate-800 rounded-3xl p-2 h-[500px] relative overflow-hidden flex items-center justify-center">
+                    <div id="threejs-container" class="w-full h-full rounded-2xl cursor-grab active:cursor-grabbing"></div>
+                    
+                    <!-- Coordinate Helper Tooltip overlay -->
+                    <div class="absolute bottom-4 left-4 bg-slate-900/90 border border-slate-800 p-3 rounded-xl backdrop-blur-md pointer-events-none text-xs space-y-1.5 shadow-lg">
+                        <div class="text-[10px] font-bold text-slate-400 uppercase">3D Axis Legend</div>
+                        <div class="flex items-center space-x-2">
+                            <span class="w-3 h-1 bg-red-500 rounded-full inline-block"></span>
+                            <span class="font-medium text-slate-200">X-Axis ($\hat{i}$)</span>
+                        </div>
+                        <div class="flex items-center space-x-2">
+                            <span class="w-3 h-1 bg-green-500 rounded-full inline-block"></span>
+                            <span class="font-medium text-slate-200">Y-Axis ($\hat{j}$)</span>
+                        </div>
+                        <div class="flex items-center space-x-2">
+                            <span class="w-3 h-1 bg-blue-500 rounded-full inline-block"></span>
+                            <span class="font-medium text-slate-200">Z-Axis ($\hat{k}$)</span>
+                        </div>
+                    </div>
+
+                    <div class="absolute top-4 right-4 bg-slate-900/80 p-2 rounded-lg border border-slate-800 text-[10px] font-semibold text-slate-400 backdrop-blur-sm pointer-events-none">
+                        <i class="fa-solid fa-arrows-spin mr-1 animate-spin"></i> DRAG VIEW TO ROTATE
+                    </div>
+                </div>
+
+                <!-- Controls & Calculations for 3D Vector -->
+                <div class="lg:col-span-4 flex flex-col justify-between gap-6">
+                    <div class="bg-slate-900/60 border border-slate-800 rounded-3xl p-6 space-y-6 flex-grow">
+                        <div>
+                            <h3 class="text-base font-bold text-slate-100 flex items-center">
+                                <i class="fa-solid fa-bezier-curve text-indigo-400 mr-2"></i> 3D Vector Form
+                            </h3>
+                            <p class="text-xs text-slate-400 mt-0.5">Control three-dimensional vectors with the sliders below.</p>
+                        </div>
+
+                        <!-- 3D Formula with dynamic KaTeX container -->
+                        <div class="p-4 bg-slate-950 rounded-2xl border border-slate-800 text-center">
+                            <div class="text-[10px] text-slate-500 uppercase tracking-widest font-semibold mb-2">3D Component Representation</div>
+                            <div id="eq-3d-math" class="text-lg font-bold text-slate-100 flex items-center justify-center min-h-[40px]">
+                                <!-- KaTeX rendered math representation of 3D vector -->
+                            </div>
+                        </div>
+
+                        <!-- Mathematical magnitude in 3D -->
+                        <div class="p-4 bg-slate-950/40 border border-slate-800 rounded-2xl">
+                            <div class="text-[10px] text-slate-500 uppercase tracking-wider font-semibold">3D Magnitude ($|\vec{A}|_{3D}$)</div>
+                            <div class="text-xl font-bold math-font text-slate-200 mt-1" id="val-3d-magnitude">7.07</div>
+                            <div class="text-[10px] text-slate-400 mt-1 italic font-mono">$|\vec{A}| = \sqrt{A_x^2 + A_y^2 + A_z^2}$</div>
+                        </div>
+
+                        <!-- sliders -->
+                        <div class="space-y-4 pt-2">
+                            <!-- X component slider 3D -->
+                            <div>
+                                <div class="flex justify-between items-center mb-1">
+                                    <label class="text-xs font-semibold text-slate-300">X-Component ($A_x$)</label>
+                                    <span class="text-xs font-mono font-bold text-red-400" id="slider-3dx-val">3</span>
+                                </div>
+                                <input type="range" id="slider-3dx" min="-8" max="8" step="1" value="3" class="w-full h-1.5 bg-slate-850 rounded-lg appearance-none cursor-pointer accent-red-500">
+                            </div>
+
+                            <!-- Y component slider 3D -->
+                            <div>
+                                <div class="flex justify-between items-center mb-1">
+                                    <label class="text-xs font-semibold text-slate-300">Y-Component ($A_y$)</label>
+                                    <span class="text-xs font-mono font-bold text-green-400" id="slider-3dy-val">4</span>
+                                </div>
+                                <input type="range" id="slider-3dy" min="-8" max="8" step="1" value="4" class="w-full h-1.5 bg-slate-850 rounded-lg appearance-none cursor-pointer accent-green-500">
+                            </div>
+
+                            <!-- Z component slider 3D -->
+                            <div>
+                                <div class="flex justify-between items-center mb-1">
+                                    <label class="text-xs font-semibold text-slate-300">Z-Component ($A_z$)</label>
+                                    <span class="text-xs font-mono font-bold text-blue-400" id="slider-3dz-val">5</span>
+                                </div>
+                                <input type="range" id="slider-3dz" min="-8" max="8" step="1" value="5" class="w-full h-1.5 bg-slate-850 rounded-lg appearance-none cursor-pointer accent-blue-500">
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- ==================== TAB 3: INFOGRAPHIC MASTERCLASS ==================== -->
+        <section id="tab-info" class="hidden space-y-8">
+            <!-- Header of Masterclass -->
+            <div class="text-center max-w-3xl mx-auto space-y-2 py-4">
+                <span class="px-3 py-1 bg-amber-500/10 text-amber-400 text-xs font-bold uppercase tracking-widest rounded-full">Educational Poster</span>
+                <h2 class="text-2xl sm:text-3xl font-extrabold tracking-tight text-slate-100">Decomposing Vectors into Orthogonal Components</h2>
+                <p class="text-slate-400 text-sm sm:text-base">A complete guide to components, unit vectors, projections, and coordinate independent properties.</p>
+            </div>
+
+            <!-- Infographic Cards Grid -->
+            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                <!-- Concept 1 -->
+                <div class="bg-gradient-to-br from-slate-900 to-slate-950 border border-slate-800 rounded-3xl p-6 space-y-4 shadow-lg hover:border-amber-500/40 transition-all duration-300 flex flex-col justify-between">
+                    <div class="space-y-3">
+                        <div class="w-10 h-10 rounded-xl bg-amber-500/10 border border-amber-500/30 flex items-center justify-center text-amber-400 font-bold">1</div>
+                        <h3 class="text-lg font-bold text-slate-100">What is Vector Decomposition?</h3>
+                        <p class="text-xs text-slate-400 leading-relaxed">
+                            Decomposing a vector means breaking down a single vector into several components that, when added together sequentially, perfectly reconstruct the original vector. In 2D coordinate geometry, we select orthogonal axes (X and Y directions) as our components.
+                        </p>
+                    </div>
+                    <div class="p-3.5 bg-slate-950 rounded-2xl border border-slate-800/80 font-mono text-center text-xs text-slate-300 mt-2">
+                        $$\vec{A} = A_x \hat{i} + A_y \hat{j}$$
+                    </div>
+                </div>
+
+                <!-- Concept 2 -->
+                <div class="bg-gradient-to-br from-slate-900 to-slate-950 border border-slate-800 rounded-3xl p-6 space-y-4 shadow-lg hover:border-rose-500/40 transition-all duration-300 flex flex-col justify-between">
+                    <div class="space-y-3">
+                        <div class="w-10 h-10 rounded-xl bg-rose-500/10 border border-rose-500/30 flex items-center justify-center text-rose-400 font-bold">2</div>
+                        <h3 class="text-lg font-bold text-slate-100">Projections onto Axes</h3>
+                        <p class="text-xs text-slate-400 leading-relaxed">
+                            Projections are essentially the shadow cast by the vector directly onto the coordinate axes. Geometrically, these projections represent the sides of a right triangle where the original vector is the hypotenuse. We calculate these using trigonometric ratios.
+                        </p>
+                    </div>
+                    <div class="p-3.5 bg-slate-950 rounded-2xl border border-slate-800/80 font-mono text-center text-xs text-slate-300 mt-2">
+                        $$\begin{aligned} A_x &= |\vec{A}| \cos(\theta) \\ A_y &= |\vec{A}| \sin(\theta) \end{aligned}$$
+                    </div>
+                </div>
+
+                <!-- Concept 3 -->
+                <div class="bg-gradient-to-br from-slate-900 to-slate-950 border border-slate-800 rounded-3xl p-6 space-y-4 shadow-lg hover:border-blue-500/40 transition-all duration-300 flex flex-col justify-between">
+                    <div class="space-y-3">
+                        <div class="w-10 h-10 rounded-xl bg-blue-500/10 border border-blue-500/30 flex items-center justify-center text-blue-400 font-bold">3</div>
+                        <h3 class="text-lg font-bold text-slate-100">The Power of Unit Vectors</h3>
+                        <p class="text-xs text-slate-400 leading-relaxed">
+                            Unit vectors ($\hat{i}$, $\hat{j}$, $\hat{k}$) have a length of exactly one unit. They point strictly along coordinate axes (X, Y, Z). They act as directional indicators; multiplying them by scalar numbers defines vectors of any size.
+                        </p>
+                    </div>
+                    <div class="p-3.5 bg-slate-950 rounded-2xl border border-slate-800/80 font-mono text-center text-xs text-slate-300 mt-2 flex justify-around">
+                        <span>$|\hat{i}| = 1$ (X-Axis)</span>
+                        <span>$|\hat{j}| = 1$ (Y-Axis)</span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Full-width visual block for "Vectors are Free" -->
+            <div class="bg-slate-900/40 border border-slate-800 rounded-3xl p-6 md:p-8 shadow-xl relative overflow-hidden">
+                <div class="absolute -right-10 -bottom-10 w-40 h-40 bg-indigo-500/5 rounded-full blur-2xl"></div>
+                
+                <div class="grid grid-cols-1 lg:grid-cols-12 gap-6 items-center">
+                    <div class="lg:col-span-7 space-y-4">
+                        <span class="px-2.5 py-1 bg-indigo-500/10 text-indigo-400 text-[10px] font-bold uppercase tracking-wider rounded-lg">Axiom of Location Independence</span>
+                        <h3 class="text-xl font-extrabold text-slate-100">Vectors Can Exist Anywhere</h3>
+                        <p class="text-xs sm:text-sm text-slate-400 leading-relaxed">
+                            A classic point of confusion in physics is believing a vector is tied to a specific location on a cartesian layout. <strong>It isn't!</strong> A vector represents change in position, velocity, or force. Dragging the tail of the vector across the board shifts its coordinates, but its displacement stays exactly the same.
+                        </p>
+                        <div class="flex items-center space-x-4 pt-2">
+                            <div class="flex items-center space-x-1.5 text-xs text-amber-400 font-semibold">
+                                <i class="fa-regular fa-circle-check"></i>
+                                <span>Invariant Magnitude</span>
+                            </div>
+                            <div class="flex items-center space-x-1.5 text-xs text-rose-400 font-semibold">
+                                <i class="fa-regular fa-circle-check"></i>
+                                <span>Invariant Direction</span>
+                            </div>
+                            <div class="flex items-center space-x-1.5 text-xs text-blue-400 font-semibold">
+                                <i class="fa-regular fa-circle-check"></i>
+                                <span>Invariant Projections</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Step graphic -->
+                    <div class="lg:col-span-5 bg-slate-950/80 rounded-2xl border border-slate-800/80 p-5 space-y-4 font-mono text-xs">
+                        <div class="border-b border-slate-800 pb-2 text-slate-400 flex justify-between items-center">
+                            <span>Proof of Invariance</span>
+                            <span class="text-[10px] bg-slate-800 px-1.5 py-0.5 rounded text-indigo-400 font-bold">DEMO</span>
+                        </div>
+                        <div class="space-y-3">
+                            <div class="flex justify-between items-start">
+                                <div class="text-slate-500">Coordinate A (Origin):</div>
+                                <div class="text-slate-200 text-right">
+                                    $\text{Tail } (0, 0) \to \text{Head } (-3, 2)$<br>
+                                    <span class="text-indigo-400 font-semibold">$\vec{V} = -3\hat{i} + 2\hat{j}$</span>
+                                </div>
+                            </div>
+                            <div class="border-t border-slate-800/50 my-2"></div>
+                            <div class="flex justify-between items-start">
+                                <div class="text-slate-500">Coordinate B (Shifted):</div>
+                                <div class="text-slate-200 text-right">
+                                    $\text{Tail } (2, 1) \to \text{Head } (-1, 3)$<br>
+                                    <span class="text-indigo-400 font-semibold">$\vec{V} = -3\hat{i} + 2\hat{j}$</span>
+                                </div>
+                            </div>
+                            <div class="p-2.5 bg-slate-900 rounded border border-slate-850 text-[10px] text-slate-400 text-center leading-relaxed">
+                                Since $(-1 - 2) = -3$ and $(3 - 1) = 2$, these displacements are identical.
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+    </main>
+
+    <!-- FOOTER -->
+    <footer class="border-t border-slate-800 bg-slate-950/60 py-6 text-slate-500 text-xs">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 flex flex-col md:flex-row items-center justify-between gap-4">
+            <p>© 2026 Interactive Vector Components Simulator. Responsive, multi-dimensional, and designed for physics exploration.</p>
+            <div class="flex space-x-4">
+                <span class="hover:text-slate-400 cursor-pointer transition">Terms</span>
+                <span>•</span>
+                <span class="hover:text-slate-400 cursor-pointer transition">Privacy Guide</span>
+                <span>•</span>
+                <span class="hover:text-slate-400 cursor-pointer transition">Equations Manual</span>
+            </div>
+        </div>
+    </footer>
+
+    <!-- JAVASCRIPT LOGIC -->
+    <script>
+        // Global variables / state
+        const state = {
+            activeTab: 'tab-2d',
+            vector: {
+                tailX: 0,
+                tailY: 0,
+                headX: -2,
+                headY: -2
+            },
+            grid: {
+                snapToGrid: true,
+                scale: 25, // pixels per mathematical unit
+                width: 500,
+                height: 500,
+                centerX: 250,
+                centerY: 250
+            },
+            dragState: {
+                isDraggingTail: false,
+                isDraggingHead: false
+            }
+        };
+
+        // DOM elements
+        const svgElement = document.getElementById('grid-svg');
+        const canvasContainer = document.getElementById('canvas-container');
+        const chkGridSnap = document.getElementById('chk-grid-snap');
+        const chkShowProjections = document.getElementById('chk-show-projections');
+        const chkShowAngle = document.getElementById('chk-show-angle');
+        
+        // Sliders
+        const sliderAx = document.getElementById('slider-ax');
+        const sliderAy = document.getElementById('slider-ay');
+        const sliderAxVal = document.getElementById('slider-ax-val');
+        const sliderAyVal = document.getElementById('slider-ay-val');
+
+        // Text Fields
+        const eq2dMath = document.getElementById('eq-2d-math');
+        const valMagnitude = document.getElementById('val-magnitude');
+        const valAngle = document.getElementById('val-angle');
+        const valTail = document.getElementById('val-tail');
+        const valHead = document.getElementById('val-head');
+
+        // Tab system
+        function switchTab(tabId) {
+            state.activeTab = tabId;
+            ['tab-2d', 'tab-3d', 'tab-info'].forEach(id => {
+                const sec = document.getElementById(id);
+                const btn = document.getElementById(`btn-${id}`);
+                if (id === tabId) {
+                    sec.classList.remove('hidden');
+                    btn.className = "px-4 py-1.5 rounded-lg text-xs sm:text-sm font-semibold transition-all duration-200 bg-gradient-to-r from-amber-500 to-rose-500 text-white shadow-md";
+                    if (id === 'tab-3d') {
+                        // Initialize or resize Three.js
+                        initThreeJS();
+                    }
+                } else {
+                    sec.classList.add('hidden');
+                    btn.className = "px-4 py-1.5 rounded-lg text-xs sm:text-sm font-semibold transition-all duration-200 text-slate-400 hover:text-slate-100 hover:bg-slate-900";
+                }
+            });
+            // Re-render Math typesetting on tab change
+            triggerMathRender();
+        }
+
+        // Preset configurations
+        function loadPreset(hx, hy, tx = 0, ty = 0) {
+            state.vector.tailX = tx;
+            state.vector.tailY = ty;
+            state.vector.headX = hx + tx;
+            state.vector.headY = hy + ty;
+            
+            // Sync slider value
+            sliderAx.value = hx;
+            sliderAy.value = hy;
+
+            updateVectorDisplay();
+        }
+
+        function resetVector() {
+            loadPreset(-2, -2, 0, 0);
+        }
+
+        // Helper converters between SVG pixel spaces and Cartesian grid values
+        function valToSvgX(valX) {
+            return state.grid.centerX + valX * state.grid.scale;
+        }
+
+        function valToSvgY(valY) {
+            return state.grid.centerY - valY * state.grid.scale; // invert Y coordinate for graphics
+        }
+
+        function svgToValX(svgX) {
+            return (svgX - state.grid.centerX) / state.grid.scale;
+        }
+
+        function svgToValY(svgY) {
+            return (state.grid.centerY - svgY) / state.grid.scale;
+        }
+
+        // Initialize and continuously redraw SVG Canvas elements
+        function drawGrid() {
+            let svgContent = '';
+            const size = state.grid.width;
+            const step = state.grid.scale;
+
+            // Draw Background Grid Lines
+            for (let x = step; x < size; x += step) {
+                const isAxis = (x === state.grid.centerX);
+                svgContent += `<line x1="${x}" y1="0" x2="${x}" y2="${size}" stroke="${isAxis ? '#64748b' : '#334155'}" stroke-width="${isAxis ? '2' : '0.5'}" stroke-dasharray="${isAxis ? '' : '1,3'}"/>`;
+            }
+            for (let y = step; y < size; y += step) {
+                const isAxis = (y === state.grid.centerY);
+                svgContent += `<line x1="0" y1="${y}" x2="${size}" y2="${y}" stroke="${isAxis ? '#64748b' : '#334155'}" stroke-width="${isAxis ? '2' : '0.5'}" stroke-dasharray="${isAxis ? '' : '1,3'}"/>`;
+            }
+
+            // Grid coordinate text labels
+            for (let x = -10; x <= 10; x += 2) {
+                if (x !== 0) {
+                    svgContent += `<text x="${valToSvgX(x)}" y="${state.grid.centerY + 16}" fill="#94a3b8" font-size="10" font-family="Inter" text-anchor="middle" font-weight="600">${x}</text>`;
+                }
+            }
+            for (let y = -10; y <= 10; y += 2) {
+                if (y !== 0) {
+                    svgContent += `<text x="${state.grid.centerX - 12}" y="${valToSvgY(y) + 4}" fill="#94a3b8" font-size="10" font-family="Inter" text-anchor="end" font-weight="600">${y}</text>`;
+                }
+            }
+
+            // Arrow marker definitions for lines
+            svgContent += `
+                <defs>
+                    <marker id="arrow-vector" viewBox="0 0 10 10" refX="6" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
+                        <path d="M 0 1.5 L 10 5 L 0 8.5 z" fill="#f59e0b" />
+                    </marker>
+                    <marker id="arrow-xComp" viewBox="0 0 10 10" refX="6" refY="5" markerWidth="5" markerHeight="5" orient="auto-start-reverse">
+                        <path d="M 0 1.5 L 10 5 L 0 8.5 z" fill="#f43f5e" />
+                    </marker>
+                    <marker id="arrow-yComp" viewBox="0 0 10 10" refX="6" refY="5" markerWidth="5" markerHeight="5" orient="auto-start-reverse">
+                        <path d="M 0 1.5 L 10 5 L 0 8.5 z" fill="#3b82f6" />
+                    </marker>
+                </defs>
+            `;
+
+            svgElement.innerHTML = svgContent;
+            drawDynamicElements();
+        }
+
+        // Draw active vector elements based on changing coordinates
+        function drawDynamicElements() {
+            // Remove previous dynamic items if they existed
+            const oldDyn = svgElement.querySelectorAll('.dynamic-item');
+            oldDyn.forEach(el => el.remove());
+
+            const tx = valToSvgX(state.vector.tailX);
+            const ty = valToSvgY(state.vector.tailY);
+            const hx = valToSvgX(state.vector.headX);
+            const hy = valToSvgY(state.vector.headY);
+
+            const dx = state.vector.headX - state.vector.tailX;
+            const dy = state.vector.headY - state.vector.tailY;
+
+            let extraSvg = '';
+
+            // 1. Dotted Projections directly to the coordinate axes (if enabled)
+            if (chkShowProjections.checked) {
+                // Tail projections
+                extraSvg += `<line class="dynamic-item" x1="${tx}" y1="${ty}" x2="${tx}" y2="${state.grid.centerY}" stroke="#f43f5e" stroke-dasharray="2,4" opacity="0.4" stroke-width="1.5" />`;
+                extraSvg += `<line class="dynamic-item" x1="${tx}" y1="${ty}" x2="${state.grid.centerX}" y2="${ty}" stroke="#3b82f6" stroke-dasharray="2,4" opacity="0.4" stroke-width="1.5" />`;
+                
+                // Head projections
+                extraSvg += `<line class="dynamic-item" x1="${hx}" y1="${hy}" x2="${hx}" y2="${state.grid.centerY}" stroke="#f43f5e" stroke-dasharray="2,4" opacity="0.6" stroke-width="1.5" />`;
+                extraSvg += `<line class="dynamic-item" x1="${hx}" y1="${hy}" x2="${state.grid.centerX}" y2="${hy}" stroke="#3b82f6" stroke-dasharray="2,4" opacity="0.6" stroke-width="1.5" />`;
+            }
+
+            // 2. Component vectors forming triangular addition: Tail -> (HeadX, TailY) -> Head
+            const cornerX = hx;
+            const cornerY = ty;
+
+            // X-component arrow (red)
+            if (dx !== 0) {
+                extraSvg += `<line class="dynamic-item" x1="${tx}" y1="${ty}" x2="${cornerX}" y2="${cornerY}" stroke="#f43f5e" stroke-width="3" marker-end="url(#arrow-xComp)" />`;
+                // component tag label
+                extraSvg += `<text class="dynamic-item" x="${(tx + cornerX)/2}" y="${ty > state.grid.centerY ? ty + 18 : ty - 10}" fill="#f43f5e" font-size="11" font-weight="bold" font-family="monospace" text-anchor="middle">${dx > 0 ? '+' : ''}${dx.toFixed(1)}î</text>`;
+            }
+
+            // Y-component arrow (blue)
+            if (dy !== 0) {
+                extraSvg += `<line class="dynamic-item" x1="${cornerX}" y1="${cornerY}" x2="${hx}" y2="${hy}" stroke="#3b82f6" stroke-width="3" marker-end="url(#arrow-yComp)" />`;
+                // component tag label
+                extraSvg += `<text class="dynamic-item" x="${hx > state.grid.centerX ? hx + 12 : hx - 12}" y="${(ty + hy)/2 + 4}" fill="#3b82f6" font-size="11" font-weight="bold" font-family="monospace" text-anchor="${hx > state.grid.centerX ? 'start' : 'end'}">${dy > 0 ? '+' : ''}${dy.toFixed(1)}ĵ</text>`;
+            }
+
+            // 3. Main vector arrow (amber)
+            extraSvg += `<line class="dynamic-item" x1="${tx}" y1="${ty}" x2="${hx}" y2="${hy}" stroke="#f59e0b" stroke-width="4.5" marker-end="url(#arrow-vector)" />`;
+
+            // 4. Angle Arc Helper
+            if (chkShowAngle.checked) {
+                const angleRad = Math.atan2(dy, dx);
+                let angleDeg = angleRad * (180 / Math.PI);
+                if (angleDeg < 0) angleDeg += 360;
+
+                // draw mini arc around tail
+                const arcRadius = 22;
+                const endArcX = tx + arcRadius * Math.cos(angleRad);
+                const endArcY = ty - arcRadius * Math.sin(angleRad); // SVG invert
+                const largeArc = 0; // only standard relative angle
+                
+                // Let's draw arc from horizontal
+                const startArcX = tx + arcRadius;
+                const startArcY = ty;
+
+                if (dx !== 0 || dy !== 0) {
+                    extraSvg += `<path class="dynamic-item" d="M ${startArcX} ${startArcY} A ${arcRadius} ${arcRadius} 0 ${angleDeg > 180 ? 1 : 0} 0 ${endArcX} ${endArcY}" fill="none" stroke="#f59e0b" stroke-width="1.5" opacity="0.6" />`;
+                }
+            }
+
+            // 5. Interactive Handle Pins (Circles to drag)
+            // Tail pin (Orange pulsing circle)
+            extraSvg += `
+                <g class="dynamic-item cursor-grab active:cursor-grabbing" id="handle-tail">
+                    <circle cx="${tx}" cy="${ty}" r="12" fill="#f59e0b" opacity="0.2"/>
+                    <circle cx="${tx}" cy="${ty}" r="6" fill="#f59e0b" stroke="#0f172a" stroke-width="1.5"/>
+                </g>
+            `;
+
+            // Head pin (Blue/Indigo circle)
+            extraSvg += `
+                <g class="dynamic-item cursor-grab active:cursor-grabbing" id="handle-head">
+                    <circle cx="${hx}" cy="${hy}" r="12" fill="#3b82f6" opacity="0.2"/>
+                    <circle cx="${hx}" cy="${hy}" r="6" fill="#3b82f6" stroke="#0f172a" stroke-width="1.5"/>
+                </g>
+            `;
+
+            svgElement.insertAdjacentHTML('beforeend', extraSvg);
+            setupInteractiveDragHandlers();
+        }
+
+        // Sync graphics representation with calculations and numeric displays
+        function updateVectorDisplay() {
+            const dx = state.vector.headX - state.vector.tailX;
+            const dy = state.vector.headY - state.vector.tailY;
+
+            // Slider update
+            sliderAx.value = dx;
+            sliderAy.value = dy;
+            sliderAxVal.innerText = dx;
+            sliderAyVal.innerText = dy;
+
+            // Equations update utilizing high-fidelity LaTeX
+            const formattedDx = dx.toFixed(2);
+            const formattedDy = Math.abs(dy).toFixed(2);
+            const dySign = dy >= 0 ? '+' : '-';
+            
+            // Render beautiful equations via KaTeX without redundant plus signs!
+            if (eq2dMath && window.katex) {
+                const texFormula = `\\vec{A} = ${formattedDx}\\hat{i} ${dySign} ${formattedDy}\\hat{j}`;
+                katex.render(texFormula, eq2dMath, { throwOnError: false });
+            }
+
+            // Calculate Magnitude
+            const mag = Math.sqrt(dx*dx + dy*dy);
+            valMagnitude.innerText = mag.toFixed(2);
+
+            // Calculate Angle
+            let angle = Math.atan2(dy, dx) * (180 / Math.PI);
+            if (angle < 0) angle += 360;
+            valAngle.innerText = angle.toFixed(1) + '°';
+
+            // Coordinates update
+            valTail.innerText = `(${state.vector.tailX.toFixed(1)}, ${state.vector.tailY.toFixed(1)})`;
+            valHead.innerText = `(${state.vector.headX.toFixed(1)}, ${state.vector.headY.toFixed(1)})`;
+
+            // Re-render
+            drawDynamicElements();
+        }
+
+        // Listen to mouse/touch drag events to seamlessly translate movements to coordinates
+        function setupInteractiveDragHandlers() {
+            const handleTail = document.getElementById('handle-tail');
+            const handleHead = document.getElementById('handle-head');
+
+            if (handleTail) {
+                handleTail.addEventListener('mousedown', (e) => startDrag(e, 'tail'));
+                handleTail.addEventListener('touchstart', (e) => startDrag(e, 'tail'), { passive: false });
+            }
+            if (handleHead) {
+                handleHead.addEventListener('mousedown', (e) => startDrag(e, 'head'));
+                handleHead.addEventListener('touchstart', (e) => startDrag(e, 'head'), { passive: false });
+            }
+        }
+
+        function startDrag(e, element) {
+            e.preventDefault();
+            if (element === 'tail') state.dragState.isDraggingTail = true;
+            if (element === 'head') state.dragState.isDraggingHead = true;
+
+            document.addEventListener('mousemove', handleDragMove);
+            document.addEventListener('touchmove', handleDragMove, { passive: false });
+            document.addEventListener('mouseup', endDrag);
+            document.addEventListener('touchend', endDrag);
+        }
+
+        function handleDragMove(e) {
+            if (!state.dragState.isDraggingTail && !state.dragState.isDraggingHead) return;
+            e.preventDefault();
+
+            // Find current coordinates of mouse inside SVG layout
+            const rect = svgElement.getBoundingClientRect();
+            let clientX, clientY;
+            
+            if (e.touches && e.touches.length > 0) {
+                clientX = e.touches[0].clientX;
+                clientY = e.touches[0].clientY;
+            } else {
+                clientX = e.clientX;
+                clientY = e.clientY;
+            }
+
+            const relativeX = clientX - rect.left;
+            const relativeY = clientY - rect.top;
+
+            // Constrain inside boundaries
+            const boundedX = Math.max(0, Math.min(state.grid.width, relativeX));
+            const boundedY = Math.max(0, Math.min(state.grid.height, relativeY));
+
+            // Convert to Cartesian
+            let cartX = svgToValX(boundedX);
+            let cartY = svgToValY(boundedY);
+
+            // Snap behavior
+            if (chkGridSnap.checked) {
+                cartX = Math.round(cartX);
+                cartY = Math.round(cartY);
+            }
+
+            if (state.dragState.isDraggingTail) {
+                // Maintain vector delta size but move the entire vector (dragging tail)
+                const dx = state.vector.headX - state.vector.tailX;
+                const dy = state.vector.headY - state.vector.tailY;
+
+                state.vector.tailX = cartX;
+                state.vector.tailY = cartY;
+                state.vector.headX = cartX + dx;
+                state.vector.headY = cartY + dy;
+            } else if (state.dragState.isDraggingHead) {
+                state.vector.headX = cartX;
+                state.vector.headY = cartY;
+            }
+
+            updateVectorDisplay();
+        }
+
+        function endDrag() {
+            state.dragState.isDraggingTail = false;
+            state.dragState.isDraggingHead = false;
+            document.removeEventListener('mousemove', handleDragMove);
+            document.removeEventListener('touchmove', handleDragMove);
+            document.removeEventListener('mouseup', endDrag);
+            document.removeEventListener('touchend', endDrag);
+        }
+
+        // Connect sliders directly to vector delta updates
+        sliderAx.addEventListener('input', (e) => {
+            const val = parseInt(e.target.value);
+            state.vector.headX = state.vector.tailX + val;
+            updateVectorDisplay();
+        });
+
+        sliderAy.addEventListener('input', (e) => {
+            const val = parseInt(e.target.value);
+            state.vector.headY = state.vector.tailY + val;
+            updateVectorDisplay();
+        });
+
+        // Toggle listeners
+        chkShowProjections.addEventListener('change', () => updateVectorDisplay());
+        chkShowAngle.addEventListener('change', () => updateVectorDisplay());
+
+        // Setup Three.js scene for 3D components explorer
+        let scene, camera, renderer, arrow3D, arrowX, arrowY, arrowZ;
+        let guideX, guideY, guideZ;
+        let isThreeJSInitialized = false;
+
+        // Custom Mouse Drag Rotation State
+        let is3DDragging = false;
+        let previousMousePosition = { x: 0, y: 0 };
+        let rotationYaw = Math.PI / 4;  // Angle around Y axis
+        let rotationPitch = Math.PI / 6; // Elevation angle
+
+        function initThreeJS() {
+            if (isThreeJSInitialized) {
+                resizeThreeJS();
+                return;
+            }
+
+            var container = document.getElementById('threejs-container');
+            var width = container.clientWidth;
+            var height = container.clientHeight;
+
+            // Scene creation
+            scene = new THREE.Scene();
+            scene.background = new THREE.Color(0x020617); // Dark blue canvas background
+
+            // Camera setting
+            camera = new THREE.PerspectiveCamera(45, width / height, 0.1, 100);
+            updateCameraPosition();
+
+            // WebGL Renderer
+            renderer = new THREE.WebGLRenderer({ antialias: true });
+            renderer.setSize(width, height);
+            container.appendChild(renderer.domElement);
+
+            // Basic Grid helper in 3D (bottom level)
+            var gridHelper = new THREE.GridHelper(20, 20, 0x334155, 0x1e293b);
+            gridHelper.position.y = -5;
+            scene.add(gridHelper);
+
+            // Lighting setup
+            var ambientLight = new THREE.AmbientLight(0xffffff, 0.6);
+            scene.add(ambientLight);
+            var dirLight = new THREE.DirectionalLight(0xffffff, 0.8);
+            dirLight.position.set(10, 20, 15);
+            scene.add(dirLight);
+
+            // Construct Coordinate axes safely using hoisted var variables to prevent TDZ errors
+            var axisLength = 8;
+            
+            // X Axis (Red)
+            var xLineGeo = new THREE.BufferGeometry().setFromPoints([new THREE.Vector3(0,0,0), new THREE.Vector3(axisLength,0,0)]);
+            var xLineMat = new THREE.LineBasicMaterial({ color: 0xef4444, linewidth: 2 });
+            var xAxisLine = new THREE.Line(xLineGeo, xLineMat);
+            scene.add(xAxisLine);
+
+            // Y Axis (Green)
+            var yLineGeo = new THREE.BufferGeometry().setFromPoints([new THREE.Vector3(0,0,0), new THREE.Vector3(0,axisLength,0)]);
+            var yLineMat = new THREE.LineBasicMaterial({ color: 0x22c55e, linewidth: 2 });
+            var yAxisLine = new THREE.Line(yLineGeo, yLineMat);
+            scene.add(yAxisLine);
+
+            // Z Axis (Blue)
+            var zLineGeo = new THREE.BufferGeometry().setFromPoints([new THREE.Vector3(0,0,0), new THREE.Vector3(0,0,axisLength)]);
+            var zLineMat = new THREE.LineBasicMaterial({ color: 0x3b82f6, linewidth: 2 });
+            var zAxisLine = new THREE.Line(zLineGeo, zLineMat);
+            scene.add(zAxisLine);
+
+            // Component vector visual lines/arrows
+            arrowX = new THREE.ArrowHelper(new THREE.Vector3(1,0,0), new THREE.Vector3(0,0,0), 1, 0xef4444, 0.5, 0.3);
+            arrowY = new THREE.ArrowHelper(new THREE.Vector3(0,1,0), new THREE.Vector3(0,0,0), 1, 0x22c55e, 0.5, 0.3);
+            arrowZ = new THREE.ArrowHelper(new THREE.Vector3(0,0,1), new THREE.Vector3(0,0,0), 1, 0x3b82f6, 0.5, 0.3);
+            scene.add(arrowX, arrowY, arrowZ);
+
+            // Main glowing amber vector
+            arrow3D = new THREE.ArrowHelper(new THREE.Vector3(1,1,1), new THREE.Vector3(0,0,0), 1, 0xf59e0b, 0.8, 0.4);
+            scene.add(arrow3D);
+
+            // Create dotted projection lines
+            var lineMat = new THREE.LineDashedMaterial({ color: 0x64748b, dashSize: 0.3, gapSize: 0.2 });
+            var geoX = new THREE.BufferGeometry();
+            var geoY = new THREE.BufferGeometry();
+            var geoZ = new THREE.BufferGeometry();
+            guideX = new THREE.Line(geoX, lineMat);
+            guideY = new THREE.Line(geoY, lineMat);
+            guideZ = new THREE.Line(geoZ, lineMat);
+            scene.add(guideX, guideY, guideZ);
+
+            // Add Event Listeners for 3D Camera Rotation (Drag view)
+            container.addEventListener('mousedown', onMouseDown3D);
+            container.addEventListener('touchstart', onTouchStart3D, { passive: false });
+
+            window.addEventListener('resize', resizeThreeJS);
+
+            isThreeJSInitialized = true;
+            update3DVector();
+            animate3D();
+        }
+
+        function updateCameraPosition() {
+            // spherical coordinates based on Yaw and Pitch angles
+            const radius = 18;
+            camera.position.x = radius * Math.sin(rotationYaw) * Math.cos(rotationPitch);
+            camera.position.z = radius * Math.cos(rotationYaw) * Math.cos(rotationPitch);
+            camera.position.y = radius * Math.sin(rotationPitch);
+            camera.lookAt(0, 1.5, 0);
+        }
+
+        // 3D vector slider components
+        const s3dx = document.getElementById('slider-3dx');
+        const s3dy = document.getElementById('slider-3dy');
+        const s3dz = document.getElementById('slider-3dz');
+
+        const s3dxVal = document.getElementById('slider-3dx-val');
+        const s3dyVal = document.getElementById('slider-3dy-val');
+        const s3dzVal = document.getElementById('slider-3dz-val');
+
+        const eq3dMath = document.getElementById('eq-3d-math');
+        const val3dMag = document.getElementById('val-3d-magnitude');
+
+        function update3DVector() {
+            if (!isThreeJSInitialized) return;
+
+            const xVal = parseFloat(s3dx.value);
+            const yVal = parseFloat(s3dy.value);
+            const zVal = parseFloat(s3dz.value);
+
+            // Update text elements
+            s3dxVal.innerText = xVal;
+            s3dyVal.innerText = yVal;
+            s3dzVal.innerText = zVal;
+
+            // Formulate 3D vector algebraic LaTeX correctly, cleaning up double-sign issues
+            const formattedY = Math.abs(yVal);
+            const formattedZ = Math.abs(zVal);
+            const ySign = yVal >= 0 ? '+' : '-';
+            const zSign = zVal >= 0 ? '+' : '-';
+
+            if (eq3dMath && window.katex) {
+                const texFormula3D = `\\vec{A} = ${xVal}\\hat{i} ${ySign} ${formattedY}\\hat{j} ${zSign} ${formattedZ}\\hat{k}`;
+                katex.render(texFormula3D, eq3dMath, { throwOnError: false });
+            }
+
+            const mag3D = Math.sqrt(xVal*xVal + yVal*yVal + zVal*zVal);
+            val3dMag.innerText = mag3D.toFixed(2);
+
+            // Update main vector representation
+            const mainVec = new THREE.Vector3(xVal, yVal, zVal);
+            const direction = mainVec.clone().normalize();
+            const length = mainVec.length();
+            if (length > 0) {
+                arrow3D.setDirection(direction);
+                arrow3D.setLength(length, 0.8, 0.4);
+                arrow3D.visible = true;
+            } else {
+                arrow3D.visible = false;
+            }
+
+            // Update component arrows (aligned step-by-step: origin->X, X->Y, Y->Z)
+            arrowX.setLength(Math.abs(xVal) || 0.001, 0.4, 0.2);
+            arrowX.setDirection(new THREE.Vector3(xVal >= 0 ? 1 : -1, 0, 0));
+
+            arrowY.position.set(xVal, 0, 0);
+            arrowY.setLength(Math.abs(yVal) || 0.001, 0.4, 0.2);
+            arrowY.setDirection(new THREE.Vector3(0, yVal >= 0 ? 1 : -1, 0));
+
+            arrowZ.position.set(xVal, yVal, 0);
+            arrowZ.setLength(Math.abs(zVal) || 0.001, 0.4, 0.2);
+            arrowZ.setDirection(new THREE.Vector3(0, 0, zVal >= 0 ? 1 : -1));
+
+            // Projections Dashed lines geometries
+            const ptOrigin = new THREE.Vector3(0, 0, 0);
+            const ptX = new THREE.Vector3(xVal, 0, 0);
+            const ptXY = new THREE.Vector3(xVal, yVal, 0);
+            const ptXYZ = new THREE.Vector3(xVal, yVal, zVal);
+
+            // Update guide lines
+            guideX.geometry.setFromPoints([ptX, ptXY]);
+            guideX.computeLineDistances();
+
+            guideY.geometry.setFromPoints([ptXY, ptXYZ]);
+            guideY.computeLineDistances();
+
+            // Show base projections dashed to floor grid
+            guideZ.geometry.setFromPoints([ptXYZ, new THREE.Vector3(xVal, -5, zVal)]);
+            guideZ.computeLineDistances();
+        }
+
+        // Attach listeners to 3D sliders
+        [s3dx, s3dy, s3dz].forEach(slider => {
+            slider.addEventListener('input', update3DVector);
+        });
+
+        // Render loop
+        function animate3D() {
+            if (!isThreeJSInitialized) return;
+            requestAnimationFrame(animate3D);
+            renderer.render(scene, camera);
+        }
+
+        function resizeThreeJS() {
+            const container = document.getElementById('threejs-container');
+            if (container && renderer && camera) {
+                const w = container.clientWidth;
+                const h = container.clientHeight;
+                camera.aspect = w / h;
+                camera.updateProjectionMatrix();
+                renderer.setSize(w, h);
+            }
+        }
+
+        // Camera dragging logic
+        function onMouseDown3D(e) {
+            is3DDragging = true;
+            previousMousePosition = { x: e.clientX, y: e.clientY };
+            document.addEventListener('mousemove', onMouseMove3D);
+            document.addEventListener('mouseup', onMouseUp3D);
+        }
+
+        function onMouseMove3D(e) {
+            if (!is3DDragging) return;
+            const deltaX = e.clientX - previousMousePosition.x;
+            const deltaY = e.clientY - previousMousePosition.y;
+
+            rotationYaw -= deltaX * 0.005;
+            rotationPitch = Math.max(-Math.PI / 3, Math.min(Math.PI / 3, rotationPitch - deltaY * 0.005));
+
+            previousMousePosition = { x: e.clientX, y: e.clientY };
+            updateCameraPosition();
+        }
+
+        function onMouseUp3D() {
+            is3DDragging = false;
+            document.removeEventListener('mousemove', onMouseMove3D);
+            document.removeEventListener('mouseup', onMouseUp3D);
+        }
+
+        // Touch gesture mapping for mobile rotation in 3D
+        function onTouchStart3D(e) {
+            if (e.touches.length === 1) {
+                is3DDragging = true;
+                previousMousePosition = { x: e.touches[0].clientX, y: e.touches[0].clientY };
+                document.addEventListener('touchmove', onTouchMove3D, { passive: false });
+                document.addEventListener('touchend', onTouchEnd3D);
+            }
+        }
+
+        function onTouchMove3D(e) {
+            if (!is3DDragging || e.touches.length === 0) return;
+            e.preventDefault();
+            const deltaX = e.touches[0].clientX - previousMousePosition.x;
+            const deltaY = e.touches[0].clientY - previousMousePosition.y;
+
+            rotationYaw -= deltaX * 0.008;
+            rotationPitch = Math.max(-Math.PI / 3, Math.min(Math.PI / 3, rotationPitch - deltaY * 0.008));
+
+            previousMousePosition = { x: e.touches[0].clientX, y: e.touches[0].clientY };
+            updateCameraPosition();
+        }
+
+        function onTouchEnd3D() {
+            is3DDragging = false;
+            document.removeEventListener('touchmove', onTouchMove3D);
+            document.removeEventListener('touchend', onTouchEnd3D);
+        }
+
+        // Helper to trigger parsing of static and dynamic LaTeX inside DOM on state updates
+        function triggerMathRender() {
+            if (window.renderMathInElement) {
+                renderMathInElement(document.body, {
+                    delimiters: [
+                        {left: '$$', right: '$$', display: true},
+                        {left: '$', right: '$', display: false}
+                    ],
+                    throwOnError: false
+                });
+            }
+        }
+
+        // Initialize setup on page window load
+        window.onload = function() {
+            drawGrid();
+            updateVectorDisplay();
+            triggerMathRender();
+        };
+    </script>
+</body>
+</html>
