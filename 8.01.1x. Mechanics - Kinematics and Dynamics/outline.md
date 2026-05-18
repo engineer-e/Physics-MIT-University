@@ -31,7 +31,7 @@
         11. SC0Q5 - Vector Decomposition - Practice
         12. SC0Q6 - Vector Decomposition and Rotation of Coordinate System - Part I
         13. SC0Q7 - Vector Decomposition and Rotation of Coordinate System - Part II
-        14. [SC0v6] - Going Between Representations
+        14. [SC0v6](https://engineer-e.github.io/Physics-MIT-University/8.01.1x.%20Mechanics%20-%20Kinematics%20and%20Dynamics/course_html/Mechanics%20-%20Kinematics%20and%20Dynamics/Prerequisite%20Math%20and%20Survey/Survey%20and%20Skill%20Challenge%20-%20Vectors/SC0v6%20-%20Going%20Between%20Representations/SC0v6_ai6.html) - Going Between Representations
         15. SC0Q8 - Magnitude and Direction or Components - Practice
         16. SC0Q9 - Magnitude and Direction
         17. SC0Q10 - Adding and Subtracting Vectors - Practice
