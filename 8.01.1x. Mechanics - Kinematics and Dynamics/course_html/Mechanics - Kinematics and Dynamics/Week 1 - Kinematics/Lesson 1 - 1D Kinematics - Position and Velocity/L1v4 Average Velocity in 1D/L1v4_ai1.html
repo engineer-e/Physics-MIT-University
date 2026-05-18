@@ -1,0 +1,966 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Visualizing Displacement & Average Velocity</title>
+    <!-- Tailwind CSS for modern responsive styling -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- FontAwesome for clean vector icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <!-- Google Fonts: Inter & JetBrains Mono -->
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;700&display=swap" rel="stylesheet">
+    
+    <!-- KaTeX for pristine, industry-standard mathematical notation -->
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.8/dist/katex.min.css">
+    <script src="https://cdn.jsdelivr.net/npm/katex@0.16.8/dist/katex.min.js"></script>
+
+    <style>
+        body {
+            font-family: 'Inter', sans-serif;
+        }
+        /* Custom styled scrollbars for premium look */
+        ::-webkit-scrollbar {
+            width: 6px;
+            height: 6px;
+        }
+        ::-webkit-scrollbar-track {
+            background: #1e293b;
+        }
+        ::-webkit-scrollbar-thumb {
+            background: #475569;
+            border-radius: 4px;
+        }
+        ::-webkit-scrollbar-thumb:hover {
+            background: #64748b;
+        }
+        /* Style adjustments for KaTeX equations in dark mode */
+        .katex-display {
+            margin: 0.5em 0 !important;
+            padding: 4px 0;
+        }
+        .katex {
+            font-size: 1.15em;
+            color: #f8fafc;
+        }
+    </style>
+</head>
+<body class="bg-slate-950 text-slate-100 min-h-screen flex flex-col selection:bg-indigo-500 selection:text-white">
+
+    <!-- Main Header -->
+    <header class="border-b border-slate-800 bg-slate-900/50 backdrop-blur sticky top-0 z-50">
+        <div class="max-w-7xl mx-auto px-4 py-4 sm:px-6 lg:px-8 flex flex-col sm:flex-row items-center justify-between gap-4">
+            <div class="flex items-center gap-3">
+                <div class="p-2.5 bg-indigo-600/20 text-indigo-400 rounded-xl border border-indigo-500/30">
+                    <i class="fa-solid fa-gauge-high text-2xl"></i>
+                </div>
+                <div>
+                    <h1 class="text-xl font-bold tracking-tight text-white flex items-center gap-2">
+                        Kinematics Lab: <span class="text-indigo-400 font-extrabold">Velocity & Limits</span>
+                    </h1>
+                    <p class="text-xs text-slate-400">Interactive exploration of average and instantaneous rates of change</p>
+                </div>
+            </div>
+            <div class="flex items-center gap-2 bg-slate-800/80 p-1.5 rounded-lg border border-slate-700/50 text-xs">
+                <span class="px-2 py-1 bg-indigo-500 text-white rounded-md font-semibold">Active Lab</span>
+                <span class="text-slate-400 px-2 font-mono">1D Linear Motion</span>
+            </div>
+        </div>
+    </header>
+
+    <!-- Main Container -->
+    <main class="flex-grow max-w-7xl w-full mx-auto px-4 py-6 sm:px-6 lg:px-8 grid grid-cols-1 lg:grid-cols-12 gap-8">
+
+        <!-- Interactive Visualizer (Left Column) -->
+        <section class="lg:col-span-7 flex flex-col gap-6">
+            
+            <!-- Motion Track Card -->
+            <div class="bg-slate-900 border border-slate-800 rounded-2xl p-5 shadow-2xl relative overflow-hidden">
+                <div class="absolute top-0 left-0 w-full h-[3px] bg-gradient-to-r from-emerald-500 via-indigo-500 to-amber-500"></div>
+                <div class="flex justify-between items-center mb-4">
+                    <h3 class="text-sm font-semibold tracking-wide text-slate-300 uppercase flex items-center gap-2">
+                        <i class="fa-solid fa-road text-emerald-400"></i> Real-time Motion Track (1D Axis)
+                    </h3>
+                    <div class="flex gap-2">
+                        <button id="playBtn" class="px-3 py-1 bg-emerald-600 hover:bg-emerald-500 active:scale-95 text-xs text-white font-semibold rounded-lg shadow-lg shadow-emerald-900/30 transition flex items-center gap-1.5">
+                            <i class="fa-solid fa-play"></i> Play Motion
+                        </button>
+                        <button id="resetBtn" class="px-3 py-1 bg-slate-800 hover:bg-slate-700 active:scale-95 text-xs text-slate-300 font-semibold rounded-lg border border-slate-700 transition flex items-center gap-1.5">
+                            <i class="fa-solid fa-rotate-left"></i> Reset
+                        </button>
+                    </div>
+                </div>
+
+                <!-- 1D Track Canvas Container - Expanded height to prevent vertical clipping of text and arrows -->
+                <div class="relative bg-slate-950 rounded-xl border border-slate-800 p-2 overflow-hidden">
+                    <canvas id="motionCanvas" class="w-full h-48 block"></canvas>
+                </div>
+                
+                <div class="grid grid-cols-3 gap-2 mt-3 text-center text-xs">
+                    <div class="p-2 bg-slate-950/50 rounded-lg border border-slate-800">
+                        <div class="text-slate-400 font-medium">Initial Position <span class="text-[10px] text-indigo-400">x(t)</span></div>
+                        <div id="val-xt" class="text-sm font-bold text-slate-200 mt-0.5">--</div>
+                    </div>
+                    <div class="p-2 bg-slate-950/50 rounded-lg border border-slate-800">
+                        <div class="text-slate-400 font-medium">Final Position <span class="text-[10px] text-sky-400">x(t+Δt)</span></div>
+                        <div id="val-xtdt" class="text-sm font-bold text-slate-200 mt-0.5">--</div>
+                    </div>
+                    <div class="p-2 bg-emerald-950/30 rounded-lg border border-emerald-900/30">
+                        <div class="text-emerald-400 font-semibold">Displacement <span class="text-[10px]">Δx</span></div>
+                        <div id="val-dx" class="text-sm font-black text-emerald-400 mt-0.5">--</div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Position vs Time Graph Card -->
+            <div class="bg-slate-900 border border-slate-800 rounded-2xl p-5 shadow-2xl relative overflow-hidden flex-grow flex flex-col justify-between">
+                <div class="flex justify-between items-center mb-3">
+                    <h3 class="text-sm font-semibold tracking-wide text-slate-300 uppercase flex items-center gap-2">
+                        <i class="fa-solid fa-chart-line text-indigo-400"></i> Position vs. Time Graph
+                    </h3>
+                    <div class="flex items-center gap-3 text-xs">
+                        <span class="flex items-center gap-1"><span class="w-2.5 h-2.5 rounded-full bg-slate-500"></span> Curve</span>
+                        <span class="flex items-center gap-1"><span class="w-2.5 h-0.5 bg-indigo-500 inline-block"></span> Secant (v_avg)</span>
+                        <span class="flex items-center gap-1"><span class="w-2.5 h-0.5 border-t border-dashed border-amber-500 inline-block"></span> Tangent (v_inst)</span>
+                    </div>
+                </div>
+
+                <!-- Graph Canvas Container -->
+                <div class="relative bg-slate-950 rounded-xl border border-slate-800 p-2 flex-grow min-h-[300px] flex items-center justify-center">
+                    <canvas id="graphCanvas" class="w-full h-full block"></canvas>
+                </div>
+
+                <p class="text-[11px] text-slate-400 text-center mt-3 italic">
+                    The slope of the solid <span class="text-indigo-400 font-semibold">indigo line</span> matches the average velocity. Shrink &Delta;t to watch it converge with the dashed <span class="text-amber-500 font-semibold">amber tangent line</span>.
+                </p>
+            </div>
+
+        </section>
+
+        <!-- Controls & Infographics Panel (Right Column) -->
+        <section class="lg:col-span-5 flex flex-col gap-6">
+
+            <!-- Control Dashboard Card -->
+            <div class="bg-slate-900 border border-slate-800 rounded-2xl p-5 shadow-2xl relative">
+                <h3 class="text-sm font-semibold tracking-wide text-slate-300 uppercase mb-4 flex items-center gap-2">
+                    <i class="fa-solid fa-sliders text-indigo-400"></i> Parameter Dashboard
+                </h3>
+
+                <!-- Motion Function Picker -->
+                <div class="mb-5">
+                    <label class="block text-xs font-semibold text-slate-400 uppercase tracking-wider mb-2">Select Motion Type</label>
+                    <div class="grid grid-cols-3 gap-2">
+                        <button id="btn-func-quad" class="px-3 py-2 text-xs font-semibold rounded-xl border transition-all duration-200 bg-indigo-600/10 border-indigo-500 text-indigo-300 flex flex-col items-center gap-1">
+                            <i class="fa-solid fa-arrow-trend-up"></i>
+                            <span>Accelerating</span>
+                        </button>
+                        <button id="btn-func-sine" class="px-3 py-2 text-xs font-semibold rounded-xl border transition-all duration-200 bg-slate-950 border-slate-800 text-slate-400 hover:bg-slate-800/50 flex flex-col items-center gap-1">
+                            <i class="fa-solid fa-wave-square"></i>
+                            <span>Oscillating</span>
+                        </button>
+                        <button id="btn-func-linear" class="px-3 py-2 text-xs font-semibold rounded-xl border transition-all duration-200 bg-slate-950 border-slate-800 text-slate-400 hover:bg-slate-800/50 flex flex-col items-center gap-1">
+                            <i class="fa-solid fa-grip-lines"></i>
+                            <span>Constant Speed</span>
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Sliders Section -->
+                <div class="space-y-5">
+                    <!-- Slider 1: Start Time (t) -->
+                    <div>
+                        <div class="flex justify-between items-center mb-1.5">
+                            <label for="slider-t" class="text-xs font-semibold text-slate-300 flex items-center gap-1.5">
+                                <span class="bg-slate-800 text-slate-400 w-5 h-5 rounded flex items-center justify-center font-mono text-[10px]">t</span>
+                                Start Time (t)
+                            </label>
+                            <span id="slider-t-val" class="font-mono text-sm text-indigo-400 font-bold">1.50 s</span>
+                        </div>
+                        <input id="slider-t" type="range" min="0.5" max="5.0" step="0.05" value="1.5" class="w-full accent-indigo-500 bg-slate-950 border border-slate-800 h-2 rounded-lg cursor-pointer">
+                    </div>
+
+                    <!-- Slider 2: Interval (Delta t) -->
+                    <div>
+                        <div class="flex justify-between items-center mb-1.5">
+                            <label for="slider-dt" class="text-xs font-semibold text-slate-300 flex items-center gap-1.5">
+                                <span class="bg-indigo-950 text-indigo-300 w-5 h-5 rounded flex items-center justify-center font-mono text-[10px]">&Delta;t</span>
+                                Time Interval (&Delta;t)
+                            </label>
+                            <span id="slider-dt-val" class="font-mono text-sm text-emerald-400 font-bold">2.50 s</span>
+                        </div>
+                        <input id="slider-dt" type="range" min="0.05" max="4.0" step="0.05" value="2.5" class="w-full accent-emerald-500 bg-slate-950 border border-slate-800 h-2 rounded-lg cursor-pointer">
+                        <div class="flex justify-between text-[10px] text-slate-500 mt-1">
+                            <span>Instantaneous Limit (&Delta;t &rarr; 0)</span>
+                            <span>Large Interval</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Interactive Live Equation Card -->
+            <div class="bg-slate-900 border border-slate-800 rounded-2xl p-5 shadow-2xl relative">
+                <h3 class="text-sm font-semibold tracking-wide text-slate-300 uppercase mb-3.5 flex items-center gap-2">
+                    <i class="fa-solid fa-square-root-variable text-indigo-400"></i> Vector Dynamics Breakdowns
+                </h3>
+
+                <!-- Average Velocity Dynamic Card -->
+                <div class="bg-slate-950 border border-slate-800/80 rounded-xl p-4 mb-4 shadow-inner">
+                    <div class="flex items-center justify-between mb-3 border-b border-slate-900 pb-2">
+                        <span class="text-xs font-bold text-indigo-300 uppercase tracking-wide">Average Velocity Vector</span>
+                        <span class="text-[10px] text-slate-500">During interval [t, t+&Delta;t]</span>
+                    </div>
+
+                    <!-- Rendered Beautifully via KaTeX -->
+                    <div id="katex-vavg" class="min-h-[50px] flex items-center justify-center py-2 text-slate-100 overflow-x-auto overflow-y-hidden">
+                        <div class="animate-pulse text-xs text-slate-500">Loading equation...</div>
+                    </div>
+
+                    <!-- Live Calculation String -->
+                    <div class="mt-3 bg-slate-900/50 rounded-lg p-2.5 border border-slate-800 flex flex-col gap-1 text-xs">
+                        <div class="flex justify-between items-center text-slate-400">
+                            <span>Computed Component (v<sub>avg, x</sub>):</span>
+                            <span class="font-mono font-bold text-indigo-400" id="live-vavg-math">(-- m) / (-- s)</span>
+                        </div>
+                        <div class="flex justify-between items-center border-t border-slate-800/50 pt-1.5">
+                            <span class="font-semibold text-slate-300">Average Velocity Component:</span>
+                            <span class="font-mono text-sm font-extrabold text-indigo-400" id="live-vavg-result">-- m/s</span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Instantaneous Velocity Limit Card -->
+                <div class="bg-slate-950 border border-slate-800/80 rounded-xl p-4 shadow-inner">
+                    <div class="flex items-center justify-between mb-3 border-b border-slate-900 pb-2">
+                        <span class="text-xs font-bold text-amber-500 uppercase tracking-wide">Instantaneous Limit</span>
+                        <span class="text-[10px] text-slate-500">&Delta;t &rarr; 0 limit</span>
+                    </div>
+
+                    <!-- Rendered Beautifully via KaTeX -->
+                    <div id="katex-vinst" class="min-h-[50px] flex items-center justify-center py-2 text-slate-100 overflow-x-auto overflow-y-hidden">
+                        <div class="animate-pulse text-xs text-slate-500">Loading equation...</div>
+                    </div>
+
+                    <div class="mt-3 bg-slate-900/50 rounded-lg p-2.5 border border-slate-800 flex flex-col gap-1 text-xs">
+                        <div class="flex justify-between items-center text-slate-400">
+                            <span>True Instantaneous Slope at t:</span>
+                            <span class="font-mono text-slate-400 font-bold" id="live-vinst-math">dx/dt | t</span>
+                        </div>
+                        <div class="flex justify-between items-center border-t border-slate-800/50 pt-1.5">
+                            <span class="font-semibold text-slate-300">Instantaneous Velocity:</span>
+                            <span class="font-mono text-sm font-extrabold text-amber-500" id="live-vinst-result">-- m/s</span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Explanation Note on Sign and components -->
+                <div class="mt-4 p-3 bg-slate-800/30 rounded-xl border border-slate-800 text-[11px] leading-relaxed text-slate-400 flex gap-2.5 items-start">
+                    <i class="fa-solid fa-circle-info text-indigo-400 mt-0.5 text-base"></i>
+                    <div>
+                        <strong class="text-slate-300">Directional Components:</strong> As the physics lecture describes, the component of average velocity can be positive, zero, or negative depending entirely on the sign of displacement vector <span class="text-emerald-400 font-semibold">&Delta;x</span>.
+                    </div>
+                </div>
+            </div>
+
+        </section>
+
+    </main>
+
+    <!-- Footer Summary -->
+    <footer class="border-t border-slate-900 bg-slate-950 py-4 text-center text-xs text-slate-500 mt-6">
+        <p>© 2026 Interactive Physics Lab. Created to visualize 1D displacement vectors and the limit of average velocities.</p>
+    </footer>
+
+    <script>
+        const motionCanvas = document.getElementById('motionCanvas');
+        const graphCanvas = document.getElementById('graphCanvas');
+        const mCtx = motionCanvas.getContext('2d');
+        const gCtx = graphCanvas.getContext('2d');
+
+        // State Store
+        let state = {
+            t: 1.5,          // start time
+            dt: 2.5,         // delta t
+            motionType: 'quadratic', // quadratic, sine, linear
+            isPlaying: false,
+            playProgress: 0.0, // goes from 0.0 to 1.0 representing path from start to end
+            playSpeed: 0.008,
+            animationFrameId: null
+        };
+
+        // Math Formulas representing x(t)
+        // Designed to fit nicely within t in [0.0, 6.0] and x in [0.0, 10.0]
+        const motionFunctions = {
+            quadratic: {
+                x: (t) => -0.22 * (t - 4.5) ** 2 + 7.5,
+                dx: (t) => -0.44 * (t - 4.5)
+            },
+            sine: {
+                x: (t) => 2.5 * Math.sin(1.1 * t - 1.2) + 4.8,
+                dx: (t) => 2.75 * Math.cos(1.1 * t - 1.2)
+            },
+            linear: {
+                x: (t) => 1.2 * t + 1.5,
+                dx: (t) => 1.2
+            }
+        };
+
+        // Control Hooks
+        const sliderT = document.getElementById('slider-t');
+        const sliderDt = document.getElementById('slider-dt');
+        const sliderTVal = document.getElementById('slider-t-val');
+        const sliderDtVal = document.getElementById('slider-dt-val');
+
+        const btnFuncQuad = document.getElementById('btn-func-quad');
+        const btnFuncSine = document.getElementById('btn-func-sine');
+        const btnFuncLinear = document.getElementById('btn-func-linear');
+
+        const valXt = document.getElementById('val-xt');
+        const valXtdt = document.getElementById('val-xtdt');
+        const valDx = document.getElementById('val-dx');
+
+        const liveVavgMath = document.getElementById('live-vavg-math');
+        const liveVavgResult = document.getElementById('live-vavg-result');
+        const liveVinstMath = document.getElementById('live-vinst-math');
+        const liveVinstResult = document.getElementById('live-vinst-result');
+
+        const playBtn = document.getElementById('playBtn');
+        const resetBtn = document.getElementById('resetBtn');
+
+        // Render clean, professional math equations using KaTeX
+        function setupMathEquations() {
+            if (typeof katex !== 'undefined') {
+                try {
+                    // Average Velocity formula rendering
+                    katex.render(
+                        "\\vec{v}_{\\text{avg}} = \\frac{\\Delta \\vec{r}}{\\Delta t} = \\frac{\\Delta x}{\\Delta t}\\hat{i} = \\frac{x(t+\\Delta t) - x(t)}{\\Delta t}\\hat{i}",
+                        document.getElementById('katex-vavg'),
+                        { displayMode: true, throwOnError: false }
+                    );
+
+                    // Instantaneous Limit formula rendering
+                    katex.render(
+                        "\\vec{v}(t) = \\lim_{\\Delta t \\to 0} \\frac{\\Delta x}{\\Delta t}\\hat{i} = \\frac{dx}{dt}\\hat{i}",
+                        document.getElementById('katex-vinst'),
+                        { displayMode: true, throwOnError: false }
+                    );
+                } catch (e) {
+                    console.error("KaTeX rendering error:", e);
+                }
+            } else {
+                // Fallback elegant markup if CDN isn't parsed yet
+                setTimeout(setupMathEquations, 100);
+            }
+        }
+
+        // Set Slider Limits dynamically depending on selected motion to make visualizations flawless
+        function updateSliders() {
+            sliderTVal.textContent = state.t.toFixed(2) + " s";
+            sliderDtVal.textContent = state.dt.toFixed(2) + " s";
+            
+            // Adjust maximum dt so that t + dt doesn't overflow our domain (6.0s max for domain rendering)
+            const maxDtAllowed = 6.0 - state.t;
+            sliderDt.max = Math.max(0.2, maxDtAllowed).toFixed(2);
+            if (state.dt > maxDtAllowed) {
+                state.dt = maxDtAllowed;
+                sliderDt.value = maxDtAllowed.toFixed(2);
+                sliderDtVal.textContent = maxDtAllowed.toFixed(2) + " s";
+            }
+        }
+
+        // Apply visual active classes to functional selection buttons
+        function selectFunction(type) {
+            state.motionType = type;
+            [btnFuncQuad, btnFuncSine, btnFuncLinear].forEach(btn => {
+                btn.classList.remove('bg-indigo-600/10', 'border-indigo-500', 'text-indigo-300');
+                btn.classList.add('bg-slate-950', 'border-slate-800', 'text-slate-400');
+            });
+
+            let activeBtn = btnFuncQuad;
+            if (type === 'sine') activeBtn = btnFuncSine;
+            if (type === 'linear') activeBtn = btnFuncLinear;
+
+            activeBtn.classList.remove('bg-slate-950', 'border-slate-800', 'text-slate-400');
+            activeBtn.classList.add('bg-indigo-600/10', 'border-indigo-500', 'text-indigo-300');
+
+            updateSliders();
+            calculateValues();
+            render();
+        }
+
+        // Math crunching and element innerTexts setup
+        function calculateValues() {
+            const func = motionFunctions[state.motionType];
+            const t1 = state.t;
+            const t2 = state.t + state.dt;
+
+            const x1 = func.x(t1);
+            const x2 = func.x(t2);
+
+            const dx = x2 - x1;
+            const dt = state.dt;
+            const vAvg = dx / dt;
+            const vInst = func.dx(t1);
+
+            // Display components
+            valXt.innerHTML = `${x1.toFixed(2)} <span class="text-[10px] text-slate-500">m</span>`;
+            valXtdt.innerHTML = `${x2.toFixed(2)} <span class="text-[10px] text-slate-500">m</span>`;
+            
+            if (dx >= 0) {
+                valDx.innerHTML = `+${dx.toFixed(2)} <span class="text-[10px] text-emerald-500">m</span>`;
+                valDx.className = "text-sm font-black text-emerald-400 mt-0.5";
+            } else {
+                valDx.innerHTML = `${dx.toFixed(2)} <span class="text-[10px] text-rose-500">m</span>`;
+                valDx.className = "text-sm font-black text-rose-400 mt-0.5";
+            }
+
+            // Math card
+            liveVavgMath.innerText = `(${dx.toFixed(2)} m) / (${dt.toFixed(2)} s)`;
+            liveVavgResult.innerText = `${vAvg.toFixed(2)} m/s`;
+            
+            liveVinstMath.innerText = `dx/dt @ t = ${t1.toFixed(2)} s`;
+            liveVinstResult.innerText = `${vInst.toFixed(2)} m/s`;
+        }
+
+        // Initialize canvas resolutions appropriately for crisp Retina screens
+        function resizeCanvases() {
+            const mRect = motionCanvas.parentNode.getBoundingClientRect();
+            motionCanvas.width = mRect.width * window.devicePixelRatio;
+            motionCanvas.height = mRect.height * window.devicePixelRatio;
+            motionCanvas.style.width = `${mRect.width}px`;
+            motionCanvas.style.height = `${mRect.height}px`;
+
+            const gRect = graphCanvas.parentNode.getBoundingClientRect();
+            graphCanvas.width = gRect.width * window.devicePixelRatio;
+            graphCanvas.height = gRect.height * window.devicePixelRatio;
+            graphCanvas.style.width = `${gRect.width}px`;
+            graphCanvas.style.height = `${gRect.height}px`;
+
+            render();
+        }
+
+        // Canvas Drawing Logic
+        function render() {
+            const f = motionFunctions[state.motionType];
+            
+            // Draw Motion track
+            renderMotionTrack(f);
+
+            // Draw Position-Time Graph
+            renderGraph(f);
+        }
+
+        // Helper to draw clean vector text notation (vector arrow accent) programmatically
+        // completely bypassing Unicode combining character tofu blocks or alignment errors
+        function drawVectorAccentText(ctx, x, y, baseChar, prefix = '', suffix = '') {
+            ctx.save();
+            ctx.font = 'bold 11px Inter, sans-serif';
+            ctx.textAlign = 'left';
+            ctx.textBaseline = 'bottom';
+
+            // Measure widths of each component exactly to compute centered start position
+            const prefixWidth = prefix ? ctx.measureText(prefix).width : 0;
+            const baseWidth = ctx.measureText(baseChar).width;
+            const suffixWidth = suffix ? ctx.measureText(suffix).width : 0;
+
+            const totalWidth = prefixWidth + baseWidth + suffixWidth;
+            const startX = x - totalWidth / 2;
+
+            // 1. Draw Prefix Text (e.g. Delta symbol)
+            if (prefix) {
+                ctx.fillText(prefix, startX, y);
+            }
+
+            // 2. Draw Base Variable Character (e.g. r)
+            const baseX = startX + prefixWidth;
+            ctx.fillText(baseChar, baseX, y);
+
+            // 3. Draw Suffix Text (e.g. (t) or (t+dt))
+            if (suffix) {
+                ctx.fillText(suffix, baseX + baseWidth, y);
+            }
+
+            // 4. Draw programmatic Vector Arrow accent directly above the base character
+            const arrowY = y - 12; // Standardised height offset above the text baseline
+            const arrowLeft = baseX + 1;
+            const arrowRight = baseX + baseWidth - 1;
+
+            ctx.strokeStyle = ctx.fillStyle; // Sync color with text fill
+            ctx.lineWidth = 1.2;
+            ctx.beginPath();
+            ctx.moveTo(arrowLeft, arrowY);
+            ctx.lineTo(arrowRight, arrowY);
+            ctx.stroke();
+
+            // Tiny arrow head for the accent
+            ctx.beginPath();
+            ctx.moveTo(arrowRight, arrowY);
+            ctx.lineTo(arrowRight - 2.5, arrowY - 1.5);
+            ctx.lineTo(arrowRight - 2.5, arrowY + 1.5);
+            ctx.fill();
+
+            ctx.restore();
+        }
+
+        // Helper to draw clean styled vector arrows on Canvas
+        function drawVectorArrow(ctx, fromX, toX, y, color, labelType, showOriginDot = true) {
+            ctx.save();
+            ctx.strokeStyle = color;
+            ctx.fillStyle = color;
+            ctx.lineWidth = 2.5;
+
+            // Draw Vector Line
+            ctx.beginPath();
+            ctx.moveTo(fromX, y);
+            ctx.lineTo(toX, y);
+            ctx.stroke();
+
+            // Draw Dot at Origin of Vector
+            if (showOriginDot) {
+                ctx.beginPath();
+                ctx.arc(fromX, y, 4, 0, 2 * Math.PI);
+                ctx.fill();
+            }
+
+            // Draw Arrow Head
+            const arrowHeadSize = 7;
+            const angle = Math.atan2(0, toX - fromX);
+            ctx.beginPath();
+            ctx.moveTo(toX, y);
+            ctx.lineTo(toX - arrowHeadSize * Math.cos(angle - Math.PI / 6), y - arrowHeadSize * Math.sin(angle - Math.PI / 6));
+            ctx.lineTo(toX - arrowHeadSize * Math.cos(angle + Math.PI / 6), y + arrowHeadSize * Math.sin(angle + Math.PI / 6));
+            ctx.fill();
+
+            // Draw programmatically constructed vector notation label over character
+            // Pad by 8 pixels above the line to guarantee no overlaps or collisions
+            const labelY = y - 8;
+            if (labelType === 'rt') {
+                drawVectorAccentText(ctx, (fromX + toX) / 2, labelY, 'r', '', '(t)');
+            } else if (labelType === 'rtdt') {
+                drawVectorAccentText(ctx, (fromX + toX) / 2, labelY, 'r', '', '(t+Δt)');
+            } else if (labelType === 'dr') {
+                drawVectorAccentText(ctx, (fromX + toX) / 2, labelY, 'r', 'Δ', '');
+            }
+            ctx.restore();
+        }
+
+        function renderMotionTrack(func) {
+            const w = motionCanvas.width;
+            const h = motionCanvas.height;
+            
+            mCtx.setTransform(1, 0, 0, 1, 0, 0);
+            mCtx.clearRect(0, 0, w, h);
+            mCtx.scale(window.devicePixelRatio, window.devicePixelRatio);
+
+            const displayWidth = w / window.devicePixelRatio;
+            const displayHeight = h / window.devicePixelRatio;
+
+            // Padding and axis configuration
+            const padLeft = 40;
+            const padRight = 40;
+            const trackWidth = displayWidth - padLeft - padRight;
+            
+            // Track placed low to leave ample vertical space for stacked vectors
+            const trackY = displayHeight - 45;
+
+            // Map position (0 to 10 meters) to pixel positions
+            const mapPosToX = (pos) => padLeft + (pos / 10.0) * trackWidth;
+
+            // Draw Main coordinate track line
+            mCtx.strokeStyle = '#475569';
+            mCtx.lineWidth = 2.5;
+            mCtx.beginPath();
+            mCtx.moveTo(padLeft, trackY);
+            mCtx.lineTo(displayWidth - padRight, trackY);
+            mCtx.stroke();
+
+            // Draw ticks and tick labels
+            mCtx.fillStyle = '#94a3b8';
+            mCtx.font = '10px "JetBrains Mono", monospace';
+            mCtx.textBaseline = 'top';
+            for (let i = 0; i <= 10; i++) {
+                const tickX = mapPosToX(i);
+                mCtx.beginPath();
+                mCtx.moveTo(tickX, trackY - 4);
+                mCtx.lineTo(tickX, trackY + 4);
+                mCtx.strokeStyle = '#64748b';
+                mCtx.lineWidth = 1.5;
+                mCtx.stroke();
+                
+                mCtx.save();
+                mCtx.textAlign = 'center';
+                mCtx.fillText(`${i}m`, tickX, trackY + 8);
+                mCtx.restore();
+            }
+
+            // Calculations for nodes
+            const t1 = state.t;
+            const t2 = state.t + state.dt;
+            const x1 = func.x(t1);
+            const x2 = func.x(t2);
+
+            const x1Pix = mapPosToX(x1);
+            const x2Pix = mapPosToX(x2);
+            const originPix = mapPosToX(0); // Position vector origin reference
+
+            // Stacked Vector Arrows (matching blackboard diagram precisely)
+            const yOffsetDisplacement = 25;       // Δr vector row
+            const yOffsetFinalPos = 55;           // r(t+Δt) vector row
+            const yOffsetInitialPos = 85;         // r(t) vector row
+
+            // Draw Alignment Helper Dashed lines
+            mCtx.save();
+            mCtx.strokeStyle = 'rgba(71, 85, 105, 0.4)';
+            mCtx.setLineDash([2, 4]);
+            mCtx.lineWidth = 1;
+
+            // helper line from origin down to track
+            mCtx.beginPath();
+            mCtx.moveTo(originPix, yOffsetFinalPos);
+            mCtx.lineTo(originPix, trackY);
+            mCtx.stroke();
+
+            // helper line from initial node up to vectors
+            mCtx.beginPath();
+            mCtx.moveTo(x1Pix, yOffsetDisplacement);
+            mCtx.lineTo(x1Pix, trackY);
+            mCtx.stroke();
+
+            // helper line from final node up to vectors
+            mCtx.beginPath();
+            mCtx.moveTo(x2Pix, yOffsetDisplacement);
+            mCtx.lineTo(x2Pix, trackY);
+            mCtx.stroke();
+            mCtx.restore();
+
+            // 1. Draw Position Vector r(t) [Indigo] from origin 0 to x(t)
+            drawVectorArrow(mCtx, originPix, x1Pix, yOffsetInitialPos, '#818cf8', 'rt', true);
+
+            // 2. Draw Position Vector r(t+Δt) [Sky Blue] from origin 0 to x(t+Δt)
+            drawVectorArrow(mCtx, originPix, x2Pix, yOffsetFinalPos, '#38bdf8', 'rtdt', true);
+
+            // 3. Draw Displacement Vector Δr [Emerald] pointing from x(t) to x(t+Δt)
+            drawVectorArrow(mCtx, x1Pix, x2Pix, yOffsetDisplacement, '#34d399', 'dr', false);
+
+            // Draw actual coordinate nodes on the track axis
+            // Initial position node
+            mCtx.beginPath();
+            mCtx.arc(x1Pix, trackY, 6, 0, 2 * Math.PI);
+            mCtx.fillStyle = '#6366f1';
+            mCtx.fill();
+            mCtx.strokeStyle = '#000';
+            mCtx.lineWidth = 1.5;
+            mCtx.stroke();
+
+            mCtx.font = 'bold 9px Inter';
+            mCtx.fillStyle = '#a5b4fc';
+            mCtx.textBaseline = 'bottom';
+            mCtx.save();
+            mCtx.textAlign = 'center';
+            mCtx.fillText('x(t)', x1Pix, trackY - 4);
+            mCtx.restore();
+
+            // Final position node
+            mCtx.beginPath();
+            mCtx.arc(x2Pix, trackY, 6, 0, 2 * Math.PI);
+            mCtx.fillStyle = '#10b981';
+            mCtx.fill();
+            mCtx.strokeStyle = '#000';
+            mCtx.lineWidth = 1.5;
+            mCtx.stroke();
+
+            mCtx.fillStyle = '#34d399';
+            mCtx.save();
+            mCtx.textAlign = 'center';
+            mCtx.fillText('x(t+Δt)', x2Pix, trackY - 4);
+            mCtx.restore();
+
+            // Active tracking particle representing continuous time progression
+            if (state.isPlaying) {
+                const currentT = state.t + state.playProgress * state.dt;
+                const currentX = func.x(currentT);
+                const currentXPix = mapPosToX(currentX);
+
+                // Glow ring
+                mCtx.beginPath();
+                mCtx.arc(currentXPix, trackY, 10, 0, 2 * Math.PI);
+                mCtx.fillStyle = 'rgba(245, 158, 11, 0.25)';
+                mCtx.fill();
+
+                mCtx.beginPath();
+                mCtx.arc(currentXPix, trackY, 5, 0, 2 * Math.PI);
+                mCtx.fillStyle = '#fbbf24';
+                mCtx.fill();
+                mCtx.strokeStyle = '#ffffff';
+                mCtx.lineWidth = 1.5;
+                mCtx.stroke();
+
+                mCtx.fillStyle = '#fbbf24';
+                mCtx.font = 'bold 9px Inter';
+                mCtx.save();
+                mCtx.textAlign = 'center';
+                mCtx.fillText('Live', currentXPix, trackY - 14);
+                mCtx.restore();
+            }
+        }
+
+        function renderGraph(func) {
+            const w = graphCanvas.width;
+            const h = graphCanvas.height;
+
+            gCtx.setTransform(1, 0, 0, 1, 0, 0);
+            gCtx.clearRect(0, 0, w, h);
+            gCtx.scale(window.devicePixelRatio, window.devicePixelRatio);
+
+            const displayWidth = w / window.devicePixelRatio;
+            const displayHeight = h / window.devicePixelRatio;
+
+            // Layout padding
+            const padLeft = 45;
+            const padRight = 25;
+            const padTop = 20;
+            const padBottom = 35;
+
+            const graphW = displayWidth - padLeft - padRight;
+            const graphH = displayHeight - padTop - padBottom;
+
+            // X-axis limit: t in [0s, 6s]
+            // Y-axis limit: x in [0m, 10m]
+            const mapT = (t) => padLeft + (t / 6.0) * graphW;
+            const mapX = (x) => padTop + graphH - (x / 10.0) * graphH;
+
+            // Draw Graph Grid
+            gCtx.strokeStyle = '#1e293b';
+            gCtx.lineWidth = 1;
+            gCtx.font = '9px monospace';
+            gCtx.fillStyle = '#64748b';
+            
+            // vertical gridlines & ticks (Time)
+            gCtx.textAlign = 'center';
+            for (let t = 0; t <= 6; t += 1) {
+                const gridX = mapT(t);
+                gCtx.beginPath();
+                gCtx.moveTo(gridX, padTop);
+                gCtx.lineTo(gridX, padTop + graphH);
+                gCtx.stroke();
+                gCtx.fillText(`${t}s`, gridX, padTop + graphH + 14);
+            }
+
+            // horizontal gridlines & ticks (Position)
+            gCtx.textAlign = 'right';
+            for (let x = 0; x <= 10; x += 2) {
+                const gridY = mapX(x);
+                gCtx.beginPath();
+                gCtx.moveTo(padLeft, gridY);
+                gCtx.lineTo(padLeft + graphW, gridY);
+                gCtx.stroke();
+                gCtx.fillText(`${x}m`, padLeft - 8, gridY + 3);
+            }
+
+            // Axes lines
+            gCtx.strokeStyle = '#475569';
+            gCtx.lineWidth = 2;
+            gCtx.beginPath();
+            gCtx.moveTo(padLeft, padTop);
+            gCtx.lineTo(padLeft, padTop + graphH);
+            gCtx.lineTo(padLeft + graphW, padTop + graphH);
+            gCtx.stroke();
+
+            // Label Axis Titles
+            gCtx.fillStyle = '#94a3b8';
+            gCtx.font = '500 10px Inter';
+            gCtx.textAlign = 'center';
+            gCtx.fillText('Time (t) ➔', padLeft + graphW/2, padTop + graphH + 28);
+            
+            gCtx.save();
+            gCtx.translate(14, padTop + graphH/2);
+            gCtx.rotate(-Math.PI/2);
+            gCtx.fillText('Position (x) ➔', 0, 0);
+            gCtx.restore();
+
+            // Render function trajectory curve
+            gCtx.strokeStyle = '#475569';
+            gCtx.lineWidth = 3;
+            gCtx.beginPath();
+            let started = false;
+            for (let t = 0; t <= 6.01; t += 0.05) {
+                const px = mapT(t);
+                const py = mapX(func.x(t));
+                if (!started) {
+                    gCtx.moveTo(px, py);
+                    started = true;
+                } else {
+                    gCtx.lineTo(px, py);
+                }
+            }
+            gCtx.stroke();
+
+            // Key Coordinates
+            const t1 = state.t;
+            const t2 = state.t + state.dt;
+            const x1 = func.x(t1);
+            const x2 = func.x(t2);
+
+            const pt1X = mapT(t1);
+            const pt1Y = mapX(x1);
+            const pt2X = mapT(t2);
+            const pt2Y = mapX(x2);
+
+            // Draw secant triangle indicators (rise & run lines)
+            gCtx.setLineDash([3, 3]);
+            gCtx.strokeStyle = '#334155';
+            gCtx.lineWidth = 1.5;
+            
+            // Run: Δt line
+            gCtx.beginPath();
+            gCtx.moveTo(pt1X, pt1Y);
+            gCtx.lineTo(pt2X, pt1Y);
+            gCtx.stroke();
+
+            // Rise: Δx line
+            gCtx.strokeStyle = '#059669';
+            gCtx.beginPath();
+            gCtx.moveTo(pt2X, pt1Y);
+            gCtx.lineTo(pt2X, pt2Y);
+            gCtx.stroke();
+
+            gCtx.setLineDash([]); // clear dash formatting
+
+            // Label Δt and Δx on the triangles
+            gCtx.fillStyle = '#64748b';
+            gCtx.font = 'bold 9px monospace';
+            gCtx.textAlign = 'center';
+            gCtx.fillText(`Δt=${state.dt.toFixed(2)}s`, (pt1X + pt2X) / 2, pt1Y + (x2 >= x1 ? 12 : -7));
+
+            gCtx.fillStyle = x2 >= x1 ? '#34d399' : '#f87171';
+            gCtx.fillText(`Δx=${(x2-x1).toFixed(2)}m`, pt2X + 28, (pt1Y + pt2Y) / 2 + 3);
+
+            // Draw Secant Line (Average Velocity representation)
+            gCtx.strokeStyle = '#6366f1';
+            gCtx.lineWidth = 2.5;
+            gCtx.beginPath();
+            const extRatio = 0.2;
+            const dxPixel = pt2X - pt1X;
+            const dyPixel = pt2Y - pt1Y;
+            gCtx.moveTo(pt1X - dxPixel * extRatio, pt1Y - dyPixel * extRatio);
+            gCtx.lineTo(pt2X + dxPixel * extRatio, pt2Y + dyPixel * extRatio);
+            gCtx.stroke();
+
+            // Draw Tangent line representing Instantaneous Velocity at t1
+            const slope = func.dx(t1); // velocity at t1
+            const slopePixel = - (slope / 10.0 * graphH) / (1.0 / 6.0 * graphW);
+            
+            gCtx.strokeStyle = '#f59e0b';
+            gCtx.setLineDash([4, 4]);
+            gCtx.lineWidth = 1.5;
+            gCtx.beginPath();
+            const tangExt = 65;
+            gCtx.moveTo(pt1X - tangExt, pt1Y - tangExt * slopePixel);
+            gCtx.lineTo(pt1X + tangExt, pt1Y + tangExt * slopePixel);
+            gCtx.stroke();
+            gCtx.setLineDash([]);
+
+            // Draw Key Endpoint Nodes
+            gCtx.beginPath();
+            gCtx.arc(pt1X, pt1Y, 5, 0, 2 * Math.PI);
+            gCtx.fillStyle = '#6366f1';
+            gCtx.fill();
+            gCtx.strokeStyle = '#ffffff';
+            gCtx.lineWidth = 1.5;
+            gCtx.stroke();
+
+            gCtx.beginPath();
+            gCtx.arc(pt2X, pt2Y, 5, 0, 2 * Math.PI);
+            gCtx.fillStyle = '#10b981';
+            gCtx.fill();
+            gCtx.strokeStyle = '#ffffff';
+            gCtx.lineWidth = 1.5;
+            gCtx.stroke();
+
+            // Active player animation path on Graph
+            if (state.isPlaying) {
+                const currentT = state.t + state.playProgress * state.dt;
+                const currentX = func.x(currentT);
+                const cXPix = mapT(currentT);
+                const cYPix = mapX(currentX);
+
+                gCtx.beginPath();
+                gCtx.arc(cXPix, cYPix, 6, 0, 2 * Math.PI);
+                gCtx.fillStyle = '#fbbf24';
+                gCtx.fill();
+                gCtx.strokeStyle = '#ffffff';
+                gCtx.lineWidth = 1.5;
+                gCtx.stroke();
+            }
+        }
+
+        // Frame execution logic
+        function animLoop() {
+            if (!state.isPlaying) return;
+
+            state.playProgress += state.playSpeed;
+            if (state.playProgress >= 1.0) {
+                state.playProgress = 1.0;
+                render();
+                state.isPlaying = false;
+                playBtn.innerHTML = `<i class="fa-solid fa-play"></i> Play Motion`;
+                cancelAnimationFrame(state.animationFrameId);
+                return;
+            }
+
+            render();
+            state.animationFrameId = requestAnimationFrame(animLoop);
+        }
+
+        // Attach interactive event listeners
+        sliderT.addEventListener('input', (e) => {
+            state.t = parseFloat(e.target.value);
+            updateSliders();
+            calculateValues();
+            render();
+        });
+
+        sliderDt.addEventListener('input', (e) => {
+            state.dt = parseFloat(e.target.value);
+            updateSliders();
+            calculateValues();
+            render();
+        });
+
+        btnFuncQuad.addEventListener('click', () => selectFunction('quadratic'));
+        btnFuncSine.addEventListener('click', () => selectFunction('sine'));
+        btnFuncLinear.addEventListener('click', () => selectFunction('linear'));
+
+        playBtn.addEventListener('click', () => {
+            if (state.isPlaying) {
+                state.isPlaying = false;
+                playBtn.innerHTML = `<i class="fa-solid fa-play"></i> Play Motion`;
+            } else {
+                if (state.playProgress >= 1.0) {
+                    state.playProgress = 0.0;
+                }
+                state.isPlaying = true;
+                playBtn.innerHTML = `<i class="fa-solid fa-pause"></i> Pause`;
+                animLoop();
+            }
+        });
+
+        resetBtn.addEventListener('click', () => {
+            state.isPlaying = false;
+            state.playProgress = 0.0;
+            playBtn.innerHTML = `<i class="fa-solid fa-play"></i> Play Motion`;
+            cancelAnimationFrame(state.animationFrameId);
+            render();
+        });
+
+        // Setup resize responsiveness
+        window.addEventListener('resize', resizeCanvases);
+
+        // Run Init Process on Window Loaded
+        window.onload = function() {
+            setupMathEquations();
+            resizeCanvases();
+            selectFunction('quadratic');
+        }
+    </script>
+</body>
+</html>
