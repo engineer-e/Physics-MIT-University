@@ -44,7 +44,7 @@
 
     2. Lesson 1 - 1D Kinematics - Position and Velocity
         1. Topics and Reading List
-        2. L1v1: Coordinate Systems and Unit Vectors in 1D
+        2. [L1v1](https://engineer-e.github.io/Physics-MIT-University/8.01.1x.%20Mechanics%20-%20Kinematics%20and%20Dynamics/course_html/Mechanics%20-%20Kinematics%20and%20Dynamics/Week%201%20-%20Kinematics/Lesson%201%20-%201D%20Kinematics%20-%20Position%20and%20Velocity/L1v1%20Coordinate%20Systems%20and%20Unit%20Vectors%20in%201D/L1v1_ai1.html): Coordinate Systems and Unit Vectors in 1D
         3. L1v2: Position Vector in 1D
         4. L1v3: Displacement Vector in 1D
         5. L1Q1: Displacement vs. Distance, 1D
