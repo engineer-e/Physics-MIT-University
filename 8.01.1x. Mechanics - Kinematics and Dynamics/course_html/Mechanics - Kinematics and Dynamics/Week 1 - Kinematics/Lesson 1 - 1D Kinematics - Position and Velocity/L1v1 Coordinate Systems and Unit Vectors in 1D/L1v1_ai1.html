@@ -1,0 +1,1263 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>1D Kinematics: The Coordinate System Simulator</title>
+  <!-- Tailwind CSS -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  <!-- Google Fonts: Inter & JetBrains Mono -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;500;700&display=swap" rel="stylesheet">
+  <!-- Lucide Icons -->
+  <script src="https://unpkg.com/lucide@latest"></script>
+  <!-- MathJax Configuration & Loader -->
+  <script>
+    window.MathJax = {
+      tex: {
+        inlineMath: [['$', '$'], ['\\(', '\\)']],
+        displayMath: [['$$', '$$'], ['\\[', '\\]']]
+      },
+      options: {
+        skipHtmlTags: ['script', 'noscript', 'style', 'textarea', 'pre', 'code']
+      }
+    };
+  </script>
+  <script id="MathJax-script" async src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-chtml.js"></script>
+  <style>
+    body {
+      font-family: 'Inter', sans-serif;
+    }
+    .math-font {
+      font-family: 'JetBrains Mono', monospace;
+    }
+    /* Custom scrollbar */
+    ::-webkit-scrollbar {
+      width: 6px;
+      height: 6px;
+    }
+    ::-webkit-scrollbar-track {
+      background: #1e293b;
+    }
+    ::-webkit-scrollbar-thumb {
+      background: #475569;
+      border-radius: 3px;
+    }
+    ::-webkit-scrollbar-thumb:hover {
+      background: #64748b;
+    }
+    /* Simple pulse animation for selected/active items */
+    .pulse-highlight {
+      animation: pulseBorder 2s infinite;
+    }
+    @keyframes pulseBorder {
+      0%, 100% { border-color: rgba(99, 102, 241, 0.4); }
+      50% { border-color: rgba(99, 102, 241, 1); }
+    }
+  </style>
+</head>
+<body class="bg-slate-950 text-slate-100 min-h-screen flex flex-col selection:bg-indigo-500 selection:text-white">
+
+  <!-- Navigation Header -->
+  <header class="border-b border-slate-800 bg-slate-900/80 backdrop-blur sticky top-0 z-50 px-4 py-4 md:px-8">
+    <div class="max-w-7xl mx-auto flex flex-col md:flex-row items-center justify-between gap-4">
+      <div class="flex items-center gap-3">
+        <div class="p-2 bg-indigo-600/20 text-indigo-400 rounded-lg border border-indigo-500/30">
+          <i data-lucide="git-commit" class="w-6 h-6 animate-pulse"></i>
+        </div>
+        <div>
+          <h1 class="text-xl font-bold tracking-tight text-white flex items-center gap-2">
+            1D Kinematics <span class="text-xs font-semibold px-2 py-0.5 rounded bg-indigo-500/10 text-indigo-400 border border-indigo-500/20">Coordinate Systems</span>
+          </h1>
+          <p class="text-xs text-slate-400">Interactive Simulator & Educational Infographic</p>
+        </div>
+      </div>
+      <div class="flex items-center gap-2">
+        <button id="btn-reset-all" class="flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium bg-slate-800 hover:bg-slate-700 active:bg-slate-600 text-slate-200 rounded-lg transition border border-slate-700">
+          <i data-lucide="rotate-ccw" class="w-3.5 h-3.5"></i> Reset Sandbox
+        </button>
+        <span class="text-xs text-slate-500 border-l border-slate-800 pl-3 hidden md:inline">Based on Classical Mechanics Lecture 1</span>
+      </div>
+    </div>
+  </header>
+
+  <!-- Main Grid Workspace -->
+  <main class="flex-grow max-w-7xl w-full mx-auto p-4 md:p-6 grid grid-cols-1 lg:grid-cols-12 gap-6">
+    
+    <!-- Left Panel: The Sandbox Canvas & Live Simulator Controls (8 Columns on desktop) -->
+    <div class="lg:col-span-8 flex flex-col gap-6">
+      
+      <!-- Simulator Workspace Container -->
+      <div class="bg-slate-900 rounded-2xl border border-slate-800 shadow-xl overflow-hidden flex flex-col">
+        <!-- Canvas Toolbar -->
+        <div class="bg-slate-900 border-b border-slate-800 px-4 py-3 flex items-center justify-between text-xs font-semibold text-slate-300">
+          <div class="flex items-center gap-2">
+            <span class="inline-block w-2.5 h-2.5 rounded-full bg-emerald-500 animate-ping"></span>
+            <span>Interactive Sandbox Workspace</span>
+          </div>
+          <div class="flex gap-4">
+            <span class="flex items-center gap-1"><i data-lucide="hand" class="w-3.5 h-3.5 text-indigo-400"></i> Drag items to change values</span>
+          </div>
+        </div>
+
+        <!-- The Interactive Environment -->
+        <div class="relative bg-slate-950/70 p-6 flex-grow flex flex-col justify-between min-h-[360px] overflow-x-auto select-none" id="sim-environment">
+          
+          <!-- Coordinate System Metrics/Readouts Overlay -->
+          <div class="grid grid-cols-2 sm:grid-cols-4 gap-3 bg-slate-900/60 p-3 rounded-xl border border-slate-800/80 backdrop-blur z-10 mb-4 text-xs">
+            <div>
+              <div class="text-slate-400 font-medium">Runner Position (Physical)</div>
+              <div class="font-bold text-white text-sm math-font mt-0.5" id="val-phys-pos">12.00 m</div>
+            </div>
+            <div>
+              <div class="text-indigo-400 font-medium">Coordinate Value ($x$)</div>
+              <div class="font-bold text-indigo-300 text-sm math-font mt-0.5 flex items-center gap-1">
+                <span id="val-coord-x">0.00</span> m
+              </div>
+            </div>
+            <div>
+              <div class="text-emerald-400 font-medium">Position Vector ($\vec{r}$)</div>
+              <div class="font-bold text-emerald-300 text-sm math-font mt-0.5" id="val-pos-vector">
+                <span id="val-pos-vector-sign"></span><span id="val-pos-vector-num">0.00</span> $\hat{i}$ m
+              </div>
+            </div>
+            <div>
+              <div class="text-amber-400 font-medium">Origin Offset</div>
+              <div class="font-bold text-amber-300 text-sm math-font mt-0.5">
+                $x$ = <span id="val-origin-offset">0.00</span> m
+              </div>
+            </div>
+          </div>
+
+          <!-- The Sandbox Road, Scales & Elements -->
+          <div class="relative w-full h-44 my-auto flex flex-col justify-end min-w-[650px]">
+            
+            <!-- Dynamic Coordinate Scale Axis & Ticks -->
+            <div class="absolute bottom-6 left-0 right-0 h-0.5 bg-slate-700/60 z-0 transition-all duration-300" id="axis-line">
+              <!-- Arrowheads on ends -->
+              <div class="absolute right-0 top-1/2 -translate-y-1/2 translate-x-1 w-2.5 h-2.5 border-t-2 border-r-2 border-slate-400 rotate-45" id="axis-arrow-right"></div>
+              <div class="absolute left-0 top-1/2 -translate-y-1/2 -translate-x-1 w-2.5 h-2.5 border-b-2 border-l-2 border-slate-400 rotate-45" id="axis-arrow-left"></div>
+            </div>
+
+            <!-- Coordinate Labels and Tick Marks (Generated via JS dynamically) -->
+            <div class="absolute bottom-0 left-0 right-0 h-12 flex justify-between px-6 pointer-events-none text-[10px] font-mono text-slate-500" id="tick-container">
+              <!-- Dynamically populated -->
+            </div>
+
+            <!-- Point 1 and Point 2 Indicators for Unit Vector demo -->
+            <div class="absolute bottom-16 left-[25%] -translate-x-1/2 flex flex-col items-center pointer-events-none">
+              <span class="text-[10px] font-bold text-indigo-400/80 bg-indigo-950/40 px-1.5 py-0.5 rounded border border-indigo-500/20 backdrop-blur">Point $P_1$</span>
+              <div class="w-0.5 h-8 bg-dashed border-l border-dashed border-indigo-400/40 mt-1"></div>
+            </div>
+            <div class="absolute bottom-16 left-[75%] -translate-x-1/2 flex flex-col items-center pointer-events-none">
+              <span class="text-[10px] font-bold text-rose-400/80 bg-rose-950/40 px-1.5 py-0.5 rounded border border-rose-500/20 backdrop-blur">Point $P_2$</span>
+              <div class="w-0.5 h-8 bg-dashed border-l border-dashed border-rose-400/40 mt-1"></div>
+            </div>
+
+            <!-- Unit Vectors at P1 and P2 (Will toggle based on system direction) -->
+            <div class="absolute bottom-6 left-[25%] -translate-y-1/2 z-10 pointer-events-none" id="vector-p1">
+              <div class="flex items-center gap-1 select-none transition-transform duration-300" id="arrow-p1">
+                <div class="h-1 bg-indigo-500 rounded-full shadow-lg shadow-indigo-500/50" style="width: 40px;"></div>
+                <div class="w-2 h-2 border-t-2 border-r-2 border-indigo-500 rotate-45 -ml-1"></div>
+                <span class="text-xs font-bold text-indigo-400 math-font -mt-4 bg-slate-950 px-1.5 py-0.5 rounded border border-indigo-500/20 shadow-md">$\hat{i}_1$</span>
+              </div>
+            </div>
+            <div class="absolute bottom-6 left-[75%] -translate-y-1/2 z-10 pointer-events-none" id="vector-p2">
+              <div class="flex items-center gap-1 select-none transition-transform duration-300" id="arrow-p2">
+                <div class="h-1 bg-rose-500 rounded-full shadow-lg shadow-rose-500/50" style="width: 40px;"></div>
+                <div class="w-2 h-2 border-t-2 border-r-2 border-rose-500 rotate-45 -ml-1"></div>
+                <span class="text-xs font-bold text-rose-400 math-font -mt-4 bg-slate-950 px-1.5 py-0.5 rounded border border-rose-500/20 shadow-md">$\hat{i}_2$</span>
+              </div>
+            </div>
+
+            <!-- Position Vector Visualizer (Draws a line/arrow from Origin to Runner) -->
+            <div class="absolute bottom-6 z-10 pointer-events-none" id="pos-vector-arrow">
+              <div class="relative h-1 bg-emerald-500 rounded-full opacity-80" id="pos-vector-line">
+                <div class="absolute right-0 top-1/2 -translate-y-1/2 w-2 h-2 border-t-2 border-r-2 border-emerald-400 rotate-45 -mr-0.5" id="pos-vector-tip-right"></div>
+                <div class="absolute left-0 top-1/2 -translate-y-1/2 w-2 h-2 border-b-2 border-l-2 border-emerald-400 rotate-45 -ml-0.5 hidden" id="pos-vector-tip-left"></div>
+              </div>
+              <div class="absolute top-2 left-1/2 -translate-x-1/2 bg-emerald-950/90 text-emerald-300 text-[10px] font-bold px-2 py-0.5 rounded border border-emerald-500/30 whitespace-nowrap shadow-lg">
+                Position Vector $\vec{r}$ = <span id="lbl-pos-val-sign" class="math-font"></span><span id="lbl-pos-val" class="math-font">0.00</span> $\hat{i}$
+              </div>
+            </div>
+
+            <!-- Origin Flag (Interactive Draggable) -->
+            <div class="absolute bottom-6 left-1/3 -translate-x-1/2 z-30 cursor-ew-resize group" id="drag-origin">
+              <div class="flex flex-col items-center">
+                <!-- Flag Graphic -->
+                <div class="flex items-start -mb-1 transform group-hover:scale-105 transition-transform duration-150">
+                  <div class="bg-amber-500 text-slate-950 font-black text-xs px-2.5 py-1 rounded shadow-lg shadow-amber-500/20 flex items-center gap-1">
+                    <i data-lucide="flag" class="w-3 h-3"></i> O
+                  </div>
+                  <div class="w-0.5 h-12 bg-amber-500 shadow-md"></div>
+                </div>
+                <!-- Interactive Drag Handle Indicator -->
+                <div class="w-4 h-4 rounded-full bg-amber-500/20 border-2 border-amber-500 flex items-center justify-center animate-pulse">
+                  <div class="w-1.5 h-1.5 rounded-full bg-amber-500"></div>
+                </div>
+                <span class="text-[10px] font-bold text-amber-400 mt-1 select-none">Origin (Drag Me)</span>
+              </div>
+            </div>
+
+            <!-- Runner Entity (Interactive Draggable) -->
+            <div class="absolute bottom-[22px] left-2/3 -translate-x-1/2 z-30 cursor-ew-resize group" id="drag-runner">
+              <div class="flex flex-col items-center">
+                <!-- Runner SVG Graphic -->
+                <div class="relative w-16 h-20 -mb-2 transform group-hover:scale-105 transition duration-150 flex justify-center items-end" id="runner-graphics-container">
+                  <!-- Animated stick running/idle athlete -->
+                  <svg id="runner-svg" class="w-14 h-16 text-indigo-400 filter drop-shadow-[0_0_8px_rgba(99,102,241,0.4)]" viewBox="0 0 64 64" fill="none" stroke="currentColor" stroke-width="4.5" stroke-linecap="round" stroke-linejoin="round">
+                    <!-- Standard standing frame, modified by JS during running state -->
+                    <!-- Head -->
+                    <circle cx="32" cy="12" r="6" stroke-width="4" />
+                    <!-- Torso -->
+                    <line x1="32" y1="18" x2="32" y2="36" />
+                    <!-- Arms -->
+                    <line id="arm-left" x1="32" y1="24" x2="20" y2="28" />
+                    <line id="arm-right" x1="32" y1="24" x2="44" y2="22" />
+                    <!-- Legs -->
+                    <line id="leg-left" x1="32" y1="36" x2="24" y2="54" />
+                    <line id="leg-right" x1="32" y1="36" x2="40" y2="54" />
+                  </svg>
+                  <!-- Track line under feet highlight -->
+                  <div class="absolute bottom-1 w-8 h-1 bg-indigo-500/30 blur-sm rounded-full"></div>
+                </div>
+                
+                <!-- Interactive label -->
+                <div class="px-2 py-0.5 rounded bg-indigo-500 text-white text-[10px] font-bold shadow-lg shadow-indigo-500/20 z-40">
+                  RUNNER ($x$ = <span id="lbl-runner-x" class="math-font">0.00</span>m)
+                </div>
+                <span class="text-[10px] font-semibold text-indigo-300 mt-1 select-none">Drag to Position</span>
+              </div>
+            </div>
+
+          </div>
+
+          <!-- Bottom Road Texture Indicator -->
+          <div class="relative w-full h-4 bg-slate-900 border-t border-slate-800 min-w-[650px] overflow-hidden rounded-b-xl flex justify-between px-10">
+            <!-- Simulated dashed asphalt markings -->
+            <div class="w-full flex justify-between opacity-20 text-slate-500 font-mono text-xs select-none">
+              <span>|||||||</span><span>|||||||</span><span>|||||||</span><span>|||||||</span><span>|||||||</span><span>|||||||</span><span>|||||||</span><span>|||||||</span>
+            </div>
+          </div>
+
+        </div>
+
+        <!-- Sandbox Control Panel Interface -->
+        <div class="bg-slate-900/90 border-t border-slate-800 p-4 grid grid-cols-1 md:grid-cols-3 gap-4 items-center">
+          
+          <!-- Animation Controls -->
+          <div class="flex items-center gap-2">
+            <button id="btn-play-pause" class="flex-1 flex items-center justify-center gap-1.5 py-2 px-4 rounded-xl bg-indigo-600 hover:bg-indigo-500 text-white text-sm font-semibold transition active:scale-95 shadow-lg shadow-indigo-600/20">
+              <i data-lucide="play" class="w-4 h-4 fill-white" id="icon-play"></i> <span id="lbl-play">Run Motion</span>
+            </button>
+            <button id="btn-reset-motion" class="p-2 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-300 border border-slate-700 transition" title="Reset runner to origin/starting point">
+              <i data-lucide="skip-back" class="w-4.5 h-4.5"></i>
+            </button>
+          </div>
+
+          <!-- Configuration & System Options -->
+          <div class="flex flex-col gap-1.5">
+            <span class="text-[11px] font-semibold text-slate-400">Positive Vector Direction ($+x$):</span>
+            <div class="grid grid-cols-2 gap-1.5 p-1 bg-slate-950 rounded-xl border border-slate-800">
+              <button id="btn-dir-right" class="py-1 px-3 rounded-lg text-xs font-semibold transition bg-indigo-600 text-white shadow">
+                Rightwards (➜)
+              </button>
+              <button id="btn-dir-left" class="py-1 px-3 rounded-lg text-xs font-semibold text-slate-400 hover:text-white transition">
+                Leftwards (⬅)
+              </button>
+            </div>
+          </div>
+
+          <!-- Physics Variable Knobs -->
+          <div class="flex flex-col gap-1">
+            <div class="flex justify-between text-xs">
+              <span class="font-semibold text-slate-400 flex items-center gap-1"><i data-lucide="gauge" class="w-3.5 h-3.5"></i> Running Velocity:</span>
+              <span class="font-mono text-indigo-400" id="val-speed">2.0 m/s</span>
+            </div>
+            <input type="range" id="slider-speed" min="-5" max="5" step="0.5" value="2" class="w-full accent-indigo-500 bg-slate-950 h-2 rounded-lg cursor-pointer">
+          </div>
+
+        </div>
+      </div>
+
+      <!-- Live Kinematics Graph Plotter -->
+      <div class="bg-slate-900 rounded-2xl border border-slate-800 shadow-xl p-4 flex flex-col gap-3">
+        <div class="flex items-center justify-between border-b border-slate-800 pb-2">
+          <div class="flex items-center gap-2">
+            <i data-lucide="trending-up" class="w-4 h-4 text-emerald-400"></i>
+            <h3 class="text-sm font-bold text-white">Live Kinematics Graph: $x$ vs. $t$</h3>
+          </div>
+          <span class="text-[10px] text-slate-400 bg-slate-950 px-2 py-0.5 rounded border border-slate-800">Plots Position Coordinate ($x$) against Time ($t$)</span>
+        </div>
+        
+        <!-- Plotting Area -->
+        <div class="relative bg-slate-950 rounded-xl p-2 h-44 border border-slate-800/80 flex items-center justify-center">
+          <canvas id="kinematics-chart" class="w-full h-full block"></canvas>
+          <!-- Chart Empty Prompt State -->
+          <div id="chart-prompt" class="absolute inset-0 bg-slate-950/90 flex flex-col items-center justify-center gap-1 text-center p-4 pointer-events-none transition-all duration-300">
+            <i data-lucide="play-circle" class="w-8 h-8 text-indigo-500 animate-pulse"></i>
+            <span class="text-xs font-bold text-slate-300">Run the motion simulator to plot data</span>
+            <p class="text-[10px] text-slate-500 max-w-xs">Plot lines change colors as you adjust parameters, showing exact kinematic behaviors!</p>
+          </div>
+        </div>
+      </div>
+
+    </div>
+
+    <!-- Right Panel: Step-by-Step Educational Infographic Card (4 Columns on desktop) -->
+    <div class="lg:col-span-4 flex flex-col gap-6">
+      
+      <div class="bg-slate-900 rounded-2xl border border-slate-800 shadow-xl overflow-hidden flex flex-col">
+        <!-- Card Header -->
+        <div class="bg-gradient-to-r from-indigo-900/50 to-indigo-950/20 px-5 py-4 border-b border-slate-800">
+          <span class="text-[10px] font-bold text-indigo-400 uppercase tracking-wider">Lecture Companion Infographic</span>
+          <h2 class="text-lg font-bold text-white mt-1">Building the 1D System</h2>
+          <p class="text-xs text-slate-400 mt-0.5">Learn the three essential steps explained in the transcript.</p>
+        </div>
+
+        <!-- Interactive Walkthrough Step Tabs -->
+        <div class="grid grid-cols-4 border-b border-slate-800 text-xs font-semibold text-center text-slate-400 bg-slate-950/40">
+          <button id="tab-1" class="py-3 hover:text-white transition border-b-2 border-indigo-500 text-indigo-400 bg-slate-900/40">Step 1</button>
+          <button id="tab-2" class="py-3 hover:text-white transition border-b-2 border-transparent">Step 2</button>
+          <button id="tab-3" class="py-3 hover:text-white transition border-b-2 border-transparent">Step 3</button>
+          <button id="tab-4" class="py-3 hover:text-white transition border-b-2 border-transparent">Synthesis</button>
+        </div>
+
+        <!-- Tab Body Contents -->
+        <div class="p-5 flex-grow flex flex-col justify-between min-h-[350px]">
+          
+          <!-- Content Box -->
+          <div id="tab-content" class="text-slate-300 text-xs leading-relaxed space-y-4">
+            <!-- Dynamic Injection below based on Active Tab state -->
+          </div>
+
+          <!-- Quick Interactive Test Section inside Infographic -->
+          <div class="mt-6 pt-4 border-t border-slate-800">
+            <div class="bg-indigo-950/40 border border-indigo-500/20 rounded-xl p-3">
+              <h4 class="font-bold text-indigo-300 text-xs flex items-center gap-1.5 mb-1">
+                <i data-lucide="lightbulb" class="w-3.5 h-3.5 text-indigo-400"></i> Active Physics Check:
+              </h4>
+              <p class="text-[11px] text-slate-300 leading-normal" id="interactive-check-desc">
+                Drag the origin flag to see physical coordinates update dynamically! Does the runner actually physically move when you relocate the origin?
+              </p>
+              <div class="mt-2.5 flex items-center justify-between gap-2" id="interactive-check-actions">
+                <button id="btn-quick-randomize-origin" class="flex-1 py-1.5 px-3 bg-slate-800 hover:bg-slate-700 active:bg-slate-600 rounded-lg text-[10px] text-slate-300 font-bold transition">
+                  Randomize Origin
+                </button>
+                <button id="btn-check-ans" class="flex-1 py-1.5 px-3 bg-indigo-600 hover:bg-indigo-500 text-white rounded-lg text-[10px] text-indigo-100 font-bold transition">
+                  Explain Dynamic Shift
+                </button>
+              </div>
+            </div>
+          </div>
+
+        </div>
+      </div>
+
+      <!-- Quick Definitions Checklist Box -->
+      <div class="bg-slate-900/60 rounded-2xl border border-slate-850 p-4 border border-slate-800">
+        <h3 class="text-xs font-bold text-white mb-3 uppercase tracking-wider text-slate-400">Definitions Reference</h3>
+        <ul class="space-y-2 text-xs">
+          <li class="flex items-start gap-2 text-slate-300">
+            <span class="w-1.5 h-1.5 rounded-full bg-amber-500 mt-1.5 shrink-0"></span>
+            <div><strong class="text-amber-400">Origin ($O$):</strong> A chosen point where $x = 0$. Absolute freedom of choice!</div>
+          </li>
+          <li class="flex items-start gap-2 text-slate-300">
+            <span class="w-1.5 h-1.5 rounded-full bg-indigo-400 mt-1.5 shrink-0"></span>
+            <div><strong class="text-indigo-400">Unit Vector ($\hat{i}$):</strong> A helper vector of magnitude exactly 1 pointing in the positive $+x$ axis direction at every physical space.</div>
+          </li>
+          <li class="flex items-start gap-2 text-slate-300">
+            <span class="w-1.5 h-1.5 rounded-full bg-emerald-400 mt-1.5 shrink-0"></span>
+            <div><strong class="text-emerald-400">Position Vector ($\vec{r}$):</strong> Points from origin directly to runner ($\vec{r} = x\hat{i}$). Represents offset and direction relative to $O$.</div>
+          </li>
+        </ul>
+      </div>
+
+    </div>
+
+  </main>
+
+  <!-- Explanation Modal Box (To replace Javascript Alert alerts perfectly) -->
+  <div id="modal-container" class="fixed inset-0 bg-slate-950/80 backdrop-blur-sm flex items-center justify-center p-4 z-[9999] opacity-0 pointer-events-none transition-all duration-300">
+    <div class="bg-slate-900 border border-slate-800 rounded-2xl max-w-md w-full p-6 shadow-2xl relative transform scale-95 transition-all duration-300" id="modal-card">
+      <button id="modal-btn-close" class="absolute top-4 right-4 text-slate-400 hover:text-white transition">
+        <i data-lucide="x" class="w-5 h-5"></i>
+      </button>
+      <div class="flex items-start gap-3.5">
+        <div class="p-2.5 bg-indigo-500/10 text-indigo-400 rounded-xl border border-indigo-500/20" id="modal-icon-bg">
+          <i data-lucide="help-circle" class="w-6 h-6" id="modal-icon"></i>
+        </div>
+        <div class="flex-grow">
+          <h3 class="text-base font-bold text-white mb-2" id="modal-title">Coordinate Freedom Explanation</h3>
+          <p class="text-xs text-slate-300 leading-relaxed" id="modal-body">
+            This explains the core mathematical principle in high detail.
+          </p>
+        </div>
+      </div>
+      <div class="mt-6 flex justify-end">
+        <button id="modal-btn-action" class="px-4 py-2 bg-indigo-600 hover:bg-indigo-500 active:bg-indigo-700 text-white rounded-xl text-xs font-semibold transition shadow-lg shadow-indigo-600/20">
+          Got it, perfect!
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Footer Info -->
+  <footer class="border-t border-slate-800 bg-slate-950 py-4 text-center text-[11px] text-slate-500 mt-auto">
+    <div class="max-w-7xl mx-auto px-4 flex flex-col md:flex-row items-center justify-between gap-2">
+      <p>© Classical Kinematics Interactive Visualization Project.</p>
+      <p class="flex items-center gap-1"><i data-lucide="sparkles" class="w-3 h-3 text-indigo-500"></i> Interactive Mechanics Visual Workspace 2026</p>
+    </div>
+  </footer>
+
+  <!-- JavaScript Code Section containing all Physics, Interaction, Render and Plot logic -->
+  <script>
+    /* Physics Engine State & Variables Setup */
+    const state = {
+      // Scale metric conversions: world left to right coordinate maps to meters.
+      // Screen width maps to exactly 20.0 meters. 
+      // Point coordinates range from 0m to 20m physically on this virtual 1D space.
+      screenMeters: 20, 
+      runnerPosPhys: 13.0, // Physical runner coordinate (in meters) from absolute track left (0 to 20)
+      originPosPhys: 6.0,  // Physical origin flag coordinate (in meters) from absolute track left (0 to 20)
+      positiveDirectionRight: true, // true: +x is to right, false: +x is to left
+      runningVelocity: 2.0, // speed in m/s
+      isRunning: false,     // active play loop state
+      lastTime: 0,          // standard requestAnimationFrame timestamp tracker
+      simulationTime: 0,    // elapsed runner time in seconds
+      
+      // Graph dataset plot history
+      graphData: [], // Array of objects: { t: seconds, x: meters, color: string }
+      maxGraphHistory: 300, // Maximum points on the kinematics graph
+
+      // Drag and drop parameters
+      dragTarget: null, // "runner" or "origin" or null
+      dragStartPageX: 0,
+      dragStartPhysVal: 0,
+
+      // Current active learning step
+      activeStep: 1
+    };
+
+    /* Define detailed infographic steps contents matching transcript */
+    const stepsData = {
+      1: {
+        title: "Step 1: Choose an Origin",
+        desc: `
+          <p class="mb-3">The very first step to describing any mechanical motion is establishing a <strong>mathematical reference origin ($O$)</strong>.</p>
+          <p class="mb-3 bg-slate-950 p-3 rounded-lg border border-slate-850 font-medium text-slate-300">
+            💡 <em>"We can pick the origin anywhere we want. That's a degree of freedom."</em>
+          </p>
+          <p class="mb-3">When you shift the Origin Flag in the simulator, note that the physical position of the runner on the road doesn't change, but their relative coordinate <strong class="text-indigo-400">$x$</strong> updates instantly!</p>
+          <p class="text-slate-400">Try dragging the <strong class="text-amber-400">Amber Origin Flag ($O$)</strong> or clicking "Randomize Origin" below to witness coordinate shifts.</p>
+        `
+      },
+      2: {
+        title: "Step 2: Define Axis & Signs",
+        desc: `
+          <p class="mb-3">With the origin established, the road provides a natural line of alignment: our <strong>1D Coordinate Axis (the $x$-axis)</strong>.</p>
+          <p class="mb-3">We divide this linear road scale into consistent length units (such as meters) and choose a <strong>positive direction</strong> ($+x$).</p>
+          <div class="bg-slate-950 p-3 rounded-lg border border-slate-850 mb-3">
+            <ul class="space-y-1">
+              <li class="flex items-center gap-2"><span class="w-1.5 h-1.5 rounded-full bg-indigo-400"></span> To the right of Origin: <strong>Positive coordinates</strong></li>
+              <li class="flex items-center gap-2"><span class="w-1.5 h-1.5 rounded-full bg-rose-400"></span> To the left of Origin: <strong>Negative coordinates</strong></li>
+            </ul>
+          </div>
+          <p class="text-slate-400">Toggle <strong>Leftwards</strong> vs <strong>Rightwards</strong> direction below the sandbox to swap signs of the entire coordinate line scale!</p>
+        `
+      },
+      3: {
+        title: "Step 3: Establish Unit Vectors",
+        desc: `
+          <p class="mb-3">For full physical vector modeling, we introduce a **unit vector** (typically designated as <strong class="text-indigo-400">$\\hat{i}$</strong>) pointing along the $+x$ direction at each point in space.</p>
+          <p class="mb-3 bg-slate-950 p-2 rounded-lg border border-slate-850 font-mono text-[11px] text-center text-slate-300">
+            $\\hat{i}_1$ (at $P_1$) = $\\hat{i}_2$ (at $P_2$) = $\\hat{i}$
+          </p>
+          <p class="mb-3">Even though they reside at different points on our road (like $P_1$ and $P_2$), classical Cartesian unit vectors always share the <strong>exact same magnitude (1)</strong> and <strong>point in the same direction</strong>, making them completely equal.</p>
+          <p class="text-slate-400">Observe the small arrows labeled <span class="math-font text-indigo-400">$\\hat{i}_1$</span> and <span class="math-font text-rose-400">$\\hat{i}_2$</span> on the track. They match orientations perfectly because they represent the same direction.</p>
+        `
+      },
+      4: {
+        title: "Synthesis: The Position Vector",
+        desc: `
+          <p class="mb-3">Now we combine all components into a single position description vector:</p>
+          <p class="p-3 bg-indigo-950/30 text-indigo-300 font-bold text-center rounded-xl border border-indigo-500/20 math-font text-sm my-3 font-mono">
+            $$\\vec{r} = x \\hat{i}$$
+          </p>
+          <p class="mb-3">This position vector starts at the reference origin and points straight to our runner. Its scalar multiplier <strong class="text-indigo-300">$x$</strong> tells us distance and side relative to $O$.</p>
+          <p class="text-slate-400">Run the simulation, then modify physical variables on the fly to observe the vector dynamically expanding or reversing!</p>
+        `
+      }
+    };
+
+    /* UI Element References */
+    const elEnvironment = document.getElementById("sim-environment");
+    const elDragOrigin = document.getElementById("drag-origin");
+    const elDragRunner = document.getElementById("drag-runner");
+    const elTickContainer = document.getElementById("tick-container");
+    const elVectorP1 = document.getElementById("vector-p1");
+    const elVectorP2 = document.getElementById("vector-p2");
+    const elArrowP1 = document.getElementById("arrow-p1");
+    const elArrowP2 = document.getElementById("arrow-p2");
+    
+    // Position Vector visual elements
+    const elPosVectorArrow = document.getElementById("pos-vector-arrow");
+    const elPosVectorLine = document.getElementById("pos-vector-line");
+    const elPosVectorTipRight = document.getElementById("pos-vector-tip-right");
+    const elPosVectorTipLeft = document.getElementById("pos-vector-tip-left");
+    const elLblPosVal = document.getElementById("lbl-pos-val");
+
+    // Live Readout texts
+    const elValPhysPos = document.getElementById("val-phys-pos");
+    const elValCoordX = document.getElementById("val-coord-x");
+    const elValOriginOffset = document.getElementById("val-origin-offset");
+    const elLblRunnerX = document.getElementById("lbl-runner-x");
+
+    // Controls
+    const elBtnPlayPause = document.getElementById("btn-play-pause");
+    const elLblPlay = document.getElementById("lbl-play");
+    const elIconPlay = document.getElementById("icon-play");
+    const elBtnResetMotion = document.getElementById("btn-reset-motion");
+    const elBtnResetAll = document.getElementById("btn-reset-all");
+    const elBtnDirRight = document.getElementById("btn-dir-right");
+    const elBtnDirLeft = document.getElementById("btn-dir-left");
+    const elSliderSpeed = document.getElementById("slider-speed");
+    const elValSpeed = document.getElementById("val-speed");
+
+    // Graph Elements
+    const canvas = document.getElementById("kinematics-chart");
+    const ctx = canvas.getContext("2d");
+    const elChartPrompt = document.getElementById("chart-prompt");
+
+    // Tab Infographic elements
+    const tabButtons = [
+      document.getElementById("tab-1"),
+      document.getElementById("tab-2"),
+      document.getElementById("tab-3"),
+      document.getElementById("tab-4")
+    ];
+    const elTabContent = document.getElementById("tab-content");
+    const elInteractiveCheckDesc = document.getElementById("interactive-check-desc");
+    const elBtnQuickRandomizeOrigin = document.getElementById("btn-quick-randomize-origin");
+    const elBtnCheckAns = document.getElementById("btn-check-ans");
+
+    // Custom Modal System elements
+    const elModalContainer = document.getElementById("modal-container");
+    const elModalCard = document.getElementById("modal-card");
+    const elModalTitle = document.getElementById("modal-title");
+    const elModalBody = document.getElementById("modal-body");
+    const elModalBtnClose = document.getElementById("modal-btn-close");
+    const elModalBtnAction = document.getElementById("modal-btn-action");
+    const elModalIconBg = document.getElementById("modal-icon-bg");
+    const elModalIcon = document.getElementById("modal-icon");
+
+    /* Coordinate mapping helper tools */
+    function metersToPercent(meters) {
+      return (meters / state.screenMeters) * 100;
+    }
+
+    function percentToMeters(percent) {
+      return (percent / 100) * state.screenMeters;
+    }
+
+    /* Convert absolute coordinates to relative values depending on Axis direction */
+    function getCoordinateX() {
+      const physicalDiff = state.runnerPosPhys - state.originPosPhys;
+      if (state.positiveDirectionRight) {
+        return physicalDiff;
+      } else {
+        return -physicalDiff; // inversion
+      }
+    }
+
+    /* Format real coordinates nicely for display output */
+    function formatVal(num, decimals = 2) {
+      return Number(num).toFixed(decimals);
+    }
+
+    /* Set up customized UI modals with MathJax support */
+    function triggerModal(title, text, type = 'info') {
+      elModalTitle.textContent = title;
+      elModalBody.innerHTML = text;
+      
+      // Clear visual status colors
+      elModalIconBg.className = "p-2.5 rounded-xl border";
+      if (type === 'success') {
+        elModalIconBg.classList.add("bg-emerald-500/10", "text-emerald-400", "border-emerald-500/20");
+        elModalIcon.setAttribute("data-lucide", "check-circle");
+      } else {
+        elModalIconBg.classList.add("bg-indigo-500/10", "text-indigo-400", "border-indigo-500/20");
+        elModalIcon.setAttribute("data-lucide", "help-circle");
+      }
+      lucide.createIcons(); // rebuild changed icon
+
+      // Render math formulas inside the modal dialog
+      if (window.MathJax && window.MathJax.typesetPromise) {
+        window.MathJax.typesetPromise([elModalBody]);
+      }
+
+      // Animate entry smoothly
+      elModalContainer.classList.remove("pointer-events-none", "opacity-0");
+      elModalCard.classList.remove("scale-95");
+      elModalCard.classList.add("scale-100");
+    }
+
+    function hideModal() {
+      elModalContainer.classList.add("pointer-events-none", "opacity-0");
+      elModalCard.classList.remove("scale-100");
+      elModalCard.classList.add("scale-95");
+    }
+
+    elModalBtnClose.addEventListener("click", hideModal);
+    elModalBtnAction.addEventListener("click", hideModal);
+    elModalContainer.addEventListener("click", (e) => {
+      if (e.target === elModalContainer) hideModal();
+    });
+
+    /* Main Layout Rendering Update Function */
+    function render() {
+      // 1. Update position of physical Origin Flag
+      const originPercent = metersToPercent(state.originPosPhys);
+      elDragOrigin.style.left = `${originPercent}%`;
+
+      // 2. Update position of physical Runner
+      const runnerPercent = metersToPercent(state.runnerPosPhys);
+      elDragRunner.style.left = `${runnerPercent}%`;
+
+      // Calculate state variable calculations
+      const coordinateX = getCoordinateX();
+      
+      // Update readouts and texts
+      elValPhysPos.textContent = `${formatVal(state.runnerPosPhys)} m`;
+      elValCoordX.textContent = formatVal(coordinateX);
+      elLblRunnerX.textContent = formatVal(coordinateX);
+      
+      // Real-time vector presentation logic
+      const signText = coordinateX < 0 ? "-" : "";
+      const elValPosVectorSign = document.getElementById("val-pos-vector-sign");
+      const elValPosVectorNum = document.getElementById("val-pos-vector-num");
+      if (elValPosVectorSign && elValPosVectorNum) {
+        elValPosVectorSign.textContent = signText;
+        elValPosVectorNum.textContent = formatVal(Math.abs(coordinateX));
+      }
+      
+      elValOriginOffset.textContent = formatVal(0.00);
+
+      // Draw the position vector arrow from Origin to Runner
+      const originXOffset = originPercent;
+      const runnerXOffset = runnerPercent;
+      const differencePercent = runnerXOffset - originXOffset;
+
+      if (Math.abs(differencePercent) < 1.0) {
+        // Runner and Origin overlap, hide arrow
+        elPosVectorArrow.style.display = "none";
+      } else {
+        elPosVectorArrow.style.display = "block";
+        elPosVectorArrow.style.left = `${Math.min(originXOffset, runnerXOffset)}%`;
+        
+        // Match specific responsive viewport measurements or container relative bounding boxes
+        const envWidth = elEnvironment.clientWidth;
+        const widthInPx = Math.abs(runnerXOffset - originXOffset) * (envWidth / 100);
+        elPosVectorLine.style.width = `${widthInPx}px`;
+
+        // Arrow tip direction swaps based on relationship of coordinates
+        if (differencePercent > 0) {
+          // Pointing right
+          elPosVectorTipRight.classList.remove("hidden");
+          elPosVectorTipLeft.classList.add("hidden");
+        } else {
+          // Pointing left
+          elPosVectorTipRight.classList.add("hidden");
+          elPosVectorTipLeft.classList.remove("hidden");
+        }
+
+        const elLblPosValSign = document.getElementById("lbl-pos-val-sign");
+        if (elLblPosValSign) {
+          elLblPosValSign.textContent = signText;
+        }
+        elLblPosVal.textContent = formatVal(Math.abs(coordinateX));
+      }
+
+      // Update unit vectors at P1 (25%) and P2 (75%)
+      // If Positive Direction is inverted, we turn arrows pointing left!
+      if (state.positiveDirectionRight) {
+        elArrowP1.style.transform = "rotate(0deg)";
+        elArrowP2.style.transform = "rotate(0deg)";
+      } else {
+        // Pointing Left
+        elArrowP1.style.transform = "rotate(180deg)";
+        elArrowP2.style.transform = "rotate(180deg)";
+      }
+
+      // Dynamically generate coordinate axis ticks
+      renderAxisScale(coordinateX);
+    }
+
+    /* Helper function to paint ticks on the road dynamically */
+    function renderAxisScale(coordVal) {
+      elTickContainer.innerHTML = "";
+      
+      // Determine spacing increment (every 2 meters)
+      const tickSpacing = 2; 
+      
+      for (let physPos = 0; physPos <= state.screenMeters; physPos += tickSpacing) {
+        // Relative value mapped based on current Origin coordinate choices
+        let tickVal = physPos - state.originPosPhys;
+        if (!state.positiveDirectionRight) {
+          tickVal = -tickVal;
+        }
+
+        const percentPos = metersToPercent(physPos);
+        const tickElement = document.createElement("div");
+        tickElement.className = "absolute flex flex-col items-center select-none pointer-events-none";
+        tickElement.style.left = `${percentPos}%`;
+        tickElement.style.transform = "translateX(-50%)";
+
+        // Distinguish the main origin node
+        const isOriginTick = Math.abs(physPos - state.originPosPhys) < 0.1;
+        
+        tickElement.innerHTML = `
+          <div class="w-0.5 h-3 ${isOriginTick ? 'bg-amber-500 h-4 w-1' : 'bg-slate-700'}"></div>
+          <span class="mt-1 font-mono text-[9px] ${isOriginTick ? 'text-amber-400 font-bold text-[10px]' : 'text-slate-500'}">
+            ${isOriginTick ? 'O' : (tickVal > 0 ? '+' : '') + tickVal.toFixed(0)}
+          </span>
+        `;
+        elTickContainer.appendChild(tickElement);
+      }
+    }
+
+    /* Draggable Physics System Listeners */
+    function setupDragging() {
+      
+      function handleDragStart(element, targetName, e) {
+        // Support touch events
+        const pageX = e.touches ? e.touches[0].pageX : e.pageX;
+        state.dragTarget = targetName;
+        state.dragStartPageX = pageX;
+        state.dragStartPhysVal = targetName === "runner" ? state.runnerPosPhys : state.originPosPhys;
+        
+        // Visual highlights
+        element.classList.add("scale-105");
+        e.preventDefault && e.preventDefault();
+      }
+
+      // Touch / Click on Runner
+      elDragRunner.addEventListener("mousedown", (e) => handleDragStart(elDragRunner, "runner", e));
+      elDragRunner.addEventListener("touchstart", (e) => handleDragStart(elDragRunner, "runner", e), { passive: false });
+
+      // Touch / Click on Origin
+      elDragOrigin.addEventListener("mousedown", (e) => handleDragStart(elDragOrigin, "origin", e));
+      elDragOrigin.addEventListener("touchstart", (e) => handleDragStart(elDragOrigin, "origin", e), { passive: false });
+
+      // Global Move and Up Events
+      window.addEventListener("mousemove", handleDragMove);
+      window.addEventListener("touchmove", handleDragMove, { passive: false });
+
+      window.addEventListener("mouseup", handleDragEnd);
+      window.addEventListener("touchend", handleDragEnd);
+
+      function handleDragMove(e) {
+        if (!state.dragTarget) return;
+
+        const pageX = e.touches ? e.touches[0].pageX : e.pageX;
+        const deltaXPixels = pageX - state.dragStartPageX;
+        
+        // Convert screen pixel delta to meters
+        const envWidth = elEnvironment.clientWidth;
+        const deltaXMeters = (deltaXPixels / envWidth) * state.screenMeters;
+        
+        let newPhysVal = state.dragStartPhysVal + deltaXMeters;
+        
+        // Boundary safeguards (Keep on the simulated road space)
+        newPhysVal = Math.max(0.5, Math.min(state.screenMeters - 0.5, newPhysVal));
+
+        if (state.dragTarget === "runner") {
+          state.runnerPosPhys = newPhysVal;
+          // Clear animation if dragged while running, to prevent physics confusion
+          if (state.isRunning) {
+            pauseSimulation();
+          }
+        } else if (state.dragTarget === "origin") {
+          state.originPosPhys = newPhysVal;
+        }
+
+        render();
+        updateGraphOnStateChange();
+      }
+
+      function handleDragEnd() {
+        if (!state.dragTarget) return;
+        
+        elDragRunner.classList.remove("scale-105");
+        elDragOrigin.classList.remove("scale-105");
+        state.dragTarget = null;
+      }
+    }
+
+    /* Interactive stick-figure animations while moving */
+    function animateRunner(time) {
+      const runnerSvg = document.getElementById("runner-svg");
+      const armLeft = document.getElementById("arm-left");
+      const armRight = document.getElementById("arm-right");
+      const legLeft = document.getElementById("leg-left");
+      const legRight = document.getElementById("leg-right");
+
+      if (state.isRunning) {
+        // Dynamic angle oscillation representing running gait
+        const cycle = Math.sin(time * 0.012 * Math.abs(state.runningVelocity));
+        
+        // Move arm positions
+        armLeft.setAttribute("x2", (32 + cycle * 12).toFixed(1));
+        armLeft.setAttribute("y2", (24 + Math.abs(cycle) * 4).toFixed(1));
+        armRight.setAttribute("x2", (32 - cycle * 12).toFixed(1));
+        armRight.setAttribute("y2", (24 + Math.abs(cycle) * 4).toFixed(1));
+
+        // Move leg positions
+        legLeft.setAttribute("x2", (32 - cycle * 16).toFixed(1));
+        legLeft.setAttribute("y2", (36 + Math.abs(cycle) * 18).toFixed(1));
+        legRight.setAttribute("x2", (32 + cycle * 16).toFixed(1));
+        legRight.setAttribute("y2", (36 + Math.abs(cycle) * 18).toFixed(1));
+      } else {
+        // Default static pose
+        armLeft.setAttribute("x1", "32"); armLeft.setAttribute("y1", "24");
+        armLeft.setAttribute("x2", "20"); armLeft.setAttribute("y2", "30");
+        
+        armRight.setAttribute("x1", "32"); armRight.setAttribute("y1", "24");
+        armRight.setAttribute("x2", "44"); armRight.setAttribute("y2", "30");
+
+        legLeft.setAttribute("x1", "32"); legLeft.setAttribute("y1", "36");
+        legLeft.setAttribute("x2", "24"); legLeft.setAttribute("y2", "54");
+
+        legRight.setAttribute("x1", "32"); legRight.setAttribute("y1", "36");
+        legRight.setAttribute("x2", "40"); legRight.setAttribute("y2", "54");
+      }
+    }
+
+    /* Core Physics Simulator Engine loop */
+    function runPhysicsLoop(timestamp) {
+      if (!state.isRunning) return;
+
+      if (!state.lastTime) state.lastTime = timestamp;
+      const deltaTime = (timestamp - state.lastTime) / 1000; // in seconds
+      state.lastTime = timestamp;
+
+      // Ensure timeframe changes are sane
+      if (deltaTime < 0.2) {
+        state.simulationTime += deltaTime;
+        
+        // Compute delta position dx = v * dt
+        let nextPos = state.runnerPosPhys + state.runningVelocity * deltaTime;
+        
+        // Edge boundaries check - bounce runner on screen edges
+        if (nextPos <= 0.5) {
+          nextPos = 0.5;
+          state.runningVelocity = -state.runningVelocity; // flip velocity vector
+          updateSpeedSliderValue();
+        } else if (nextPos >= state.screenMeters - 0.5) {
+          nextPos = state.screenMeters - 0.5;
+          state.runningVelocity = -state.runningVelocity; // flip velocity vector
+          updateSpeedSliderValue();
+        }
+
+        state.runnerPosPhys = nextPos;
+
+        // Save plot trajectory values
+        const currentCoordX = getCoordinateX();
+        state.graphData.push({
+          t: state.simulationTime,
+          x: currentCoordX,
+          color: state.runningVelocity >= 0 ? "#6366f1" : "#f43f5e"
+        });
+
+        // Cap array to max history length
+        if (state.graphData.length > state.maxGraphHistory) {
+          state.graphData.shift();
+        }
+
+        render();
+        drawGraph();
+      }
+
+      animateRunner(timestamp);
+      requestAnimationFrame(runPhysicsLoop);
+    }
+
+    function startSimulation() {
+      state.isRunning = true;
+      state.lastTime = 0;
+      elLblPlay.textContent = "Pause Motion";
+      elIconPlay.setAttribute("data-lucide", "pause");
+      elChartPrompt.classList.add("opacity-0", "pointer-events-none");
+      lucide.createIcons();
+      requestAnimationFrame(runPhysicsLoop);
+    }
+
+    function pauseSimulation() {
+      state.isRunning = false;
+      elLblPlay.textContent = "Run Motion";
+      elIconPlay.setAttribute("data-lucide", "play");
+      lucide.createIcons();
+      animateRunner(0); // return to normal frame
+    }
+
+    function updateSpeedSliderValue() {
+      elSliderSpeed.value = state.runningVelocity;
+      elValSpeed.textContent = `${state.runningVelocity >= 0 ? '+' : ''}${formatVal(state.runningVelocity, 1)} m/s`;
+    }
+
+    /* Canvas plotting routines for x-t plots */
+    function drawGraph() {
+      const width = canvas.clientWidth;
+      const height = canvas.clientHeight;
+      
+      // Make high-DPI crisp
+      if (canvas.width !== width || canvas.height !== height) {
+        canvas.width = width;
+        canvas.height = height;
+      }
+
+      ctx.clearRect(0, 0, width, height);
+
+      if (state.graphData.length === 0) return;
+
+      // Define safe plotting margins
+      const margin = { top: 15, right: 15, bottom: 25, left: 35 };
+      const graphWidth = width - margin.left - margin.right;
+      const graphHeight = height - margin.top - margin.bottom;
+
+      // Min and Max scale bounds dynamically adjusted
+      const maxTime = Math.max(10, state.simulationTime);
+      const minTime = Math.max(0, maxTime - 10); // Window of 10s width
+
+      // Coordinates range typically from -20m to +20m max bounds
+      const minY = -20;
+      const maxY = 20;
+
+      // Coordinate axes mapping helper functions
+      function mapTimeX(t) {
+        const ratio = (t - minTime) / (maxTime - minTime);
+        return margin.left + ratio * graphWidth;
+      }
+
+      function mapCoordsY(x) {
+        const ratio = (x - minY) / (maxY - minY);
+        // Inverse coordinate for canvas drawing heights
+        return margin.top + (1 - ratio) * graphHeight;
+      }
+
+      // Draw Grid lines
+      ctx.strokeStyle = "#1e293b";
+      ctx.lineWidth = 1;
+      ctx.font = "9px 'JetBrains Mono', monospace";
+      ctx.fillStyle = "#475569";
+
+      // X Grid Lines / Labels
+      for (let sec = Math.ceil(minTime); sec <= maxTime; sec += 2) {
+        const gx = mapTimeX(sec);
+        if (gx >= margin.left && gx <= width - margin.right) {
+          ctx.beginPath();
+          ctx.moveTo(gx, margin.top);
+          ctx.lineTo(gx, height - margin.bottom);
+          ctx.stroke();
+          ctx.fillText(`${sec}s`, gx - 8, height - margin.bottom + 15);
+        }
+      }
+
+      // Y Grid Lines / Labels (Horizontal coordinates)
+      const horizontalTics = [-15, -10, -5, 0, 5, 10, 15];
+      horizontalTics.forEach(yt => {
+        const gy = mapCoordsY(yt);
+        ctx.beginPath();
+        ctx.moveTo(margin.left, gy);
+        ctx.lineTo(width - margin.right, gy);
+        ctx.stroke();
+        ctx.fillText(`${yt > 0 ? '+' : ''}${yt}m`, 6, gy + 3);
+      });
+
+      // Highlight zero axis line strongly
+      ctx.strokeStyle = "#334155";
+      ctx.lineWidth = 1.5;
+      ctx.beginPath();
+      ctx.moveTo(margin.left, mapCoordsY(0));
+      ctx.lineTo(width - margin.right, mapCoordsY(0));
+      ctx.stroke();
+
+      // Paint kinematics trace trajectory line
+      ctx.lineWidth = 2.5;
+      ctx.lineCap = "round";
+      ctx.lineJoin = "round";
+
+      // Group trajectory values with corresponding colors
+      for (let i = 1; i < state.graphData.length; i++) {
+        const pt1 = state.graphData[i - 1];
+        const pt2 = state.graphData[i];
+
+        const x1 = mapTimeX(pt1.t);
+        const y1 = mapCoordsY(pt1.x);
+        const x2 = mapTimeX(pt2.t);
+        const y2 = mapCoordsY(pt2.x);
+
+        // Filter lines falling out of visible time window frame
+        if (x1 < margin.left || x2 > width - margin.right) continue;
+
+        ctx.strokeStyle = pt2.color;
+        ctx.beginPath();
+        ctx.moveTo(x1, y1);
+        ctx.lineTo(x2, y2);
+        ctx.stroke();
+      }
+
+      // Draw active plotter point
+      const currentPt = state.graphData[state.graphData.length - 1];
+      const cx = mapTimeX(currentPt.t);
+      const cy = mapCoordsY(currentPt.x);
+      
+      if (cx >= margin.left && cx <= width - margin.right) {
+        ctx.shadowBlur = 10;
+        ctx.shadowColor = currentPt.color;
+        ctx.fillStyle = currentPt.color;
+        ctx.beginPath();
+        ctx.arc(cx, cy, 5, 0, 2 * Math.PI);
+        ctx.fill();
+        ctx.shadowBlur = 0; // reset shadow glow
+      }
+    }
+
+    /* Update static chart if values shifted while sandbox is static */
+    function updateGraphOnStateChange() {
+      if (state.graphData.length > 0 && !state.isRunning) {
+        const lastIndex = state.graphData.length - 1;
+        state.graphData[lastIndex] = {
+          t: state.simulationTime,
+          x: getCoordinateX(),
+          color: state.runningVelocity >= 0 ? "#6366f1" : "#f43f5e"
+        };
+        drawGraph();
+      }
+    }
+
+    /* Setup navigation buttons for infographic tabs */
+    function switchTab(stepIndex) {
+      state.activeStep = stepIndex;
+
+      // Update active tabs styles
+      tabButtons.forEach((btn, index) => {
+        if (index + 1 === stepIndex) {
+          btn.className = "py-3 hover:text-white transition border-b-2 border-indigo-500 text-indigo-400 bg-slate-900/40";
+        } else {
+          btn.className = "py-3 hover:text-white transition border-b-2 border-transparent text-slate-400";
+        }
+      });
+
+      // Inject steps HTML description contents
+      const currentData = stepsData[stepIndex];
+      elTabContent.innerHTML = `
+        <h3 class="text-sm font-bold text-white flex items-center gap-2 mb-2">
+          <span class="flex items-center justify-center w-5 h-5 rounded-full bg-indigo-600/30 text-indigo-400 text-[10px] border border-indigo-500/20">${stepIndex}</span>
+          ${currentData.title}
+        </h3>
+        ${currentData.desc}
+      `;
+
+      // Visual helper highlight simulator targets to focus attention
+      clearCanvasPulseHighlights();
+      if (stepIndex === 1) {
+        elDragOrigin.classList.add("pulse-highlight");
+        elInteractiveCheckDesc.innerHTML = "Move the origin flag to see physical coordinates update dynamically! Does the runner actually physically move when you relocate the origin?";
+        elBtnCheckAns.textContent = "Explain Dynamic Shift";
+      } else if (stepIndex === 2) {
+        document.getElementById("axis-line").classList.add("pulse-highlight");
+        elInteractiveCheckDesc.innerHTML = "Swap coordinate direction vector below sandbox to the left. Notice how signs of points automatically invert instantly!";
+        elBtnCheckAns.textContent = "Explain Axis Toggles";
+      } else if (stepIndex === 3) {
+        elVectorP1.classList.add("pulse-highlight");
+        elVectorP2.classList.add("pulse-highlight");
+        elInteractiveCheckDesc.innerHTML = "Wait, are unit vectors at point $P_1$ and $P_2$ really mathematically identical? Review classical vectors properties.";
+        elBtnCheckAns.textContent = "Explain Equal Vectors";
+      } else if (stepIndex === 4) {
+        elPosVectorArrow.classList.add("pulse-highlight");
+        elInteractiveCheckDesc.innerHTML = "Launch the runner motion! Observe the green Position Vector shrink or grow in real-time as coordinates shift values.";
+        elBtnCheckAns.textContent = "Explain Vector Math";
+      }
+
+      // Trigger MathJax rendering on the newly injected contents
+      if (window.MathJax && window.MathJax.typesetPromise) {
+        window.MathJax.typesetPromise([elTabContent, elInteractiveCheckDesc]);
+      }
+    }
+
+    function clearCanvasPulseHighlights() {
+      elDragOrigin.classList.remove("pulse-highlight");
+      document.getElementById("axis-line").classList.remove("pulse-highlight");
+      elVectorP1.classList.remove("pulse-highlight");
+      elVectorP2.classList.remove("pulse-highlight");
+      elPosVectorArrow.classList.remove("pulse-highlight");
+    }
+
+    /* Setup interactive event handlers for infographic checks button click */
+    elBtnCheckAns.addEventListener("click", () => {
+      if (state.activeStep === 1) {
+        triggerModal(
+          "Coordinate Origin Freedom",
+          `<p class="mb-2"><strong>No, the runner does not physically move!</strong></p>
+           <p class="mb-2">This illustrates a beautiful physics paradigm: <strong>"the origin is a complete mathematical choice."</strong></p>
+           <p class="mb-2">While physical distances between elements (like a runner and a wall) are absolute, their actual coordinate values $x$ are totally dependent on where we place the origin $O$.</p>
+           <p class="text-slate-400 font-medium">This is why in physics, you should always pick an origin that makes your mathematics as simple as possible!</p>`,
+          'success'
+        );
+      } else if (state.activeStep === 2) {
+        triggerModal(
+          "Coordinate Sign Direction",
+          `<p class="mb-2"><strong>Correct! Changing $+x$ flips all signs.</strong></p>
+           <p class="mb-2">In classical physics, defining which side of the origin represents positive coordinate values is entirely up to you. Most students designate Rightwards as $+x$, but designing Leftwards as $+x$ is equally correct.</p>
+           <p class="text-slate-400">By toggling direction, all point coordinates reflect inverse coordinates ($x \\rightarrow -x$), adapting equations perfectly.</p>`,
+          'success'
+        );
+      } else if (state.activeStep === 3) {
+        triggerModal(
+          "Why are unit vectors equal?",
+          `<p class="mb-2"><strong>Yes, they are completely equal!</strong></p>
+           <p class="mb-2">In Cartesian coordinates, unit vectors at every point in space are defined by two strict properties:</p>
+           <ul class="list-disc pl-5 mb-2 space-y-1">
+             <li><strong>Magnitude:</strong> Always precisely $1$.</li>
+             <li><strong>Direction:</strong> Pointing along the positive $+x$ axis.</li>
+           </ul>
+           <p class="mb-2">Because they have identical magnitudes and directions, they satisfy the definition of vector equality: $\\hat{i}_1 = \\hat{i}_2 = \\hat{i}$.</p>
+           <p class="text-slate-400">This holds true in linear Cartesian lines, keeping equation coordinates uniform across all space locations.</p>`,
+          'success'
+        );
+      } else if (state.activeStep === 4) {
+        triggerModal(
+          "The Vector Formula Explained",
+          `<p class="mb-2">The position vector formula is defined as:</p>
+           <p class="p-2.5 bg-slate-950 rounded-xl font-bold font-mono text-center text-emerald-400 my-2">$$\\vec{r} = x \\hat{i}$$</p>
+           <p class="mb-2">Here, the scalar component $x$ carries the numerical magnitude and direction sign ($+$ or $-$), while the unit vector $\\hat{i}$ defines the spatial line direction.</p>
+           <p class="text-slate-400">If the runner resides at coordinate $x = -5$, the vector evaluates to $\\vec{r} = -5\\hat{i}$, perfectly describing a point 5 meters in the negative direction!</p>`,
+          'success'
+        );
+      }
+    });
+
+    /* Randomize the origin coordinate placement */
+    elBtnQuickRandomizeOrigin.addEventListener("click", () => {
+      // Pick dynamic physical meter between 2 and 18 meters on the track scale
+      state.originPosPhys = 2 + Math.random() * 14;
+      render();
+      updateGraphOnStateChange();
+    });
+
+    // Map listeners for all tab selectors
+    tabButtons.forEach((btn, idx) => {
+      btn.addEventListener("click", () => switchTab(idx + 1));
+    });
+
+    /* Control Panel Event Bindings */
+    elBtnPlayPause.addEventListener("click", () => {
+      if (state.isRunning) {
+        pauseSimulation();
+      } else {
+        startSimulation();
+      }
+    });
+
+    elBtnResetMotion.addEventListener("click", () => {
+      pauseSimulation();
+      state.simulationTime = 0;
+      // Return runner back relative to current origin position
+      state.runnerPosPhys = state.originPosPhys;
+      state.graphData = [];
+      
+      // Seed original coordinate values to initialize charts beautifully
+      state.graphData.push({
+        t: 0,
+        x: getCoordinateX(),
+        color: state.runningVelocity >= 0 ? "#6366f1" : "#f43f5e"
+      });
+
+      render();
+      drawGraph();
+    });
+
+    elBtnResetAll.addEventListener("click", () => {
+      pauseSimulation();
+      state.runnerPosPhys = 13.0;
+      state.originPosPhys = 6.0;
+      state.positiveDirectionRight = true;
+      state.runningVelocity = 2.0;
+      state.simulationTime = 0;
+      state.graphData = [];
+      state.activeStep = 1;
+
+      // Update control triggers values
+      updateSpeedSliderValue();
+      elBtnDirRight.className = "py-1 px-3 rounded-lg text-xs font-semibold transition bg-indigo-600 text-white shadow";
+      elBtnDirLeft.className = "py-1 px-3 rounded-lg text-xs font-semibold text-slate-400 hover:text-white transition";
+      elChartPrompt.classList.remove("opacity-0", "pointer-events-none");
+
+      switchTab(1);
+      render();
+      
+      // Wipe clean graph axis frames
+      ctx.clearRect(0, 0, canvas.width, canvas.height);
+    });
+
+    // Handle direction changes
+    elBtnDirRight.addEventListener("click", () => {
+      if (state.positiveDirectionRight) return;
+      state.positiveDirectionRight = true;
+      elBtnDirRight.className = "py-1 px-3 rounded-lg text-xs font-semibold transition bg-indigo-600 text-white shadow";
+      elBtnDirLeft.className = "py-1 px-3 rounded-lg text-xs font-semibold text-slate-400 hover:text-white transition";
+      
+      // Reverse current chart values dynamically to maintain consistency
+      state.graphData.forEach(pt => pt.x = -pt.x);
+      
+      render();
+      drawGraph();
+    });
+
+    elBtnDirLeft.addEventListener("click", () => {
+      if (!state.positiveDirectionRight) return;
+      state.positiveDirectionRight = false;
+      elBtnDirLeft.className = "py-1 px-3 rounded-lg text-xs font-semibold transition bg-indigo-600 text-white shadow";
+      elBtnDirRight.className = "py-1 px-3 rounded-lg text-xs font-semibold text-slate-400 hover:text-white transition";
+      
+      // Reverse current chart values dynamically to maintain consistency
+      state.graphData.forEach(pt => pt.x = -pt.x);
+
+      render();
+      drawGraph();
+    });
+
+    // Speed slider changes
+    elSliderSpeed.addEventListener("input", (e) => {
+      state.runningVelocity = parseFloat(e.target.value);
+      updateSpeedSliderValue();
+    });
+
+    // Resize canvas dynamically on layout shifts
+    window.addEventListener("resize", () => {
+      render();
+      if (state.graphData.length > 0) {
+        drawGraph();
+      }
+    });
+
+    /* Initialize sandbox parameters on window startup */
+    window.onload = function() {
+      // Boot up Lucide icons definitions
+      lucide.createIcons();
+
+      // Setup physics coordinates and scales renders
+      render();
+      setupDragging();
+      switchTab(1); // load default tab
+      
+      // Trigger initial MathJax rendering for static content
+      if (window.MathJax && window.MathJax.typesetPromise) {
+        window.MathJax.typesetPromise();
+      }
+    };
+  </script>
+</body>
+</html>
