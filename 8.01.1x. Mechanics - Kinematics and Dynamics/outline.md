@@ -54,7 +54,7 @@
         9. L1Q3: Instantaneous Velocity
         10. Derivatives
         11. L1Q4: Instantaneous Velocity from Position
-        12. L1WE1/[L1v6](https://engineer-e.github.io/Physics-MIT-University/8.01.1x.%20Mechanics%20-%20Kinematics%20and%20Dynamics/course_html/Mechanics%20-%20Kinematics%20and%20Dynamics/Week%201%20-%20Kinematics/Lesson%201%20-%201D%20Kinematics%20-%20Position%20and%20Velocity/L1WE1L1v6%20Worked%20Example%20-%20Derivatives%20in%20Kinematics/L1v6_ai1.html): Worked Example - Derivatives in Kinematics
+        12. L1WE1/[L1v6](https://engineer-e.github.io/Physics-MIT-University/8.01.1x.%20Mechanics%20-%20Kinematics%20and%20Dynamics/course_html/Mechanics%20-%20Kinematics%20and%20Dynamics/Week%201%20-%20Kinematics/Lesson%201%20-%201D%20Kinematics%20-%20Position%20and%20Velocity/L1WE1L1v6%20Worked%20Example%20-%20Derivatives%20in%20Kinematics/L1v6_ai1.html): Worked Example - Derivatives in Kinematics [NASA-gravity](https://ssd.jpl.nasa.gov/planets/phys_par.html)
 
     3. Lesson 2 - 1D Kinematics - Acceleration
         1. Topics and Reading List
