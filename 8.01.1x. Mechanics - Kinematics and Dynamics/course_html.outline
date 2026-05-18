@@ -1,0 +1,215 @@
+Mechanics - Kinematics and Dynamics
+  Course Information
+    Course Information
+      Course Description
+      Release and Due Dates
+      Grading and Certificates
+      Discussion and Collaboration Guidelines
+    Textbook & Math Review
+      Downloadable Textbook and Other Resources
+    How To - Answering Course Questions
+      How To - Answering course Questions
+      Multiple Choice Questions
+      Numerical Questions
+      Formula Response and Drag and Drop
+    Course Staff
+      Course Staff
+  Prerequisite Math and Survey
+    Survey and Skill Challenge - Vectors
+      Vector Skill Challenge Introduction
+      SC0v1 - Vectors vs Scalars
+      SC0v2 - Vector Operators
+      SC0Q1 - Vector Operations Graphically - Practice
+      SC0Q2 - Adding Vectors Graphically
+      SC0v3 - Coordinate Systems and Unit Vectors
+      SC0Q3 - Unit Vectors - Practice
+      SC0v4 - Vectors - Magnitude and Direction
+      SC0Q4 - Magnitude and Direction - Practice
+      SC0v5 - Vector Decomposition into components
+      SC0Q5 - Vector Decomposition - Practice
+      SC0Q6 - Vector Decomposition and Rotation of Coordinate System - Part I
+      SC0Q7 - Vector Decomposition and Rotation of Coordinate System - Part II
+      SC0v6 - Going Between Representations
+      SC0Q8 - Magnitude and Direction or Components - Practice
+      SC0Q9 - Magnitude and Direction
+      SC0Q10 - Adding and Subtracting Vectors - Practice
+      SC0Q11 - Vector Decomposition
+      SC0Q12 - Tetrahedron Model of Methane - Challenge Problem - Practice
+  Week 1 - Kinematics
+    Introduction - Kinematics vs Dynamics
+      W01intro: Kinematics vs Dynamics
+    Lesson 1 - 1D Kinematics - Position and Velocity
+      Topics and Reading List
+      L1v1: Coordinate Systems and Unit Vectors in 1D
+      L1v2: Position Vector in 1D
+      L1v3: Displacement Vector in 1D
+      L1Q1: Displacement vs Distance, 1D
+      L1v4: Average Velocity in 1D
+      L1Q2: Average Velocity and Average Speed
+      L1v5: Instantaneous Velocity in 1D
+      L1Q3: Instantaneous Velocity
+      Derivatives
+      L1Q4: Instantaneous Velocity from Position
+      L1WE1/L1v6: Worked Example - Derivatives in Kinematics
+    Lesson 2 - 1D Kinematics - Acceleration
+      Topics and Reading List
+      L2v1: Introduction to Acceleration
+      L2v2: Acceleration in 1D
+      L2WE1/L2v3: Worked Example - Acceleration from Position
+      L2Q1: Acceleration from Position
+      L2v4: Integration
+      List of Useful Integrals
+      L2Q2: Integrating Acceleration
+      L2Q3: Integrating Acceleration Graph
+      L2Q4: Matching Objects to Graphs
+    Lesson 3 - 2D Kinematics - Position, Velocity, and Acceleration
+      Topics and Reading List
+      L3v1: Coordinate System and Position Vector in 2D
+      L3Q1: Position, Displacement and Distance in 2D
+      L3v2: Instantaneous Velocity in 2D
+      L3Q2: Average velocity vs Average Speed in 2D
+      L3v3: Instantaneous Acceleration in 2D
+      L3Q3: Position, velocity and acceleration in 2D
+      L3v4: Projectile Motion
+      Demos for Projectile Motion
+      L3WE1: Throwing a projectile (Worked Example)
+    Problem Solving Practice 1
+      W1PSv1: Three Questions Before Starting
+      W1PSQ1/W1PSv2: Category 1: Multiple Objects - one stage of motion each
+      W1PSQ2/W1PSv3: Category 2: Multiple Stages of Motion
+      W1PSQ3/W1PSv4: Category 3: Special Conditions to Apply
+      W1PSQ4/W1PSv5: Combining the 3 Categories
+  Week 2 - Newtons Laws
+    Introduction to Dynamics
+      W2intro: Introduction to Newtons Laws and Forces
+    Lesson 4 - Newtons Laws of Motion
+      Topics and Reading List
+      L4v1: Newtons First and Second Laws
+      L4v2: Newtons Third Law
+      L4v3: Reference Frames
+      L4v4: Non-inertial Reference Frames
+      L04Q1: Non-Inertial Frames of References
+    Lesson 5 - Gravity
+      Topics and Reading List
+      L5v1: Universal Law of Gravitation
+      L5WE1/L5v2: Worked Example: Gravity Superpositon
+      L5Q1: Gravity Superposition
+      L5v3: Gravity at the surface of the Earth: The value of g
+      L5Q2: Gravity at the surface of the Jupiter
+      L5Q3: Comparing Universal Gravity and the Uniform Gravity Approximation
+    Lesson 6 - Contact Forces
+      Topics and Reading List
+      L6v1: Contact Forces
+      L6Q1: Pushing a Block
+      L6v2: Static Friction
+      L6Q2: Block on an Incline
+      L6Q3: Comparison: Min and Max Force
+      L6Q4: Suspended Block
+    Lesson 7 - Tension and Springs
+      Topics and Reading List
+      L7v1: Pushing Pulling and Tension
+      L7v2: Ideal Rope
+      L7Q1: Block Accelerating Down
+      L7Q2: Two Hanging Boxes
+      L7v3: Solving Pulley Systems
+      L7Q3: Two Blocks and a Pulley
+      L7v4: Hookes Law
+      L7Q4: Two Vertical Springs
+    Deep Dive - Friction
+      Deep Dive: Friction at the Nanoscale
+    Skill Challenge - Newtons Laws
+      Topics and Reading List
+      SC2v1: Newtons 3rd Law Pairs
+      SC2Q1: Newtons 3rd Law (Practice)
+      SC2Q2: Newtons 3rd Law
+      SC2v2: Internal and External Forces
+      SC2Q3: Internal and External Forces (Practice)
+      SC2Q4: System and External Forces
+      SC2v3: Applying Newtons 2nd Law
+      SC2Q5: Choosing a System and Applying Newtons 2nd Law (Practice)
+      SC2Q6: Applying Newtons 2nd Law
+    Problem Solving Practice 2
+      W2PSQ1: Drawing Free Body Force Diagrams
+      W2PSQ2/W2PSv1: Sliding Block
+      W2PSQ3/W2PSv2: Pushing Stacked Blocks
+      W2PSQ4/W2PSv3: Window Washer Problem
+  Week 3 - Circular Motion
+    Introduction
+      W3intro: Introduction to Circular Motion
+    Lesson 8 - Circular Motion - Position and Velocity
+      Intro to Circular Motion
+      L8v1: Polar Coordinates
+      L8v2: Position and Unit Vectors in Polar Coordinates
+      L8Q1: Polar Coordinates
+      L8v3: Velocity in Polar Coordinates
+      L8Q2: Position Vector for Circular Motion
+      L8Q3: Derivative of a Rotating Vector
+      L8Q4: Position and Velocity
+      L8Q5: Choosing a Coordinate System
+      L8v4: Angular Velocity
+      L8Q6: Magnitude of the Angular Velocity
+      L8Q7: Velocity, Angular Velocity and Angular Speed
+    Lesson 9 - Uniform Circular Motion
+      Intro to Uniform Circular Motion
+      L9v1: Uniform Circular Motion
+      L9v2: Uniform Circular Motion - Direction of the Acceleration
+      L9Q1: Uniform Circular Motion - Magnitude of the Acceleration
+      L9Q2: Uniform Circular Motion - Magnitude and Direction of the Acceleration
+      L9: Period and Frequency
+      L9Q3: Period and Frequency
+    Lesson 10 - Circular Motion - Acceleration
+      Intro to Circular Motion - Acceleration
+      L10v1: Circular Motion - Acceleration
+      L10Q1: Direction of the Acceleration
+      L10Q2: Radial and Tangential Components
+      L10v2: Angular Acceleration
+      L10Q3: Angular Acceleration
+      L10WE1/L10v3: Worked Example - Angular Position from Angular Acceleration (Worked Example)
+      L10Q4: Angular Position from Angular Acceleration
+      L10Q5: Moving around a Circle
+      L10: Review of Rotational Kinematics
+    Lesson 11 - Newtons 2nd Law and Circular Motion
+      Intro to Newtons 2nd Law and Circular Motion
+      L11v01: Newtons 2nd Law and Circular Motion
+      L11Q1: Total Force
+      L11Q2: Conical Pendulum
+      L11WE1/L11v2: Worked Example - Car on a Banked Turn
+      L11Q3: Moving on a Circle
+      Demo: Rotating Bucket
+    Problem Solving Practice 3
+      W3PSQ1: Whirling a Ball (Practice)
+      W3PSQ2: Box on a Loop-the-Loop (Practice)
+      W03PS01: Worked Example - Orbital Circular Motion (Practice)
+      W3PSQ4: Double Star System (Practice)
+  Week 4 - Drag Forces, Constraints and Continuous Systems
+    Introduction
+      W04intro: Week 4 Introduction
+    Lesson 12 - Pulleys and Constraints
+      Intro to Pulleys and Constraints
+      L12v1: Pulley Problems - Part I, Set up the Equations
+      L12v2: Pulley Problem - Part II, Constraint Condition
+      L12v3: Pulley Problem - Part III, Constraints and Virtual Displacement Arguments
+      L12v4: Pulley Problem - Part IV, Solving the System of Equations
+      L12WE2: Three Pulleys
+      L12WE3/L12v5 Worked Example 2 Blocks and 2 Pulleys
+      L12Q1: Two Blocks, Three Pulleys and an Incline
+    Lesson 13 - Massive Rope
+      Intro to Differential Analysis
+      L13WE1/L13v1: Massive Rope Hanging Betweetn Trees
+      L13Q1: Tension in a Suspended Rope - Part I
+      L13v2: Differential Analysis of a Massive Rope
+      L13Q2: Tension in a Suspended Rope - Part II
+      L13v3: Differential Elements
+      L13v4: Density
+      L13Q3: Differential Elements
+      Demo: Wrapping Friction
+      L13Q4: Wrapping Friction
+      L13v05: Summary of Differential Analysis
+    Lesson 14 - Resistive Force
+      Intro to Resistive Forces
+      L14v1: Intro to Resistive forces
+      L14v2: Resistive Forces - Low Speed Case
+      L14v3: Resistive Forces - High Speed Case
+      L14Q1: Differential Equations and Drag
+    Deep Dive - Stellar Structure
+      Deep Dive: Stellar Structure
