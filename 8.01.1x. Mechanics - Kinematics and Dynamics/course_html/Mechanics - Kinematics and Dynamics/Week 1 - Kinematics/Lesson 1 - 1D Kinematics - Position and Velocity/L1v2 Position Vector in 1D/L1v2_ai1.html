@@ -1,0 +1,1218 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>1D Kinematics: Position Vector Simulator & Infographic</title>
+    <!-- Tailwind CSS for styling -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Google Fonts (Inter) -->
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=Fira+Code:wght@400;500&display=swap" rel="stylesheet">
+    <!-- KaTeX CDN for beautiful math rendering -->
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.css">
+    <script src="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/contrib/auto-render.min.js"></script>
+    <style>
+        body {
+            font-family: 'Inter', sans-serif;
+        }
+        .fira-code {
+            font-family: 'Fira Code', monospace;
+        }
+        /* Hide scrollbars for slick look while maintaining scrollability */
+        ::-webkit-scrollbar {
+            width: 6px;
+            height: 6px;
+        }
+        ::-webkit-scrollbar-track {
+            background: #1e293b;
+        }
+        ::-webkit-scrollbar-thumb {
+            background: #475569;
+            border-radius: 3px;
+        }
+        ::-webkit-scrollbar-thumb:hover {
+            background: #64748b;
+        }
+    </style>
+</head>
+<body class="bg-slate-950 text-slate-100 min-h-screen flex flex-col antialiased selection:bg-indigo-500/30 selection:text-indigo-200">
+
+    <header class="border-b border-slate-800 bg-slate-900/80 backdrop-blur sticky top-0 z-50 px-4 py-3 sm:px-6">
+        <div class="max-w-7xl mx-auto flex flex-col sm:flex-row items-center justify-between gap-3">
+            <div class="flex items-center gap-3">
+                <div class="h-10 w-10 rounded-xl bg-gradient-to-tr from-indigo-500 to-purple-500 flex items-center justify-center shadow-lg shadow-indigo-500/20">
+                    <svg class="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M13 10V3L4 14h7v7l9-11h-7z" />
+                    </svg>
+                </div>
+                <div>
+                    <h1 class="text-lg font-bold tracking-tight text-white flex items-center gap-2">
+                        1D Kinematics: Position & Vectors
+                    </h1>
+                    <p class="text-xs text-slate-400">Interactive Simulator & Infographic</p>
+                </div>
+            </div>
+            <div class="flex items-center gap-2">
+                <span class="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-semibold bg-emerald-500/10 text-emerald-400 border border-emerald-500/20">
+                    <span class="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse"></span>
+                    Interactive Sandbox Active
+                </span>
+            </div>
+        </div>
+    </header>
+
+    <main class="flex-grow max-w-7xl w-full mx-auto p-4 sm:p-6 lg:p-8 flex flex-col gap-8">
+        
+        <!-- INTRODUCTORY SUMMARY BAR -->
+        <section class="bg-gradient-to-r from-indigo-900/40 via-purple-900/20 to-slate-900/40 rounded-2xl border border-indigo-500/20 p-6 shadow-xl">
+            <div class="flex flex-col md:flex-row gap-6 justify-between items-start md:items-center">
+                <div class="space-y-2 max-w-3xl">
+                    <h2 class="text-xl md:text-2xl font-bold text-indigo-300">How do we describe position mathematically?</h2>
+                    <p class="text-slate-300 text-sm leading-relaxed">
+                        To study motion, we establish an <span class="text-white font-semibold underline decoration-indigo-400 decoration-2">origin</span>, model complex moving objects (like runners with swinging limbs) as a single <span class="text-white font-semibold underline decoration-indigo-400 decoration-2">fixed point</span>, and define a dynamic <span class="text-indigo-400 font-semibold">position vector</span>:
+                    </p>
+                    <div class="flex flex-wrap gap-2 pt-1">
+                        <span class="px-3 py-1 bg-slate-900 rounded border border-slate-700 text-purple-300 font-mono text-xs flex items-center gap-1">Position Vector: <span class="math-latex">$\vec{r}(t) = x(t) \hat{i}$</span></span>
+                        <span class="px-3 py-1 bg-slate-900 rounded border border-slate-700 text-indigo-300 font-mono text-xs flex items-center gap-1">Component: <span class="math-latex">$x(t)$</span></span>
+                        <span class="px-3 py-1 bg-slate-900 rounded border border-slate-700 text-emerald-300 font-mono text-xs flex items-center gap-1">Unit Vector: <span class="math-latex">$\hat{i}$</span></span>
+                    </div>
+                </div>
+                <div class="bg-slate-950/80 p-4 rounded-xl border border-slate-800 self-stretch md:self-auto flex flex-col justify-center min-w-[200px]">
+                    <div class="text-xs text-slate-400 uppercase tracking-widest mb-1">Interactive Goal</div>
+                    <p class="text-xs text-slate-300 leading-normal">
+                        Drag the runner, toggle presets, and observe how the signs of the component and vector align with the coordinate axis!
+                    </p>
+                </div>
+            </div>
+        </section>
+
+        <section class="grid grid-cols-1 lg:grid-cols-12 gap-6">
+            
+            <!-- LEFT COLUMN: SIMULATOR CANVAS & CONTROLS (8 COLS) -->
+            <div class="lg:col-span-8 flex flex-col gap-6">
+                
+                <!-- Main Simulator Box -->
+                <div class="bg-slate-900 border border-slate-800 rounded-2xl p-4 sm:p-6 shadow-2xl relative overflow-hidden flex flex-col gap-4">
+                    
+                    <!-- Title Bar -->
+                    <div class="flex items-center justify-between">
+                        <div class="flex items-center gap-2">
+                            <span class="w-2.5 h-2.5 rounded-full bg-indigo-500 animate-pulse"></span>
+                            <h3 class="font-bold text-slate-200">1D Motion Track Simulator</h3>
+                        </div>
+                        <div class="flex items-center gap-2 text-xs">
+                            <span class="text-slate-400">View Mode:</span>
+                            <button id="btn-toggle-limbs" class="px-2.5 py-1 bg-slate-800 hover:bg-slate-700 active:bg-slate-600 rounded border border-slate-700 text-indigo-300 font-medium transition-colors">
+                                Abstraction: Full Body
+                            </button>
+                        </div>
+                    </div>
+
+                    <!-- Canvas Container -->
+                    <div class="relative bg-slate-950 rounded-xl border border-slate-800/80 overflow-hidden group">
+                        <!-- Canvas Element -->
+                        <canvas id="simCanvas" class="w-full h-64 block cursor-grab active:cursor-grabbing"></canvas>
+                        
+                        <!-- Floating Position HUD -->
+                        <div class="absolute top-4 left-4 bg-slate-900/90 backdrop-blur border border-slate-700 rounded-lg p-3 shadow-xl flex flex-col gap-1 pointer-events-none select-none">
+                            <div class="text-[10px] text-slate-400 uppercase tracking-wider font-bold">Real-time Coordinates</div>
+                            <div class="flex items-baseline gap-2">
+                                <span id="hud-x" class="text-lg font-bold font-mono text-indigo-400">x(t) = 0.00\text{ m}</span>
+                            </div>
+                            <div class="text-[10px] text-slate-400 font-mono" id="hud-sign-desc">
+                                At the Origin
+                            </div>
+                        </div>
+
+                        <!-- Live Vector Equation Card -->
+                        <div class="absolute bottom-4 right-4 bg-slate-900/95 backdrop-blur border border-indigo-500/30 rounded-lg p-3 shadow-xl pointer-events-none select-none">
+                            <div class="text-[10px] text-indigo-400 uppercase tracking-wider font-bold mb-1">Vector Definition</div>
+                            <div class="fira-code text-sm font-semibold flex items-center gap-1.5 text-white" id="eq-vector-display">
+                                \vec{r}(t) = 0.00 \hat{i}
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Sandbox Controls Toolbar -->
+                    <div class="flex flex-col sm:flex-row gap-4 justify-between items-stretch sm:items-center bg-slate-950/40 p-3 rounded-xl border border-slate-800/60">
+                        <!-- Left Controls: Play, Pause, Reset -->
+                        <div class="flex items-center gap-2">
+                            <button id="btn-play" class="flex-1 sm:flex-none px-4 py-2 bg-indigo-600 hover:bg-indigo-500 text-white rounded-lg font-medium text-sm transition-all flex items-center justify-center gap-2 shadow-lg shadow-indigo-600/20 active:scale-95">
+                                <svg class="w-4 h-4 fill-current" viewBox="0 0 24 24">
+                                    <path d="M8 5v14l11-7z" />
+                                </svg>
+                                <span>Play</span>
+                            </button>
+                            <button id="btn-pause" class="flex-1 sm:flex-none px-4 py-2 bg-slate-800 hover:bg-slate-700 text-slate-300 rounded-lg font-medium text-sm transition-all flex items-center justify-center gap-2 active:scale-95 hidden">
+                                <svg class="w-4 h-4 fill-current" viewBox="0 0 24 24">
+                                    <path d="M6 19h4V5H6v14zm8-14v14h4V5h-4z" />
+                                </svg>
+                                <span>Pause</span>
+                            </button>
+                            <button id="btn-reset" class="px-3 py-2 bg-slate-800 hover:bg-slate-700 hover:text-white text-slate-400 rounded-lg font-medium text-sm transition-all active:scale-95" title="Reset Position to Origin">
+                                Reset
+                            </button>
+                        </div>
+
+                        <!-- Slider for direct component manual control -->
+                        <div class="flex-grow flex items-center gap-3 max-w-sm">
+                            <span class="text-xs text-slate-400 font-mono">-10m</span>
+                            <input type="range" id="posSlider" min="-10" max="10" step="0.1" value="0" class="w-full accent-indigo-500 cursor-pointer bg-slate-800 h-2 rounded-lg appearance-none">
+                            <span class="text-xs text-slate-400 font-mono">+10m</span>
+                        </div>
+                    </div>
+
+                    <!-- Preset Motions Selection -->
+                    <div class="grid grid-cols-2 sm:grid-cols-4 gap-2">
+                        <button id="preset-manual" class="px-3 py-2 bg-indigo-500/20 text-indigo-300 border border-indigo-500/40 rounded-xl text-xs font-semibold hover:bg-indigo-500/30 transition-all text-center">
+                            Manual Dragging
+                        </button>
+                        <button id="preset-cv" class="px-3 py-2 bg-slate-800 text-slate-300 border border-slate-700 rounded-xl text-xs font-semibold hover:bg-slate-700 transition-all text-center">
+                            Constant Velocity
+                        </button>
+                        <button id="preset-shm" class="px-3 py-2 bg-slate-800 text-slate-300 border border-slate-700 rounded-xl text-xs font-semibold hover:bg-slate-700 transition-all text-center">
+                            Harmonic Oscillation
+                        </button>
+                        <button id="preset-accel" class="px-3 py-2 bg-slate-800 text-slate-300 border border-slate-700 rounded-xl text-xs font-semibold hover:bg-slate-700 transition-all text-center">
+                            Accelerating Walk
+                        </button>
+                    </div>
+
+                </div>
+
+                <!-- Live Mathematical Feedback Panel -->
+                <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+                    
+                    <!-- Card 1: Position Component -->
+                    <div class="bg-slate-900 border border-slate-800 rounded-xl p-4 flex flex-col justify-between gap-3 shadow-lg">
+                        <div>
+                            <div class="flex justify-between items-start mb-1">
+                                <span class="text-xs font-semibold tracking-wider text-indigo-400 uppercase">Component <span class="math-latex">$x(t)$</span></span>
+                                <span id="comp-badge" class="text-[10px] px-2 py-0.5 rounded-full font-bold bg-slate-800 text-slate-400">Zero</span>
+                            </div>
+                            <h4 class="text-lg font-bold text-white mb-2" id="comp-val-text">x(t) = 0.00</h4>
+                            <p class="text-xs text-slate-400 leading-relaxed" id="comp-desc">
+                                The runner is exactly at the origin. The scalar component is zero.
+                            </p>
+                        </div>
+                        <div class="border-t border-slate-800/80 pt-2 text-[11px] text-indigo-300 font-mono">
+                            Type: Scalar (with sign)
+                        </div>
+                    </div>
+
+                    <!-- Card 2: Unit Vector î -->
+                    <div class="bg-slate-900 border border-slate-800 rounded-xl p-4 flex flex-col justify-between gap-3 shadow-lg">
+                        <div>
+                            <div class="flex justify-between items-start mb-1">
+                                <span class="text-xs font-semibold tracking-wider text-yellow-400 uppercase font-serif">Unit Vector <span class="math-latex">$\hat{i}$</span></span>
+                                <span class="text-[10px] px-2 py-0.5 rounded-full font-bold bg-yellow-400/10 text-yellow-400 border border-yellow-500/20">Constant</span>
+                            </div>
+                            <h4 class="text-lg font-bold text-white mb-2" id="unit-val-text">\hat{i} = +1.00</h4>
+                            <p class="text-xs text-slate-400 leading-relaxed">
+                                Points strictly in the positive direction of the x-axis. It has a magnitude of 1 and never changes direction or size.
+                            </p>
+                        </div>
+                        <div class="border-t border-slate-800/80 pt-2 text-[11px] text-yellow-400 font-mono font-serif">
+                            Type: Direction Standard
+                        </div>
+                    </div>
+
+                    <!-- Card 3: Position Vector r⃗(t) -->
+                    <div class="bg-slate-900 border border-slate-800 rounded-xl p-4 flex flex-col justify-between gap-3 shadow-lg">
+                        <div>
+                            <div class="flex justify-between items-start mb-1">
+                                <span class="text-xs font-semibold tracking-wider text-purple-400 uppercase font-serif">Position Vector <span class="math-latex">$\vec{r}(t)$</span></span>
+                                <span id="vec-dir-badge" class="text-[10px] px-2 py-0.5 rounded-full font-bold bg-slate-800 text-slate-400">No Direction</span>
+                            </div>
+                            <h4 class="text-lg font-bold text-white mb-2" id="vec-val-text">\vec{r}(t) = 0.00 \hat{i}</h4>
+                            <p class="text-xs text-slate-400 leading-relaxed" id="vec-desc">
+                                No physical length or orientation because the runner is on the origin point.
+                            </p>
+                        </div>
+                        <div class="border-t border-slate-800/80 pt-2 text-[11px] text-purple-300 font-mono font-serif">
+                            \vec{r}(t) = \text{Component} \times \hat{i}
+                        </div>
+                    </div>
+
+                </div>
+
+            </div>
+
+            <!-- RIGHT COLUMN: ROLLING GRAPH & INFOGRAPHICS (4 COLS) -->
+            <div class="lg:col-span-4 flex flex-col gap-6">
+                
+                <!-- Real-time Plot Card -->
+                <div class="bg-slate-900 border border-slate-800 rounded-2xl p-4 shadow-2xl flex flex-col gap-3">
+                    <div class="flex items-center justify-between">
+                        <div class="flex items-center gap-1.5">
+                            <span class="w-2 h-2 rounded-full bg-emerald-400"></span>
+                            <h4 class="font-bold text-xs text-slate-300 uppercase tracking-wider">Live Position vs. Time Graph</h4>
+                        </div>
+                        <button id="btn-clear-graph" class="text-[10px] text-slate-500 hover:text-slate-300 transition-colors">Clear</button>
+                    </div>
+                    
+                    <div class="relative bg-slate-950 rounded-lg border border-slate-800/80 p-2 overflow-hidden">
+                        <canvas id="graphCanvas" class="w-full h-40 block"></canvas>
+                        <!-- Y Axis labels floating -->
+                        <div class="absolute inset-y-2 left-2 flex flex-col justify-between pointer-events-none text-[9px] font-mono text-slate-500">
+                            <span>+10m</span>
+                            <span>0m</span>
+                            <span>-10m</span>
+                        </div>
+                        <!-- X Axis Label floating -->
+                        <div class="absolute bottom-1 right-2 pointer-events-none text-[9px] font-mono text-slate-500">
+                            Time (t) →
+                        </div>
+                    </div>
+                    <p class="text-[11px] text-slate-400 leading-normal text-center italic">
+                        Real-time plots change dynamically based on runner movement.
+                    </p>
+                </div>
+
+                <!-- Quick Check Infographic Widget -->
+                <div class="bg-gradient-to-b from-slate-900 to-slate-950 border border-slate-800 rounded-2xl p-5 shadow-2xl flex flex-col gap-4">
+                    <h4 class="font-bold text-sm text-indigo-300 flex items-center gap-2 border-b border-slate-800 pb-2">
+                        <svg class="w-4 h-4 text-indigo-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-3 7h3m-3 4h3m-6-4h.01M9 16h.01" />
+                        </svg>
+                        Sign & Direction Rules
+                    </h4>
+                    
+                    <div class="space-y-3.5">
+                        
+                        <!-- Positive rule -->
+                        <div class="flex items-start gap-3">
+                            <div class="mt-0.5 h-5 w-5 rounded bg-emerald-500/10 border border-emerald-500/30 flex items-center justify-center text-emerald-400 font-bold text-xs font-mono">
+                                +
+                            </div>
+                            <div>
+                                <h5 class="text-xs font-semibold text-slate-200">Runner is Right of Origin</h5>
+                                <p class="text-[11px] text-slate-400 leading-relaxed mt-0.5">
+                                    Component <span class="text-emerald-400 font-semibold font-mono">$x(t) > 0$</span>. The position vector points right: parallel to <span class="text-yellow-400 font-mono">$\hat{i}$</span>.
+                                </p>
+                            </div>
+                        </div>
+
+                        <!-- Zero rule -->
+                        <div class="flex items-start gap-3">
+                            <div class="mt-0.5 h-5 w-5 rounded bg-slate-800 border border-slate-700 flex items-center justify-center text-slate-400 font-bold text-xs font-mono">
+                                0
+                            </div>
+                            <div>
+                                <h5 class="text-xs font-semibold text-slate-200">Runner is at Origin</h5>
+                                <p class="text-[11px] text-slate-400 leading-relaxed mt-0.5">
+                                    Component <span class="text-slate-400 font-semibold font-mono">$x(t) = 0$</span>. The position vector is null: <span class="text-slate-400 font-mono">$\vec{r}(t) = \vec{0}$</span>.
+                                </p>
+                            </div>
+                        </div>
+
+                        <!-- Negative rule -->
+                        <div class="flex items-start gap-3">
+                            <div class="mt-0.5 h-5 w-5 rounded bg-rose-500/10 border border-rose-500/30 flex items-center justify-center text-rose-400 font-bold text-xs font-mono">
+                                -
+                            </div>
+                            <div>
+                                <h5 class="text-xs font-semibold text-slate-200">Runner is Left of Origin</h5>
+                                <p class="text-[11px] text-slate-400 leading-relaxed mt-0.5">
+                                    Component <span class="text-rose-400 font-semibold font-mono">$x(t) < 0$</span>. The vector points left: antiparallel to <span class="text-yellow-400 font-mono">$\hat{i}$</span>.
+                                </p>
+                            </div>
+                        </div>
+
+                    </div>
+                </div>
+
+            </div>
+
+        </section>
+
+        <section class="bg-slate-900 border border-slate-800 rounded-3xl p-6 sm:p-8 shadow-2xl space-y-8">
+            <div class="text-center max-w-3xl mx-auto space-y-2">
+                <span class="text-xs font-bold text-indigo-400 tracking-widest uppercase">Academic Deep Dive</span>
+                <h3 class="text-2xl sm:text-3xl font-extrabold text-white">Visualizing Vector Foundations</h3>
+                <p class="text-slate-400 text-sm">
+                    Breaking down key mathematical insights from our coordinate system lecture.
+                </p>
+            </div>
+
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+                
+                <!-- Card A -->
+                <div class="bg-slate-950 rounded-2xl p-5 border border-slate-800 hover:border-slate-700 transition-all flex flex-col justify-between gap-6 group">
+                    <div class="space-y-3">
+                        <div class="h-10 w-10 rounded-xl bg-indigo-500/10 border border-indigo-500/30 flex items-center justify-center text-indigo-400 group-hover:scale-110 transition-transform">
+                            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197M13 7a4 4 0 11-8 0 4 4 0 018 0z" />
+                            </svg>
+                        </div>
+                        <h4 class="text-base font-bold text-slate-200">The Non-Rigid Body Abstraction</h4>
+                        <p class="text-xs text-slate-400 leading-relaxed">
+                            A real runner stretches, bends, and swings limbs continuously. Simulating all of these movements complicates equations. We choose a <strong>fixed reference point</strong>—often close to the center of mass—to represent the entire athlete as a single point particle.
+                        </p>
+                    </div>
+                    <div class="bg-slate-900/50 p-3 rounded-lg border border-slate-800/80 text-[11px] text-indigo-300">
+                        <strong>Why do this?</strong> This abstracts away rotational and interior kinematics, leaving clean, simple translational formulas.
+                    </div>
+                </div>
+
+                <!-- Card B -->
+                <div class="bg-slate-950 rounded-2xl p-5 border border-slate-800 hover:border-slate-700 transition-all flex flex-col justify-between gap-6 group">
+                    <div class="space-y-3">
+                        <div class="h-10 w-10 rounded-xl bg-purple-500/10 border border-purple-500/30 flex items-center justify-center text-purple-400 group-hover:scale-110 transition-transform">
+                            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 7v10c0 2 1 3 3 3h10c2 0 3-1 3-3V7c0-2-1-3-3-3H7C5 4 4 5 4 7z" />
+                            </svg>
+                        </div>
+                        <h4 class="text-base font-bold text-slate-200 font-serif">Component vs. Vector Definition</h4>
+                        <p class="text-xs text-slate-400 leading-relaxed">
+                            Do not confuse the scalar component $x(t)$ with the position vector $\vec{r}(t)$. The component carries the absolute magnitude and algebraic sign ($+$, $-$, $0$), while the vector represents the physical arrow pointing in space.
+                        </p>
+                    </div>
+                    <div class="bg-slate-900/50 p-3 rounded-lg border border-slate-800/80 text-[11px] text-purple-300">
+                        <strong>Formula structure:</strong> Vector = Component (with sign) $\times$ Unit Vector direction, meaning $\vec{r}(t) = x(t)\hat{i}$.
+                    </div>
+                </div>
+
+                <!-- Card C -->
+                <div class="bg-slate-950 rounded-2xl p-5 border border-slate-800 hover:border-slate-700 transition-all flex flex-col justify-between gap-6 group">
+                    <div class="space-y-3">
+                        <div class="h-10 w-10 rounded-xl bg-yellow-500/10 border border-yellow-500/30 flex items-center justify-center text-yellow-400 group-hover:scale-110 transition-transform">
+                            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14 5l7 7m0 0l-7 7m7-7H3" />
+                            </svg>
+                        </div>
+                        <h4 class="text-base font-bold text-slate-200 font-serif">The Power of Unit Vector $\hat{i}$</h4>
+                        <p class="text-xs text-slate-400 leading-relaxed">
+                            The unit vector $\hat{i}$ acts as our geometric anchor. Because we're in one dimension, it points straight to the positive x-direction. When multiplied by a negative component, the negative sign algebraically turns the direction around, pointing the vector backwards.
+                        </p>
+                    </div>
+                    <div class="bg-slate-900/50 p-3 rounded-lg border border-slate-800/80 text-[11px] text-yellow-300">
+                        <strong>Magnitude rule:</strong> A unit vector's magnitude is exactly $|\hat{i}| = 1$, meaning it never scales the original length value.
+                    </div>
+                </div>
+
+            </div>
+        </section>
+
+    </main>
+
+    <!-- FOOTER -->
+    <footer class="border-t border-slate-800 bg-slate-950 py-6 text-center text-xs text-slate-500 px-4">
+        <p>© 2026 Physics Interactive Immersive. Built for illustrating introductory vector calculus & coordinates in physics.</p>
+    </footer>
+
+    <script>
+        const canvas = document.getElementById('simCanvas');
+        const ctx = canvas.getContext('2d');
+        const graphCanvas = document.getElementById('graphCanvas');
+        const gCtx = graphCanvas.getContext('2d');
+
+        // Buttons & Interactive controls
+        const btnToggleLimbs = document.getElementById('btn-toggle-limbs');
+        const btnPlay = document.getElementById('btn-play');
+        const btnPause = document.getElementById('btn-pause');
+        const btnReset = document.getElementById('btn-reset');
+        const posSlider = document.getElementById('posSlider');
+        const btnClearGraph = document.getElementById('btn-clear-graph');
+
+        // Presets
+        const presetManual = document.getElementById('preset-manual');
+        const presetCV = document.getElementById('preset-cv');
+        const presetSHM = document.getElementById('preset-shm');
+        const presetAccel = document.getElementById('preset-accel');
+
+        // Info Elements to Update
+        const hudX = document.getElementById('hud-x');
+        const hudSignDesc = document.getElementById('hud-sign-desc');
+        const eqVectorDisplay = document.getElementById('eq-vector-display');
+        const compBadge = document.getElementById('comp-badge');
+        const compValText = document.getElementById('comp-val-text');
+        const compDesc = document.getElementById('comp-desc');
+        const vecDirBadge = document.getElementById('vec-dir-badge');
+        const vecValText = document.getElementById('vec-val-text');
+        const vecDesc = document.getElementById('vec-desc');
+
+        let state = {
+            runnerX: 0.0,            // meters, ranges from -10 to +10
+            isPlaying: false,
+            currentTime: 0.0,
+            activePreset: 'manual', // 'manual', 'cv', 'shm', 'accel'
+            showLimbs: true,        // controls body abstraction visualization
+            limbsCycle: 0.0,        // limb movement cycle phase
+            velocity: 0.0,          // meters/second
+            acceleration: 0.0,      // m/s^2
+            trail: []               // list of historical coordinates for graph {t, x}
+        };
+
+        // Constants
+        const TRACK_SCALE = 10; // meters on either side
+        const GRAPH_HISTORY_MAX = 300; // max points to retain in rolling history
+
+        function resizeCanvas() {
+            const dpr = window.devicePixelRatio || 1;
+            
+            // Simulator canvas
+            const rect = canvas.getBoundingClientRect();
+            canvas.width = rect.width * dpr;
+            canvas.height = rect.height * dpr;
+            ctx.scale(dpr, dpr);
+
+            // Graph canvas
+            const gRect = graphCanvas.getBoundingClientRect();
+            graphCanvas.width = gRect.width * dpr;
+            graphCanvas.height = gRect.height * dpr;
+            gCtx.scale(dpr, dpr);
+        }
+
+        window.addEventListener('resize', resizeCanvas);
+        // Initial setup run
+        resizeCanvas();
+
+        
+        // Manual control slider input
+        posSlider.addEventListener('input', (e) => {
+            setPreset('manual');
+            state.runnerX = parseFloat(e.target.value);
+            state.velocity = 0;
+            updateInfoPanel();
+        });
+
+        // Toggle Abstraction View (Limbs / Points)
+        btnToggleLimbs.addEventListener('click', () => {
+            state.showLimbs = !state.showLimbs;
+            if (state.showLimbs) {
+                btnToggleLimbs.textContent = "Abstraction: Full Body";
+                btnToggleLimbs.classList.remove('text-indigo-400', 'border-indigo-400/40');
+                btnToggleLimbs.classList.add('text-indigo-300', 'border-slate-700');
+            } else {
+                btnToggleLimbs.textContent = "Abstraction: Center Point Only";
+                btnToggleLimbs.classList.remove('text-indigo-300', 'border-slate-700');
+                btnToggleLimbs.classList.add('text-indigo-400', 'border-indigo-500/40', 'bg-indigo-500/5');
+            }
+        });
+
+        // Play/Pause simulation
+        btnPlay.addEventListener('click', () => {
+            state.isPlaying = true;
+            btnPlay.classList.add('hidden');
+            btnPause.classList.remove('hidden');
+            
+            // If manual, switch automatically to SHM to make it dynamic
+            if (state.activePreset === 'manual') {
+                setPreset('shm');
+            }
+        });
+
+        btnPause.addEventListener('click', () => {
+            state.isPlaying = false;
+            btnPause.classList.add('hidden');
+            btnPlay.classList.remove('hidden');
+        });
+
+        // Reset
+        btnReset.addEventListener('click', () => {
+            state.runnerX = 0;
+            state.currentTime = 0;
+            state.velocity = 0;
+            state.acceleration = 0;
+            posSlider.value = 0;
+            state.trail = [];
+            setPreset('manual');
+            state.isPlaying = false;
+            btnPause.classList.add('hidden');
+            btnPlay.classList.remove('hidden');
+            updateInfoPanel();
+        });
+
+        // Clear Graph
+        btnClearGraph.addEventListener('click', () => {
+            state.trail = [];
+        });
+
+        function setPreset(presetName) {
+            state.activePreset = presetName;
+            
+            // Style active preset button
+            const buttons = [
+                { key: 'manual', el: presetManual },
+                { key: 'cv', el: presetCV },
+                { key: 'shm', el: presetSHM },
+                { key: 'accel', el: presetAccel }
+            ];
+
+            buttons.forEach(btn => {
+                if (btn.key === presetName) {
+                    btn.el.className = "px-3 py-2 bg-indigo-500/20 text-indigo-300 border border-indigo-500/40 rounded-xl text-xs font-semibold hover:bg-indigo-500/30 transition-all text-center";
+                } else {
+                    btn.el.className = "px-3 py-2 bg-slate-800 text-slate-300 border border-slate-700 rounded-xl text-xs font-semibold hover:bg-slate-700 transition-all text-center";
+                }
+            });
+
+            // Initialize variables according to state preset
+            if (presetName === 'cv') {
+                state.velocity = 2.5; // m/s
+                state.runnerX = -8.0;
+            } else if (presetName === 'shm') {
+                state.currentTime = 0;
+                state.runnerX = 0;
+            } else if (presetName === 'accel') {
+                state.runnerX = -9.0;
+                state.velocity = 0.5;
+                state.acceleration = 0.6;
+            }
+            updateInfoPanel();
+        }
+
+        presetManual.addEventListener('click', () => setPreset('manual'));
+        presetCV.addEventListener('click', () => setPreset('cv'));
+        presetSHM.addEventListener('click', () => setPreset('shm'));
+        presetAccel.addEventListener('click', () => setPreset('accel'));
+
+        // Transform spatial meters to canvas X coordinates
+        function toCanvasX(m, width) {
+            const padding = 50; // offset pixels from track ends
+            const trackWidth = width - (padding * 2);
+            // Translate track center to center of canvas width
+            const relativeOffset = m / TRACK_SCALE; // -1 to +1
+            return padding + (trackWidth / 2) + (relativeOffset * (trackWidth / 2));
+        }
+
+        function toMeters(canvasX, width) {
+            const padding = 50;
+            const trackWidth = width - (padding * 2);
+            const relativeOffset = (canvasX - padding - (trackWidth / 2)) / (trackWidth / 2);
+            return Math.max(-10, Math.min(10, relativeOffset * TRACK_SCALE));
+        }
+
+        let isDragging = false;
+
+        function handleDragStart(e) {
+            const rect = canvas.getBoundingClientRect();
+            const clientX = e.touches ? e.touches[0].clientX : e.clientX;
+            const clickX = clientX - rect.left;
+            
+            // Check if clicking near the runner
+            const runnerCanvasX = toCanvasX(state.runnerX, rect.width);
+            if (Math.abs(clickX - runnerCanvasX) < 40) {
+                isDragging = true;
+                setPreset('manual');
+                state.isPlaying = false;
+                btnPause.classList.add('hidden');
+                btnPlay.classList.remove('hidden');
+            }
+        }
+
+        function handleDragMove(e) {
+            if (!isDragging) return;
+            e.preventDefault();
+            const rect = canvas.getBoundingClientRect();
+            const clientX = e.touches ? e.touches[0].clientX : e.clientX;
+            const dragX = clientX - rect.left;
+            
+            state.runnerX = toMeters(dragX, rect.width);
+            posSlider.value = state.runnerX;
+            updateInfoPanel();
+        }
+
+        function handleDragEnd() {
+            isDragging = false;
+        }
+
+        canvas.addEventListener('mousedown', handleDragStart);
+        canvas.addEventListener('mousemove', handleDragMove);
+        window.addEventListener('mouseup', handleDragEnd);
+
+        canvas.addEventListener('touchstart', handleDragStart, { passive: false });
+        canvas.addEventListener('touchmove', handleDragMove, { passive: false });
+        window.addEventListener('touchend', handleDragEnd);
+
+        // Helper function to safely render equations using KaTeX with plain HTML fallbacks
+        function safeRenderMath(latex, element) {
+            if (!element) return;
+            if (typeof katex !== 'undefined') {
+                try {
+                    katex.render(latex, element, {
+                        throwOnError: false,
+                        displayMode: false
+                    });
+                } catch (err) {
+                    element.innerHTML = latex;
+                }
+            } else {
+                // Fallback clean formatting
+                element.innerHTML = latex.replace('\\vec{r}(t)', 'r(t)')
+                                         .replace('\\hat{i}', 'i')
+                                         .replace('\\vec{0}', '0')
+                                         .replace('\\text{ m}', ' m');
+            }
+        }
+
+        // Custom Canvas Text Vector renderer (guarantees perfect display across all systems)
+        function drawCanvasVectorText(ctx, x, y, valueText, color) {
+            ctx.fillStyle = color;
+            ctx.font = 'bold 11px monospace';
+            ctx.textAlign = 'center';
+            
+            const valNum = parseFloat(valueText);
+            const prefix = valNum >= 0 ? '+' : '';
+            const coeff = `${prefix}${valueText}`;
+            const mainText = `r(t) = ${coeff} i`;
+            ctx.fillText(mainText, x, y);
+            
+            // Measure spacing to draw vector decorators accurately
+            const fullWidth = ctx.measureText(mainText).width;
+            const startX = x - fullWidth / 2;
+            
+            // Find center of 'r' (the first character)
+            const rWidth = ctx.measureText("r").width;
+            const rCenterX = startX + rWidth / 2;
+            
+            // Draw a tiny solid arrow over the 'r' variable
+            ctx.strokeStyle = color;
+            ctx.lineWidth = 1;
+            ctx.beginPath();
+            ctx.moveTo(rCenterX - 3, y - 10);
+            ctx.lineTo(rCenterX + 3, y - 10);
+            ctx.stroke();
+            
+            ctx.beginPath();
+            ctx.moveTo(rCenterX + 1, y - 12);
+            ctx.lineTo(rCenterX + 3, y - 10);
+            ctx.lineTo(rCenterX + 1, y - 8);
+            ctx.stroke();
+            
+            // Find center of unit vector 'i' (the last character)
+            const iWidth = ctx.measureText("i").width;
+            const iCenterX = startX + fullWidth - iWidth / 2;
+            
+            // Draw a tiny unit vector hat over 'i'
+            ctx.beginPath();
+            ctx.moveTo(iCenterX - 2, y - 10);
+            ctx.lineTo(iCenterX, y - 13);
+            ctx.lineTo(iCenterX + 2, y - 10);
+            ctx.stroke();
+        }
+
+        function updateInfoPanel() {
+            const rx = state.runnerX;
+            const roundedVal = rx.toFixed(2);
+            
+            // Update HUD text
+            safeRenderMath(`x(t) = ${roundedVal}\\text{ m}`, hudX);
+
+            // Update overlay Vector Equation Card
+            const vecLaTeX = `\\vec{r}(t) = ${roundedVal >= 0 ? '+' : ''}${roundedVal}\\hat{i}`;
+            safeRenderMath(vecLaTeX, eqVectorDisplay);
+
+            // Update Component Card Info
+            safeRenderMath(`x(t) = ${roundedVal}`, compValText);
+            if (rx > 0.05) {
+                compBadge.textContent = "Positive";
+                compBadge.className = "text-[10px] px-2 py-0.5 rounded-full font-bold bg-emerald-500/10 text-emerald-400 border border-emerald-500/20";
+                compDesc.innerHTML = `The runner is located <span class="text-emerald-400 font-semibold">to the right</span> of the choice of origin. The coordinate is greater than zero ($x(t) > 0$).`;
+                hudSignDesc.textContent = "Positive Coordinate (Right side)";
+                hudSignDesc.className = "text-[10px] text-emerald-400 font-mono";
+            } else if (rx < -0.05) {
+                compBadge.textContent = "Negative";
+                compBadge.className = "text-[10px] px-2 py-0.5 rounded-full font-bold bg-rose-500/10 text-rose-400 border border-rose-500/20";
+                compDesc.innerHTML = `The runner is located <span class="text-rose-400 font-semibold">to the left</span> of the origin. This represents a negative scalar coordinate ($x(t) < 0$).`;
+                hudSignDesc.textContent = "Negative Coordinate (Left side)";
+                hudSignDesc.className = "text-[10px] text-rose-400 font-mono";
+            } else {
+                compBadge.textContent = "Zero";
+                compBadge.className = "text-[10px] px-2 py-0.5 rounded-full font-bold bg-slate-800 text-slate-400 border border-slate-700";
+                compDesc.innerHTML = `The runner is located <span class="text-indigo-300 font-semibold">directly on top</span> of our choice of origin ($x(t) = 0$).`;
+                hudSignDesc.textContent = "Exactly on the Origin";
+                hudSignDesc.className = "text-[10px] text-slate-400 font-mono";
+            }
+
+            // Update Unit Vector value dynamically
+            safeRenderMath(`\\hat{i} = +1.00`, document.getElementById('unit-val-text'));
+
+            // Update Position Vector Card Info
+            const vecTerm = rx >= 0 ? `+${roundedVal}\\hat{i}` : `${roundedVal}\\hat{i}`;
+            safeRenderMath(`\\vec{r}(t) = ${vecTerm}`, vecValText);
+            
+            if (rx > 0.05) {
+                vecDirBadge.textContent = "Points Right";
+                vecDirBadge.className = "text-[10px] px-2 py-0.5 rounded-full font-bold bg-emerald-500/10 text-emerald-400 border border-emerald-500/20";
+                vecDesc.innerHTML = `Because the coordinate component $x(t)$ is positive, the position vector $\\vec{r}(t)$ points in the <span class="text-emerald-400 font-semibold">same direction as $\\hat{i}$</span> (right).`;
+            } else if (rx < -0.05) {
+                vecDirBadge.textContent = "Points Left";
+                vecDirBadge.className = "text-[10px] px-2 py-0.5 rounded-full font-bold bg-rose-500/10 text-rose-400 border border-rose-500/20";
+                vecDesc.innerHTML = `Because $x(t)$ is negative, the direction of the vector flips. It is written as a negative coefficient times <span class="text-yellow-400 font-semibold">$\\hat{i}$</span>, pointing <span class="text-rose-400 font-semibold">leftward</span>.`;
+            } else {
+                vecDirBadge.textContent = "Null Vector";
+                vecDirBadge.className = "text-[10px] px-2 py-0.5 rounded-full font-bold bg-slate-800 text-slate-400 border border-slate-700";
+                vecDesc.innerHTML = `At the origin, the vector has <span class="text-slate-400 font-semibold">zero magnitude</span>. Direction is mathematically undefined ($\\vec{r}(t) = \\vec{0}$).`;
+            }
+
+            // Trigger dynamic LaTeX parsing inside card descriptions
+            if (typeof renderMathInElement !== 'undefined') {
+                renderMathInElement(compDesc, { delimiters: [{left: "$", right: "$", display: false}] });
+                renderMathInElement(vecDesc, { delimiters: [{left: "$", right: "$", display: false}] });
+            }
+        }
+
+        function drawRunner(ctx, x, y, limbsCycle, velocity, showLimbs) {
+            // Standard sizes
+            const headRadius = 7;
+            const torsoHeight = 24;
+
+            // Hip reference coordinates
+            const hipX = x;
+            const hipY = y;
+            const shoulderX = x;
+            const shoulderY = y - torsoHeight;
+
+            // Draw shadow under runner
+            ctx.beginPath();
+            ctx.ellipse(x, y + 26, 12, 3, 0, 0, Math.PI * 2);
+            ctx.fillStyle = 'rgba(15, 23, 42, 0.4)';
+            ctx.fill();
+
+            if (!showLimbs) {
+                // Simplified point-mass style (Abstracted model)
+                // Draw skeleton body faded
+                ctx.strokeStyle = 'rgba(71, 85, 105, 0.2)';
+                ctx.lineWidth = 3;
+                ctx.lineCap = 'round';
+                ctx.lineJoin = 'round';
+                
+                // Torso
+                ctx.beginPath();
+                ctx.moveTo(shoulderX, shoulderY);
+                ctx.lineTo(hipX, hipY);
+                ctx.stroke();
+
+                // Abstracted center point representation (Glow Center of Mass)
+                ctx.beginPath();
+                ctx.arc(x, y - 10, 10, 0, Math.PI * 2);
+                ctx.fillStyle = 'rgba(239, 68, 68, 0.2)';
+                ctx.fill();
+                
+                ctx.beginPath();
+                ctx.arc(x, y - 10, 5, 0, Math.PI * 2);
+                ctx.fillStyle = '#ef4444';
+                ctx.fill();
+
+                // Annotation pointing to abstracted point
+                ctx.strokeStyle = '#ef4444';
+                ctx.lineWidth = 1;
+                ctx.setLineDash([2, 2]);
+                ctx.beginPath();
+                ctx.moveTo(x, y - 10);
+                ctx.lineTo(x, y - 45);
+                ctx.stroke();
+                ctx.setLineDash([]);
+
+                ctx.fillStyle = '#fca5a5';
+                ctx.font = '10px sans-serif';
+                ctx.textAlign = 'center';
+                ctx.fillText("Abstracted Point Particle", x, y - 48);
+                return;
+            }
+
+            // Limb Animation swing values
+            const amplitude = 0.5; // swing height
+            const swingPhase = limbsCycle;
+            
+            // Running stance offset angles
+            const leftLegSwing = Math.sin(swingPhase) * amplitude;
+            const rightLegSwing = -Math.sin(swingPhase) * amplitude;
+            const leftArmSwing = -Math.sin(swingPhase) * (amplitude + 0.1);
+            const rightArmSwing = Math.sin(swingPhase) * (amplitude + 0.1);
+
+            ctx.strokeStyle = '#e2e8f0'; // Runner skeleton lines color
+            ctx.lineWidth = 4;
+            ctx.lineCap = 'round';
+            ctx.lineJoin = 'round';
+
+            // 1. Draw Left leg (deep layer)
+            drawLeg(ctx, hipX, hipY, leftLegSwing, '#94a3b8');
+
+            // 2. Draw Left arm (deep layer)
+            drawArm(ctx, shoulderX, shoulderY, leftArmSwing, '#94a3b8');
+
+            // 3. Draw Body Torso
+            ctx.strokeStyle = '#f1f5f9';
+            ctx.beginPath();
+            ctx.moveTo(shoulderX, shoulderY);
+            ctx.lineTo(hipX, hipY);
+            ctx.stroke();
+
+            // 4. Draw Right Leg (foreground)
+            drawLeg(ctx, hipX, hipY, rightLegSwing, '#6366f1');
+
+            // 5. Draw Right arm (foreground)
+            drawArm(ctx, shoulderX, shoulderY, rightArmSwing, '#6366f1');
+
+            // 6. Head
+            ctx.beginPath();
+            ctx.arc(shoulderX, shoulderY - headRadius - 2, headRadius, 0, Math.PI * 2);
+            ctx.fillStyle = '#f8fafc';
+            ctx.fill();
+
+            // Highlight the Center of Mass Point (Abstraction Concept)
+            const comX = x;
+            const comY = y - 10; // Center point inside runner
+            
+            // Draw Center of Mass glowing target indicator
+            ctx.beginPath();
+            ctx.arc(comX, comY, 4, 0, Math.PI * 2);
+            ctx.fillStyle = '#f97316'; // Glowing Orange Center Marker
+            ctx.fill();
+            ctx.strokeStyle = '#ffffff';
+            ctx.lineWidth = 1;
+            ctx.stroke();
+        }
+
+        function drawLeg(ctx, hipX, hipY, swingAngle, color) {
+            ctx.strokeStyle = color;
+            const legLength = 16;
+            
+            // Knee position
+            const kneeX = hipX + Math.sin(swingAngle) * legLength;
+            const kneeY = hipY + Math.cos(swingAngle) * legLength;
+
+            // Ankle position
+            const ankleX = kneeX + Math.sin(swingAngle - 0.2) * legLength;
+            const ankleY = kneeY + Math.cos(swingAngle - 0.2) * legLength;
+
+            ctx.beginPath();
+            ctx.moveTo(hipX, hipY);
+            ctx.lineTo(kneeX, kneeY);
+            ctx.lineTo(ankleX, ankleY);
+            ctx.stroke();
+        }
+
+        function drawArm(ctx, sX, sY, swingAngle, color) {
+            ctx.strokeStyle = color;
+            const armLength = 13;
+
+            // Elbow position
+            const elbowX = sX + Math.sin(swingAngle) * armLength;
+            const elbowY = sY + Math.cos(swingAngle) * armLength;
+
+            // Hand position
+            const handX = elbowX + Math.sin(swingAngle + 0.4) * armLength;
+            const handY = elbowY + Math.cos(swingAngle + 0.4) * armLength;
+
+            ctx.beginPath();
+            ctx.moveTo(sX, sY);
+            ctx.lineTo(elbowX, elbowY);
+            ctx.lineTo(handX, handY);
+            ctx.stroke();
+        }
+
+        function drawSimulator() {
+            const width = canvas.width / (window.devicePixelRatio || 1);
+            const height = canvas.height / (window.devicePixelRatio || 1);
+            
+            ctx.clearRect(0, 0, width, height);
+
+            // 1. Draw coordinate axis lines and ticks
+            const trackY = height * 0.55;
+            ctx.strokeStyle = '#334155';
+            ctx.lineWidth = 2;
+            ctx.beginPath();
+            ctx.moveTo(10, trackY);
+            ctx.lineTo(width - 10, trackY);
+            ctx.stroke();
+
+            // Draw axis markers
+            const divisions = 20; // from -10 to 10
+            for (let i = 0; i <= divisions; i++) {
+                const m = -10 + i;
+                const tickX = toCanvasX(m, width);
+                const isOrigin = m === 0;
+                
+                ctx.strokeStyle = isOrigin ? '#e2e8f0' : '#475569';
+                ctx.lineWidth = isOrigin ? 3 : 1;
+                
+                ctx.beginPath();
+                ctx.moveTo(tickX, trackY - (isOrigin ? 8 : 4));
+                ctx.lineTo(tickX, trackY + (isOrigin ? 8 : 4));
+                ctx.stroke();
+
+                // Draw coordinate numbers
+                if (m % 2 === 0 || isOrigin) {
+                    ctx.fillStyle = isOrigin ? '#f1f5f9' : '#94a3b8';
+                    ctx.font = isOrigin ? 'bold 11px sans-serif' : '10px sans-serif';
+                    ctx.textAlign = 'center';
+                    ctx.fillText(`${m > 0 ? '+' : ''}${m}${m === 0 ? 'm' : ''}`, tickX, trackY + 22);
+                }
+            }
+
+            // Highlight Origin label specifically
+            const originCanvasX = toCanvasX(0, width);
+            ctx.fillStyle = '#cbd5e1';
+            ctx.font = 'bold 9px monospace';
+            ctx.fillText("x = 0", originCanvasX, trackY - 14);
+
+            // 2. Draw static Unit Vector î
+            const unitVecStartX = originCanvasX;
+            const unitVecEndX = toCanvasX(1, width);
+            const unitVecY = trackY - 35;
+
+            ctx.strokeStyle = '#eab308'; // Gold colored unit vector
+            ctx.lineWidth = 3;
+            ctx.beginPath();
+            ctx.moveTo(unitVecStartX, unitVecY);
+            ctx.lineTo(unitVecEndX, unitVecY);
+            ctx.stroke();
+            
+            // Draw arrowhead for î
+            ctx.beginPath();
+            ctx.moveTo(unitVecEndX, unitVecY);
+            ctx.lineTo(unitVecEndX - 6, unitVecY - 4);
+            ctx.lineTo(unitVecEndX - 6, unitVecY + 4);
+            ctx.closePath();
+            ctx.fillStyle = '#eab308';
+            ctx.fill();
+
+            // Unit Vector Label - rendered natively with vector hat to avoid unicode box crashes
+            ctx.fillStyle = '#eab308';
+            ctx.font = 'italic bold 12px sans-serif';
+            ctx.textAlign = 'center';
+            ctx.fillText("i", unitVecEndX + 10, unitVecY + 4);
+            // Draw hat above 'i'
+            const labelIX = unitVecEndX + 10;
+            const labelIY = unitVecY + 4;
+            ctx.strokeStyle = '#eab308';
+            ctx.lineWidth = 1;
+            ctx.beginPath();
+            ctx.moveTo(labelIX - 3.5, labelIY - 12);
+            ctx.lineTo(labelIX, labelIY - 15);
+            ctx.lineTo(labelIX + 3.5, labelIY - 12);
+            ctx.stroke();
+
+            // 3. Draw POSITION VECTOR r⃗(t) (Drawn dynamically from origin to runner center of mass)
+            const runnerY = trackY - 26;
+            const runnerCenterCanvasX = toCanvasX(state.runnerX, width);
+            const runnerCenterCanvasY = runnerY - 10;
+            const originCenterCanvasY = trackY - 50; // Raised slightly so vector points above axis
+
+            // Visual Vector from (0, originCenterCanvasY) to (runnerCenterCanvasX, originCenterCanvasY)
+            if (Math.abs(state.runnerX) > 0.05) {
+                const isPositive = state.runnerX > 0;
+                const vectorColor = isPositive ? '#10b981' : '#f43f5e'; // Emerald green if positive, Rose red if negative
+
+                ctx.strokeStyle = vectorColor;
+                ctx.lineWidth = 4;
+                ctx.beginPath();
+                ctx.moveTo(originCanvasX, originCenterCanvasY);
+                ctx.lineTo(runnerCenterCanvasX, originCenterCanvasY);
+                ctx.stroke();
+
+                // Draw dynamic arrowhead
+                const arrowLength = 8;
+                const directionFactor = isPositive ? 1 : -1;
+                ctx.beginPath();
+                ctx.moveTo(runnerCenterCanvasX, originCenterCanvasY);
+                ctx.lineTo(runnerCenterCanvasX - (arrowLength * directionFactor), originCenterCanvasY - 5);
+                ctx.lineTo(runnerCenterCanvasX - (arrowLength * directionFactor), originCenterCanvasY + 5);
+                ctx.closePath();
+                ctx.fillStyle = vectorColor;
+                ctx.fill();
+
+                // Draw dotted drop-down indicator line to runner center point
+                ctx.strokeStyle = 'rgba(148, 163, 184, 0.3)';
+                ctx.lineWidth = 1.5;
+                ctx.setLineDash([4, 4]);
+                ctx.beginPath();
+                ctx.moveTo(runnerCenterCanvasX, originCenterCanvasY);
+                ctx.lineTo(runnerCenterCanvasX, runnerCenterCanvasY);
+                ctx.stroke();
+                ctx.setLineDash([]); // clear dash
+
+                // Vector Equation Label hanging on vector line (custom vector renderer)
+                const midVectorX = (originCanvasX + runnerCenterCanvasX) / 2;
+                const labelY = originCenterCanvasY - 8;
+                drawCanvasVectorText(ctx, midVectorX, labelY, state.runnerX.toFixed(2), vectorColor);
+            } else {
+                // If on origin, draw small dot at vector start point
+                ctx.beginPath();
+                ctx.arc(originCanvasX, originCenterCanvasY, 6, 0, Math.PI * 2);
+                ctx.fillStyle = '#94a3b8';
+                ctx.fill();
+                ctx.fillStyle = '#f1f5f9';
+                ctx.font = 'bold 10px sans-serif';
+                ctx.textAlign = 'center';
+                ctx.fillText("r(t) = 0", originCanvasX, originCenterCanvasY - 10);
+            }
+
+            // 4. Render Runner Skeleton/Point
+            drawRunner(ctx, runnerCenterCanvasX, runnerY, state.limbsCycle, state.velocity, state.showLimbs);
+        }
+
+        function drawGraph() {
+            const width = graphCanvas.width / (window.devicePixelRatio || 1);
+            const height = graphCanvas.height / (window.devicePixelRatio || 1);
+            
+            gCtx.clearRect(0, 0, width, height);
+
+            // Draw baseline coordinate y = 0
+            const midY = height / 2;
+            gCtx.strokeStyle = '#334155';
+            gCtx.lineWidth = 1;
+            gCtx.beginPath();
+            gCtx.moveTo(0, midY);
+            gCtx.lineTo(width, midY);
+            gCtx.stroke();
+
+            // Draw vertical tick lines across the grid
+            gCtx.strokeStyle = 'rgba(51, 65, 85, 0.3)';
+            gCtx.lineWidth = 1;
+            for (let i = 1; i <= 4; i++) {
+                const tickY = midY + (i * (midY / 5));
+                const tickNegY = midY - (i * (midY / 5));
+                
+                gCtx.beginPath();
+                gCtx.moveTo(0, tickY);
+                gCtx.lineTo(width, tickY);
+                gCtx.moveTo(0, tickNegY);
+                gCtx.lineTo(width, tickNegY);
+                gCtx.stroke();
+            }
+
+            // Draw Graph Line
+            if (state.trail.length > 1) {
+                gCtx.strokeStyle = '#6366f1';
+                gCtx.lineWidth = 3;
+                gCtx.lineCap = 'round';
+                gCtx.lineJoin = 'round';
+                gCtx.beginPath();
+
+                for (let i = 0; i < state.trail.length; i++) {
+                    const point = state.trail[i];
+                    
+                    // X maps from history index (right aligns most recent data)
+                    const plotX = width - ((state.trail.length - 1 - i) * (width / GRAPH_HISTORY_MAX));
+                    // Y maps coordinates (-10 to 10) to heights
+                    const relativeY = point.x / TRACK_SCALE; // -1 to +1
+                    const plotY = midY - (relativeY * (midY - 10)); // keep padding of 10px
+
+                    if (i === 0) {
+                        gCtx.moveTo(plotX, plotY);
+                    } else {
+                        gCtx.lineTo(plotX, plotY);
+                    }
+                }
+                gCtx.stroke();
+
+                // Draw current coordinate dot on graph edge
+                const lastPoint = state.trail[state.trail.length - 1];
+                const lastPlotY = midY - ((lastPoint.x / TRACK_SCALE) * (midY - 10));
+                
+                gCtx.beginPath();
+                gCtx.arc(width - 2, lastPlotY, 5, 0, Math.PI * 2);
+                gCtx.fillStyle = '#818cf8';
+                gCtx.fill();
+            }
+        }
+
+        let lastTime = 0;
+
+        function animateLoop(timestamp) {
+            if (!lastTime) lastTime = timestamp;
+            const dt = Math.min((timestamp - lastTime) / 1000, 0.1); // cap dt at 100ms
+            lastTime = timestamp;
+
+            if (state.isPlaying) {
+                state.currentTime += dt;
+
+                // Handle preset dynamics
+                if (state.activePreset === 'cv') {
+                    // Constant Velocity
+                    state.runnerX += state.velocity * dt;
+                    
+                    // Bounce at boundaries to keep simulation looping cleanly
+                    if (state.runnerX > 9.5) {
+                        state.runnerX = 9.5;
+                        state.velocity *= -1;
+                    } else if (state.runnerX < -9.5) {
+                        state.runnerX = -9.5;
+                        state.velocity *= -1;
+                    }
+                    // Cycle limbs according to velocity magnitude
+                    state.limbsCycle += Math.abs(state.velocity) * dt * 3;
+
+                } else if (state.activePreset === 'shm') {
+                    // Harmonic Oscillation (back and forth smoothly)
+                    const frequency = 0.4; // Hz
+                    const amplitude = 8.5;  // meters
+                    state.runnerX = amplitude * Math.sin(2 * Math.PI * frequency * state.currentTime);
+                    
+                    // Velocity is derived from derivation of SHM: v = A * w * cos(w * t)
+                    const angularFreq = 2 * Math.PI * frequency;
+                    const vel = amplitude * angularFreq * Math.cos(angularFreq * state.currentTime);
+                    
+                    state.limbsCycle += Math.abs(vel) * dt * 3.5;
+
+                } else if (state.activePreset === 'accel') {
+                    // Constant Acceleration
+                    state.velocity += state.acceleration * dt;
+                    state.runnerX += state.velocity * dt;
+
+                    // Reverse direction if hitting edge
+                    if (state.runnerX > 9.5) {
+                        state.runnerX = 9.5;
+                        state.velocity = -0.5; // Walk backwards slowly
+                        state.acceleration = -0.4;
+                    } else if (state.runnerX < -9.5) {
+                        state.runnerX = -9.5;
+                        state.velocity = 0.5;
+                        state.acceleration = 0.4;
+                    }
+
+                    state.limbsCycle += Math.abs(state.velocity) * dt * 3.5;
+                }
+
+                // Push position to rolling graph trail
+                state.trail.push({ t: state.currentTime, x: state.runnerX });
+                if (state.trail.length > GRAPH_HISTORY_MAX) {
+                    state.trail.shift();
+                }
+
+                // Sync UI Slider position
+                posSlider.value = state.runnerX;
+                
+                updateInfoPanel();
+            } else {
+                // If not playing and manual dragging happens, still record trail data
+                if (state.trail.length === 0 || state.trail[state.trail.length - 1].x !== state.runnerX) {
+                    state.trail.push({ t: state.currentTime, x: state.runnerX });
+                    if (state.trail.length > GRAPH_HISTORY_MAX) {
+                        state.trail.shift();
+                    }
+                }
+            }
+
+            // Draw frames
+            drawSimulator();
+            drawGraph();
+
+            requestAnimationFrame(animateLoop);
+        }
+
+        window.onload = function() {
+            setPreset('manual');
+            
+            // Render static LaTeX equations on page startup
+            if (typeof renderMathInElement !== 'undefined') {
+                renderMathInElement(document.body, {
+                    delimiters: [
+                        {left: "$$", right: "$$", display: true},
+                        {left: "$", right: "$", display: false}
+                    ],
+                    throwOnError: false
+                });
+            }
+
+            requestAnimationFrame(animateLoop);
+        };
+    </script>
+</body>
+</html>

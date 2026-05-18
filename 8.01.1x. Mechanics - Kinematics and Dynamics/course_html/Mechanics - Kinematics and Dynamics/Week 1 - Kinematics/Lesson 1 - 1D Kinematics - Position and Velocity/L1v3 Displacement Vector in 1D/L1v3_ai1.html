@@ -1,0 +1,1333 @@
+<!DOCTYPE html>
+<html lang="en" class="h-full">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>1D Kinematics: Position & Displacement Simulator</title>
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- FontAwesome Icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <!-- Google Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;500;700&display=swap" rel="stylesheet">
+    
+    <!-- KaTeX CDN for mathematical typesetting -->
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.8/dist/katex.min.css">
+    <script src="https://cdn.jsdelivr.net/npm/katex@0.16.8/dist/katex.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/katex@0.16.8/dist/contrib/auto-render.min.js"></script>
+
+    <style>
+        body {
+            font-family: 'Plus Jakarta Sans', sans-serif;
+        }
+        .math-font {
+            font-family: 'JetBrains Mono', monospace;
+        }
+        /* Custom scrollbar */
+        ::-webkit-scrollbar {
+            width: 8px;
+            height: 8px;
+        }
+        ::-webkit-scrollbar-track {
+            background: #0f172a;
+        }
+        ::-webkit-scrollbar-thumb {
+            background: #334155;
+            border-radius: 6px;
+        }
+        ::-webkit-scrollbar-thumb:hover {
+            background: #475569;
+        }
+    </style>
+</head>
+<body class="bg-slate-950 text-slate-100 min-h-full flex flex-col selection:bg-indigo-500 selection:text-white">
+
+    <!-- Navigation / Header Bar -->
+    <header class="border-b border-slate-800 bg-slate-900/90 backdrop-blur sticky top-0 z-50 px-6 py-4 flex flex-col md:flex-row md:items-center justify-between gap-4">
+        <div class="flex items-center gap-3">
+            <div class="p-2.5 bg-gradient-to-tr from-indigo-600 to-violet-500 text-white rounded-xl shadow-lg shadow-indigo-500/20">
+                <i class="fa-solid fa-person-running text-2xl"></i>
+            </div>
+            <div>
+                <h1 class="text-lg font-extrabold tracking-tight text-white flex items-center gap-2">
+                    1D Kinematics Workspace
+                    <span class="text-[10px] font-semibold bg-indigo-500/15 text-indigo-300 border border-indigo-500/30 px-2 py-0.5 rounded-full uppercase tracking-wider">Physics Lab</span>
+                </h1>
+                <p class="text-xs text-slate-400">Position Vectors <span class="math-font text-indigo-400">r(t₁)</span>, <span class="math-font text-emerald-400">r(t₂)</span> and Displacement <span class="math-font text-rose-400">Δr</span></p>
+            </div>
+        </div>
+        <div class="flex items-center gap-3">
+            <button id="btn-restart" class="px-3.5 py-2 bg-slate-800 hover:bg-slate-700 text-slate-300 hover:text-white text-xs font-semibold rounded-lg transition border border-slate-700/80 flex items-center gap-1.5">
+                <i class="fa-solid fa-rotate-left"></i> Reset Simulation
+            </button>
+            <a href="#textbook-definitions" class="px-3.5 py-2 bg-gradient-to-r from-indigo-600 to-violet-600 hover:from-indigo-500 hover:to-violet-500 text-white text-xs font-semibold rounded-lg transition shadow-md shadow-indigo-500/25 flex items-center gap-1.5">
+                <i class="fa-solid fa-book-open"></i> View Definitions
+            </a>
+        </div>
+    </header>
+
+    <!-- Main Interactive Workspace -->
+    <main class="flex-1 max-w-7xl w-full mx-auto p-4 md:p-6 grid grid-cols-1 lg:grid-cols-12 gap-6">
+        
+        <!-- Left Side: Interactive Physics Canvas and Controls -->
+        <section class="lg:col-span-8 flex flex-col gap-6">
+            
+            <!-- Quick Preset Selector -->
+            <div class="bg-slate-900 border border-slate-800 rounded-xl p-4 shadow-xl">
+                <div class="flex items-center justify-between mb-3">
+                    <span class="text-xs font-bold text-slate-400 uppercase tracking-wider flex items-center gap-1.5">
+                        <i class="fa-solid fa-sliders text-indigo-400"></i> Select Motion Profile
+                    </span>
+                    <span class="text-[10px] text-indigo-300 bg-indigo-500/10 px-2 py-0.5 rounded border border-indigo-500/20">Interactive Presets</span>
+                </div>
+                
+                <div class="grid grid-cols-1 sm:grid-cols-3 gap-3">
+                    <button id="preset-positive" class="p-3 bg-indigo-950/20 border border-indigo-500/30 hover:border-indigo-400/60 text-left rounded-xl transition flex flex-col justify-between group relative">
+                        <div class="flex items-center justify-between w-full mb-1">
+                            <span class="font-bold text-sm text-indigo-300 group-hover:text-indigo-200">Positive Δx</span>
+                            <span class="bg-indigo-500/20 text-indigo-300 text-[9px] px-1.5 py-0.5 rounded-full font-bold font-mono">Δx > 0</span>
+                        </div>
+                        <p class="text-[11px] text-slate-400 leading-relaxed">Runner travels left to right. Final position $x(t_2)$ is larger than initial position $x(t_1)$.</p>
+                    </button>
+                    
+                    <button id="preset-zero" class="p-3 bg-slate-900/40 border border-slate-800 hover:border-slate-700 text-left rounded-xl transition flex flex-col justify-between group">
+                        <div class="flex items-center justify-between w-full mb-1">
+                            <span class="font-bold text-sm text-slate-300 group-hover:text-slate-200">Zero Displacement</span>
+                            <span class="bg-slate-500/20 text-slate-300 text-[9px] px-1.5 py-0.5 rounded-full font-bold font-mono">Δx = 0</span>
+                        </div>
+                        <p class="text-[11px] text-slate-400 leading-relaxed">Runner loops forward and turns back, ending at the starting point. Displacement is zero.</p>
+                    </button>
+                    
+                    <button id="preset-negative" class="p-3 bg-slate-900/40 border border-slate-800 hover:border-slate-700 text-left rounded-xl transition flex flex-col justify-between group">
+                        <div class="flex items-center justify-between w-full mb-1">
+                            <span class="font-bold text-sm text-slate-300 group-hover:text-slate-200">Negative Δx</span>
+                            <span class="bg-rose-500/20 text-rose-300 text-[9px] px-1.5 py-0.5 rounded-full font-bold font-mono">Δx < 0</span>
+                        </div>
+                        <p class="text-[11px] text-slate-400 leading-relaxed">Runner ends up to the left of their initial position. Final position $x(t_2)$ is smaller than $x(t_1)$.</p>
+                    </button>
+                </div>
+            </div>
+
+            <!-- Physics Interactive Animation Canvas -->
+            <div class="bg-slate-900 border border-slate-800 rounded-2xl overflow-hidden shadow-2xl flex flex-col">
+                <div class="bg-slate-900/80 px-5 py-3.5 flex flex-col sm:flex-row sm:items-center justify-between gap-2 border-b border-slate-800/80">
+                    <div class="flex items-center gap-2">
+                        <div class="w-2.5 h-2.5 rounded-full bg-indigo-500 animate-pulse"></div>
+                        <span class="text-xs font-bold text-slate-200 tracking-wider uppercase">High-Fidelity Vector Viewport</span>
+                    </div>
+                    
+                    <!-- Dynamic Legends with explicit colors -->
+                    <div class="text-[11px] flex flex-wrap items-center gap-x-4 gap-y-1 bg-slate-950 px-3 py-1.5 rounded-lg border border-slate-800">
+                        <span class="flex items-center gap-1.5">
+                            <span class="w-3 h-1.5 bg-indigo-500 rounded-sm"></span>
+                            <span class="math-font text-indigo-300">r(t₁)</span> <span class="text-slate-500">Initial Position</span>
+                        </span>
+                        <span class="flex items-center gap-1.5">
+                            <span class="w-3 h-1.5 bg-emerald-500 rounded-sm"></span>
+                            <span class="math-font text-emerald-300">r(t₂)</span> <span class="text-slate-500">Later Position</span>
+                        </span>
+                        <span class="flex items-center gap-1.5">
+                            <span class="w-3.5 h-1.5 bg-rose-500 rounded-sm"></span>
+                            <span class="math-font text-rose-300">Δr</span> <span class="text-slate-500">Displacement</span>
+                        </span>
+                    </div>
+                </div>
+                
+                <!-- Main Canvas Container -->
+                <div class="relative w-full aspect-[16/8] sm:aspect-[21/9] bg-slate-950 p-1">
+                    <canvas id="physics-canvas" class="w-full h-full block rounded-xl"></canvas>
+                    
+                    <!-- Dynamic floating vector equations labels overlaid on canvas -->
+                    <div class="absolute top-4 left-4 bg-slate-900/95 border border-slate-800/90 rounded-xl p-3 text-xs shadow-xl max-w-[240px] space-y-2 backdrop-blur-md">
+                        <div class="font-extrabold text-slate-300 border-b border-slate-800 pb-1.5 flex justify-between items-center">
+                            <span>Coordinate Values</span>
+                            <i class="fa-solid fa-calculator text-indigo-400"></i>
+                        </div>
+                        <div class="space-y-1">
+                            <div class="flex justify-between">
+                                <span class="text-indigo-400 font-semibold math-font">r(t₁) :</span> 
+                                <span class="font-bold text-slate-200"><span id="label-rt-val" class="math-font">0.00</span><span class="math-font text-indigo-400"> î</span> m</span>
+                            </div>
+                            <div class="flex justify-between">
+                                <span class="text-emerald-400 font-semibold math-font">r(t₂) :</span> 
+                                <span class="font-bold text-slate-200"><span id="label-rt-dt-val" class="math-font">0.00</span><span class="math-font text-emerald-400"> î</span> m</span>
+                            </div>
+                        </div>
+                        <div class="border-t border-slate-800/80 pt-1.5 mt-1 font-semibold flex items-center justify-between">
+                            <span class="text-slate-400">Displacement <span class="text-rose-400 math-font">Δr</span>:</span>
+                            <span class="bg-rose-950/40 px-2 py-0.5 rounded border border-rose-500/30 text-rose-300 font-bold math-font" id="label-dr-val">0.00 î m</span>
+                        </div>
+                    </div>
+
+                    <!-- Variable equivalence helper widget -->
+                    <div class="absolute top-4 right-4 bg-slate-900/90 border border-slate-800/80 rounded-xl px-3 py-2 text-[10px] text-slate-400 backdrop-blur-sm shadow-md max-w-[200px] hidden sm:block">
+                        <span class="font-semibold text-slate-300 block mb-1">Time Variable Mapping:</span>
+                        <div class="flex justify-between">
+                            <span>Initial: <span class="math-font text-indigo-300">t₁ = t</span></span>
+                            <span>Later: <span class="math-font text-emerald-300">t₂ = t + Δt</span></span>
+                        </div>
+                    </div>
+
+                    <!-- Audio indicators / Tip -->
+                    <div class="absolute bottom-4 right-4 text-[10px] text-slate-400 bg-slate-900/90 border border-slate-800/80 px-2.5 py-1 rounded-lg backdrop-blur-sm shadow-md">
+                        <i class="fa-solid fa-circle-info text-indigo-400 mr-1"></i> Interactive coordinates updated live below
+                    </div>
+                </div>
+
+                <!-- Control Console Grid -->
+                <div class="p-5 bg-slate-900 border-t border-slate-800/80 space-y-4">
+                    <!-- Sliders -->
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-5">
+                        <div class="space-y-2 bg-slate-950/40 p-3 rounded-xl border border-slate-800/60">
+                            <div class="flex items-center justify-between">
+                                <label for="slider-t" class="text-xs font-bold text-slate-300 flex items-center gap-1.5">
+                                    <span class="w-5 h-5 rounded bg-indigo-500/10 border border-indigo-500/20 text-indigo-400 flex items-center justify-center text-[10px] font-mono">t₁</span>
+                                    Initial Observation Time ($t_1$)
+                                </label>
+                                <span class="text-xs font-bold text-indigo-400 bg-indigo-500/10 px-2 py-0.5 rounded font-mono" id="val-t">2.00 s</span>
+                            </div>
+                            <input type="range" id="slider-t" min="0" max="10" step="0.05" value="2.00" class="w-full h-1.5 bg-slate-800 rounded-lg appearance-none cursor-pointer accent-indigo-500">
+                        </div>
+
+                        <div class="space-y-2 bg-slate-950/40 p-3 rounded-xl border border-slate-800/60">
+                            <div class="flex items-center justify-between">
+                                <label for="slider-dt" class="text-xs font-bold text-slate-300 flex items-center gap-1.5">
+                                    <span class="w-5 h-5 rounded bg-emerald-500/10 border border-emerald-500/20 text-emerald-400 flex items-center justify-center text-[10px] font-mono">t₂</span>
+                                    Time Interval ($t_2 = t_1 + \Delta t$)
+                                </label>
+                                <span class="text-xs font-bold text-emerald-400 bg-emerald-500/10 px-2 py-0.5 rounded font-mono" id="val-dt">1.50 s</span>
+                            </div>
+                            <input type="range" id="slider-dt" min="0.1" max="5" step="0.05" value="1.50" class="w-full h-1.5 bg-slate-800 rounded-lg appearance-none cursor-pointer accent-emerald-500">
+                        </div>
+                    </div>
+
+                    <!-- Custom Curve Parameters / Motion Selector -->
+                    <div class="grid grid-cols-1 sm:grid-cols-3 gap-4 pt-2">
+                        <div class="space-y-1.5">
+                            <label class="block text-[11px] font-bold text-slate-400 uppercase tracking-wider">Motion Model</label>
+                            <select id="motion-type" class="w-full bg-slate-950 border border-slate-800 rounded-lg px-3 py-2 text-xs text-slate-200 focus:outline-none focus:border-indigo-500 transition font-medium font-sans">
+                                <option value="linear-pos">Constant Velocity (Rightward)</option>
+                                <option value="linear-neg">Constant Velocity (Leftward)</option>
+                                <option value="quadratic-loop">Turn-around (Forward then Back)</option>
+                                <option value="sine-oscillator">Oscillatory (Sinusoidal)</option>
+                            </select>
+                        </div>
+                        <div class="space-y-1.5">
+                            <label class="block text-[11px] font-bold text-slate-400 uppercase tracking-wider">Initial Position Offset</label>
+                            <input type="range" id="slider-offset" min="-4" max="4" step="0.5" value="0" class="w-full h-1.5 bg-slate-800 rounded-lg appearance-none cursor-pointer accent-slate-400 mt-2">
+                            <div class="flex justify-between text-[10px] text-slate-500">
+                                <span>-4m</span>
+                                <span id="val-offset" class="font-bold text-slate-300">0.0m</span>
+                                <span>+4m</span>
+                            </div>
+                        </div>
+                        <div class="flex items-end justify-end">
+                            <button id="btn-play-pause" class="w-full px-4 py-2 bg-indigo-600 hover:bg-indigo-500 active:scale-95 text-white font-bold text-xs rounded-lg transition shadow-md shadow-indigo-600/20 flex items-center justify-center gap-2">
+                                <i class="fa-solid fa-play" id="play-icon"></i>
+                                <span id="play-text">Animate Runner Journey</span>
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 1D Position Plot Card -->
+            <div class="bg-slate-900 border border-slate-800 rounded-2xl p-4 shadow-xl flex flex-col gap-4">
+                <div class="flex items-center justify-between border-b border-slate-800 pb-3">
+                    <div class="flex items-center gap-2">
+                        <i class="fa-solid fa-chart-line text-amber-400"></i>
+                        <span class="text-xs font-bold text-slate-300 uppercase tracking-wider">1D Coordinate Plot: $x(t)$ vs Time</span>
+                    </div>
+                    <span class="text-[10px] text-slate-400 bg-slate-950 px-2 py-0.5 rounded border border-slate-800 font-mono">
+                        Visualizing coordinates on paper
+                    </span>
+                </div>
+                <!-- Graph Canvas -->
+                <div class="w-full aspect-[24/10] bg-slate-950 rounded-xl overflow-hidden border border-slate-800 p-1">
+                    <canvas id="graph-canvas" class="w-full h-full block"></canvas>
+                </div>
+            </div>
+        </section>
+
+        <!-- Right Side: Math Details & Real-Time Calculations -->
+        <aside class="lg:col-span-4 flex flex-col gap-6">
+            
+            <!-- Real-time computation card -->
+            <div class="bg-slate-900 border border-slate-800 rounded-2xl p-5 shadow-xl relative overflow-hidden">
+                <div class="absolute top-0 right-0 w-24 h-24 bg-indigo-600/10 rounded-full blur-2xl -mr-6 -mt-6"></div>
+                
+                <h3 class="text-xs font-bold text-slate-300 tracking-wider uppercase mb-4 flex items-center gap-2 border-b border-slate-800 pb-3">
+                    <i class="fa-solid fa-calculator text-indigo-400"></i>
+                    Component Math breakdown
+                </h3>
+                
+                <div class="space-y-4">
+                    <!-- Position at t1 -->
+                    <div class="bg-slate-950/80 p-3.5 rounded-xl border border-slate-800/80">
+                        <div class="text-[10px] font-bold text-indigo-400 tracking-wider uppercase mb-1 flex justify-between">
+                            <span>Initial Time Point</span>
+                            <span>$t_1 = $ <span id="calc-t" class="math-font text-slate-300">2.0s</span></span>
+                        </div>
+                        <div class="flex justify-between items-baseline">
+                            <span class="text-xs text-slate-400">Coordinate $x(t_1)$:</span>
+                            <span class="text-lg font-black math-font text-white" id="calc-xt">0.00 m</span>
+                        </div>
+                        <div class="flex justify-between items-baseline mt-1.5 text-[11px] border-t border-slate-900 pt-1.5 text-slate-500">
+                            <span>Vector expression $\vec{r}(t_1)$:</span>
+                            <span class="math-font text-indigo-300" id="calc-rt-vec">0.00 î</span>
+                        </div>
+                    </div>
+
+                    <!-- Position at t2 -->
+                    <div class="bg-slate-950/80 p-3.5 rounded-xl border border-slate-800/80">
+                        <div class="text-[10px] font-bold text-emerald-400 tracking-wider uppercase mb-1 flex justify-between">
+                            <span>Later Time Point</span>
+                            <span>$t_2 = $ <span id="calc-tdt" class="math-font text-slate-300">3.5s</span></span>
+                        </div>
+                        <div class="flex justify-between items-baseline">
+                            <span class="text-xs text-slate-400">Coordinate $x(t_2)$:</span>
+                            <span class="text-lg font-black math-font text-white" id="calc-xtdt">0.00 m</span>
+                        </div>
+                        <div class="flex justify-between items-baseline mt-1.5 text-[11px] border-t border-slate-900 pt-1.5 text-slate-500">
+                            <span>Vector expression $\vec{r}(t_2)$:</span>
+                            <span class="math-font text-emerald-300" id="calc-rtdt-vec">0.00 î</span>
+                        </div>
+                    </div>
+
+                    <!-- Scalar Path Distance vs Vector Displacement -->
+                    <div class="bg-slate-950 p-4 rounded-xl border border-slate-800 shadow-inner space-y-3">
+                        <div class="text-[10px] font-bold text-amber-400 tracking-wider uppercase flex justify-between items-center border-b border-slate-900 pb-2">
+                            <span>Textbook Quantities compared</span>
+                            <span class="text-[9px] text-slate-500">Scalar vs Vector</span>
+                        </div>
+
+                        <!-- Path Distance -->
+                        <div class="flex justify-between items-baseline">
+                            <div>
+                                <span class="text-xs font-semibold text-slate-300 block">Path Distance (Scalar):</span>
+                                <span class="text-[10px] text-slate-500 italic">Always cumulative & positive</span>
+                            </div>
+                            <span class="text-xl font-bold math-font text-amber-400" id="calc-distance">0.00 m</span>
+                        </div>
+
+                        <!-- Displacement Component -->
+                        <div class="border-t border-slate-900 pt-2 flex justify-between items-baseline">
+                            <div>
+                                <span class="text-xs font-semibold text-slate-300 block">Displacement component $\Delta x$:</span>
+                                <span class="text-[10px] text-slate-500 italic">Pos / Neg / Zero indicator</span>
+                            </div>
+                            <span class="text-xl font-black math-font text-rose-400" id="calc-dx">0.00 m</span>
+                        </div>
+                        
+                        <!-- Calculations Formula step-by-step display -->
+                        <div class="text-[11px] text-slate-400 space-y-1.5 bg-slate-900/80 p-3 rounded-lg border border-slate-800/80 math-font">
+                            <div class="text-[9px] font-sans text-slate-500 font-bold uppercase tracking-wider mb-1">Textbook Math Formulation:</div>
+                            <div class="flex justify-between text-slate-500">
+                                <span>$\Delta x = x(t_2) - x(t_1)$</span>
+                            </div>
+                            <div class="flex justify-between text-slate-300 font-bold border-t border-slate-850 pt-1.5 mt-1">
+                                <span id="step-sub">0.00 - 0.00</span>
+                                <span class="text-rose-400" id="step-res">0.00 m</span>
+                            </div>
+                        </div>
+
+                        <div class="flex justify-center">
+                            <span id="displacement-badge" class="px-2.5 py-1 rounded text-[9px] font-extrabold uppercase tracking-widest text-center block w-full">Positive</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Mathematical definition block -->
+            <div class="bg-slate-900 border border-slate-800 rounded-2xl p-5 shadow-xl flex-1 flex flex-col justify-between">
+                <div>
+                    <h3 class="text-xs font-bold text-slate-300 tracking-wider uppercase mb-3 flex items-center gap-2 border-b border-slate-800 pb-2">
+                        <i class="fa-solid fa-graduation-cap text-indigo-400"></i>
+                        Core Physics Terms
+                    </h3>
+                    <p class="text-xs text-slate-300 leading-relaxed mb-4">
+                        A vector has both <strong>magnitude</strong> and <strong>direction</strong>. In 1D kinematics along a single horizontal axis, directions are encoded simply by positive ($+$) or negative ($-$) signs multiplying the unit vector $\hat{i}$.
+                    </p>
+                    
+                    <ul class="space-y-3 text-xs text-slate-400">
+                        <li class="flex items-start gap-2.5">
+                            <span class="mt-1 w-1.5 h-1.5 rounded-full bg-indigo-500 shrink-0"></span>
+                            <span><strong>Position vector $\vec{r}(t)$:</strong> Locates the runner relative to the origin at timestamp $t$. Points from $0 \rightarrow x(t)$.</span>
+                        </li>
+                        <li class="flex items-start gap-2.5">
+                            <span class="mt-1 w-1.5 h-1.5 rounded-full bg-emerald-500 shrink-0"></span>
+                            <span><strong>Position vector $\vec{r}(t+\Delta t)$:</strong> Locates the runner at later timestamp $t+\Delta t$. Points from $0 \rightarrow x(t+\Delta t)$.</span>
+                        </li>
+                        <li class="flex items-start gap-2.5">
+                            <span class="mt-1 w-1.5 h-1.5 rounded-full bg-rose-500 shrink-0"></span>
+                            <span><strong>Displacement vector $\Delta\vec{r}$:</strong> The straight-line vector change over interval $\Delta t$. Points from $x(t) \rightarrow x(t+\Delta t)$.</span>
+                        </li>
+                    </ul>
+                </div>
+                
+                <div class="bg-indigo-950/20 border border-indigo-500/15 p-3.5 rounded-xl mt-4 text-[11px] text-indigo-300">
+                    <span class="font-bold flex items-center gap-1.5 mb-1 text-xs"><i class="fa-solid fa-lightbulb"></i> Sign Convention:</span>
+                    While the distance traveled is always positive, the displacement component $\Delta x$ carries the sign pointing either rightward (positive) or leftward (negative).
+                </div>
+            </div>
+        </aside>
+    </main>
+
+    <!-- Textbook Definitions Section from Uploaded Image -->
+    <section id="textbook-definitions" class="bg-slate-900 border-t border-slate-850 py-12 px-6">
+        <div class="max-w-5xl mx-auto space-y-8">
+            <div class="text-center space-y-2">
+                <span class="text-xs font-bold uppercase tracking-widest text-emerald-400">Direct Reference Material</span>
+                <h2 class="text-2xl font-black tracking-tight text-white md:text-3xl">Textbook Formulation Reference</h2>
+                <div class="w-12 h-1 bg-emerald-500 mx-auto rounded mt-3"></div>
+                <p class="text-xs md:text-sm text-slate-400 max-w-xl mx-auto mt-2">
+                    Verbatim definitions and equations converted from the provided course handbook slides.
+                </p>
+            </div>
+
+            <!-- Double Feature Presentation Grid -->
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-8">
+                <!-- Scalar Distance Card -->
+                <div class="bg-slate-950 border border-amber-500/30 rounded-2xl p-6 space-y-4 shadow-xl relative overflow-hidden">
+                    <div class="absolute top-0 right-0 bg-amber-500/10 text-amber-400 px-3 py-1 text-[10px] font-bold uppercase tracking-wider rounded-bl-xl border-l border-b border-amber-500/20">Scalar Quantity</div>
+                    
+                    <div class="flex items-center gap-2.5">
+                        <div class="w-8 h-8 rounded-lg bg-amber-500/10 flex items-center justify-center text-amber-400">
+                            <i class="fa-solid fa-ruler text-sm"></i>
+                        </div>
+                        <h3 class="font-bold text-white text-base">Distance</h3>
+                    </div>
+                    
+                    <p class="text-xs text-slate-300 leading-relaxed font-sans bg-slate-900/40 p-3.5 rounded-xl border border-slate-800/80">
+                        <strong>Definition:</strong> Is the length of the path travelled by an object between two points in space. From its definition, the distance is a scalar and it is always a positive quantity.
+                    </p>
+
+                    <div class="bg-slate-900/60 p-3 rounded-lg text-[11px] text-amber-300 font-mono flex items-center gap-1.5">
+                        <i class="fa-solid fa-square-root-variable text-xs"></i>
+                        <span>$\text{Distance} = \int_{t_1}^{t_2} |v(t)| dt \ge 0$</span>
+                    </div>
+                </div>
+
+                <!-- Vector Displacement Card -->
+                <div class="bg-slate-950 border border-rose-500/30 rounded-2xl p-6 space-y-4 shadow-xl relative overflow-hidden">
+                    <div class="absolute top-0 right-0 bg-rose-500/10 text-rose-400 px-3 py-1 text-[10px] font-bold uppercase tracking-wider rounded-bl-xl border-l border-b border-rose-500/20">Vector Quantity</div>
+                    
+                    <div class="flex items-center gap-2.5">
+                        <div class="w-8 h-8 rounded-lg bg-rose-500/10 flex items-center justify-center text-rose-400">
+                            <i class="fa-solid fa-arrows-left-right text-sm"></i>
+                        </div>
+                        <h3 class="font-bold text-white text-base">Displacement</h3>
+                    </div>
+
+                    <p class="text-xs text-slate-300 leading-relaxed font-sans bg-slate-900/40 p-3.5 rounded-xl border border-slate-800/80">
+                        <strong>Definition:</strong> Is the change in the position of an object. If at time $t = t_1$ the object is at position $\vec{r}(t_1)$, and at a later time $t = t_2 > t_1$ the object is at position $\vec{r}(t_2)$, the displacement vector is defined as:
+                        $$\Delta \vec{r} = \vec{r}(t_2) - \vec{r}(t_1)$$
+                    </p>
+
+                    <div class="bg-slate-900/60 p-4 rounded-xl border border-slate-800 text-xs text-slate-400 space-y-2">
+                        <p class="leading-relaxed">
+                            In one dimension, the displacement vector has one component. For example, if the motion is along the x-axis, the displacement vector becomes:
+                            $$\Delta \vec{r} = \Delta x \hat{i} = (x(t_2) - x(t_1)) \hat{i}$$
+                        </p>
+                        <ul class="list-disc list-inside space-y-1 text-[11px] text-slate-500 pt-1.5 border-t border-slate-850">
+                            <li><span class="text-indigo-400 font-semibold">Positive</span>: when final position is larger than initial position.</li>
+                            <li><span class="text-rose-400 font-semibold">Negative</span>: when final position is smaller than initial position.</li>
+                            <li><span class="text-slate-300 font-semibold">Zero</span>: if the object ends at the starting point.</li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Educational Infographic Section -->
+    <section id="infographic" class="bg-slate-900 border-t border-slate-800 py-12 px-6">
+        <div class="max-w-5xl mx-auto space-y-12">
+            
+            <!-- Section Header -->
+            <div class="text-center space-y-2">
+                <span class="text-xs font-bold uppercase tracking-widest text-indigo-400">Physics Classroom Reference Deck</span>
+                <h2 class="text-2xl font-black tracking-tight text-white md:text-3xl">Understanding 1D Displacement Analysis</h2>
+                <div class="w-12 h-1 bg-indigo-500 mx-auto rounded mt-3"></div>
+                <p class="text-xs md:text-sm text-slate-400 max-w-xl mx-auto mt-2">
+                    A visual dissection of coordinates, position vectors, and displacement components based on university physics lectures.
+                </p>
+            </div>
+
+            <!-- Visual Flowchart Cards -->
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+                
+                <!-- Position Card -->
+                <div class="bg-slate-950 border border-slate-800 rounded-xl p-5 hover:border-slate-700 transition flex flex-col justify-between relative group">
+                    <div class="absolute top-3 right-3 text-2xl font-black text-slate-800/80 math-font group-hover:text-indigo-900/40 transition">01</div>
+                    <div class="space-y-4">
+                        <div class="inline-flex items-center gap-1 px-2.5 py-1 bg-indigo-500/10 text-indigo-300 rounded border border-indigo-500/20 text-xs font-bold font-mono">
+                            <i class="fa-solid fa-arrow-right-long text-xs mr-0.5"></i> r(t_1)
+                        </div>
+                        <h3 class="text-sm font-bold text-white">Initial Position Vector</h3>
+                        <p class="text-xs text-slate-400 leading-relaxed">
+                            Specifies where the runner is at the beginning of the time interval. Always anchored with its tail at the Origin coordinates $x=0$.
+                        </p>
+                        <div class="bg-slate-900 p-3 rounded-lg text-xs space-y-1">
+                            <div class="text-slate-500 text-[9px] uppercase font-bold tracking-wider">Vector Equation</div>
+                            <code class="math-font text-indigo-300 font-bold block">r(t_1) = x(t_1) î</code>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Position at t + dt Card -->
+                <div class="bg-slate-950 border border-slate-800 rounded-xl p-5 hover:border-slate-700 transition flex flex-col justify-between relative group">
+                    <div class="absolute top-3 right-3 text-2xl font-black text-slate-800/80 math-font group-hover:text-emerald-900/40 transition">02</div>
+                    <div class="space-y-4">
+                        <div class="inline-flex items-center gap-1 px-2.5 py-1 bg-emerald-500/10 text-emerald-300 rounded border border-emerald-500/20 text-xs font-bold font-mono">
+                            <i class="fa-solid fa-arrow-right-long text-xs mr-0.5"></i> r(t_2)
+                        </div>
+                        <h3 class="text-sm font-bold text-white">Later Position Vector</h3>
+                        <p class="text-xs text-slate-400 leading-relaxed">
+                            Locates the runner at the end of the interval. Just like $\vec{r}(t_1)$, its tail is anchored at the Origin ($x=0$) pointing directly to the final coordinate.
+                        </p>
+                        <div class="bg-slate-900 p-3 rounded-lg text-xs space-y-1">
+                            <div class="text-slate-500 text-[9px] uppercase font-bold tracking-wider">Vector Equation</div>
+                            <code class="math-font text-emerald-300 font-bold block">r(t_2) = x(t_2) î</code>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Displacement Vector Card -->
+                <div class="bg-slate-950 border border-slate-800 rounded-xl p-5 hover:border-slate-700 transition flex flex-col justify-between relative group">
+                    <div class="absolute top-3 right-3 text-2xl font-black text-slate-800/80 math-font group-hover:text-rose-900/40 transition">03</div>
+                    <div class="space-y-4">
+                        <div class="inline-flex items-center gap-1 px-2.5 py-1 bg-rose-500/10 text-rose-300 rounded border border-rose-500/20 text-xs font-bold font-mono">
+                            <i class="fa-solid fa-arrow-right-long text-xs mr-0.5"></i> Δr
+                        </div>
+                        <h3 class="text-sm font-bold text-white">Displacement Vector</h3>
+                        <p class="text-xs text-slate-400 leading-relaxed">
+                            Represents the difference in position vectors. Unlike position, its tail is at the initial position $\vec{r}(t_1)$, and its tip is at the final position $\vec{r}(t_2)$.
+                        </p>
+                        <div class="bg-slate-900 p-3 rounded-lg text-xs space-y-1">
+                            <div class="text-slate-500 text-[9px] uppercase font-bold tracking-wider">Vector Equation</div>
+                            <code class="math-font text-rose-300 font-bold block">Δr = r(t_2) - r(t_1) = Δx î</code>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Detailed Scenarios explanation based on Transcript -->
+            <div class="bg-slate-950 border border-slate-800 rounded-2xl p-6 md:p-8 space-y-6 shadow-2xl">
+                <h3 class="text-lg font-bold text-white flex items-center gap-2 border-b border-slate-800 pb-3">
+                    <i class="fa-solid fa-person-running text-indigo-400"></i>
+                    Displacement Scenario Breakdown
+                </h3>
+                <p class="text-xs md:text-sm text-slate-400 leading-relaxed">
+                    According to physics, displacement components carry physical meaning and can represent three primary physical outcomes over any given time interval $t_1 \rightarrow t_2$. Let's analyze them visually:
+                </p>
+
+                <!-- Grid of scenario descriptions -->
+                <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+                    <!-- Positive -->
+                    <div class="bg-slate-900/50 rounded-xl p-4 border border-indigo-500/20 space-y-2">
+                        <div class="flex items-center gap-2">
+                            <span class="w-6 h-6 rounded-full bg-indigo-500/20 text-indigo-300 flex items-center justify-center text-xs font-bold math-font">+</span>
+                            <h4 class="text-xs font-bold text-white uppercase tracking-wider">Positive Component ($\Delta x > 0$)</h4>
+                        </div>
+                        <p class="text-xs text-slate-400 leading-relaxed">
+                            The runner ends up further to the right relative to where they started at time $t_1$. The displacement vector points in the positive $+x$ direction.
+                        </p>
+                        <div class="text-[10px] text-indigo-300 bg-slate-950 px-2 py-1 rounded math-font">
+                            $x(t_2) > x(t_1)$ <br>
+                            Vector points RIGHT
+                        </div>
+                    </div>
+
+                    <!-- Zero -->
+                    <div class="bg-slate-900/50 rounded-xl p-4 border border-slate-800/80 space-y-2">
+                        <div class="flex items-center gap-2">
+                            <span class="w-6 h-6 rounded-full bg-slate-800 text-slate-300 flex items-center justify-center text-xs font-bold math-font">0</span>
+                            <h4 class="text-xs font-bold text-white uppercase tracking-wider">Zero Displacement ($\Delta x = 0$)</h4>
+                        </div>
+                        <p class="text-xs text-slate-400 leading-relaxed">
+                            The person could run forward, loop around, and at time $t_2$, return to the exact same coordinates. Net displacement is zero, even though path distance is not.
+                        </p>
+                        <div class="text-[10px] text-slate-300 bg-slate-950 px-2 py-1 rounded math-font">
+                            $x(t_2) == x(t_1)$ <br>
+                            Displacement is ZERO
+                        </div>
+                    </div>
+
+                    <!-- Negative -->
+                    <div class="bg-slate-900/50 rounded-xl p-4 border border-rose-500/20 space-y-2">
+                        <div class="flex items-center gap-2">
+                            <span class="w-6 h-6 rounded-full bg-rose-500/20 text-rose-300 flex items-center justify-center text-xs font-bold math-font">-</span>
+                            <h4 class="text-xs font-bold text-white uppercase tracking-wider">Negative Component ($\Delta x < 0$)</h4>
+                        </div>
+                        <p class="text-xs text-slate-400 leading-relaxed">
+                            At the end of the interval, the runner is located to the left of their original starting point. The displacement vector points in the negative $-x$ direction.
+                        </p>
+                        <div class="text-[10px] text-rose-300 bg-slate-950 px-2 py-1 rounded math-font">
+                            $x(t_2) < x(t_1)$ <br>
+                            Vector points LEFT
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Mathematical conclusion note -->
+                <div class="bg-slate-900 p-4 rounded-xl border border-slate-800 text-xs text-slate-400 space-y-2">
+                    <div class="font-bold text-slate-300 flex items-center gap-1.5"><i class="fa-solid fa-triangle-exclamation text-amber-500"></i> Distance Traveled vs. Displacement</div>
+                    <p class="leading-relaxed font-sans">
+                        Notice how displacement <strong>only</strong> describes the net difference in coordinate values between the initial and final timestamps. If a runner covers a total of 100 meters on a running track and ends up right where they started, their <strong>distance traveled</strong> is 100 meters, but their <strong>displacement vector is zero</strong>. This is the exact principle described in the lecture transcript.
+                    </p>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Footer block -->
+    <footer class="bg-slate-950 text-slate-600 text-xs py-8 px-6 text-center border-t border-slate-900 mt-auto">
+        <p>© 2026 Interactive 1D Kinematics Workspace. Built for intuitive physics modeling and academic visual learning.</p>
+    </footer>
+
+    <script>
+        // Configuration state variables
+        const state = {
+            t: 2.00,       // initial observation time (s)
+            dt: 1.50,      // interval length (s)
+            offset: 0.0,   // initial coordinate offset (m)
+            motionType: 'quadratic-loop', // preset equation selector
+            isAnimating: false,
+            currentTime: 0.0, // playback time for the continuous loop animation
+            canvasScale: 38,  // scale factor (pixels per meter)
+            originX: 0,      // x-coordinate representing origin O
+        };
+
+        // DOM Element cache
+        const el = {
+            canvas: document.getElementById('physics-canvas'),
+            graphCanvas: document.getElementById('graph-canvas'),
+            sliderT: document.getElementById('slider-t'),
+            sliderDt: document.getElementById('slider-dt'),
+            sliderOffset: document.getElementById('slider-offset'),
+            motionSelect: document.getElementById('motion-type'),
+            btnRestart: document.getElementById('btn-restart'),
+            btnPlayPause: document.getElementById('btn-play-pause'),
+            playIcon: document.getElementById('play-icon'),
+            playText: document.getElementById('play-text'),
+            valT: document.getElementById('val-t'),
+            valDt: document.getElementById('val-dt'),
+            valOffset: document.getElementById('val-offset'),
+            
+            // Labels and outputs
+            lblRtVal: document.getElementById('label-rt-val'),
+            lblRtDtVal: document.getElementById('label-rt-dt-val'),
+            lblDrVal: document.getElementById('label-dr-val'),
+            calcT: document.getElementById('calc-t'),
+            calcTdt: document.getElementById('calc-tdt'),
+            calcXt: document.getElementById('calc-xt'),
+            calcXtdt: document.getElementById('calc-xtdt'),
+            calcRtVec: document.getElementById('calc-rt-vec'),
+            calcRtdtVec: document.getElementById('calc-rtdt-vec'),
+            calcDx: document.getElementById('calc-dx'),
+            calcDistance: document.getElementById('calc-distance'),
+            dispBadge: document.getElementById('displacement-badge'),
+            stepSub: document.getElementById('step-sub'),
+            stepRes: document.getElementById('step-res'),
+
+            // Presets
+            presetPos: document.getElementById('preset-positive'),
+            presetZero: document.getElementById('preset-zero'),
+            presetNeg: document.getElementById('preset-negative'),
+        };
+
+        // Motion models evaluation: input time (s), returns coordinate x (m)
+        function getPositionAt(time, type = state.motionType, offset = state.offset) {
+            switch(type) {
+                case 'linear-pos':
+                    // Constant velocity (Rightward)
+                    return offset + (0.9 * time) - 2.0;
+                case 'linear-neg':
+                    // Constant velocity (Leftward)
+                    return offset - (0.8 * time) + 4.5;
+                case 'quadratic-loop':
+                    // Turns around: reaches peak around t = 4s, then returns
+                    return offset + (1.25 * time) - (0.16 * time * time) - 0.5;
+                case 'sine-oscillator':
+                    // Oscillation
+                    return offset + 4.5 * Math.sin(0.7 * time - 0.5);
+                default:
+                    return offset + 1.0 * time;
+            }
+        }
+
+        // Numerically integrates path distance to calculate exact actual distance traveled
+        function getPathDistance(t1, t2) {
+            let distance = 0;
+            const steps = 200;
+            const stepSize = (t2 - t1) / steps;
+            
+            let prevX = getPositionAt(t1);
+            for (let i = 1; i <= steps; i++) {
+                const currX = getPositionAt(t1 + i * stepSize);
+                distance += Math.abs(currX - prevX);
+                prevX = currX;
+            }
+            return distance;
+        }
+
+        // Setup dimensions for responsive canvases
+        function resizeCanvases() {
+            // Physics main space canvas sizing
+            const rect = el.canvas.parentElement.getBoundingClientRect();
+            el.canvas.width = rect.width * window.devicePixelRatio;
+            el.canvas.height = rect.height * window.devicePixelRatio;
+            state.originX = el.canvas.width / 3.2; // set relative origin spot
+
+            // Graph canvas sizing
+            const graphRect = el.graphCanvas.parentElement.getBoundingClientRect();
+            el.graphCanvas.width = graphRect.width * window.devicePixelRatio;
+            el.graphCanvas.height = graphRect.height * window.devicePixelRatio;
+
+            drawAll();
+        }
+
+        // Calculate current math state and update textual outputs
+        function updateCalculations() {
+            const x_t = getPositionAt(state.t);
+            const x_tdt = getPositionAt(state.t + state.dt);
+            const dx = x_tdt - x_t;
+            const distance = getPathDistance(state.t, state.t + state.dt);
+
+            // Update DOM output boxes
+            el.lblRtVal.textContent = x_t.toFixed(2);
+            el.lblRtDtVal.textContent = x_tdt.toFixed(2);
+            el.lblDrVal.textContent = `${dx >= 0 ? '+' : ''}${dx.toFixed(2)} î m`;
+
+            el.calcT.textContent = `${state.t.toFixed(2)} s`;
+            el.calcTdt.textContent = `${(state.t + state.dt).toFixed(2)} s`;
+
+            el.calcXt.textContent = `${x_t.toFixed(2)} m`;
+            el.calcXtdt.textContent = `${x_tdt.toFixed(2)} m`;
+            
+            el.calcRtVec.textContent = `${x_t.toFixed(2)} î`;
+            el.calcRtdtVec.textContent = `${x_tdt.toFixed(2)} î`;
+
+            el.calcDx.textContent = `${dx >= 0 ? '+' : ''}${dx.toFixed(2)} m`;
+            el.calcDistance.textContent = `${distance.toFixed(2)} m`;
+
+            // Badge updates
+            if (Math.abs(dx) < 0.05) {
+                el.dispBadge.textContent = "Zero Net Displacement";
+                el.dispBadge.className = "px-2.5 py-1 rounded text-[10px] font-extrabold bg-slate-850 border border-slate-700/80 text-slate-300 uppercase tracking-widest text-center block w-full";
+            } else if (dx > 0) {
+                el.dispBadge.textContent = "Positive Component (Δx > 0)";
+                el.dispBadge.className = "px-2.5 py-1 rounded text-[10px] font-extrabold bg-indigo-950/80 border border-indigo-500/30 text-indigo-300 uppercase tracking-widest text-center block w-full";
+            } else {
+                el.dispBadge.textContent = "Negative Component (Δx < 0)";
+                el.dispBadge.className = "px-2.5 py-1 rounded text-[10px] font-extrabold bg-rose-950/80 border border-rose-500/30 text-rose-300 uppercase tracking-widest text-center block w-full";
+            }
+
+            // Equation substitution breakdown string
+            el.stepSub.textContent = `Δx = (${x_tdt.toFixed(2)}) - (${x_t.toFixed(2)})`;
+            el.stepRes.textContent = `${dx >= 0 ? '+' : ''}${dx.toFixed(2)} m`;
+        }
+
+        // Draws highly stylized running stick silhouette to replace generic circles
+        function drawRunnerSilhouette(ctx, cx, cy, dpr, size, color, strokeColor, isActive = true) {
+            ctx.save();
+            ctx.strokeStyle = strokeColor;
+            ctx.fillStyle = color;
+            ctx.lineWidth = 2 * dpr;
+
+            // Simple elegant stylized modern map-pin or runner design
+            // Outer glowing ring for active runner
+            if (isActive) {
+                ctx.beginPath();
+                ctx.arc(cx, cy - 25 * dpr, 14 * dpr, 0, Math.PI * 2);
+                ctx.fillStyle = color + "20"; // semi-transparent glow fill
+                ctx.fill();
+                ctx.stroke();
+            }
+
+            // Head
+            ctx.beginPath();
+            ctx.arc(cx, cy - 31 * dpr, 4 * dpr, 0, Math.PI * 2);
+            ctx.fillStyle = color;
+            ctx.fill();
+            ctx.stroke();
+
+            // Torso / Body
+            ctx.beginPath();
+            ctx.moveTo(cx, cy - 27 * dpr);
+            ctx.lineTo(cx, cy - 14 * dpr);
+            ctx.stroke();
+
+            // Arms (running pose)
+            ctx.beginPath();
+            ctx.moveTo(cx, cy - 24 * dpr);
+            ctx.lineTo(cx - 5 * dpr, cy - 20 * dpr);
+            ctx.lineTo(cx + 2 * dpr, cy - 15 * dpr);
+            ctx.stroke();
+
+            // Legs (running stance)
+            ctx.beginPath();
+            ctx.moveTo(cx, cy - 14 * dpr);
+            ctx.lineTo(cx - 6 * dpr, cy - 5 * dpr);
+            ctx.lineTo(cx - 4 * dpr, cy);
+            ctx.stroke();
+
+            ctx.beginPath();
+            ctx.moveTo(cx, cy - 14 * dpr);
+            ctx.lineTo(cx + 5 * dpr, cy - 7 * dpr);
+            ctx.lineTo(cx + 8 * dpr, cy);
+            ctx.stroke();
+
+            ctx.restore();
+        }
+
+        // Drawing custom vectors with explicit arrows and label text shields
+        function drawVector(ctx, startX, startY, endX, endY, color, width = 3, arrowSize = 8, label = '', dpr = 1) {
+            ctx.save();
+            ctx.strokeStyle = color;
+            ctx.fillStyle = color;
+            ctx.lineWidth = width;
+
+            // Draw vector line
+            ctx.beginPath();
+            ctx.moveTo(startX, startY);
+            ctx.lineTo(endX, endY);
+            ctx.stroke();
+
+            // Draw vector arrow head
+            const angle = Math.atan2(endY - startY, endX - startX);
+            ctx.beginPath();
+            ctx.moveTo(endX, endY);
+            ctx.lineTo(endX - arrowSize * Math.cos(angle - Math.PI / 6), endY - arrowSize * Math.sin(angle - Math.PI / 6));
+            ctx.lineTo(endX - arrowSize * Math.cos(angle + Math.PI / 6), endY - arrowSize * Math.sin(angle + Math.PI / 6));
+            ctx.fill();
+
+            // Draw a high contrast text badge for the label to avoid overlap clutter
+            if (label) {
+                const labelX = (startX + endX) / 2;
+                const labelY = startY;
+                
+                ctx.font = `bold italic ${11 * dpr}px 'JetBrains Mono', monospace`;
+                const textWidth = ctx.measureText(label).width;
+                const paddingH = 6 * dpr;
+                const paddingV = 3 * dpr;
+
+                // Shield background
+                ctx.fillStyle = '#0f172a';
+                ctx.strokeStyle = color + "60";
+                ctx.lineWidth = 1 * dpr;
+                ctx.beginPath();
+                ctx.roundRect(labelX - textWidth/2 - paddingH, labelY - 8 * dpr - paddingV, textWidth + paddingH * 2, 16 * dpr, 4 * dpr);
+                ctx.fill();
+                ctx.stroke();
+
+                // Text
+                ctx.fillStyle = color;
+                ctx.textAlign = 'center';
+                ctx.textBaseline = 'middle';
+                ctx.fillText(label, labelX, labelY - 1 * dpr);
+            }
+            ctx.restore();
+        }
+
+        function drawPhysicsCanvas() {
+            const ctx = el.canvas.getContext('2d');
+            ctx.clearRect(0, 0, el.canvas.width, el.canvas.height);
+
+            const cx = el.canvas.width;
+            const cy = el.canvas.height;
+            const dpr = window.devicePixelRatio || 1;
+
+            // Compute physics positions mapped to screen coordinates
+            const x_t = getPositionAt(state.t);
+            const x_tdt = getPositionAt(state.t + state.dt);
+            
+            const originX = state.originX;
+            const trackY = cy * 0.65; // Position of physical road line
+
+            // Convert coordinate to canvas pixel position
+            const getPixelX = (coord) => originX + (coord * state.canvasScale * dpr);
+
+            // 1. Draw Ground/Road Background
+            ctx.save();
+            ctx.strokeStyle = '#1e293b';
+            ctx.lineWidth = 2 * dpr;
+            ctx.beginPath();
+            ctx.moveTo(0, trackY);
+            ctx.lineTo(cx, trackY);
+            ctx.stroke();
+
+            // Dashed center road markers
+            ctx.strokeStyle = '#334155';
+            ctx.lineWidth = 1.5 * dpr;
+            ctx.setLineDash([15 * dpr, 12 * dpr]);
+            ctx.beginPath();
+            ctx.moveTo(0, trackY + (12 * dpr));
+            ctx.lineTo(cx, trackY + (12 * dpr));
+            ctx.stroke();
+            ctx.setLineDash([]); // Reset line dash
+            ctx.restore();
+
+            // Draw ticks/coordinates markings along the axis line
+            ctx.fillStyle = '#475569';
+            ctx.font = `${10 * dpr}px 'JetBrains Mono', monospace`;
+            ctx.textAlign = 'center';
+
+            const minMeter = -5;
+            const maxMeter = 15;
+            for (let m = minMeter; m <= maxMeter; m++) {
+                const px = getPixelX(m);
+                if (px >= 0 && px <= cx) {
+                    ctx.strokeStyle = m === 0 ? '#6366f1' : '#1e293b';
+                    ctx.lineWidth = m === 0 ? 2 * dpr : 1 * dpr;
+                    
+                    ctx.beginPath();
+                    ctx.moveTo(px, trackY - (m === 0 ? 10 * dpr : 5 * dpr));
+                    ctx.lineTo(px, trackY + (m === 0 ? 10 * dpr : 5 * dpr));
+                    ctx.stroke();
+
+                    // Display coordinate values
+                    if (m % 2 === 0 || m === 0) {
+                        ctx.fillStyle = m === 0 ? '#818cf8' : '#475569';
+                        ctx.fillText(`${m}m`, px, trackY + (24 * dpr));
+                    }
+                }
+            }
+
+            // Draw Explicit origin label below the axis to avoid overlap
+            const pxOrigin = getPixelX(0);
+            ctx.save();
+            ctx.fillStyle = '#818cf8';
+            ctx.font = `bold italic ${10 * dpr}px 'Plus Jakarta Sans', sans-serif`;
+            ctx.fillText('Origin (x = 0)', pxOrigin, trackY + (38 * dpr));
+            ctx.restore();
+
+            // Screen projection coordinates
+            const px_xt = getPixelX(x_t);
+            const px_xtdt = getPixelX(x_tdt);
+
+            // 2. Draw Clean Vertical Alignment Lanes
+            // Separate each vector into explicit vertically separated tracks to prevent any overlapping text.
+            const laneDisplacementY = cy * 0.15; // Highest Lane (Displacement vector)
+            const laneRtDtY = cy * 0.32;         // Middle Lane (r(t+dt) vector)
+            const laneRtY = cy * 0.48;           // Lowest Lane (r(t) vector)
+
+            // Draw subtle vertical grid aligners mapping down to the axis ticks
+            ctx.save();
+            ctx.strokeStyle = '#1e293b';
+            ctx.lineWidth = 1 * dpr;
+            ctx.setLineDash([3 * dpr, 3 * dpr]);
+
+            // Initial position vertical line projection
+            ctx.beginPath();
+            ctx.moveTo(px_xt, laneDisplacementY - 5);
+            ctx.lineTo(px_xt, trackY);
+            ctx.stroke();
+
+            // Later position vertical line projection
+            ctx.beginPath();
+            ctx.moveTo(px_xtdt, laneDisplacementY - 5);
+            ctx.lineTo(px_xtdt, trackY);
+            ctx.stroke();
+            ctx.restore();
+
+            // 3. Draw Vector r(t1) pointing from Origin to initial runner coordinate
+            drawVector(ctx, pxOrigin, laneRtY, px_xt, laneRtY, '#6366f1', 2.5 * dpr, 7 * dpr, 'r(t₁) = x(t₁) î', dpr);
+
+            // 4. Draw Vector r(t2) pointing from Origin to updated coordinate
+            drawVector(ctx, pxOrigin, laneRtDtY, px_xtdt, laneRtDtY, '#10b981', 2.5 * dpr, 7 * dpr, 'r(t₂) = x(t₂) î', dpr);
+
+            // 5. Draw DISPLACEMENT VECTOR (Δr) connecting position at t1 directly to t2
+            drawVector(ctx, px_xt, laneDisplacementY, px_xtdt, laneDisplacementY, '#f43f5e', 3 * dpr, 8 * dpr, 'Δr = Δx î', dpr);
+
+            // 6. Render Runners on the Road Track
+            // Runner at t1 (Ghost style, light opacity matched to purple theme)
+            drawRunnerSilhouette(ctx, px_xt, trackY, dpr, 1, '#6366f1', '#4f46e5', false);
+            ctx.fillStyle = '#a5b4fc';
+            ctx.font = `bold ${9 * dpr}px 'JetBrains Mono', monospace`;
+            ctx.fillText('Runner at t₁', px_xt, trackY - (36 * dpr));
+
+            // Runner at t2 (Solid style, fully active emerald green)
+            drawRunnerSilhouette(ctx, px_xtdt, trackY, dpr, 1, '#10b981', '#047857', true);
+            ctx.fillStyle = '#a7f3d0';
+            ctx.font = `bold ${9 * dpr}px 'JetBrains Mono', monospace`;
+            ctx.fillText('Runner at t₂', px_xtdt, trackY - (42 * dpr));
+
+            // 7. Render dynamic animate playback runner if active
+            if (state.isAnimating) {
+                const animX = getPositionAt(state.currentTime);
+                const pxAnim = getPixelX(animX);
+
+                // Orange highlighting for playback runner
+                drawRunnerSilhouette(ctx, pxAnim, trackY, dpr, 1.1, '#fbbf24', '#d97706', true);
+                
+                // Animated Label with high visibility background badge
+                ctx.save();
+                ctx.font = `bold ${9 * dpr}px 'JetBrains Mono', monospace`;
+                const playLabel = `Live: ${state.currentTime.toFixed(2)}s`;
+                const wL = ctx.measureText(playLabel).width;
+
+                ctx.fillStyle = 'rgba(15, 23, 42, 0.9)';
+                ctx.strokeStyle = '#fbbf24';
+                ctx.beginPath();
+                ctx.roundRect(pxAnim - wL/2 - 4 * dpr, trackY - (58 * dpr), wL + 8 * dpr, 13 * dpr, 3 * dpr);
+                ctx.fill();
+                ctx.stroke();
+
+                ctx.fillStyle = '#fbbf24';
+                ctx.textAlign = 'center';
+                ctx.fillText(playLabel, pxAnim, trackY - (49 * dpr));
+                ctx.restore();
+            }
+        }
+
+        function drawGraphCanvas() {
+            const ctx = el.graphCanvas.getContext('2d');
+            ctx.clearRect(0, 0, el.graphCanvas.width, el.graphCanvas.height);
+
+            const w = el.graphCanvas.width;
+            const h = el.graphCanvas.height;
+            const dpr = window.devicePixelRatio || 1;
+
+            const margin = {
+                top: 25 * dpr,
+                right: 30 * dpr,
+                bottom: 30 * dpr,
+                left: 45 * dpr
+            };
+
+            const plotW = w - margin.left - margin.right;
+            const plotH = h - margin.top - margin.bottom;
+
+            // X scale: Time from 0 to 10 seconds
+            // Y scale: Coordinates from -6m to 10m
+            const minT = 0;
+            const maxT = 10;
+            const minY = -6;
+            const maxY = 10;
+
+            const getCanvasX = (tVal) => margin.left + ((tVal - minT) / (maxT - minT)) * plotW;
+            const getCanvasY = (yVal) => margin.top + (1 - (yVal - minY) / (maxY - minY)) * plotH;
+
+            // 1. Draw Grid Lines & Axes
+            ctx.strokeStyle = '#1e293b';
+            ctx.lineWidth = 1 * dpr;
+
+            // Horizontal Y grid lines
+            for (let y = minY; y <= maxY; y += 2) {
+                const py = getCanvasY(y);
+                ctx.beginPath();
+                ctx.moveTo(margin.left, py);
+                ctx.lineTo(w - margin.right, py);
+                ctx.stroke();
+
+                // Axis label
+                ctx.fillStyle = y === 0 ? '#818cf8' : '#475569';
+                ctx.font = `${9 * dpr}px 'JetBrains Mono', monospace`;
+                ctx.textAlign = 'right';
+                ctx.fillText(`${y}m`, margin.left - (8 * dpr), py + (3 * dpr));
+            }
+
+            // Vertical Time grid lines
+            for (let t = minT; t <= maxT; t += 1) {
+                const px = getCanvasX(t);
+                ctx.beginPath();
+                ctx.moveTo(px, margin.top);
+                ctx.lineTo(px, h - margin.bottom);
+                ctx.stroke();
+
+                // Labels
+                ctx.fillStyle = '#475569';
+                ctx.font = `${9 * dpr}px 'JetBrains Mono', monospace`;
+                ctx.textAlign = 'center';
+                ctx.fillText(`${t}s`, px, h - margin.bottom + (15 * dpr));
+            }
+
+            // Bold axis line representing x = 0
+            const yZeroPx = getCanvasY(0);
+            ctx.strokeStyle = '#334155';
+            ctx.lineWidth = 1.5 * dpr;
+            ctx.beginPath();
+            ctx.moveTo(margin.left, yZeroPx);
+            ctx.lineTo(w - margin.right, yZeroPx);
+            ctx.stroke();
+
+            // 2. Plot the Continuous Motion Path Curve
+            ctx.strokeStyle = '#4f46e5';
+            ctx.lineWidth = 2.5 * dpr;
+            ctx.beginPath();
+            
+            for (let pixelX = 0; pixelX <= plotW; pixelX++) {
+                const pct = pixelX / plotW;
+                const tVal = minT + pct * (maxT - minT);
+                const yVal = getPositionAt(tVal);
+                
+                const drawX = margin.left + pixelX;
+                const drawY = getCanvasY(yVal);
+
+                if (pixelX === 0) {
+                    ctx.moveTo(drawX, drawY);
+                } else {
+                    ctx.lineTo(drawX, drawY);
+                }
+            }
+            ctx.stroke();
+
+            // 3. Highlight Interval Points [t1] and [t2] on graph
+            const p_t = state.t;
+            const p_tdt = state.t + state.dt;
+
+            const y_t = getPositionAt(p_t);
+            const y_tdt = getPositionAt(p_tdt);
+
+            const pt_X = getCanvasX(p_t);
+            const pt_Y = getCanvasY(y_t);
+            const ptdt_X = getCanvasX(p_tdt);
+            const ptdt_Y = getCanvasY(y_tdt);
+
+            // Draw vertical markers down to Time Axis
+            ctx.strokeStyle = 'rgba(99, 102, 241, 0.4)';
+            ctx.lineWidth = 1 * dpr;
+            ctx.setLineDash([3 * dpr, 3 * dpr]);
+            ctx.beginPath();
+            ctx.moveTo(pt_X, pt_Y);
+            ctx.lineTo(pt_X, h - margin.bottom);
+            ctx.stroke();
+
+            ctx.strokeStyle = 'rgba(16, 185, 129, 0.4)';
+            ctx.beginPath();
+            ctx.moveTo(tdt_X = ptdt_X, ptdt_Y);
+            ctx.lineTo(ptdt_X, h - margin.bottom);
+            ctx.stroke();
+            ctx.setLineDash([]); // Reset
+
+            // Highlight the vertical rise segment representing net displacement component Δx
+            ctx.strokeStyle = '#f43f5e';
+            ctx.lineWidth = 3 * dpr;
+            ctx.beginPath();
+            ctx.moveTo(ptdt_X, pt_Y);
+            ctx.lineTo(ptdt_X, ptdt_Y);
+            ctx.stroke();
+
+            // Connective dotted horizontal line to show slope rise/run alignment
+            ctx.strokeStyle = '#f43f5e';
+            ctx.lineWidth = 1 * dpr;
+            ctx.setLineDash([2 * dpr, 2 * dpr]);
+            ctx.beginPath();
+            ctx.moveTo(pt_X, pt_Y);
+            ctx.lineTo(ptdt_X, pt_Y);
+            ctx.stroke();
+            ctx.setLineDash([]); // Reset
+
+            // Label for delta x on the graph
+            ctx.fillStyle = '#f43f5e';
+            ctx.font = `bold italic ${10 * dpr}px 'JetBrains Mono', monospace`;
+            ctx.textAlign = 'left';
+            ctx.fillText(' Δx Component', ptdt_X + (4 * dpr), (pt_Y + ptdt_Y) / 2 + (3 * dpr));
+
+            // Draw solid circle dots on the graph coordinate curve points
+            ctx.fillStyle = '#6366f1';
+            ctx.beginPath();
+            ctx.arc(pt_X, pt_Y, 6 * dpr, 0, Math.PI * 2);
+            ctx.fill();
+            
+            ctx.fillStyle = '#10b981';
+            ctx.beginPath();
+            ctx.arc(ptdt_X, ptdt_Y, 6 * dpr, 0, Math.PI * 2);
+            ctx.fill();
+
+            // Labels above points
+            ctx.fillStyle = '#ffffff';
+            ctx.font = `bold ${9 * dpr}px 'JetBrains Mono', monospace`;
+            ctx.textAlign = 'center';
+            ctx.fillText(`(t₁, x(t₁))`, pt_X, pt_Y - (10 * dpr));
+            ctx.fillText(`(t₂, x(t₂))`, ptdt_X, ptdt_Y - (10 * dpr));
+
+            // 4. Draw continuous playback marker if animating
+            if (state.isAnimating) {
+                const animT = state.currentTime;
+                const animXVal = getPositionAt(animT);
+                const animDrawX = getCanvasX(animT);
+                const animDrawY = getCanvasY(animXVal);
+
+                ctx.fillStyle = '#fbbf24';
+                ctx.beginPath();
+                ctx.arc(animDrawX, animDrawY, 5 * dpr, 0, Math.PI * 2);
+                ctx.fill();
+
+                ctx.strokeStyle = '#fbbf24';
+                ctx.beginPath();
+                ctx.arc(animDrawX, animDrawY, 9 * dpr, 0, Math.PI * 2);
+                ctx.stroke();
+            }
+        }
+
+        // Draw helper aggregating visual elements
+        function drawAll() {
+            updateCalculations();
+            drawPhysicsCanvas();
+            drawGraphCanvas();
+        }
+
+        // Control listeners
+        el.sliderT.addEventListener('input', (e) => {
+            state.t = parseFloat(e.target.value);
+            el.valT.textContent = `${state.t.toFixed(2)} s`;
+            drawAll();
+        });
+
+        el.sliderDt.addEventListener('input', (e) => {
+            state.dt = parseFloat(e.target.value);
+            el.valDt.textContent = `${state.dt.toFixed(2)} s`;
+            drawAll();
+        });
+
+        el.sliderOffset.addEventListener('input', (e) => {
+            state.offset = parseFloat(e.target.value);
+            el.valOffset.textContent = `${state.offset >= 0 ? '+' : ''}${state.offset.toFixed(1)}m`;
+            drawAll();
+        });
+
+        el.motionSelect.addEventListener('change', (e) => {
+            state.motionType = e.target.value;
+            // De-activate current presets style highlights
+            resetPresetButtonsBorder();
+            drawAll();
+        });
+
+        // Highlight reset function
+        function resetPresetButtonsBorder() {
+            const btns = [el.presetPos, el.presetZero, el.presetNeg];
+            btns.forEach(b => {
+                b.classList.remove('border-indigo-500/50', 'bg-indigo-950/20');
+                b.classList.add('border-slate-800', 'bg-slate-900/40');
+            });
+        }
+
+        // Trigger Presets to align directly with Transcript scenarios
+        el.presetPos.addEventListener('click', () => {
+            resetPresetButtonsBorder();
+            el.presetPos.classList.add('border-indigo-500/50', 'bg-indigo-950/20');
+            
+            state.motionType = 'linear-pos';
+            state.t = 2.0;
+            state.dt = 3.5;
+            state.offset = 0.0;
+
+            updateInputsAndDraw();
+        });
+
+        el.presetZero.addEventListener('click', () => {
+            resetPresetButtonsBorder();
+            el.presetZero.classList.add('border-indigo-500/50', 'bg-indigo-950/20');
+
+            state.motionType = 'quadratic-loop';
+            state.t = 1.30;
+            state.dt = 5.20;
+            state.offset = 1.0;
+
+            updateInputsAndDraw();
+        });
+
+        el.presetNeg.addEventListener('click', () => {
+            resetPresetButtonsBorder();
+            el.presetNeg.classList.add('border-indigo-500/50', 'bg-indigo-950/20');
+
+            state.motionType = 'sine-oscillator';
+            state.t = 1.0;
+            state.dt = 3.6;
+            state.offset = -1.0;
+
+            updateInputsAndDraw();
+        });
+
+        // Synchronize state back into HTML Inputs
+        function updateInputsAndDraw() {
+            el.sliderT.value = state.t;
+            el.valT.textContent = `${state.t.toFixed(2)} s`;
+
+            el.sliderDt.value = state.dt;
+            el.valDt.textContent = `${state.dt.toFixed(2)} s`;
+
+            el.sliderOffset.value = state.offset;
+            el.valOffset.textContent = `${state.offset >= 0 ? '+' : ''}${state.offset.toFixed(1)}m`;
+
+            el.motionSelect.value = state.motionType;
+
+            drawAll();
+        }
+
+        // Play/Pause Live Animation Routine
+        let animationFrameId;
+        el.btnPlayPause.addEventListener('click', () => {
+            state.isAnimating = !state.isAnimating;
+            if (state.isAnimating) {
+                // Initialize timing
+                state.currentTime = 0;
+                el.playIcon.className = "fa-solid fa-pause";
+                el.playText.textContent = "Pause Animation";
+                animationLoop();
+            } else {
+                cancelAnimationFrame(animationFrameId);
+                el.playIcon.className = "fa-solid fa-play";
+                el.playText.textContent = "Animate Runner Journey";
+                drawAll();
+            }
+        });
+
+        function animationLoop() {
+            if (!state.isAnimating) return;
+            
+            // Advance timeline looping continuously between 0 and 10 seconds
+            state.currentTime += 0.025;
+            if (state.currentTime > 10.0) {
+                state.currentTime = 0;
+            }
+
+            drawAll();
+            animationFrameId = requestAnimationFrame(animationLoop);
+        }
+
+        // Reset system triggers
+        el.btnRestart.addEventListener('click', () => {
+            state.isAnimating = false;
+            cancelAnimationFrame(animationFrameId);
+            el.playIcon.className = "fa-solid fa-play";
+            el.playText.textContent = "Animate Runner Journey";
+            
+            // Re-instantiate default values
+            state.t = 2.0;
+            state.dt = 1.5;
+            state.offset = 0.0;
+            state.motionType = 'quadratic-loop';
+
+            resetPresetButtonsBorder();
+            el.presetZero.classList.add('border-indigo-500/50', 'bg-indigo-950/20');
+            updateInputsAndDraw();
+        });
+
+        // Initialize elements on viewport load
+        window.addEventListener('resize', resizeCanvases);
+        
+        window.onload = function() {
+            // Render Math inside cards using KaTeX Auto-Render extension
+            if (typeof renderMathInElement === 'function') {
+                renderMathInElement(document.body, {
+                    delimiters: [
+                        {left: '$$', right: '$$', display: true},
+                        {left: '$', right: '$', display: false}
+                    ],
+                    throwOnError: false
+                });
+            }
+            
+            resizeCanvases();
+            // Default select preset zero turnaround scenario matching transcript
+            el.presetZero.click();
+        };
+    </script>
+</body>
+</html>
