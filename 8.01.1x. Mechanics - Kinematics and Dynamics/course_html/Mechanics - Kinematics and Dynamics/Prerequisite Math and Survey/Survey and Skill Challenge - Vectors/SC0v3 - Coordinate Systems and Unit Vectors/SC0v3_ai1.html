@@ -1,0 +1,1112 @@
+<!DOCTYPE html>
+<html lang="en" class="dark">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Interactive 2D Vectors & Unit Vectors Simulator</title>
+  
+  <!-- Tailwind CSS -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script>
+    tailwind.config = {
+      darkMode: 'class',
+      theme: {
+        extend: {
+          fontFamily: {
+            sans: ['Inter', 'sans-serif'],
+          },
+          colors: {
+            brand: {
+              50: '#f0fdf4',
+              100: '#dcfce7',
+              500: '#22c55e',
+              600: '#16a34a',
+              900: '#14532d',
+            }
+          }
+        }
+      }
+    }
+  </script>
+  
+  <!-- Google Fonts: Inter -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+  
+  <!-- FontAwesome Icons -->
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  
+  <!-- KaTeX for Beautiful Mathematical Equations -->
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.8/dist/katex.min.css">
+  <script src="https://cdn.jsdelivr.net/npm/katex@0.16.8/dist/katex.min.js"></script>
+  <!-- KaTeX Auto-Render Extension to easily render math in cards and text nodes -->
+  <script src="https://cdn.jsdelivr.net/npm/katex@0.16.8/dist/contrib/auto-render.min.js"></script>
+
+  <style>
+    /* Custom Scrollbar for better UX */
+    ::-webkit-scrollbar {
+      width: 6px;
+      height: 6px;
+    }
+    ::-webkit-scrollbar-track {
+      background: #1e293b;
+    }
+    ::-webkit-scrollbar-thumb {
+      background: #475569;
+      border-radius: 4px;
+    }
+    ::-webkit-scrollbar-thumb:hover {
+      background: #64748b;
+    }
+    .glass-panel {
+      background: rgba(30, 41, 59, 0.7);
+      backdrop-filter: blur(8px);
+      border: 1px solid rgba(255, 255, 255, 0.08);
+    }
+    .glow-green {
+      box-shadow: 0 0 15px rgba(34, 197, 94, 0.3);
+    }
+    .glow-blue {
+      box-shadow: 0 0 15px rgba(59, 130, 246, 0.3);
+    }
+    .glow-red {
+      box-shadow: 0 0 15px rgba(239, 68, 68, 0.3);
+    }
+    /* Simple Pulse for instructions */
+    @keyframes pulse-slow {
+      0%, 100% { transform: scale(1); opacity: 1; }
+      50% { transform: scale(1.05); opacity: 0.9; }
+    }
+    .pulse-element {
+      animation: pulse-slow 2s infinite ease-in-out;
+    }
+  </style>
+</head>
+
+<body class="bg-slate-950 text-slate-100 min-h-screen flex flex-col font-sans selection:bg-emerald-500 selection:text-slate-950 overflow-x-hidden">
+
+  <!-- Top Navigation bar -->
+  <header class="border-b border-slate-800 bg-slate-900/80 backdrop-blur sticky top-0 z-50 px-4 py-3 sm:px-6">
+    <div class="max-w-7xl mx-auto flex flex-col sm:flex-row items-center justify-between gap-4">
+      <div class="flex items-center gap-3">
+        <div class="bg-gradient-to-tr from-emerald-500 to-blue-600 p-2.5 rounded-xl shadow-lg">
+          <i class="fa-solid fa-compass-drafting text-xl text-white"></i>
+        </div>
+        <div>
+          <h1 class="font-extrabold text-lg sm:text-xl tracking-tight bg-gradient-to-r from-emerald-400 via-teal-300 to-blue-400 bg-clip-text text-transparent">
+            2D Vectors & Unit Vectors
+          </h1>
+          <p class="text-xs text-slate-400">Interactive Simulator & Infographic Companion</p>
+        </div>
+      </div>
+      
+      <!-- Quick Action Badges -->
+      <div class="flex items-center gap-2">
+        <button id="reset-btn" class="flex items-center gap-2 px-3.5 py-1.5 bg-slate-800 hover:bg-slate-700 active:bg-slate-600 text-slate-200 text-sm rounded-lg border border-slate-700 transition-all">
+          <i class="fa-solid fa-rotate-left"></i>
+          <span>Reset Grid</span>
+        </button>
+        <button id="open-tour-btn" class="flex items-center gap-2 px-3.5 py-1.5 bg-emerald-600 hover:bg-emerald-500 active:bg-emerald-700 text-white text-sm font-medium rounded-lg shadow-md hover:shadow-emerald-900/20 transition-all">
+          <i class="fa-solid fa-circle-question"></i>
+          <span>Guide</span>
+        </button>
+      </div>
+    </div>
+  </header>
+
+  <main class="flex-grow max-w-7xl w-full mx-auto p-4 sm:p-6 lg:p-8 grid grid-cols-1 lg:grid-cols-12 gap-6 lg:gap-8">
+    
+    <!-- LEFT SIDE: Interactive Grid Simulator (7 Columns on large screens) -->
+    <section class="lg:col-span-7 flex flex-col gap-4">
+      
+      <!-- Simulator Box -->
+      <div class="glass-panel rounded-2xl p-4 sm:p-5 shadow-2xl flex flex-col relative overflow-hidden">
+        <!-- Visual effects background glow -->
+        <div class="absolute -top-24 -left-24 w-48 h-48 bg-emerald-500/10 rounded-full blur-3xl pointer-events-none"></div>
+        <div class="absolute -bottom-24 -right-24 w-48 h-48 bg-blue-500/10 rounded-full blur-3xl pointer-events-none"></div>
+
+        <div class="flex items-center justify-between mb-4 z-10">
+          <div class="flex items-center gap-2">
+            <span class="inline-block w-2.5 h-2.5 rounded-full bg-emerald-500 animate-ping"></span>
+            <h2 class="font-bold text-slate-200 text-base sm:text-lg">Interactive 2D Grid Canvas</h2>
+          </div>
+          <div class="text-xs text-slate-400 flex items-center gap-1.5 bg-slate-800/60 px-2.5 py-1 rounded-full border border-slate-700">
+            <i class="fa-solid fa-hand-pointer text-emerald-400"></i>
+            <span>Drag the vector head!</span>
+          </div>
+        </div>
+
+        <!-- SVG Coordinate Grid -->
+        <div class="relative w-full aspect-square bg-slate-950/80 rounded-xl border border-slate-800 overflow-hidden cursor-crosshair group">
+          
+          <svg id="coordinate-svg" class="w-full h-full" viewBox="-250 -250 500 500" xmlns="http://www.w3.org/2000/svg">
+            <!-- Grid Lines Group -->
+            <g id="grid-lines" stroke="#1e293b" stroke-width="1"></g>
+            
+            <!-- Axis lines -->
+            <line x1="-250" y1="0" x2="250" y2="0" stroke="#475569" stroke-width="2" />
+            <line x1="0" y1="-250" x2="0" y2="250" stroke="#475569" stroke-width="2" />
+            
+            <!-- Axis labels -->
+            <text x="235" y="-8" fill="#94a3b8" font-size="12" font-weight="bold" text-anchor="middle">+x</text>
+            <text x="-235" y="-8" fill="#94a3b8" font-size="12" font-weight="bold" text-anchor="middle">-x</text>
+            <text x="12" y="-235" fill="#94a3b8" font-size="12" font-weight="bold" text-anchor="middle">+y</text>
+            <text x="12" y="242" fill="#94a3b8" font-size="12" font-weight="bold" text-anchor="middle">-y</text>
+
+            <!-- Origin Label -->
+            <text x="-12" y="15" fill="#64748b" font-size="10">0</text>
+            
+            <!-- Reference Unit Circle (Shows magnitude of exactly 1 for unit vector reference) -->
+            <circle cx="0" cy="0" r="40" fill="none" stroke="#22c55e" stroke-width="1.5" stroke-dasharray="4 4" class="opacity-60" id="unit-circle" />
+            <text id="circle-label" x="28" y="-28" fill="#22c55e" font-size="9" class="opacity-80 font-semibold">|u| = 1</text>
+
+            <!-- Helper projections (dashed lines) -->
+            <line id="proj-x" x1="0" y1="0" x2="0" y2="0" stroke="#ef4444" stroke-width="1.5" stroke-dasharray="3 3" class="transition-all" />
+            <line id="proj-y" x1="0" y1="0" x2="0" y2="0" stroke="#3b82f6" stroke-width="1.5" stroke-dasharray="3 3" class="transition-all" />
+
+            <!-- Unit Vector i-hat (Red arrow) -->
+            <g id="i-hat-group">
+              <line x1="0" y1="0" x2="40" y2="0" stroke="#ef4444" stroke-width="3.5" marker-end="url(#arrow-red)" />
+              <text x="20" y="16" fill="#ef4444" font-size="13" font-weight="bold" text-anchor="middle">î</text>
+            </g>
+
+            <!-- Unit Vector j-hat (Blue arrow) -->
+            <g id="j-hat-group">
+              <line x1="0" y1="0" x2="0" y2="-40" stroke="#3b82f6" stroke-width="3.5" marker-end="url(#arrow-blue)" />
+              <text x="-12" y="-20" fill="#3b82f6" font-size="13" font-weight="bold" text-anchor="middle">ĵ</text>
+            </g>
+
+            <!-- Custom Arbitrary Vector v (Vibrant Purple/Teal) -->
+            <line id="vector-v" x1="0" y1="0" x2="120" y2="-120" stroke="#c084fc" stroke-width="4" marker-end="url(#arrow-purple)" />
+            
+            <!-- Computed Unit Vector of v (Green arrow overlay) -->
+            <line id="vector-u" x1="0" y1="0" x2="28" y2="-28" stroke="#10b981" stroke-width="4" marker-end="url(#arrow-green)" class="drop-shadow-sm" />
+
+            <!-- Highlight Handle (Interactive Dot at vector endpoint) -->
+            <circle id="vector-handle" cx="120" cy="-120" r="12" fill="#c084fc" class="cursor-pointer active:scale-125 transition-transform hover:fill-purple-400 stroke-white stroke-2" />
+            <circle id="vector-handle-ring" cx="120" cy="-120" r="20" fill="none" stroke="#c084fc" stroke-width="1.5" class="animate-pulse pointer-events-none opacity-40" />
+
+            <!-- Markers Definition -->
+            <defs>
+              <marker id="arrow-purple" viewBox="0 0 10 10" refX="6" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
+                <path d="M 0 1 L 10 5 L 0 9 z" fill="#c084fc" />
+              </marker>
+              <marker id="arrow-green" viewBox="0 0 10 10" refX="6" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
+                <path d="M 0 1 L 10 5 L 0 9 z" fill="#10b981" />
+              </marker>
+              <marker id="arrow-red" viewBox="0 0 10 10" refX="6" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
+                <path d="M 0 1 L 10 5 L 0 9 z" fill="#ef4444" />
+              </marker>
+              <marker id="arrow-blue" viewBox="0 0 10 10" refX="6" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
+                <path d="M 0 1 L 10 5 L 0 9 z" fill="#3b82f6" />
+              </marker>
+            </defs>
+          </svg>
+          
+          <!-- Live Position Float HUD inside SVG (LaTeX support enabled) -->
+          <div class="absolute bottom-3 left-3 bg-slate-900/95 border border-slate-800 rounded-lg p-2.5 text-xs text-slate-300 flex flex-col gap-1 select-none pointer-events-none shadow-xl min-w-[210px]">
+            <div class="flex items-center gap-1.5">
+              <span class="w-2.5 h-2.5 rounded bg-purple-400 shrink-0"></span>
+              <span class="font-semibold text-slate-200 text-xs" id="hud-v-label"></span>
+            </div>
+            <div class="flex items-center gap-1.5">
+              <span class="w-2.5 h-2.5 rounded bg-emerald-400 shrink-0"></span>
+              <span class="font-semibold text-slate-200 text-xs" id="hud-u-label"></span>
+            </div>
+          </div>
+        </div>
+
+        <!-- Visual Control Toggles (Under Grid) -->
+        <div class="mt-4 grid grid-cols-2 sm:grid-cols-4 gap-2">
+          <button id="toggle-grid-lines" class="px-3 py-2 text-xs font-semibold rounded-lg bg-emerald-500/10 text-emerald-400 border border-emerald-500/20 hover:bg-emerald-500/20 transition-all flex items-center justify-center gap-1.5">
+            <i class="fa-solid fa-border-all"></i> Toggle Grid Lines
+          </button>
+          <button id="toggle-i-j" class="px-3 py-2 text-xs font-semibold rounded-lg bg-emerald-500/10 text-emerald-400 border border-emerald-500/20 hover:bg-emerald-500/20 transition-all flex items-center justify-center gap-1.5">
+            <i class="fa-solid fa-arrows-up-down-left-right"></i> Cartesian $\hat{i}$ / $\hat{j}$
+          </button>
+          <button id="toggle-circle" class="px-3 py-2 text-xs font-semibold rounded-lg bg-emerald-500/10 text-emerald-400 border border-emerald-500/20 hover:bg-emerald-500/20 transition-all flex items-center justify-center gap-1.5">
+            <i class="fa-regular fa-circle"></i> Unit Circle ($r=1$)
+          </button>
+          <button id="toggle-u-vec" class="px-3 py-2 text-xs font-semibold rounded-lg bg-emerald-500/10 text-emerald-400 border border-emerald-500/20 hover:bg-emerald-500/20 transition-all flex items-center justify-center gap-1.5">
+            <i class="fa-solid fa-arrow-right"></i> Unit Vector $\hat{u}$
+          </button>
+        </div>
+      </div>
+
+      <!-- Live Interactive Mathematical Readings (KaTeX blocks) -->
+      <div class="glass-panel rounded-2xl p-5 shadow-xl flex flex-col gap-4">
+        <h3 class="font-bold text-slate-200 text-sm tracking-wide uppercase flex items-center gap-2">
+          <i class="fa-solid fa-square-root-variable text-emerald-400"></i>
+          Live Mathematical Formulae & Vector Components
+        </h3>
+        
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <!-- Main Vector Math Card -->
+          <div class="bg-slate-900/60 p-4 rounded-xl border border-slate-800 flex flex-col justify-between">
+            <div>
+              <div class="text-xs text-slate-400 uppercase tracking-wider font-semibold mb-2">Primary Vector $\vec{v}$</div>
+              <div id="math-vector-v" class="text-lg py-2 text-purple-300 font-mono overflow-x-auto min-h-[44px]"></div>
+            </div>
+            <div class="mt-2 pt-2 border-t border-slate-800 flex items-center justify-between text-xs text-slate-400">
+              <span>Magnitude of $\vec{v}$:</span>
+              <span id="math-magnitude-v" class="font-mono font-bold text-slate-200"></span>
+            </div>
+          </div>
+
+          <!-- Unit Vector Calculation Card -->
+          <div class="bg-slate-900/60 p-4 rounded-xl border border-slate-800 flex flex-col justify-between">
+            <div>
+              <div class="text-xs text-slate-400 uppercase tracking-wider font-semibold mb-2">Directional Unit Vector $\hat{u}$</div>
+              <div id="math-unit-u" class="text-lg py-2 text-emerald-300 font-mono overflow-x-auto min-h-[44px]"></div>
+            </div>
+            <div class="mt-2 pt-2 border-t border-slate-800 flex items-center justify-between text-xs text-slate-400">
+              <span>Magnitude of $\hat{u}$:</span>
+              <span id="math-magnitude-u" class="font-mono font-bold text-emerald-400">$|\hat{u}| = 1.00$</span>
+            </div>
+          </div>
+        </div>
+        
+        <!-- Danger/Boundary warning banner -->
+        <div id="warning-banner" class="hidden bg-amber-500/10 border border-amber-500/30 text-amber-300 p-3 rounded-lg text-xs items-center gap-2.5 transition-all">
+          <i class="fa-solid fa-circle-exclamation text-amber-400 text-sm"></i>
+          <span><strong>Zero Vector Warning:</strong> Origin position $(0,0)$ makes magnitude zero! Unit vector calculations are undefined because we cannot divide by $0$. Drag the vector tip outwards to calculate.</span>
+        </div>
+      </div>
+    </section>
+
+    <!-- RIGHT SIDE: Step-by-Step Educational Infographics & Interactive Challenges -->
+    <section class="lg:col-span-5 flex flex-col gap-6">
+      
+      <!-- Infographics Slide Dashboard -->
+      <div class="glass-panel rounded-2xl p-5 sm:p-6 shadow-2xl flex flex-col">
+        <!-- Dashboard Navigation -->
+        <div class="flex items-center justify-between border-b border-slate-800 pb-4 mb-4">
+          <div class="flex items-center gap-2">
+            <span class="bg-emerald-500/10 text-emerald-400 px-2.5 py-1 rounded-md text-xs font-bold uppercase tracking-wider">Theory</span>
+            <h2 class="font-bold text-slate-100 text-base">Infographic Roadmap</h2>
+          </div>
+          <!-- Dots Indicator -->
+          <div class="flex gap-1.5" id="slide-indicators">
+            <span class="w-6 h-1.5 rounded-full bg-emerald-500 transition-all cursor-pointer" data-slide="1"></span>
+            <span class="w-2.5 h-1.5 rounded-full bg-slate-700 transition-all cursor-pointer" data-slide="2"></span>
+            <span class="w-2.5 h-1.5 rounded-full bg-slate-700 transition-all cursor-pointer" data-slide="3"></span>
+          </div>
+        </div>
+
+        <!-- Dynamic Infographics Slides with Standard LaTeX formatting -->
+        <div class="min-h-[280px] relative overflow-hidden">
+          
+          <!-- SLIDE 1: The 2D Coordinate System -->
+          <div id="slide-1" class="slide-content transition-all duration-300 flex flex-col gap-3">
+            <h3 class="text-lg font-bold text-slate-200 flex items-center gap-2">
+              <span class="text-emerald-400 font-extrabold text-xl">01.</span>
+              The 2D Grid Setup
+            </h3>
+            <p class="text-sm text-slate-300 leading-relaxed">
+              For most problems in physics and vector math, working in <strong>two dimensions (2D)</strong> is ideal. It allows us to formally map vector movements onto a simple, easily understood grid of perpendicular axes.
+            </p>
+            <div class="bg-slate-900/50 p-3 rounded-xl border border-slate-800/80 text-xs text-slate-400 flex flex-col gap-2">
+              <div class="flex items-start gap-2">
+                <i class="fa-solid fa-check text-emerald-400 mt-0.5"></i>
+                <span><strong>Formalization:</strong> Grids let us map arbitrary lines to numerical coordinates.</span>
+              </div>
+              <div class="flex items-start gap-2">
+                <i class="fa-solid fa-check text-emerald-400 mt-0.5"></i>
+                <span><strong>Simplicity:</strong> Simplifies complex operations like vector addition and scaling into standard coordinate arithmetic.</span>
+              </div>
+            </div>
+            <button onclick="focusGrid()" class="mt-2 text-xs font-bold text-emerald-400 hover:text-emerald-300 transition-all self-start flex items-center gap-1 group">
+              <span>View coordinates on grid</span>
+              <i class="fa-solid fa-arrow-right group-hover:translate-x-1 transition-transform"></i>
+            </button>
+          </div>
+
+          <!-- SLIDE 2: Cartesian Unit Vectors -->
+          <div id="slide-2" class="slide-content transition-all duration-300 hidden flex flex-col gap-3">
+            <h3 class="text-lg font-bold text-slate-200 flex items-center gap-2">
+              <span class="text-blue-400 font-extrabold text-xl">02.</span>
+              Cartesian Unit Vectors
+            </h3>
+            <p class="text-sm text-slate-300 leading-relaxed">
+              Once the axes are configured, we require <strong>unit vectors</strong>. A unit vector has a magnitude of <strong class="text-emerald-400">exactly $1$</strong> and points in a defined, fixed direction.
+            </p>
+            <p class="text-sm text-slate-300">
+              In standard Cartesian systems, we use:
+            </p>
+            <div class="grid grid-cols-2 gap-3 mt-1">
+              <div class="bg-red-500/10 border border-red-500/20 p-3 rounded-xl">
+                <div class="flex items-center gap-1.5 mb-1">
+                  <span class="w-3 h-3 rounded bg-red-500"></span>
+                  <strong class="text-red-400 text-sm font-mono">$\hat{i}$ (i-hat)</strong>
+                </div>
+                <span class="text-xs text-slate-400">Points strictly in the positive $x$ direction. Magnitude = $1$.</span>
+              </div>
+              <div class="bg-blue-500/10 border border-blue-500/20 p-3 rounded-xl">
+                <div class="flex items-center gap-1.5 mb-1">
+                  <span class="w-3 h-3 rounded bg-blue-500"></span>
+                  <strong class="text-blue-400 text-sm font-mono">$\hat{j}$ (j-hat)</strong>
+                </div>
+                <span class="text-xs text-slate-400">Points strictly in the positive $y$ direction. Magnitude = $1$.</span>
+              </div>
+            </div>
+            <p class="text-xs text-slate-400 italic mt-1">
+              "In Cartesian coordinates, these unit vectors remain identical no matter what point in space you reside at."
+            </p>
+          </div>
+
+          <!-- SLIDE 3: Normalizing Arbitrary Vectors -->
+          <div id="slide-3" class="slide-content transition-all duration-300 hidden flex flex-col gap-3">
+            <h3 class="text-lg font-bold text-slate-200 flex items-center gap-2">
+              <span class="text-purple-400 font-extrabold text-xl">03.</span>
+              Arbitrary Unit Vectors
+            </h3>
+            <p class="text-sm text-slate-300 leading-relaxed">
+              What if we want a unit vector in the direction of an <strong>arbitrary</strong> vector $\vec{v}$?
+            </p>
+            <p class="text-sm text-slate-300">
+              We define a new unit vector <strong class="text-emerald-400">$\hat{u}$</strong> pointing along the same line, by scaling $\vec{v}$ by its reciprocal magnitude. This guarantees its length becomes exactly $1$:
+            </p>
+            <div class="bg-slate-900/80 p-3.5 rounded-xl border border-slate-800 flex justify-center text-center my-1.5">
+              <div id="slide-normalize-formula" class="text-base text-emerald-300 font-mono"></div>
+            </div>
+            <p class="text-xs text-slate-400 leading-relaxed">
+              This process of scaling a vector to magnitude $1$ is called <strong>Normalization</strong>.
+            </p>
+          </div>
+
+        </div>
+
+        <!-- Navigation Buttons -->
+        <div class="flex items-center justify-between mt-6 pt-4 border-t border-slate-800">
+          <button id="slide-prev" class="px-3.5 py-1.5 text-xs font-semibold rounded-lg bg-slate-800 hover:bg-slate-700 text-slate-300 transition-all flex items-center gap-1 disabled:opacity-40 disabled:pointer-events-none">
+            <i class="fa-solid fa-chevron-left"></i> Previous
+          </button>
+          <span class="text-xs text-slate-500 font-bold" id="slide-pagination">Page 1 of 3</span>
+          <button id="slide-next" class="px-3.5 py-1.5 text-xs font-semibold rounded-lg bg-emerald-600 hover:bg-emerald-500 text-white transition-all flex items-center gap-1">
+            Next <i class="fa-solid fa-chevron-right"></i>
+          </button>
+        </div>
+      </div>
+
+      <!-- Interactive Sandbox & Challenge Engine -->
+      <div class="glass-panel rounded-2xl p-5 sm:p-6 shadow-2xl flex flex-col gap-4">
+        <div class="flex items-center justify-between">
+          <div class="flex items-center gap-2">
+            <span class="p-1.5 bg-purple-500/10 text-purple-400 rounded-md">
+              <i class="fa-solid fa-gamepad"></i>
+            </span>
+            <h2 class="font-bold text-slate-200 text-base">Interactive Challenge Matrix</h2>
+          </div>
+          <span class="bg-amber-400/10 border border-amber-400/20 text-amber-300 text-[10px] uppercase font-extrabold tracking-wider px-2 py-0.5 rounded-full">
+            Practicum
+          </span>
+        </div>
+
+        <p class="text-xs text-slate-400 leading-relaxed">
+          Test your vector proficiency! Read the challenge objectives below, drag the primary vector on the grid simulator to reach the solution, and click the Verify button.
+        </p>
+
+        <!-- Current Challenge Panel (LaTeX rendering enabled inside title and description) -->
+        <div class="bg-slate-900/60 p-4 rounded-xl border border-slate-800/80 flex flex-col gap-3 relative overflow-hidden">
+          <div class="flex items-center justify-between text-xs font-bold">
+            <span class="text-slate-400" id="challenge-number-tag">Active Mission #1</span>
+            <span id="challenge-status" class="text-slate-500 flex items-center gap-1">
+              <i class="fa-solid fa-circle-notch animate-spin"></i> Pending verification
+            </span>
+          </div>
+          
+          <h4 id="challenge-title" class="font-bold text-slate-200 text-sm">Create a symmetric 45° Vector</h4>
+          <p id="challenge-desc" class="text-xs text-slate-400 leading-normal"></p>
+
+          <div class="flex items-center gap-2 mt-1">
+            <button id="verify-challenge-btn" class="flex-grow px-3 py-2 text-xs font-semibold rounded-lg bg-emerald-600 hover:bg-emerald-500 active:bg-emerald-700 text-white shadow-md transition-all flex items-center justify-center gap-1.5">
+              <i class="fa-solid fa-square-check"></i> Verify Coordinates
+            </button>
+            <button id="next-challenge-btn" class="hidden px-3.5 py-2 text-xs font-semibold rounded-lg bg-slate-800 hover:bg-slate-700 text-slate-300 border border-slate-700 transition-all flex items-center justify-center gap-1.5">
+              Next Task <i class="fa-solid fa-forward-step"></i>
+            </button>
+          </div>
+        </div>
+
+        <!-- Custom User Vector Sliders for Fine-Tuning -->
+        <div class="border-t border-slate-800 pt-4 flex flex-col gap-3">
+          <span class="text-xs font-bold uppercase tracking-wider text-slate-400">Fine-tune Components manually</span>
+          
+          <div class="flex flex-col gap-2">
+            <div class="flex items-center justify-between text-xs">
+              <span class="text-red-400 font-bold font-mono">Component $x$ ($\hat{i}$): <span id="val-x" class="text-slate-200 font-normal">3.0</span></span>
+              <span class="text-slate-500 font-mono">-5.0 to +5.0</span>
+            </div>
+            <input type="range" id="slider-x" min="-5" max="5" step="0.5" value="3.0" class="w-full h-1.5 bg-slate-800 rounded-lg appearance-none cursor-pointer accent-red-500">
+          </div>
+
+          <div class="flex flex-col gap-2">
+            <div class="flex items-center justify-between text-xs">
+              <span class="text-blue-400 font-bold font-mono">Component $y$ ($\hat{j}$): <span id="val-y" class="text-slate-200 font-normal">3.0</span></span>
+              <span class="text-slate-500 font-mono">-5.0 to +5.0</span>
+            </div>
+            <input type="range" id="slider-y" min="-5" max="5" step="0.5" value="3.0" class="w-full h-1.5 bg-slate-800 rounded-lg appearance-none cursor-pointer accent-blue-500">
+          </div>
+        </div>
+      </div>
+
+    </section>
+  </main>
+
+  <!-- Guide/Help Modal Dialog Overlay -->
+  <div id="tour-modal" class="fixed inset-0 bg-slate-950/80 backdrop-blur-md z-[100] flex items-center justify-center p-4 hidden transition-all duration-300 opacity-0">
+    <div class="glass-panel w-full max-w-lg rounded-2xl p-6 shadow-2xl flex flex-col gap-4 max-h-[90vh] overflow-y-auto">
+      <div class="flex items-center justify-between border-b border-slate-800 pb-3">
+        <div class="flex items-center gap-2">
+          <div class="bg-emerald-500/10 p-2 rounded-lg text-emerald-400">
+            <i class="fa-solid fa-circle-question text-lg"></i>
+          </div>
+          <h3 class="font-extrabold text-slate-100 text-lg">Simulator Guide</h3>
+        </div>
+        <button id="close-tour-btn" class="text-slate-400 hover:text-slate-200 transition-colors text-xl">
+          <i class="fa-solid fa-xmark"></i>
+        </button>
+      </div>
+
+      <div class="text-sm text-slate-300 flex flex-col gap-3.5 leading-relaxed">
+        <p>
+          Welcome to the <strong>2D Coordinate and Unit Vector Visualizer</strong>. This application maps the properties of spatial vectors onto a coordinate plane exactly as detailed in your video curriculum.
+        </p>
+        
+        <div class="flex gap-3">
+          <div class="text-purple-400 mt-1"><i class="fa-solid fa-arrows-up-to-line text-lg"></i></div>
+          <div>
+            <h4 class="font-bold text-slate-200">Interactive Canvas</h4>
+            <p class="text-xs text-slate-400 mt-0.5 font-sans">Drag the purple endpoint of vector $\vec{v}$ with your mouse or touch tap on screens. The grid coordinates scale automatically from -5 to +5.</p>
+          </div>
+        </div>
+
+        <div class="flex gap-3">
+          <div class="text-red-400 mt-1"><i class="fa-solid fa-vector-square text-lg"></i></div>
+          <div>
+            <h4 class="font-bold text-slate-200">Cartesian Bases ($\hat{i}$, $\hat{j}$)</h4>
+            <p class="text-xs text-slate-400 mt-0.5 font-sans">Note the fixed red $\hat{i}$ and blue $\hat{j}$ vectors pointing 1 unit along the axes. They act as uniform foundational blocks.</p>
+          </div>
+        </div>
+
+        <div class="flex gap-3">
+          <div class="text-emerald-400 mt-1"><i class="fa-solid fa-circle-nodes text-lg"></i></div>
+          <div>
+            <h4 class="font-bold text-slate-200">Arbitrary Unit Vectors ($\hat{u}$)</h4>
+            <p class="text-xs text-slate-400 mt-0.5 font-sans font-sans">The green overlay arrow is $\hat{u}$, computed by shrinking $\vec{v}$ to exactly length 1 while maintaining direction. Notice how its tip always hugs the green dashed unit-circle!</p>
+          </div>
+        </div>
+      </div>
+
+      <div class="mt-4 pt-3 border-t border-slate-800 flex justify-end">
+        <button id="dismiss-tour-btn" class="px-5 py-2 text-sm font-semibold text-white bg-emerald-600 hover:bg-emerald-500 rounded-lg shadow-md transition-all">
+          Awesome, Let's Go!
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- STYLED CUSTOM ALERTS TO AVOID WINDOW.ALERT -->
+  <div id="toast" class="fixed bottom-5 right-5 z-[100] transform translate-y-20 opacity-0 transition-all duration-300 max-w-sm w-full bg-slate-900 border border-slate-800 p-4 rounded-xl shadow-2xl flex gap-3">
+    <div id="toast-icon-bg" class="p-2 rounded-lg bg-emerald-500/10 text-emerald-400 h-10 w-10 flex items-center justify-center">
+      <i id="toast-icon" class="fa-solid fa-circle-check text-lg"></i>
+    </div>
+    <div class="flex-grow">
+      <h5 id="toast-title" class="font-bold text-sm text-slate-200">Success!</h5>
+      <p id="toast-desc" class="text-xs text-slate-400 mt-1">Details populated dynamically.</p>
+    </div>
+  </div>
+
+  <!-- FOOTER -->
+  <footer class="mt-auto border-t border-slate-900 bg-slate-950 px-4 py-4 text-center text-xs text-slate-500">
+    <div class="max-w-7xl mx-auto flex flex-col sm:flex-row items-center justify-between gap-2">
+      <span>Physics Vector Visualizer © 2026. Made as a responsive educational module.</span>
+      <div class="flex items-center gap-3">
+        <span class="text-slate-600">Formulas rendered with KaTeX</span>
+      </div>
+    </div>
+  </footer>
+
+  <script>
+    // State management and configuration variables
+    const state = {
+      // Vector endpoint coords in standard units (-5 to +5)
+      v: { x: 3.0, y: 3.0 },
+      isDragging: false,
+      gridScale: 40, // 40px per 1 coordinate unit
+      activeSlide: 1,
+      activeChallenge: 0,
+      showGridLines: true,
+      showCartesianBases: true,
+      showUnitCircle: true,
+      showUnitVectorU: true
+    };
+
+    // DOM Elements Cache
+    const el = {
+      svg: document.getElementById('coordinate-svg'),
+      vectorV: document.getElementById('vector-v'),
+      vectorU: document.getElementById('vector-u'),
+      vectorHandle: document.getElementById('vector-handle'),
+      vectorHandleRing: document.getElementById('vector-handle-ring'),
+      projX: document.getElementById('proj-x'),
+      projY: document.getElementById('proj-y'),
+      gridLines: document.getElementById('grid-lines'),
+      iHatGroup: document.getElementById('i-hat-group'),
+      jHatGroup: document.getElementById('j-hat-group'),
+      unitCircle: document.getElementById('unit-circle'),
+      circleLabel: document.getElementById('circle-label'),
+      hudVLabel: document.getElementById('hud-v-label'),
+      hudULabel: document.getElementById('hud-u-label'),
+      warningBanner: document.getElementById('warning-banner'),
+      
+      // Sliders
+      sliderX: document.getElementById('slider-x'),
+      sliderY: document.getElementById('slider-y'),
+      valX: document.getElementById('val-x'),
+      valY: document.getElementById('val-y'),
+      
+      // Math Elements
+      mathV: document.getElementById('math-vector-v'),
+      mathU: document.getElementById('math-unit-u'),
+      mathMagV: document.getElementById('math-magnitude-v'),
+      
+      // Slide Elements
+      slides: [document.getElementById('slide-1'), document.getElementById('slide-2'), document.getElementById('slide-3')],
+      slidePrev: document.getElementById('slide-prev'),
+      slideNext: document.getElementById('slide-next'),
+      slideIndicators: document.querySelectorAll('#slide-indicators span'),
+      slidePagination: document.getElementById('slide-pagination'),
+      
+      // Toggle elements
+      tglGridLines: document.getElementById('toggle-grid-lines'),
+      tglIJ: document.getElementById('toggle-i-j'),
+      tglCircle: document.getElementById('toggle-circle'),
+      tglUVec: document.getElementById('toggle-u-vec'),
+      resetBtn: document.getElementById('reset-btn'),
+
+      // Challenges
+      challengeTitle: document.getElementById('challenge-title'),
+      challengeDesc: document.getElementById('challenge-desc'),
+      challengeStatus: document.getElementById('challenge-status'),
+      challengeTag: document.getElementById('challenge-number-tag'),
+      verifyBtn: document.getElementById('verify-challenge-btn'),
+      nextChallengeBtn: document.getElementById('next-challenge-btn'),
+
+      // Modal
+      tourModal: document.getElementById('tour-modal'),
+      openTourBtn: document.getElementById('open-tour-btn'),
+      closeTourBtn: document.getElementById('close-tour-btn'),
+      dismissTourBtn: document.getElementById('dismiss-tour-btn'),
+
+      // Toast Alerts
+      toast: document.getElementById('toast'),
+      toastTitle: document.getElementById('toast-title'),
+      toastDesc: document.getElementById('toast-desc'),
+      toastIcon: document.getElementById('toast-icon'),
+      toastIconBg: document.getElementById('toast-icon-bg')
+    };
+
+    // Challenges list definition with LaTeX syntax inside plain text descriptions
+    const challenges = [
+      {
+        title: "Create a symmetric 45° Vector",
+        desc: "Adjust components so that $v_x = v_y$ (where both components are positive and greater than $0$). Drag or use sliders to reach identical components (e.g. $3.0, 3.0$).",
+        validate: (v) => v.x > 0 && v.y > 0 && Math.abs(v.x - v.y) < 0.01,
+        successMsg: "Fantastic! At symmetric angles, both components are identical. The unit vector components are exactly $0.71\\hat{i}$ and $0.71\\hat{j}$ (computed as $1/\\sqrt{2}$)."
+      },
+      {
+        title: "Match standard basis i-hat",
+        desc: "Make vector $\\vec{v}$ point strictly along the positive $x$-axis with a magnitude of $1.0$ ($v_x = 1.0, v_y = 0.0$). Observe what happens to the unit vector $\\hat{u}$!",
+        validate: (v) => Math.abs(v.x - 1) < 0.01 && Math.abs(v.y) < 0.01,
+        successMsg: "Spot on! When $\\vec{v}$ points precisely 1 unit along $x$, the vector itself is exactly $\\hat{i}$. The normalized unit vector is equivalent to $\\vec{v}$."
+      },
+      {
+        title: "Double the Unit Circle's reach",
+        desc: "Scale the vector components until the total magnitude $|\\vec{v}|$ is exactly $2.0$. Hint: Try components that yield a hypotenuse of $2$ (e.g. $v_x = 1.6, v_y = 1.2$ or similar).",
+        validate: (v) => {
+          const mag = Math.sqrt(v.x*v.x + v.y*v.y);
+          return Math.abs(mag - 2.0) < 0.05;
+        },
+        successMsg: "Brilliant! You created a vector with length 2. Notice how the unit vector $\\hat{u}$ remains pointing in the same direction but is bounded to length 1."
+      },
+      {
+        title: "Reach a Quadrant III Diagonal (-3, -4)",
+        desc: "Set the components to negative coordinates in the bottom-left space: $v_x = -3.0, v_y = -4.0$. Verify the resulting magnitude and unit vector components.",
+        validate: (v) => Math.abs(v.x - (-3.0)) < 0.01 && Math.abs(v.y - (-4.0)) < 0.01,
+        successMsg: "Superb! For components $(-3, -4)$, the 3-4-5 triangle theorem gives magnitude $5.0$. Dividing components by 5 yields $\\hat{u} = -0.60\\hat{i} - 0.80\\hat{j}$!"
+      }
+    ];
+
+    // Auto-renders all KaTeX equations inside an element
+    function triggerMathRender(element) {
+      if (typeof renderMathInElement !== 'undefined') {
+        try {
+          renderMathInElement(element, {
+            delimiters: [
+              {left: '$$', right: '$$', display: true},
+              {left: '$', right: '$', display: false}
+            ],
+            throwOnError: false
+          });
+        } catch (err) {
+          console.warn("KaTeX dynamic rendering failed inside element: ", err);
+        }
+      }
+    }
+
+    function drawGridLines() {
+      el.gridLines.innerHTML = '';
+      const step = state.gridScale;
+      // Verticals & Horizontals (-5 to +5)
+      for (let i = -5; i <= 5; i++) {
+        if (i === 0) continue; // Skip axis lines themselves
+        const offset = i * step;
+        
+        // Vertical lines
+        const vLine = document.createElementNS('http://www.w3.org/2000/svg', 'line');
+        vLine.setAttribute('x1', offset);
+        vLine.setAttribute('y1', -250);
+        vLine.setAttribute('x2', offset);
+        vLine.setAttribute('y2', 250);
+        vLine.setAttribute('stroke', '#1e293b');
+        vLine.setAttribute('stroke-width', '1');
+        el.gridLines.appendChild(vLine);
+        
+        // Horizontal lines
+        const hLine = document.createElementNS('http://www.w3.org/2000/svg', 'line');
+        hLine.setAttribute('x1', -250);
+        hLine.setAttribute('y1', offset);
+        hLine.setAttribute('x2', 250);
+        hLine.setAttribute('y2', offset);
+        hLine.setAttribute('stroke', '#1e293b');
+        hLine.setAttribute('stroke-width', '1');
+        el.gridLines.appendChild(hLine);
+
+        // Tick Mark Numbers
+        const vText = document.createElementNS('http://www.w3.org/2000/svg', 'text');
+        vText.setAttribute('x', offset);
+        vText.setAttribute('y', 15);
+        vText.setAttribute('fill', '#475569');
+        vText.setAttribute('font-size', '10');
+        vText.setAttribute('text-anchor', 'middle');
+        vText.textContent = i;
+        el.gridLines.appendChild(vText);
+
+        const hText = document.createElementNS('http://www.w3.org/2000/svg', 'text');
+        hText.setAttribute('x', -15);
+        hText.setAttribute('y', -offset + 4);
+        hText.setAttribute('fill', '#475569');
+        hText.setAttribute('font-size', '10');
+        hText.setAttribute('text-anchor', 'middle');
+        hText.textContent = i;
+        el.gridLines.appendChild(hText);
+      }
+    }
+
+    // Helper functions for displaying Toast Alerts with LaTeX support
+    function showToast(title, desc, type = 'success') {
+      el.toastTitle.innerHTML = title;
+      el.toastDesc.innerHTML = desc;
+      
+      if (type === 'success') {
+        el.toastIconBg.className = "p-2 rounded-lg bg-emerald-500/10 text-emerald-400 h-10 w-10 flex items-center justify-center shrink-0";
+        el.toastIcon.className = "fa-solid fa-circle-check text-lg";
+      } else {
+        el.toastIconBg.className = "p-2 rounded-lg bg-red-500/10 text-red-400 h-10 w-10 flex items-center justify-center shrink-0";
+        el.toastIcon.className = "fa-solid fa-circle-xmark text-lg";
+      }
+
+      triggerMathRender(el.toast);
+
+      el.toast.classList.remove('translate-y-20', 'opacity-0');
+      el.toast.classList.add('translate-y-0', 'opacity-100');
+
+      setTimeout(() => {
+        el.toast.classList.add('translate-y-20', 'opacity-0');
+        el.toast.classList.remove('translate-y-0', 'opacity-100');
+      }, 5000);
+    }
+
+    // Update SVG elements positions and render equations
+    function updateGraphics() {
+      const vx_pixel = state.v.x * state.gridScale;
+      // In SVG coordinate system, y is flipped (positive goes downwards)
+      const vy_pixel = -state.v.y * state.gridScale; 
+
+      // 1. Move the interactive vector lines
+      el.vectorV.setAttribute('x2', vx_pixel);
+      el.vectorV.setAttribute('y2', vy_pixel);
+
+      // 2. Position the handles
+      el.vectorHandle.setAttribute('cx', vx_pixel);
+      el.vectorHandle.setAttribute('cy', vy_pixel);
+      el.vectorHandleRing.setAttribute('cx', vx_pixel);
+      el.vectorHandleRing.setAttribute('cy', vy_pixel);
+
+      // 3. Projections
+      el.projX.setAttribute('x1', vx_pixel);
+      el.projX.setAttribute('y1', 0);
+      el.projX.setAttribute('x2', vx_pixel);
+      el.projX.setAttribute('y2', vy_pixel);
+
+      el.projY.setAttribute('x1', 0);
+      el.projY.setAttribute('y1', vy_pixel);
+      el.projY.setAttribute('x2', vx_pixel);
+      el.projY.setAttribute('y2', vy_pixel);
+
+      // 4. Calculations
+      const magnitudeV = Math.sqrt(state.v.x * state.v.x + state.v.y * state.v.y);
+      const isOrigin = magnitudeV < 0.001;
+
+      // Handle origin edge cases gracefully
+      if (isOrigin) {
+        el.warningBanner.classList.remove('hidden');
+        el.warningBanner.classList.add('flex');
+        el.vectorU.setAttribute('display', 'none');
+        
+        el.hudVLabel.innerHTML = `$\\vec{v} = (0.00, 0.00)$`;
+        el.hudULabel.innerHTML = `$\\hat{u} = \\text{Undefined}$`;
+
+        // Render equations
+        renderMath(el.mathV, "\\vec{v} = 0.00\\hat{i} + 0.00\\hat{j}");
+        renderMath(el.mathMagV, "|\\vec{v}| = 0.00");
+        renderMath(el.mathU, "\\hat{u} = \\text{Undefined}");
+      } else {
+        el.warningBanner.classList.add('hidden');
+        el.warningBanner.classList.remove('flex');
+        if (state.showUnitVectorU) {
+          el.vectorU.setAttribute('display', 'inline');
+        }
+
+        const ux = state.v.x / magnitudeV;
+        const uy = state.v.y / magnitudeV;
+
+        const ux_pixel = ux * state.gridScale;
+        const uy_pixel = -uy * state.gridScale;
+
+        // Scale u representation
+        el.vectorU.setAttribute('x2', ux_pixel);
+        el.vectorU.setAttribute('y2', uy_pixel);
+
+        // Update Floating HUD with gorgeous LaTeX
+        el.hudVLabel.innerHTML = `$\\vec{v} = (${state.v.x.toFixed(2)}, ${state.v.y.toFixed(2)})$`;
+        el.hudULabel.innerHTML = `$\\hat{u} = (${ux.toFixed(2)}, ${uy.toFixed(2)})$`;
+
+        // LaTeX Formulas Rendering
+        const sX = state.v.x >= 0 ? `${state.v.x.toFixed(2)}` : `${state.v.x.toFixed(2)}`;
+        const sY = state.v.y >= 0 ? `+ ${state.v.y.toFixed(2)}` : `- ${Math.abs(state.v.y).toFixed(2)}`;
+        renderMath(el.mathV, `\\vec{v} = ${sX}\\hat{i} ${sY}\\hat{j}`);
+        
+        const magEquation = `|\\vec{v}| = \\sqrt{(${state.v.x.toFixed(2)})^2 + (${state.v.y.toFixed(2)})^2} = ${magnitudeV.toFixed(2)}`;
+        el.mathMagV.textContent = `${magnitudeV.toFixed(2)} units`;
+        
+        const suX = ux >= 0 ? `${ux.toFixed(2)}` : `${ux.toFixed(2)}`;
+        const suY = uy >= 0 ? `+ ${uy.toFixed(2)}` : `- ${Math.abs(uy).toFixed(2)}`;
+        renderMath(el.mathU, `\\hat{u} = \\frac{\\vec{v}}{|\\vec{v}|} = ${suX}\\hat{i} ${suY}\\hat{j}`);
+      }
+
+      // Sync user controls / sliders visually
+      el.sliderX.value = state.v.x;
+      el.sliderY.value = state.v.y;
+      el.valX.textContent = state.v.x.toFixed(1);
+      el.valY.textContent = state.v.y.toFixed(1);
+
+      // Re-trigger math render on the HUD container to ensure math transforms compile
+      triggerMathRender(el.hudVLabel.parentElement.parentElement);
+      triggerMathRender(document.getElementById('slider-x').parentElement);
+      triggerMathRender(document.getElementById('slider-y').parentElement);
+    }
+
+    // Mathematical formula parser bridge helper
+    function renderMath(element, formula) {
+      if (typeof katex !== 'undefined') {
+        try {
+          katex.render(formula, element, {
+            throwOnError: false,
+            displayMode: true
+          });
+        } catch (err) {
+          element.innerHTML = `<span class="font-mono">${formula}</span>`;
+        }
+      } else {
+        element.innerHTML = `<span class="font-mono">${formula}</span>`;
+      }
+    }
+
+    // Coordinate mapping converters
+    function convertScreenToCoords(clientX, clientY) {
+      const rect = el.svg.getBoundingClientRect();
+      const xPixels = clientX - rect.left - rect.width / 2;
+      const yPixels = clientY - rect.top - rect.height / 2;
+      
+      // Map to -5 to +5 coordinate plane bounds
+      let xCoord = xPixels / (rect.width / 500) / state.gridScale;
+      let yCoord = -yPixels / (rect.height / 500) / state.gridScale;
+
+      // Restrict ranges gracefully to fit nicely on the grid boundaries
+      xCoord = Math.max(-5.0, Math.min(5.0, xCoord));
+      yCoord = Math.max(-5.0, Math.min(5.0, yCoord));
+
+      // Snap coordinates to 0.1 for satisfying, clean slider and interaction numbers
+      return {
+        x: Math.round(xCoord * 10) / 10,
+        y: Math.round(yCoord * 10) / 10
+      };
+    }
+
+    // Mouse Interaction Event Handlers
+    function handleDragStart(e) {
+      e.preventDefault();
+      state.isDragging = true;
+    }
+
+    function handleDragMove(e) {
+      if (!state.isDragging) return;
+      let clientX, clientY;
+
+      if (e.touches && e.touches.length > 0) {
+        clientX = e.touches[0].clientX;
+        clientY = e.touches[0].clientY;
+      } else {
+        clientX = e.clientX;
+        clientY = e.clientY;
+      }
+
+      const coords = convertScreenToCoords(clientX, clientY);
+      state.v.x = coords.x;
+      state.v.y = coords.y;
+      updateGraphics();
+    }
+
+    function handleDragEnd() {
+      state.isDragging = false;
+    }
+
+    // Attach dragging events (desktop + touch mobile)
+    el.vectorHandle.addEventListener('mousedown', handleDragStart);
+    el.svg.addEventListener('mousemove', handleDragMove);
+    window.addEventListener('mouseup', handleDragEnd);
+
+    el.vectorHandle.addEventListener('touchstart', handleDragStart, { passive: false });
+    el.svg.addEventListener('touchmove', handleDragMove, { passive: false });
+    window.addEventListener('touchend', handleDragEnd);
+
+    // Fine Tuning Sliders
+    el.sliderX.addEventListener('input', (e) => {
+      state.v.x = parseFloat(e.target.value);
+      updateGraphics();
+    });
+
+    el.sliderY.addEventListener('input', (e) => {
+      state.v.y = parseFloat(e.target.value);
+      updateGraphics();
+    });
+
+    // UI Setup & Toggle Handlers
+    el.tglGridLines.addEventListener('click', () => {
+      state.showGridLines = !state.showGridLines;
+      el.gridLines.setAttribute('display', state.showGridLines ? 'inline' : 'none');
+      toggleActiveButton(el.tglGridLines, state.showGridLines);
+    });
+
+    el.tglIJ.addEventListener('click', () => {
+      state.showCartesianBases = !state.showCartesianBases;
+      el.iHatGroup.setAttribute('display', state.showCartesianBases ? 'inline' : 'none');
+      el.jHatGroup.setAttribute('display', state.showCartesianBases ? 'inline' : 'none');
+      toggleActiveButton(el.tglIJ, state.showCartesianBases);
+    });
+
+    el.tglCircle.addEventListener('click', () => {
+      state.showUnitCircle = !state.showUnitCircle;
+      el.unitCircle.setAttribute('display', state.showUnitCircle ? 'inline' : 'none');
+      el.circleLabel.setAttribute('display', state.showUnitCircle ? 'inline' : 'none');
+      toggleActiveButton(el.tglCircle, state.showUnitCircle);
+    });
+
+    el.tglUVec.addEventListener('click', () => {
+      state.showUnitVectorU = !state.showUnitVectorU;
+      el.vectorU.setAttribute('display', state.showUnitVectorU ? 'inline' : 'none');
+      toggleActiveButton(el.tglUVec, state.showUnitVectorU);
+    });
+
+    function toggleActiveButton(btn, active) {
+      if (active) {
+        btn.classList.add('bg-emerald-500/10', 'text-emerald-400', 'border-emerald-500/20');
+        btn.classList.remove('bg-slate-900', 'text-slate-500', 'border-slate-800');
+      } else {
+        btn.classList.remove('bg-emerald-500/10', 'text-emerald-400', 'border-emerald-500/20');
+        btn.classList.add('bg-slate-900', 'text-slate-500', 'border-slate-800');
+      }
+    }
+
+    // Reset button
+    el.resetBtn.addEventListener('click', () => {
+      state.v.x = 3.0;
+      state.v.y = 3.0;
+      updateGraphics();
+      showToast("Grid reset", "Vector has been repositioned back to default $(3.0, 3.0)$.", "success");
+    });
+
+    // Guided Tour Modal Handling
+    const toggleTourModal = (show) => {
+      if (show) {
+        el.tourModal.classList.remove('hidden');
+        setTimeout(() => {
+          el.tourModal.classList.remove('opacity-0');
+        }, 50);
+      } else {
+        el.tourModal.classList.add('opacity-0');
+        setTimeout(() => {
+          el.tourModal.classList.add('hidden');
+        }, 300);
+      }
+    };
+
+    el.openTourBtn.addEventListener('click', () => toggleTourModal(true));
+    el.closeTourBtn.addEventListener('click', () => toggleTourModal(false));
+    el.dismissTourBtn.addEventListener('click', () => toggleTourModal(false));
+
+    // Focus grid highlight trigger
+    window.focusGrid = function() {
+      el.vectorHandleRing.classList.add('scale-150');
+      setTimeout(() => {
+        el.vectorHandleRing.classList.remove('scale-150');
+      }, 1000);
+    }
+
+    // Slide Carousel Engine
+    function updateSlides() {
+      el.slides.forEach((slide, idx) => {
+        if (idx + 1 === state.activeSlide) {
+          slide.classList.remove('hidden');
+        } else {
+          slide.classList.add('hidden');
+        }
+      });
+
+      // Indicators update
+      el.slideIndicators.forEach((dot, idx) => {
+        if (idx + 1 === state.activeSlide) {
+          dot.className = "w-6 h-1.5 rounded-full bg-emerald-500 transition-all cursor-pointer";
+        } else {
+          dot.className = "w-2.5 h-1.5 rounded-full bg-slate-700 transition-all cursor-pointer";
+        }
+      });
+
+      el.slidePagination.textContent = `Page ${state.activeSlide} of 3`;
+      el.slidePrev.disabled = state.activeSlide === 1;
+      
+      if (state.activeSlide === 3) {
+        el.slideNext.innerHTML = 'Complete <i class="fa-solid fa-check"></i>';
+      } else {
+        el.slideNext.innerHTML = 'Next <i class="fa-solid fa-chevron-right"></i>';
+      }
+
+      // Action updates on specific slide views
+      if (state.activeSlide === 1) {
+        state.showGridLines = true;
+        el.gridLines.setAttribute('display', 'inline');
+        toggleActiveButton(el.tglGridLines, true);
+      } else if (state.activeSlide === 2) {
+        state.showCartesianBases = true;
+        el.iHatGroup.setAttribute('display', 'inline');
+        el.jHatGroup.setAttribute('display', 'inline');
+        toggleActiveButton(el.tglIJ, true);
+      } else if (state.activeSlide === 3) {
+        renderMath(document.getElementById('slide-normalize-formula'), "\\hat{u} = \\frac{\\vec{v}}{|\\vec{v}|}");
+      }
+      
+      // Render any slide math content instantly
+      triggerMathRender(document.getElementById(`slide-${state.activeSlide}`));
+    }
+
+    el.slideNext.addEventListener('click', () => {
+      if (state.activeSlide < 3) {
+        state.activeSlide++;
+        updateSlides();
+      } else {
+        showToast("Concept Tour Finished!", "Now jump into the Interactive Challenges down below to test your vector math skills!", "success");
+      }
+    });
+
+    el.slidePrev.addEventListener('click', () => {
+      if (state.activeSlide > 1) {
+        state.activeSlide--;
+        updateSlides();
+      }
+    });
+
+    el.slideIndicators.forEach(dot => {
+      dot.addEventListener('click', (e) => {
+        state.activeSlide = parseInt(e.target.getAttribute('data-slide'));
+        updateSlides();
+      });
+    });
+
+    // Interactive Challenge System Logic
+    function loadChallenge() {
+      const active = challenges[state.activeChallenge];
+      el.challengeTag.textContent = `Active Mission #${state.activeChallenge + 1}`;
+      el.challengeTitle.textContent = active.title;
+      el.challengeDesc.innerHTML = active.desc;
+      
+      el.challengeStatus.className = "text-slate-500 flex items-center gap-1";
+      el.challengeStatus.innerHTML = '<i class="fa-solid fa-circle-notch animate-spin"></i> Pending verification';
+      
+      el.nextChallengeBtn.classList.add('hidden');
+      el.verifyBtn.classList.remove('hidden');
+
+      // Re-trigger KaTeX formulas to render the beautifully formatted symbols inside descriptions!
+      triggerMathRender(el.challengeDesc.parentElement);
+    }
+
+    el.verifyBtn.addEventListener('click', () => {
+      const active = challenges[state.activeChallenge];
+      const isSuccess = active.validate(state.v);
+
+      if (isSuccess) {
+        el.challengeStatus.className = "text-emerald-400 font-extrabold flex items-center gap-1";
+        el.challengeStatus.innerHTML = '<i class="fa-solid fa-circle-check"></i> Completed';
+        
+        showToast("Correct Alignment!", active.successMsg, "success");
+        
+        el.verifyBtn.classList.add('hidden');
+        el.nextChallengeBtn.classList.remove('hidden');
+      } else {
+        el.challengeStatus.className = "text-red-400 font-bold flex items-center gap-1";
+        el.challengeStatus.innerHTML = '<i class="fa-solid fa-circle-xmark"></i> Alignment Incorrect';
+        
+        showToast(
+          "Try again!", 
+          "Read coordinates carefully. Current position: $(" + state.v.x.toFixed(1) + ", " + state.v.y.toFixed(1) + ")$ does not meet the mission criteria.", 
+          "error"
+        );
+      }
+    });
+
+    el.nextChallengeBtn.addEventListener('click', () => {
+      state.activeChallenge = (state.activeChallenge + 1) % challenges.length;
+      loadChallenge();
+    });
+
+    // Initialization Sequence
+    window.onload = function() {
+      drawGridLines();
+      
+      // Globally initialize auto-rendering for all base text elements
+      triggerMathRender(document.body);
+      
+      updateGraphics();
+      updateSlides();
+      loadChallenge();
+      
+      // Auto-trigger help tour on first visit to orient the student visually
+      setTimeout(() => {
+        toggleTourModal(true);
+      }, 400);
+    };
+  </script>
+</body>
+</html>
