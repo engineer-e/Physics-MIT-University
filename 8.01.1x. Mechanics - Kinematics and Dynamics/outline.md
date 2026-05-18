@@ -50,11 +50,11 @@
         5. L1Q1: Displacement vs. Distance, 1D
         6. [L1v4](https://engineer-e.github.io/Physics-MIT-University/8.01.1x.%20Mechanics%20-%20Kinematics%20and%20Dynamics/course_html/Mechanics%20-%20Kinematics%20and%20Dynamics/Week%201%20-%20Kinematics/Lesson%201%20-%201D%20Kinematics%20-%20Position%20and%20Velocity/L1v4%20Average%20Velocity%20in%201D/L1v4_ai1.html): Average Velocity in 1D
         7. L1Q2: Average Velocity and Average Speed
-        8. [L1v5](): Instantaneous Velocity in 1D
+        8. [L1v5](https://engineer-e.github.io/Physics-MIT-University/8.01.1x.%20Mechanics%20-%20Kinematics%20and%20Dynamics/course_html/Mechanics%20-%20Kinematics%20and%20Dynamics/Week%201%20-%20Kinematics/Lesson%201%20-%201D%20Kinematics%20-%20Position%20and%20Velocity/L1v5%20Instantaneous%20Velocity%20in%201D/L1v5_ai1.html): Instantaneous Velocity in 1D
         9. L1Q3: Instantaneous Velocity
         10. Derivatives
         11. L1Q4: Instantaneous Velocity from Position
-        12. L1WE1/L1v6: Worked Example - Derivatives in Kinematics
+        12. L1WE1/[L1v6](https://engineer-e.github.io/Physics-MIT-University/8.01.1x.%20Mechanics%20-%20Kinematics%20and%20Dynamics/course_html/Mechanics%20-%20Kinematics%20and%20Dynamics/Week%201%20-%20Kinematics/Lesson%201%20-%201D%20Kinematics%20-%20Position%20and%20Velocity/L1WE1L1v6%20Worked%20Example%20-%20Derivatives%20in%20Kinematics/L1v6_ai1.html): Worked Example - Derivatives in Kinematics
 
     3. Lesson 2 - 1D Kinematics - Acceleration
         1. Topics and Reading List
