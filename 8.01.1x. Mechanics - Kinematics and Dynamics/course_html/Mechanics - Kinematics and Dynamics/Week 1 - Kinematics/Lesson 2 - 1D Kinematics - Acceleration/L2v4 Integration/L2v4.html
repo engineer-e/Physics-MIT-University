@@ -1,0 +1,1206 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Kinematic Integration Studio</title>
+  <!-- Tailwind CSS CDN -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  <!-- Chart.js CDN -->
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  <!-- KaTeX for Beautiful Math Notation -->
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.8/dist/katex.min.css">
+  <script src="https://cdn.jsdelivr.net/npm/katex@0.16.8/dist/katex.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/katex@0.16.8/dist/contrib/auto-render.min.js"></script>
+  <style>
+    /* Custom premium styling */
+    .gradient-bg {
+      background: linear-gradient(135deg, #0f172a 0%, #1e1b4b 100%);
+    }
+    .card-dark {
+      background-color: rgba(30, 41, 59, 0.7);
+      backdrop-filter: blur(8px);
+      border: 1px solid rgba(255, 255, 255, 0.08);
+    }
+    input[type="range"] {
+      accent-color: #6366f1;
+    }
+    /* Tab transition styling */
+    .tab-content {
+      display: none;
+    }
+    .tab-content.active {
+      display: block;
+    }
+  </style>
+</head>
+<body class="gradient-bg text-slate-100 min-h-screen font-sans pb-12">
+
+  <!-- Header -->
+  <header class="border-b border-slate-800 bg-slate-950/80 backdrop-blur sticky top-0 z-50">
+    <div class="max-w-7xl mx-auto px-4 py-4 flex flex-col sm:flex-row justify-between items-center gap-4">
+      <div class="flex items-center gap-3">
+        <div class="p-2 bg-indigo-600 rounded-lg text-white">
+          <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" />
+          </svg>
+        </div>
+        <div>
+          <h1 class="text-xl font-bold tracking-wide">Kinematic Integration Studio</h1>
+          <p class="text-xs text-slate-400">Visualizing the Transition from Riemann Sums to Continuous Motion</p>
+        </div>
+      </div>
+      
+      <!-- Navigation Tabs -->
+      <nav class="flex space-x-1 bg-slate-900 p-1 rounded-xl border border-slate-800">
+        <button onclick="switchTab('simulator')" id="btn-simulator" class="tab-btn px-4 py-1.5 text-sm font-medium rounded-lg transition-all bg-indigo-600 text-white">Simulator</button>
+        <button onclick="switchTab('infographic')" id="btn-infographic" class="tab-btn px-4 py-1.5 text-sm font-medium rounded-lg transition-all text-slate-400 hover:text-white">Infographic</button>
+        <button onclick="switchTab('calculator')" id="btn-calculator" class="tab-btn px-4 py-1.5 text-sm font-medium rounded-lg transition-all text-slate-400 hover:text-white">Riemann Solver</button>
+        <button onclick="switchTab('quiz')" id="btn-quiz" class="tab-btn px-4 py-1.5 text-sm font-medium rounded-lg transition-all text-slate-400 hover:text-white">Quiz</button>
+        <button onclick="switchTab('formulas')" id="btn-formulas" class="tab-btn px-4 py-1.5 text-sm font-medium rounded-lg transition-all text-slate-400 hover:text-white">Formulas</button>
+      </nav>
+    </div>
+  </header>
+
+  <!-- Main Container -->
+  <main class="max-w-7xl mx-auto px-4 mt-8">
+
+    <!-- TAB 1: SIMULATOR & WORKSPACE -->
+    <section id="tab-simulator" class="tab-content active space-y-6">
+      
+      <!-- Layout: Control Panel on Left, Graphs and Animation on Right -->
+      <div class="grid grid-cols-1 lg:grid-cols-12 gap-6">
+        
+        <!-- Sidebar Controls -->
+        <div class="lg:col-span-4 space-y-6">
+          <div class="card-dark p-6 rounded-2xl shadow-xl">
+            <h2 class="text-lg font-bold mb-4 flex items-center gap-2 text-indigo-400">
+              <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
+                <path fill-rule="evenodd" d="M11.49 3.17c-.38-1.56-2.6-1.56-2.98 0l-1.12 4.54a.75.75 0 01-.58.55L2.27 9.38c-1.56.38-1.56 2.6 0 2.98l4.54 1.12a.75.75 0 01.55.58l1.12 4.54c.38 1.56 2.6 1.56 2.98 0l1.12-4.54a.75.75 0 01.58-.55l4.54-1.12c1.56-.38 1.56-2.6 0-2.98l-4.54-1.12a.75.75 0 01-.55-.58l-1.12-4.54zm-2.24 9.03a1.5 1.5 0 100-3 1.5 1.5 0 000 3z" clip-rule="evenodd" />
+              </svg>
+              Simulation Engine Controls
+            </h2>
+
+            <!-- Setup Profiles -->
+            <div class="mb-5">
+              <label class="block text-xs uppercase font-semibold text-slate-400 mb-2">Acceleration Profile $a(t)$</label>
+              <div class="grid grid-cols-3 gap-2">
+                <button onclick="setAccelerationProfile('constant')" id="prof-constant" class="profile-btn border border-indigo-500/30 bg-indigo-600/20 text-indigo-200 px-3 py-2 text-xs font-semibold rounded-lg transition-all hover:bg-indigo-600/30">Constant</button>
+                <button onclick="setAccelerationProfile('linear')" id="prof-linear" class="profile-btn border border-slate-700 bg-slate-800 text-slate-300 px-3 py-2 text-xs font-semibold rounded-lg transition-all hover:bg-slate-700">Linear</button>
+                <button onclick="setAccelerationProfile('sinusoidal')" id="prof-sinusoidal" class="profile-btn border border-slate-700 bg-slate-800 text-slate-300 px-3 py-2 text-xs font-semibold rounded-lg transition-all hover:bg-slate-700">Harmonic</button>
+              </div>
+            </div>
+
+            <hr class="border-slate-800 my-4" />
+
+            <!-- Sliders -->
+            <div class="space-y-4">
+              <!-- Initial Velocity -->
+              <div>
+                <div class="flex justify-between text-xs mb-1">
+                  <span class="text-slate-300 font-medium">Initial Velocity, $v_0$</span>
+                  <span class="text-indigo-400 font-bold" id="val-v0">0 m/s</span>
+                </div>
+                <input type="range" id="input-v0" min="-10" max="10" step="0.5" value="0" oninput="updateSimulationParams()" class="w-full h-1.5 rounded-lg bg-slate-700 appearance-none cursor-pointer">
+              </div>
+
+              <!-- Initial Position -->
+              <div>
+                <div class="flex justify-between text-xs mb-1">
+                  <span class="text-slate-300 font-medium">Initial Position, $x_0$</span>
+                  <span class="text-indigo-400 font-bold" id="val-x0">0 m</span>
+                </div>
+                <input type="range" id="input-x0" min="-20" max="20" step="1" value="0" oninput="updateSimulationParams()" class="w-full h-1.5 rounded-lg bg-slate-700 appearance-none cursor-pointer">
+              </div>
+
+              <!-- Dynamic Parameter Based on profile -->
+              <div id="dynamic-control-1">
+                <div class="flex justify-between text-xs mb-1">
+                  <span class="text-slate-300 font-medium" id="lbl-dyn1">Constant Acceleration, $a_0$</span>
+                  <span class="text-indigo-400 font-bold" id="val-dyn1">2.0 m/s²</span>
+                </div>
+                <input type="range" id="input-dyn1" min="-5" max="5" step="0.1" value="2.0" oninput="updateSimulationParams()" class="w-full h-1.5 rounded-lg bg-slate-700 appearance-none cursor-pointer">
+              </div>
+
+              <!-- Integration Steps Slider (Riemann Sum) -->
+              <div class="pt-2 border-t border-slate-800">
+                <div class="flex justify-between text-xs mb-1">
+                  <span class="text-amber-400 font-semibold flex items-center gap-1">
+                    Riemann Subdivisions ($N$)
+                  </span>
+                  <span class="text-amber-400 font-bold" id="val-riemann">12</span>
+                </div>
+                <input type="range" id="input-riemann" min="4" max="80" step="1" value="12" oninput="updateSimulationParams()" class="w-full h-1.5 rounded-lg bg-slate-700 appearance-none cursor-pointer">
+                <p class="text-[10px] text-slate-400 mt-1 leading-relaxed">
+                  Controls the width of each strip: $\Delta t = \frac{t_B - t_A}{N}$. Higher $N$ leads to a perfect continuous limit!
+                </p>
+              </div>
+            </div>
+
+            <!-- Simulation Run Controls -->
+            <div class="mt-6 flex gap-2">
+              <button onclick="togglePlay()" id="btn-play" class="flex-1 bg-indigo-600 hover:bg-indigo-500 text-white text-xs font-bold py-2.5 px-4 rounded-xl flex items-center justify-center gap-1.5 transition-all shadow-md shadow-indigo-950/50">
+                <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 fill-current" viewBox="0 0 20 20" fill="currentColor">
+                  <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM9.555 7.168A1 1 0 008 8v4a1 1 0 001.555.832l3-2a1 1 0 000-1.664l-3-2z" clip-rule="evenodd" />
+                </svg>
+                Run Animation
+              </button>
+              <button onclick="resetSimulation()" class="bg-slate-800 hover:bg-slate-700 text-slate-300 text-xs font-bold py-2.5 px-4 rounded-xl flex items-center justify-center gap-1.5 transition-all">
+                Reset
+              </button>
+            </div>
+          </div>
+
+          <!-- Real-Time Readout -->
+          <div class="card-dark p-6 rounded-2xl shadow-xl">
+            <h3 class="text-xs uppercase font-semibold text-slate-400 mb-3 tracking-wider">Dynamic Integrals Output</h3>
+            <div class="grid grid-cols-2 gap-4">
+              <div class="bg-slate-900/60 p-3 rounded-xl border border-slate-800">
+                <div class="text-[10px] text-indigo-400 font-medium uppercase">Riemann Area ($\Delta v$)</div>
+                <div class="text-xl font-bold mt-1 text-slate-100" id="readout-riemann">0.00 <span class="text-xs text-slate-400">m/s</span></div>
+              </div>
+              <div class="bg-slate-900/60 p-3 rounded-xl border border-slate-800">
+                <div class="text-[10px] text-emerald-400 font-medium uppercase">Analytical Area ($\Delta v$)</div>
+                <div class="text-xl font-bold mt-1 text-slate-100" id="readout-analytical">0.00 <span class="text-xs text-slate-400">m/s</span></div>
+              </div>
+            </div>
+            <div class="mt-3 text-[10px] text-slate-400 bg-slate-900/40 p-2.5 rounded-lg border border-slate-800/50">
+              <span class="text-amber-400 font-bold">Error Margin:</span> <span id="readout-error">0.00%</span>
+              <br/>
+              Notice how increasing subdivisions reduces this integration error toward 0!
+            </div>
+          </div>
+        </div>
+
+        <!-- Charts and Interactive Animation Area -->
+        <div class="lg:col-span-8 space-y-6">
+          
+          <!-- Particle Physics Animation Canvas -->
+          <div class="card-dark p-4 rounded-2xl shadow-xl">
+            <div class="flex justify-between items-center mb-2 px-2">
+              <h3 class="text-sm font-bold tracking-wide text-slate-300">Kinematic Physical Space Visualizer</h3>
+              <div class="flex items-center gap-4 text-xs">
+                <span class="flex items-center gap-1"><span class="w-3 h-1.5 bg-blue-500 rounded-full inline-block"></span> Position ($x$)</span>
+                <span class="flex items-center gap-1"><span class="w-3 h-1.5 bg-emerald-500 rounded-full inline-block"></span> Velocity ($v$)</span>
+                <span class="flex items-center gap-1"><span class="w-3 h-1.5 bg-rose-500 rounded-full inline-block"></span> Acceleration ($a$)</span>
+              </div>
+            </div>
+            
+            <!-- Beautiful interactive vector track -->
+            <div class="relative bg-slate-950/80 rounded-xl overflow-hidden border border-slate-800/80 h-32 flex flex-col justify-end">
+              <!-- Ruler scale -->
+              <div class="absolute inset-0 flex justify-between px-6 pointer-events-none items-start pt-2 opacity-25 text-[10px] text-slate-400 border-b border-dashed border-slate-800/30">
+                <span>-30m</span><span>-20m</span><span>-10m</span><span>0m</span><span>10m</span><span>20m</span><span>30m</span>
+              </div>
+              
+              <!-- Ground visual representation -->
+              <div class="absolute bottom-0 w-full h-8 bg-gradient-to-t from-slate-900 to-indigo-950/40 border-t border-indigo-500/10"></div>
+              
+              <!-- Particle object with dynamic positioning -->
+              <div id="anim-particle" class="absolute bottom-6 left-1/2 -translate-x-1/2 transition-transform duration-75 flex flex-col items-center">
+                <!-- Vectors -->
+                <div class="flex gap-2 items-end pb-3">
+                  <!-- Velocity vector arrow -->
+                  <div id="arrow-v" class="flex flex-col items-center">
+                    <span class="text-[9px] text-emerald-400 font-bold" id="txt-arrow-v">v</span>
+                    <div class="h-1 bg-emerald-500 rounded transition-all" style="width: 40px;"></div>
+                  </div>
+                  <!-- Acceleration vector arrow -->
+                  <div id="arrow-a" class="flex flex-col items-center">
+                    <span class="text-[9px] text-rose-400 font-bold" id="txt-arrow-a">a</span>
+                    <div class="h-1 bg-rose-500 rounded transition-all" style="width: 30px;"></div>
+                  </div>
+                </div>
+                
+                <!-- Particle dot inside dynamic orbital ring -->
+                <div class="relative w-8 h-8 rounded-full bg-gradient-to-tr from-indigo-500 to-violet-500 flex items-center justify-center shadow-lg shadow-indigo-500/30 ring-2 ring-white/20">
+                  <span class="text-slate-100 text-[10px] font-bold">P</span>
+                </div>
+              </div>
+              
+              <!-- Running time overlay -->
+              <div class="absolute top-2 left-2 bg-slate-900/90 text-slate-300 font-mono text-xs px-2.5 py-1 rounded-md border border-slate-800">
+                Time elapsed: <span id="time-readout" class="text-indigo-400 font-bold">0.00</span> s
+              </div>
+            </div>
+          </div>
+
+          <!-- Triple Synced Kinematic Charts -->
+          <div class="card-dark p-6 rounded-2xl shadow-xl">
+            <h3 class="text-sm font-bold text-slate-300 mb-4 flex items-center justify-between">
+              <span>Dynamic Kinematic Profiles (Riemann Strip View)</span>
+              <span class="text-xs font-normal text-amber-400">Yellow Area representing discrete Riemann approximation strips</span>
+            </h3>
+            
+            <div class="space-y-6">
+              <!-- Acceleration Graph with customizable bars -->
+              <div class="relative h-48 bg-slate-900/40 rounded-xl p-2 border border-slate-800">
+                <canvas id="chart-acceleration"></canvas>
+              </div>
+              
+              <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <!-- Velocity Graph -->
+                <div class="h-44 bg-slate-900/40 rounded-xl p-2 border border-slate-800">
+                  <canvas id="chart-velocity"></canvas>
+                </div>
+                <!-- Position Graph -->
+                <div class="h-44 bg-slate-900/40 rounded-xl p-2 border border-slate-800">
+                  <canvas id="chart-position"></canvas>
+                </div>
+              </div>
+            </div>
+          </div>
+
+        </div>
+      </div>
+    </section>
+
+    <!-- TAB 2: INTERACTIVE INFOGRAPHIC -->
+    <section id="tab-infographic" class="tab-content space-y-8">
+      <div class="card-dark p-8 rounded-2xl shadow-xl max-w-5xl mx-auto">
+        <div class="text-center max-w-3xl mx-auto mb-10">
+          <span class="bg-indigo-500/10 text-indigo-400 text-xs px-3 py-1 rounded-full font-bold uppercase tracking-wider">The Calculus Pathway</span>
+          <h2 class="text-2xl font-black mt-3">From Instantaneous Derivatives to Integrals</h2>
+          <p class="text-slate-400 text-sm mt-2">
+            Physicists move seamlessly between acceleration, velocity, and position. Click sections below to explore the core architectural concepts of integration from the video lecture.
+          </p>
+        </div>
+
+        <!-- Infographic Central Flow -->
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-6 relative">
+          <!-- Connector line -->
+          <div class="hidden md:block absolute top-[60px] left-[15%] right-[15%] h-0.5 bg-gradient-to-r from-rose-500 via-indigo-500 to-emerald-500 z-0"></div>
+
+          <!-- Position Block -->
+          <div onclick="showInfographicDetails('pos')" class="cursor-pointer group relative z-10 bg-slate-900/90 border border-slate-800 hover:border-blue-500/50 p-6 rounded-2xl transition-all duration-300 hover:scale-[1.02]">
+            <div class="w-12 h-12 rounded-xl bg-blue-500/10 text-blue-400 flex items-center justify-center mb-4 group-hover:scale-110 transition-transform">
+              <span class="text-lg font-bold font-mono">$x(t)$</span>
+            </div>
+            <h3 class="text-lg font-bold text-blue-300 group-hover:text-blue-200 transition-colors">Position</h3>
+            <p class="text-xs text-slate-400 mt-2">
+              The location of the particle on a coordinate axis relative to an origin.
+            </p>
+            <div class="mt-4 flex items-center justify-between text-[11px] text-slate-500">
+              <span>Derivative $\to$ Velocity</span>
+              <span class="text-indigo-400 group-hover:translate-x-1 transition-transform">Learn more &rarr;</span>
+            </div>
+          </div>
+
+          <!-- Velocity Block -->
+          <div onclick="showInfographicDetails('vel')" class="cursor-pointer group relative z-10 bg-slate-900/90 border border-slate-800 hover:border-emerald-500/50 p-6 rounded-2xl transition-all duration-300 hover:scale-[1.02]">
+            <div class="w-12 h-12 rounded-xl bg-emerald-500/10 text-emerald-400 flex items-center justify-center mb-4 group-hover:scale-110 transition-transform">
+              <span class="text-lg font-bold font-mono">$v(t)$</span>
+            </div>
+            <h3 class="text-lg font-bold text-emerald-300 group-hover:text-emerald-200 transition-colors">Velocity</h3>
+            <p class="text-xs text-slate-400 mt-2">
+              The rate of change of position. Measured as the area under the acceleration curve.
+            </p>
+            <div class="mt-4 flex items-center justify-between text-[11px] text-slate-500">
+              <span>Double-Sided Bridge</span>
+              <span class="text-indigo-400 group-hover:translate-x-1 transition-transform">Learn more &rarr;</span>
+            </div>
+          </div>
+
+          <!-- Acceleration Block -->
+          <div onclick="showInfographicDetails('acc')" class="cursor-pointer group relative z-10 bg-slate-900/90 border border-slate-800 hover:border-rose-500/50 p-6 rounded-2xl transition-all duration-300 hover:scale-[1.02]">
+            <div class="w-12 h-12 rounded-xl bg-rose-500/10 text-rose-400 flex items-center justify-center mb-4 group-hover:scale-110 transition-transform">
+              <span class="text-lg font-bold font-mono">$a(t)$</span>
+            </div>
+            <h3 class="text-lg font-bold text-rose-300 group-hover:text-rose-200 transition-colors">Acceleration</h3>
+            <p class="text-xs text-slate-400 mt-2">
+              The instantaneous rate of change of velocity. The foundation computed from Newton's Second Law.
+            </p>
+            <div class="mt-4 flex items-center justify-between text-[11px] text-slate-500">
+              <span>Integral $\to$ Velocity</span>
+              <span class="text-indigo-400 group-hover:translate-x-1 transition-transform">Learn more &rarr;</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- Detail Panel that changes with click -->
+        <div id="info-details" class="mt-8 bg-slate-950/60 p-6 rounded-2xl border border-slate-800">
+          <h4 class="font-bold text-indigo-400 text-sm mb-2 uppercase tracking-wide">Select an element above</h4>
+          <p class="text-sm text-slate-300">Click any of the cards to deep dive into the calculus mechanics discussed in the blackboard slides.</p>
+        </div>
+
+        <!-- Physics Notation Highlight: Dummy Variables vs Limit -->
+        <div class="mt-8 bg-indigo-950/20 border border-indigo-500/20 p-6 rounded-2xl">
+          <h3 class="text-lg font-bold text-indigo-300 flex items-center gap-2">
+            <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+            </svg>
+            Blackboard Highlight: Why Use the Prime Notation $t'$?
+          </h3>
+          <p class="text-xs text-slate-300 mt-2 leading-relaxed">
+            As explained at the end of the lecture slide, you will often see equations written as:
+            $$v(t) = v_0 + \int_{t'=t_0}^{t'=t} a(t') \, dt'$$
+            What does this mean? Why not write just $a(t) dt$?
+          </p>
+          <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mt-4">
+            <div class="bg-slate-900/60 p-4 rounded-xl border border-slate-800">
+              <div class="text-xs font-bold text-rose-400 mb-1">The Running variable: $t'$ (Dummy variable)</div>
+              <p class="text-[11px] text-slate-400 leading-relaxed">
+                This is a placeholder variable. As we add the rectangles from our Riemann sum, the index $t'$ runs through every tiny incremental slice between $t_0$ and the end target $t$.
+              </p>
+            </div>
+            <div class="bg-slate-900/60 p-4 rounded-xl border border-slate-800">
+              <div class="text-xs font-bold text-emerald-400 mb-1">The Target Limit: $t$ (Specific Later Time)</div>
+              <p class="text-[11px] text-slate-400 leading-relaxed">
+                This is the absolute stopping time boundary where we want to know the resulting final velocity or position. Using the same symbol $t$ for both the running step and the endpoint limit would create fatal mathematical ambiguity.
+              </p>
+            </div>
+          </div>
+        </div>
+
+      </div>
+    </section>
+
+    <!-- TAB 3: STEP BY STEP RIEMANN CALCULATOR -->
+    <section id="tab-calculator" class="tab-content space-y-6">
+      <div class="card-dark p-8 rounded-2xl shadow-xl max-w-4xl mx-auto">
+        <h2 class="text-xl font-bold mb-2">Discrete Riemann Sum Solver (Discrete Integration)</h2>
+        <p class="text-sm text-slate-400 mb-6">
+          This calculator allows you to define a specific interval $[t_A, t_B]$ and partition size $N$, showing exactly how each finite step contributes to the ultimate definite integral.
+        </p>
+
+        <!-- Calculator Controls -->
+        <div class="grid grid-cols-2 md:grid-cols-4 gap-4 bg-slate-900/40 p-4 rounded-xl border border-slate-800 mb-6">
+          <div>
+            <label class="block text-xs font-bold text-slate-400 uppercase mb-1">Lower Bound, $t_A$</label>
+            <input type="number" id="calc-ta" value="0" step="0.5" class="bg-slate-800 border border-slate-700 rounded-lg p-2 text-xs w-full text-white" onchange="runRiemannCalc()">
+          </div>
+          <div>
+            <label class="block text-xs font-bold text-slate-400 uppercase mb-1">Upper Bound, $t_B$</label>
+            <input type="number" id="calc-tb" value="6" step="0.5" class="bg-slate-800 border border-slate-700 rounded-lg p-2 text-xs w-full text-white" onchange="runRiemannCalc()">
+          </div>
+          <div>
+            <label class="block text-xs font-bold text-slate-400 uppercase mb-1">Number of Strips, $N$</label>
+            <input type="number" id="calc-n" value="6" min="2" max="50" step="1" class="bg-slate-800 border border-slate-700 rounded-lg p-2 text-xs w-full text-white" onchange="runRiemannCalc()">
+          </div>
+          <div>
+            <label class="block text-xs font-bold text-slate-400 uppercase mb-1">Acceleration Profile</label>
+            <select id="calc-profile" class="bg-slate-800 border border-slate-700 rounded-lg p-2 text-xs w-full text-white" onchange="runRiemannCalc()">
+              <option value="constant">Constant [a = 2.0]</option>
+              <option value="linear" selected>Linear [a = 0.5t + 1.0]</option>
+              <option value="harmonic">Harmonic [a = 3*sin(t) + 1]</option>
+            </select>
+          </div>
+        </div>
+
+        <!-- Computation Output Details -->
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+          <!-- Math explanation -->
+          <div class="md:col-span-1 space-y-4">
+            <div class="bg-indigo-950/20 p-4 rounded-xl border border-indigo-500/10">
+              <h3 class="text-xs uppercase font-bold text-indigo-300">Summation Mechanics</h3>
+              <p class="text-xs text-slate-400 mt-2 leading-relaxed">
+                Using Left Riemann Sum approximation:
+                $$\Delta v \approx \sum_{j=1}^N a(t_j)\Delta t$$
+                Where interval step is:
+                $$\Delta t = \frac{t_B - t_A}{N}$$
+                Evaluating $a(t_j)$ at the left edge of each strip.
+              </p>
+            </div>
+            <div class="bg-slate-900/40 p-4 rounded-xl border border-slate-800 text-xs">
+              <div class="text-slate-400">Total Riemann sum value:</div>
+              <div class="text-xl font-bold text-indigo-400 mt-1" id="calc-out-riemann">0.00 m/s</div>
+              
+              <div class="text-slate-400 mt-3">Exact calculus analytical value:</div>
+              <div class="text-xl font-bold text-emerald-400 mt-1" id="calc-out-analytical">0.00 m/s</div>
+            </div>
+          </div>
+
+          <!-- Step Table -->
+          <div class="md:col-span-2 bg-slate-950/50 rounded-xl overflow-hidden border border-slate-800 max-h-72 overflow-y-auto">
+            <table class="w-full text-left text-xs text-slate-300">
+              <thead class="bg-slate-900 text-slate-400 uppercase text-[10px] sticky top-0">
+                <tr>
+                  <th class="p-3">Strip $j$</th>
+                  <th class="p-3">Start Time $t_j$</th>
+                  <th class="p-3">Acceleration $a(t_j)$</th>
+                  <th class="p-3">Strip Width $\Delta t$</th>
+                  <th class="p-3 text-right">Area Contribution</th>
+                </tr>
+              </thead>
+              <tbody id="calc-table-body" class="divide-y divide-slate-800">
+                <!-- Calculated rows go here dynamically -->
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- TAB 4: CONCEPT QUIZ -->
+    <section id="tab-quiz" class="tab-content space-y-6">
+      <div class="card-dark p-8 rounded-2xl shadow-xl max-w-3xl mx-auto">
+        <div class="flex justify-between items-center mb-6">
+          <div>
+            <h2 class="text-xl font-bold">Concept Understanding Assessment</h2>
+            <p class="text-xs text-slate-400">Validate your mathematical physics intuition from the lecture transcript</p>
+          </div>
+          <span class="bg-indigo-600 text-white text-xs font-bold px-3 py-1 rounded-full" id="quiz-progress">Question 1/5</span>
+        </div>
+
+        <!-- Question Body -->
+        <div id="quiz-card" class="bg-slate-900/60 border border-slate-800 rounded-xl p-6 mb-6">
+          <h3 class="text-sm font-semibold text-slate-200 mb-4" id="quiz-question">Loading...</h3>
+          <div class="space-y-3" id="quiz-options">
+            <!-- Dynamically populated options -->
+          </div>
+        </div>
+
+        <!-- Action Buttons -->
+        <div class="flex justify-between items-center">
+          <div id="quiz-feedback" class="text-xs font-medium"></div>
+          <button id="btn-next-quiz" onclick="handleNextQuiz()" class="bg-indigo-600 hover:bg-indigo-500 text-white text-xs font-bold py-2 px-5 rounded-lg transition-all hidden">Next &rarr;</button>
+        </div>
+      </div>
+    </section>
+
+    <!-- TAB 5: FORMULA HANDBOOK -->
+    <section id="tab-formulas" class="tab-content space-y-6">
+      <div class="card-dark p-8 rounded-2xl shadow-xl max-w-4xl mx-auto">
+        <h2 class="text-xl font-bold mb-2">Kinematic & Integral Calculus Formula Handbook</h2>
+        <p class="text-sm text-slate-400 mb-6">Core derivations and calculus theorems discussed in the lecture presentations.</p>
+
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+          
+          <!-- Column 1 -->
+          <div class="space-y-6">
+            <div class="bg-slate-900/50 p-5 rounded-xl border border-slate-800">
+              <h3 class="text-sm font-bold text-indigo-400 mb-2">Fundamental Definite Integral</h3>
+              <p class="text-xs text-slate-300 mb-3">Defines the precise area under a curve bounded from point $a$ to point $b$.</p>
+              <div class="bg-slate-950 p-3 rounded-lg border border-slate-800 text-center text-sm font-mono">
+                $$\int_{x=a}^{x=b} f(x) \, dx = G(b) - G(a)$$
+              </div>
+              <p class="text-[10px] text-slate-400 mt-2">Where $G(x)$ is the antiderivative of $f(x)$, satisfying $dG/dx = f(x)$.</p>
+            </div>
+
+            <div class="bg-slate-900/50 p-5 rounded-xl border border-slate-800">
+              <h3 class="text-sm font-bold text-rose-400 mb-2">Constant Acceleration Integrals</h3>
+              <p class="text-xs text-slate-300 mb-3">When $a(t) = a_0$ is constant over a time interval $\Delta t = t_1 - t_0$:</p>
+              <div class="bg-slate-950 p-3 rounded-lg border border-slate-800 text-center text-sm font-mono">
+                $$\Delta v = a_0 \Delta t \quad \implies \quad v(t_1) = v(t_0) + a_0(t_1 - t_0)$$
+              </div>
+            </div>
+          </div>
+
+          <!-- Column 2 -->
+          <div class="space-y-6">
+            <div class="bg-slate-900/50 p-5 rounded-xl border border-slate-800">
+              <h3 class="text-sm font-bold text-emerald-400 mb-2">Continuous Kinetic Integration Path</h3>
+              <p class="text-xs text-slate-300 mb-3">By continuous accumulation, we determine instantaneous velocity and position functions:</p>
+              <div class="bg-slate-950 p-3 rounded-lg border border-slate-800 text-center text-sm space-y-3">
+                <div>
+                  $$v(t) = v(0) + \int_{0}^{t} a(t') \, dt'$$
+                </div>
+                <div>
+                  $$x(t) = x(0) + \int_{0}^{t} v(t') \, dt'$$
+                </div>
+              </div>
+              <p class="text-[10px] text-slate-400 mt-2">Notice the double integration pathway required to move from forces/acceleration directly back to position space.</p>
+            </div>
+
+            <div class="bg-slate-900/50 p-5 rounded-xl border border-slate-800">
+              <h3 class="text-sm font-bold text-amber-400 mb-2">Indefinite Integration</h3>
+              <p class="text-xs text-slate-300 mb-3">Solves the inverse-derivative problem resulting in a family of curves with an arbitrary constant $C$:</p>
+              <div class="bg-slate-950 p-3 rounded-lg border border-slate-800 text-center text-sm font-mono">
+                $$\int f(x) \, dx = G(x) + C$$
+              </div>
+              <p class="text-[10px] text-slate-400 mt-2">In kinematic equations, the arbitrary constant is uniquely determined by setting boundary/initial conditions like $v(t_0) = v_0$.</p>
+            </div>
+          </div>
+
+        </div>
+      </div>
+    </section>
+
+  </main>
+
+  <script>
+    // --- APP STATE ---
+    let activeTab = 'simulator';
+    let currentProfile = 'constant'; // constant, linear, sinusoidal
+    let isPlaying = false;
+    let simTime = 0.0;
+    let simIntervalId = null;
+
+    // Simulation values (initial and updated)
+    let v0 = 0.0;
+    let x0 = 0.0;
+    let dynParam1 = 2.0; // Acceleration constant or slope
+    let riemannN = 12;
+
+    const maxTime = 6.0; // simulation runs from 0.0 to 6.0 seconds
+
+    // Chart Handles
+    let accChart = null;
+    let velChart = null;
+    let posChart = null;
+
+    // --- MATH EQUATION AUTO-RENDER CONFIG (KaTeX) ---
+    function renderMath(element) {
+      if (typeof renderMathInElement !== 'undefined') {
+        renderMathInElement(element || document.body, {
+          delimiters: [
+            {left: '$$', right: '$$', display: true},
+            {left: '$', right: '$', display: false},
+            {left: '\\(', right: '\\)', display: false},
+            {left: '\\[', right: '\\]', display: true}
+          ],
+          throwOnError: false
+        });
+      }
+    }
+
+    // --- INFOGRAPHIC CONTENT DATABASE ---
+    const infographicData = {
+      pos: {
+        title: "Position Function - $x(t)$",
+        body: "Position marks the placement of the object relative to an origin point. Moving backward from velocity to position requires computing the exact cumulative integral of the velocity function: <br><br>$$x(t) = x_0 + \\int_{t_0}^t v(t')dt'$$<br>Physically, the change in position over a time interval corresponds directly to the total bounded area underneath the velocity curve."
+      },
+      vel: {
+        title: "Velocity Function - $v(t)$",
+        body: "Velocity acts as the bridge. It represents the instantaneous rate of change of position with respect to time ($v(t) = dx/dt$). When given acceleration, we obtain the velocity function by calculating accumulation:<br><br>$$v(t) = v_0 + \\int_{t_0}^t a(t')dt'$$<br>If acceleration changes linearly, the total velocity change represents the area of a trapezoid."
+      },
+      acc: {
+        title: "Acceleration Function - $a(t)$",
+        body: "Acceleration is the foundational starting point when solving physical systems because of Newton's Second Law ($F = ma$). Bounded integration of $a(t)$ provides the velocity change:<br><br>$$\\Delta v = v_B - v_A = \\int_{t_A}^{t_B} a(t)dt$$<br>Graphically, this is exactly represented as the area trapped underneath the acceleration function curve."
+      }
+    };
+
+    // --- QUIZ QUESTIONS ---
+    const quizQuestions = [
+      {
+        question: "When acceleration is constant, what geometric shape is formed under the $a(t)$ graph representing the change in velocity?",
+        options: [
+          "A right triangle",
+          "A rectangular box",
+          "A trapezoid",
+          "A smooth parabola"
+        ],
+        answer: 1,
+        explanation: "Since the acceleration is constant, its graph over time is a flat horizontal line. The area trapped underneath this flat line over a time interval $\\Delta t$ is a perfect rectangle (or box)."
+      },
+      {
+        question: "For a linearly changing acceleration, how is the exact change in velocity $\\Delta v$ related to the average acceleration $a_{avg}$?",
+        options: [
+          "$\\Delta v = a_{avg} / \\Delta t$",
+          "$\\Delta v = \\frac{1}{2} a_{avg} \\Delta t^2$",
+          "$\\Delta v = a_{avg} \\Delta t$",
+          "$\\Delta v$ is independent of the average"
+        ],
+        answer: 2,
+        explanation: "As derived on the second blackboard frame, the average acceleration satisfies $a_{avg} = \\Delta v / \\Delta t$. Therefore, the total velocity change is simply $\\Delta v = a_{avg} \\Delta t$, which matches the area of the trapezoid."
+      },
+      {
+        question: "What happens to the discrete Riemann sum approximation of the area under a curve as the number of subdivisions $N$ approaches infinity?",
+        options: [
+          "The approximation error grows larger",
+          "It approaches the exact analytical definite integral value",
+          "It converges to zero",
+          "It becomes an indefinite integral with an arbitrary constant"
+        ],
+        answer: 1,
+        explanation: "In the limit as $N \\to \\infty$ (or equivalently as step size $\\Delta t \\to 0$), the approximation errors of each individual narrow strip vanish, and the sum converges precisely to the continuous definite integral."
+      },
+      {
+        question: "Why does the definite integral of a function NOT include an arbitrary integration constant '+ C'?",
+        options: [
+          "Because definite integrals do not use derivatives",
+          "Because the limits of integration ($a$ and $b$) determine the exact boundaries, causing the constant $C$ to subtract out",
+          "The constant is set to zero by default in all physics applications",
+          "It does include a constant, but we write it as a dummy variable instead"
+        ],
+        answer: 1,
+        explanation: "By the Fundamental Theorem of Calculus, a definite integral is calculated as $G(b) - G(a)$. If we included a constant, it would be $(G(b)+C) - (G(a)+C) = G(b) - G(a)$. The constant always cancels out."
+      },
+      {
+        question: "In the expression $v(t) = v_0 + \\int_{t_0}^t a(t') dt'$, what is the purpose of the variable $t'$?",
+        options: [
+          "It represents a derivative of time",
+          "It represents an initial state of time",
+          "It is a dummy running variable to avoid mathematical confusion with the target limit $t$",
+          "It denotes a changing spatial coordinate"
+        ],
+        answer: 2,
+        explanation: "The variable $t'$ is a placeholder running variable that ranges through all intermediate time points from $t_0$ to $t$ as we sum the accumulation slices. The upper limit $t$ represents a specific target final time."
+      }
+    ];
+
+    let currentQuizIndex = 0;
+    let score = 0;
+
+    // --- INITIALIZATION ---
+    window.onload = function() {
+      // Setup Chart.js charts
+      initCharts();
+      
+      // Calculate first static state
+      updateSimulationParams();
+
+      // Setup default Info details
+      showInfographicDetails('pos');
+
+      // Setup first quiz
+      loadQuizQuestion();
+
+      // Populate calculator
+      runRiemannCalc();
+
+      // Trigger math parsing globally across initial page elements
+      renderMath(document.body);
+    };
+
+    // --- TAB SWITCHING ---
+    function switchTab(tabId) {
+      activeTab = tabId;
+      document.querySelectorAll('.tab-content').forEach(el => el.classList.remove('active'));
+      document.querySelectorAll('.tab-btn').forEach(el => {
+        el.classList.remove('bg-indigo-600', 'text-white');
+        el.classList.add('text-slate-400');
+      });
+
+      const activeSection = document.getElementById(`tab-${tabId}`);
+      activeSection.classList.add('active');
+      const btn = document.getElementById(`btn-${tabId}`);
+      btn.classList.add('bg-indigo-600', 'text-white');
+      btn.classList.remove('text-slate-400');
+
+      // Trigger a resize/re-render of elements if needed
+      if (tabId === 'simulator') {
+        setTimeout(() => {
+          accChart.resize();
+          velChart.resize();
+          posChart.resize();
+        }, 100);
+      }
+
+      // Re-trigger math parsing on tab swap to render any unparsed equations
+      renderMath(activeSection);
+    }
+
+    // --- ACCELERATION PROFILE CONTROLLERS ---
+    function setAccelerationProfile(profile) {
+      currentProfile = profile;
+      
+      // Update toggle buttons design
+      document.querySelectorAll('.profile-btn').forEach(btn => {
+        btn.classList.remove('border-indigo-500/30', 'bg-indigo-600/20', 'text-indigo-200');
+        btn.classList.add('border-slate-700', 'bg-slate-800', 'text-slate-300');
+      });
+
+      const activeBtn = document.getElementById(`prof-${profile}`);
+      activeBtn.classList.remove('border-slate-700', 'bg-slate-800', 'text-slate-300');
+      activeBtn.classList.add('border-indigo-500/30', 'bg-indigo-600/20', 'text-indigo-200');
+
+      // Customize labels and sliders dynamically based on selection
+      const dynLbl = document.getElementById('lbl-dyn1');
+      const dynInput = document.getElementById('input-dyn1');
+
+      if (profile === 'constant') {
+        dynLbl.innerHTML = "Constant Acceleration, $a_0$";
+        dynInput.min = "-5";
+        dynInput.max = "5";
+        dynInput.step = "0.5";
+        dynInput.value = "2.0";
+      } else if (profile === 'linear') {
+        dynLbl.innerHTML = "Linear Slope Acceleration, $m$";
+        dynInput.min = "-1.5";
+        dynInput.max = "1.5";
+        dynInput.step = "0.1";
+        dynInput.value = "0.5";
+      } else if (profile === 'sinusoidal') {
+        dynLbl.innerHTML = "Frequency Coefficient, $\\omega$";
+        dynInput.min = "0.5";
+        dynInput.max = "3.0";
+        dynInput.step = "0.1";
+        dynInput.value = "1.5";
+      }
+
+      // Re-compile formulas in updated label
+      renderMath(dynLbl);
+
+      resetSimulation();
+      updateSimulationParams();
+    }
+
+    // --- KINEMATIC COMPUTATION ALGORITHM ENGINE ---
+    function getAcceleration(t) {
+      if (currentProfile === 'constant') {
+        return dynParam1; // a_0 constant
+      } else if (currentProfile === 'linear') {
+        return dynParam1 * t; // linearly increasing acceleration (a = m*t)
+      } else if (currentProfile === 'sinusoidal') {
+        return 3.0 * Math.sin(dynParam1 * t); // dynamic harmonic acceleration
+      }
+      return 0.0;
+    }
+
+    function getAnalyticalVelocity(t) {
+      if (currentProfile === 'constant') {
+        return v0 + dynParam1 * t;
+      } else if (currentProfile === 'linear') {
+        return v0 + 0.5 * dynParam1 * t * t;
+      } else if (currentProfile === 'sinusoidal') {
+        const initialOffset = -3.0 / dynParam1;
+        return v0 + (-3.0 / dynParam1 * Math.cos(dynParam1 * t) - initialOffset);
+      }
+      return v0;
+    }
+
+    function getAnalyticalPosition(t) {
+      if (currentProfile === 'constant') {
+        return x0 + v0 * t + 0.5 * dynParam1 * t * t;
+      } else if (currentProfile === 'linear') {
+        return x0 + v0 * t + (1.0/6.0) * dynParam1 * t * t * t;
+      } else if (currentProfile === 'sinusoidal') {
+        const w = dynParam1;
+        const initialOffset = -3.0 / w;
+        return x0 + v0 * t - (3.0 / (w * w)) * Math.sin(w * t) - initialOffset * t;
+      }
+      return x0;
+    }
+
+    // Numerical Riemann sum approximation logic (Left sum)
+    function calculateRiemannSum(nSteps) {
+      let sum = 0;
+      const dt = maxTime / nSteps;
+      for (let i = 0; i < nSteps; i++) {
+        const t = i * dt;
+        sum += getAcceleration(t) * dt;
+      }
+      return sum;
+    }
+
+    // --- RE-CALCULATE AND UPDATE CHARTS ---
+    function updateSimulationParams() {
+      v0 = parseFloat(document.getElementById('input-v0').value);
+      x0 = parseFloat(document.getElementById('input-x0').value);
+      dynParam1 = parseFloat(document.getElementById('input-dyn1').value);
+      riemannN = parseInt(document.getElementById('input-riemann').value);
+
+      // Update slider readout values in markup
+      document.getElementById('val-v0').innerText = v0.toFixed(1) + " m/s";
+      document.getElementById('val-x0').innerText = x0.toFixed(0) + " m";
+      document.getElementById('val-riemann').innerText = riemannN;
+
+      const dynamicValueLabel = document.getElementById('val-dyn1');
+      if (currentProfile === 'constant') {
+        dynamicValueLabel.innerText = dynParam1.toFixed(1) + " m/s²";
+      } else if (currentProfile === 'linear') {
+        dynamicValueLabel.innerText = dynParam1.toFixed(2) + " m/s³";
+      } else if (currentProfile === 'sinusoidal') {
+        dynamicValueLabel.innerText = dynParam1.toFixed(1) + " rad/s";
+      }
+
+      // Recalculate Riemann errors
+      const approxVal = calculateRiemannSum(riemannN);
+      const exactVal = getAnalyticalVelocity(maxTime) - v0;
+      const errorPct = exactVal === 0 ? 0 : Math.abs((approxVal - exactVal) / exactVal) * 100;
+
+      document.getElementById('readout-riemann').innerHTML = approxVal.toFixed(3) + " <span class='text-xs text-slate-400'>m/s</span>";
+      document.getElementById('readout-analytical').innerHTML = exactVal.toFixed(3) + " <span class='text-xs text-slate-400'>m/s</span>";
+      document.getElementById('readout-error').innerText = errorPct.toFixed(2) + "%";
+
+      updatePlots();
+      updateVisualParticleState(simTime);
+    }
+
+    // --- CHART PLOTTING SYSTEM (CHART.JS) ---
+    function initCharts() {
+      const ctxAcc = document.getElementById('chart-acceleration').getContext('2d');
+      const ctxVel = document.getElementById('chart-velocity').getContext('2d');
+      const ctxPos = document.getElementById('chart-position').getContext('2d');
+
+      const chartOptions = {
+        responsive: true,
+        maintainAspectRatio: false,
+        plugins: { legend: { display: false } },
+        scales: {
+          x: {
+            grid: { color: 'rgba(255, 255, 255, 0.05)' },
+            ticks: { color: 'rgba(255, 255, 255, 0.6)', font: { size: 9 } }
+          },
+          y: {
+            grid: { color: 'rgba(255, 255, 255, 0.05)' },
+            ticks: { color: 'rgba(255, 255, 255, 0.6)', font: { size: 9 } }
+          }
+        }
+      };
+
+      // Acceleration Chart: Mixed line and custom bar to represent Riemann boxes
+      accChart = new Chart(ctxAcc, {
+        type: 'line',
+        data: {
+          labels: [],
+          datasets: [
+            {
+              label: 'Exact Continuous a(t)',
+              borderColor: 'rgba(239, 68, 68, 0.85)', // red-500
+              borderWidth: 3,
+              data: [],
+              pointRadius: 0,
+              tension: 0.1
+            },
+            {
+              label: 'Riemann Steps Approximation',
+              type: 'bar',
+              backgroundColor: 'rgba(245, 158, 11, 0.25)', // amber-500 translucent
+              borderColor: 'rgba(245, 158, 11, 0.7)',
+              borderWidth: 1,
+              barPercentage: 1.0,
+              categoryPercentage: 1.0,
+              data: []
+            }
+          ]
+        },
+        options: {
+          ...chartOptions,
+          plugins: {
+            legend: {
+              display: true,
+              labels: { color: '#cbd5e1', font: { size: 10 } }
+            }
+          }
+        }
+      });
+
+      // Velocity Chart
+      velChart = new Chart(ctxVel, {
+        type: 'line',
+        data: {
+          labels: [],
+          datasets: [{
+            label: 'Velocity v(t)',
+            borderColor: 'rgba(16, 185, 129, 0.9)', // emerald-500
+            borderWidth: 2.5,
+            backgroundColor: 'rgba(16, 185, 129, 0.08)',
+            fill: true,
+            pointRadius: 0,
+            tension: 0.15,
+            data: []
+          }]
+        },
+        options: chartOptions
+      });
+
+      // Position Chart
+      posChart = new Chart(ctxPos, {
+        type: 'line',
+        data: {
+          labels: [],
+          datasets: [{
+            label: 'Position x(t)',
+            borderColor: 'rgba(59, 130, 246, 0.9)', // blue-500
+            borderWidth: 2.5,
+            backgroundColor: 'rgba(59, 130, 246, 0.08)',
+            fill: true,
+            pointRadius: 0,
+            tension: 0.15,
+            data: []
+          }]
+        },
+        options: chartOptions
+      });
+    }
+
+    function updatePlots() {
+      const resolution = 60;
+      const labels = [];
+      const dataAccContinuous = [];
+      const dataVel = [];
+      const dataPos = [];
+
+      // Populating continuous curves
+      for (let i = 0; i <= resolution; i++) {
+        const t = (maxTime / resolution) * i;
+        labels.push(t.toFixed(2) + "s");
+        dataAccContinuous.push({ x: t, y: getAcceleration(t) });
+        dataVel.push({ x: t, y: getAnalyticalVelocity(t) });
+        dataPos.push({ x: t, y: getAnalyticalPosition(t) });
+      }
+
+      // Update acceleration continuous data
+      accChart.data.labels = labels;
+      accChart.data.datasets[0].data = dataAccContinuous.map(p => p.y);
+      
+      // Update acceleration discrete bar series
+      const dt = maxTime / riemannN;
+      const discreteBarValues = new Array(resolution + 1).fill(null);
+      for (let i = 0; i <= resolution; i++) {
+        const t = (maxTime / resolution) * i;
+        const boxIndex = Math.min(Math.floor(t / dt), riemannN - 1);
+        discreteBarValues[i] = getAcceleration(boxIndex * dt);
+      }
+      accChart.data.datasets[1].data = discreteBarValues;
+      accChart.update();
+
+      // Update Velocity Chart
+      velChart.data.labels = labels;
+      velChart.data.datasets[0].data = dataVel.map(p => p.y);
+      velChart.update();
+
+      // Update Position Chart
+      posChart.data.labels = labels;
+      posChart.data.datasets[0].data = dataPos.map(p => p.y);
+      posChart.update();
+    }
+
+    // --- ANIMATION CONTROLS AND PARTICLE LAUNCHER ---
+    function togglePlay() {
+      const btn = document.getElementById('btn-play');
+      if (isPlaying) {
+        // Pause
+        isPlaying = false;
+        clearInterval(simIntervalId);
+        btn.innerHTML = `
+          <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 fill-current" viewBox="0 0 20 20" fill="currentColor">
+            <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM9.555 7.168A1 1 0 008 8v4a1 1 0 001.555.832l3-2a1 1 0 000-1.664l-3-2z" clip-rule="evenodd" />
+          </svg>Run Animation`;
+      } else {
+        // Play
+        isPlaying = true;
+        btn.innerHTML = `
+          <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 fill-current" viewBox="0 0 20 20" fill="currentColor">
+            <path fill-rule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zM7 8a1 1 0 012 0v4a1 1 0 11-2 0V8zm5-1a1 1 0 00-1 1v4a1 1 0 102 0V8a1 1 0 00-1-1z" clip-rule="evenodd" />
+          </svg>Pause`;
+        
+        const frameRate = 30; // ms
+        simIntervalId = setInterval(() => {
+          simTime += frameRate / 1000;
+          if (simTime >= maxTime) {
+            simTime = 0.0;
+          }
+          document.getElementById('time-readout').innerText = simTime.toFixed(2);
+          updateVisualParticleState(simTime);
+        }, frameRate);
+      }
+    }
+
+    function resetSimulation() {
+      isPlaying = false;
+      clearInterval(simIntervalId);
+      simTime = 0.0;
+      document.getElementById('time-readout').innerText = "0.00";
+      document.getElementById('btn-play').innerHTML = `
+        <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 fill-current" viewBox="0 0 20 20" fill="currentColor">
+          <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM9.555 7.168A1 1 0 008 8v4a1 1 0 001.555.832l3-2a1 1 0 000-1.664l-3-2z" clip-rule="evenodd" />
+        </svg>Run Animation`;
+      updateVisualParticleState(0.0);
+    }
+
+    // --- INFOGRAPHIC DETAILS PANEL TRIGGER ---
+    function showInfographicDetails(elementKey) {
+      const target = infographicData[elementKey];
+      const panel = document.getElementById('info-details');
+      
+      panel.innerHTML = `
+        <h4 class="font-black text-indigo-400 text-base mb-2 uppercase tracking-wide">${target.title}</h4>
+        <p class="text-sm text-slate-300 leading-relaxed">${target.body}</p>
+      `;
+
+      // Re-trigger LaTeX parsing in updated inner HTML
+      renderMath(panel);
+    }
+
+    // --- STEP BY STEP RIEMANN CALCULATOR CODE ---
+    function getCalcAcceleration(t, profile) {
+      if (profile === 'constant') {
+        return 2.0;
+      } else if (profile === 'linear') {
+        return 0.5 * t + 1.0;
+      } else if (profile === 'harmonic') {
+        return 3.0 * Math.sin(t) + 1.0;
+      }
+      return 0.0;
+    }
+
+    function getCalcExactIntegral(ta, tb, profile) {
+      if (profile === 'constant') {
+        return 2.0 * (tb - ta);
+      } else if (profile === 'linear') {
+        const f = t => 0.25 * t * t + t;
+        return f(tb) - f(ta);
+      } else if (profile === 'harmonic') {
+        const f = t => -3.0 * Math.cos(t) + t;
+        return f(tb) - f(ta);
+      }
+      return 0.0;
+    }
+
+    function runRiemannCalc() {
+      const ta = parseFloat(document.getElementById('calc-ta').value);
+      const tb = parseFloat(document.getElementById('calc-tb').value);
+      const n = parseInt(document.getElementById('calc-n').value);
+      const profile = document.getElementById('calc-profile').value;
+
+      const tableBody = document.getElementById('calc-table-body');
+      tableBody.innerHTML = '';
+
+      const dt = (tb - ta) / n;
+      let totalSum = 0.0;
+
+      for (let j = 0; j < n; j++) {
+        const tj = ta + j * dt;
+        const acc = getCalcAcceleration(tj, profile);
+        const areaVal = acc * dt;
+        totalSum += areaVal;
+
+        const row = document.createElement('tr');
+        row.className = "hover:bg-slate-900/40 transition-colors";
+        row.innerHTML = `
+          <td class="p-3 font-semibold text-slate-400">#${j+1}</td>
+          <td class="p-3 font-mono text-slate-300">${tj.toFixed(3)}s</td>
+          <td class="p-3 font-mono text-slate-300">${acc.toFixed(3)} m/s²</td>
+          <td class="p-3 font-mono text-slate-300">${dt.toFixed(3)}s</td>
+          <td class="p-3 font-mono text-emerald-400 text-right font-bold">${areaVal.toFixed(4)} m/s</td>
+        `;
+        tableBody.appendChild(row);
+      }
+
+      const exactVal = getCalcExactIntegral(ta, tb, profile);
+
+      document.getElementById('calc-out-riemann').innerText = totalSum.toFixed(4) + " m/s";
+      document.getElementById('calc-out-analytical').innerText = exactVal.toFixed(4) + " m/s";
+    }
+
+    // --- CONCEPT QUIZ ENGINE ---
+    function loadQuizQuestion() {
+      const current = quizQuestions[currentQuizIndex];
+      document.getElementById('quiz-progress').innerText = `Question ${currentQuizIndex + 1}/${quizQuestions.length}`;
+      document.getElementById('quiz-question').innerText = current.question;
+      
+      const optionsContainer = document.getElementById('quiz-options');
+      optionsContainer.innerHTML = '';
+      
+      current.options.forEach((opt, idx) => {
+        const btn = document.createElement('button');
+        btn.onclick = () => selectQuizAnswer(idx);
+        btn.className = "w-full text-left p-4 rounded-xl border border-slate-800 bg-slate-950/40 hover:bg-indigo-600/10 hover:border-indigo-500/30 transition-all text-xs font-medium text-slate-300 flex items-center justify-between group";
+        btn.innerHTML = `
+          <span>${opt}</span>
+          <span class="w-5 h-5 rounded-full border border-slate-700 flex items-center justify-center text-[10px] group-hover:border-indigo-400">&nbsp;</span>
+        `;
+        optionsContainer.appendChild(btn);
+      });
+
+      document.getElementById('quiz-feedback').innerHTML = '';
+      document.getElementById('btn-next-quiz').classList.add('hidden');
+
+      // Re-trigger math parsing for newly populated quiz question & options
+      renderMath(document.getElementById('tab-quiz'));
+    }
+
+    function selectQuizAnswer(selectedIndex) {
+      const current = quizQuestions[currentQuizIndex];
+      const feedbackDiv = document.getElementById('quiz-feedback');
+      const isCorrect = (selectedIndex === current.answer);
+      
+      if (isCorrect) {
+        score++;
+        feedbackDiv.innerHTML = `<span class="text-emerald-400 font-bold flex items-center gap-1">Correct!</span> <span class="text-slate-400 block mt-1">${current.explanation}</span>`;
+      } else {
+        feedbackDiv.innerHTML = `<span class="text-rose-400 font-bold flex items-center gap-1">Incorrect.</span> <span class="text-slate-400 block mt-1">Correct Answer: ${current.options[current.answer]}. <br/> ${current.explanation}</span>`;
+      }
+
+      // Disable selection after answer and highlight right/wrong choices
+      const optionsButtons = document.querySelectorAll('#quiz-options button');
+      optionsButtons.forEach((btn, idx) => {
+        btn.onclick = null;
+        if (idx === current.answer) {
+          btn.className = "w-full text-left p-4 rounded-xl border border-emerald-500/40 bg-emerald-600/10 text-emerald-200 text-xs font-semibold flex items-center justify-between";
+          btn.innerHTML = `<span>${current.options[idx]}</span> <span class="w-5 h-5 rounded-full bg-emerald-500 text-white flex items-center justify-center text-[9px]">&#10003;</span>`;
+        } else if (idx === selectedIndex) {
+          btn.className = "w-full text-left p-4 rounded-xl border border-rose-500/40 bg-rose-600/10 text-rose-200 text-xs font-semibold flex items-center justify-between";
+          btn.innerHTML = `<span>${current.options[idx]}</span> <span class="w-5 h-5 rounded-full bg-rose-500 text-white flex items-center justify-center text-[9px]">&#10007;</span>`;
+        } else {
+          btn.className = "w-full text-left p-4 rounded-xl border border-slate-800 bg-slate-950/20 text-slate-500 text-xs font-medium cursor-not-allowed flex items-center justify-between";
+        }
+      });
+
+      document.getElementById('btn-next-quiz').classList.remove('hidden');
+
+      // Re-trigger math parsing for options & feedback
+      renderMath(document.getElementById('tab-quiz'));
+    }
+
+    function handleNextQuiz() {
+      currentQuizIndex++;
+      if (currentQuizIndex < quizQuestions.length) {
+        loadQuizQuestion();
+      } else {
+        // Complete Quiz Result Screen
+        const card = document.getElementById('quiz-card');
+        card.innerHTML = `
+          <div class="text-center py-8">
+            <div class="w-16 h-16 rounded-full bg-indigo-600/20 text-indigo-400 flex items-center justify-center mx-auto mb-4">
+              <svg xmlns="http://www.w3.org/2000/svg" class="h-8 w-8" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4M7.835 4.697a3.42 3.42 0 001.946-.806 3.42 3.42 0 014.438 0 3.42 3.42 0 001.946.806 3.42 3.42 0 013.138 3.138 3.42 3.42 0 00.806 1.946 3.42 3.42 0 010 4.438 3.42 3.42 0 00-.806 1.946 3.42 3.42 0 01-3.138 3.138 3.42 3.42 0 00-1.946.806 3.42 3.42 0 01-4.438 0 3.42 3.42 0 00-1.946-.806 3.42 3.42 0 01-3.138-3.138z" />
+              </svg>
+            </div>
+            <h3 class="text-xl font-bold">Concept Check Completed!</h3>
+            <p class="text-slate-300 mt-2 text-sm">You answered <span class="text-indigo-400 font-bold">${score}</span> out of <span class="text-slate-100 font-bold">${quizQuestions.length}</span> questions correctly.</p>
+            <button onclick="restartQuiz()" class="mt-6 bg-indigo-600 hover:bg-indigo-500 text-white text-xs font-bold py-2.5 px-6 rounded-lg transition-all">Restart Quiz</button>
+          </div>
+        `;
+        document.getElementById('btn-next-quiz').classList.add('hidden');
+        document.getElementById('quiz-feedback').innerHTML = '';
+      }
+    }
+
+    function restartQuiz() {
+      currentQuizIndex = 0;
+      score = 0;
+      const card = document.getElementById('quiz-card');
+      card.innerHTML = `
+        <h3 class="text-sm font-semibold text-slate-200 mb-4" id="quiz-question">Loading...</h3>
+        <div class="space-y-3" id="quiz-options"></div>
+      `;
+      loadQuizQuestion();
+    }
+
+    function updateVisualParticleState(t) {
+      const positionValue = getAnalyticalPosition(t);
+      const velocityValue = getAnalyticalVelocity(t);
+      const accelerationValue = getAcceleration(t);
+
+      const centerPercent = 50;
+      const pxOffset = (positionValue / 30.0) * 50;
+      const finalLeft = Math.max(5, Math.min(95, centerPercent + pxOffset));
+
+      const particleDiv = document.getElementById('anim-particle');
+      particleDiv.style.left = `${finalLeft}%`;
+
+      // Draw interactive velocity vector arrow (green)
+      const arrowV = document.getElementById('arrow-v');
+      const textV = document.getElementById('txt-arrow-v');
+      const visualVWidth = Math.min(100, Math.abs(velocityValue) * 8);
+      arrowV.querySelector('div').style.width = `${visualVWidth}px`;
+      textV.innerText = `v = ${velocityValue.toFixed(1)} m/s`;
+      if (velocityValue < 0) {
+        arrowV.style.transform = 'scaleX(-1)';
+        textV.style.transform = 'scaleX(-1)';
+      } else {
+        arrowV.style.transform = 'scaleX(1)';
+        textV.style.transform = 'scaleX(1)';
+      }
+
+      // Draw interactive acceleration vector arrow (rose)
+      const arrowA = document.getElementById('arrow-a');
+      const textA = document.getElementById('txt-arrow-a');
+      const visualAWidth = Math.min(100, Math.abs(accelerationValue) * 12);
+      arrowA.querySelector('div').style.width = `${visualAWidth}px`;
+      textA.innerText = `a = ${accelerationValue.toFixed(1)} m/s²`;
+      if (accelerationValue < 0) {
+        arrowA.style.transform = 'scaleX(-1)';
+        textA.style.transform = 'scaleX(-1)';
+      } else {
+        arrowA.style.transform = 'scaleX(1)';
+        textA.style.transform = 'scaleX(1)';
+      }
+    }
+  </script>
+</body>
+</html>

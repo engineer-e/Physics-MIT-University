@@ -1,0 +1,1307 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>1D Kinematics - Constant & Custom Acceleration Simulator</title>
+    <!-- Tailwind CSS for modern responsive styling -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Lucide Icons for premium visual design -->
+    <script src="https://unpkg.com/lucide@latest"></script>
+    <!-- MathJax for rendering high-quality LaTeX formulas in the explanation -->
+    <script>
+        window.MathJax = {
+            tex: {
+                inlineMath: [['$', '$'], ['\\(', '\\)']],
+                displayMath: [['$$', '$$'], ['\\[', '\\]']]
+            },
+            svg: {
+                fontCache: 'global'
+            }
+        };
+    </script>
+    <script id="MathJax-script" async src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;500;700&display=swap');
+        body {
+            font-family: 'Inter', sans-serif;
+        }
+        .code-font {
+            font-family: 'JetBrains Mono', monospace;
+        }
+        /* Custom scrollbar for beautiful dashboard aesthetics */
+        ::-webkit-scrollbar {
+            width: 8px;
+            height: 8px;
+        }
+        ::-webkit-scrollbar-track {
+            background: #1e293b;
+        }
+        ::-webkit-scrollbar-thumb {
+            background: #475569;
+            border-radius: 4px;
+        }
+        ::-webkit-scrollbar-thumb:hover {
+            background: #64748b;
+        }
+    </style>
+</head>
+<body class="bg-slate-950 text-slate-100 min-h-screen flex flex-col selection:bg-indigo-500 selection:text-white">
+
+    <!-- Header Navigation Bar -->
+    <header class="border-b border-slate-800 bg-slate-900/80 backdrop-blur-md sticky top-0 z-50 px-4 py-3 sm:px-6">
+        <div class="max-w-7xl mx-auto flex flex-col sm:flex-row items-center justify-between gap-4">
+            <div class="flex items-center gap-3">
+                <div class="bg-indigo-600 p-2 rounded-lg text-white shadow-lg shadow-indigo-500/20">
+                    <i data-lucide="activity" class="w-6 h-6"></i>
+                </div>
+                <div>
+                    <h1 class="text-lg font-bold tracking-tight text-white flex items-center gap-2">
+                        1D Kinematics Interactive
+                    </h1>
+                    <p class="text-xs text-slate-400">Custom Kinematics Equation Engine ($x(t) = f(t, b)$)</p>
+                </div>
+            </div>
+            <div class="flex items-center gap-3 text-sm text-slate-400">
+                <span class="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-xs font-medium bg-indigo-500/10 text-indigo-400 border border-indigo-500/20">
+                    <span class="w-1.5 h-1.5 rounded-full bg-indigo-400 animate-pulse"></span>
+                    Interactive Physics Lab
+                </span>
+            </div>
+        </div>
+    </header>
+
+    <main class="flex-grow max-w-7xl mx-auto w-full p-4 sm:p-6 lg:p-8 space-y-8">
+        
+        <!-- EQUATION INPUT & PRESET MODULE -->
+        <section class="bg-slate-900 border border-slate-800 rounded-2xl p-5 shadow-xl">
+            <div class="flex flex-col md:flex-row md:items-center justify-between gap-4 mb-4">
+                <div>
+                    <h2 class="text-base font-bold text-white flex items-center gap-2">
+                        <i data-lucide="terminal" class="w-5 h-5 text-indigo-400"></i> Define Custom Kinematics Equation
+                    </h2>
+                    <p class="text-xs text-slate-400 mt-0.5">Enter any mathematical equation representing the Position $x(t)$. Use parameters <code class="text-indigo-300">t</code> and <code class="text-indigo-300">b</code>.</p>
+                </div>
+                <div class="flex flex-wrap gap-2 items-center">
+                    <span class="text-xs text-slate-400 font-semibold mr-1">Presets:</span>
+                    <button class="px-2.5 py-1 bg-slate-800 hover:bg-slate-700 text-slate-300 rounded text-xs transition border border-slate-700 font-mono" onclick="setPreset('b * t^2')">b*t²</button>
+                    <button class="px-2.5 py-1 bg-slate-800 hover:bg-slate-700 text-slate-300 rounded text-xs transition border border-slate-700 font-mono" onclick="setPreset('b * t')">b*t</button>
+                    <button class="px-2.5 py-1 bg-slate-800 hover:bg-slate-700 text-slate-300 rounded text-xs transition border border-slate-700 font-mono" onclick="setPreset('5 * sin(b * t)')">5*sin(b*t)</button>
+                    <button class="px-2.5 py-1 bg-slate-800 hover:bg-slate-700 text-slate-300 rounded text-xs transition border border-slate-700 font-mono" onclick="setPreset('0.2 * b * t^3')">0.2*b*t³</button>
+                    <button class="px-2.5 py-1 bg-slate-800 hover:bg-slate-700 text-slate-300 rounded text-xs transition border border-slate-700 font-mono" onclick="setPreset('10 * sin(4 * t) * exp(-0.5 * b * t)')">Damped Wave</button>
+                </div>
+            </div>
+
+            <div class="grid grid-cols-1 md:grid-cols-12 gap-4">
+                <div class="md:col-span-8 relative">
+                    <span class="absolute left-3 top-1/2 -translate-y-1/2 font-mono text-sm text-amber-400 font-bold">x(t) = </span>
+                    <input type="text" id="equation-input" value="1.00 * t^2" class="w-full bg-slate-950 border border-slate-700 rounded-xl py-3 pl-16 pr-24 font-mono text-sm text-slate-100 focus:outline-none focus:border-indigo-500 transition" placeholder="e.g. b * t^2 + 2 * t">
+                    <div class="absolute right-3 top-1/2 -translate-y-1/2 flex items-center gap-1.5">
+                        <span id="equation-badge" class="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-2xs font-medium bg-emerald-500/10 text-emerald-400 border border-emerald-500/20">
+                            <i data-lucide="check" class="w-3 h-3"></i> Valid
+                        </span>
+                    </div>
+                </div>
+                <div class="md:col-span-4 flex items-center bg-slate-950/40 px-4 py-2.5 rounded-xl border border-slate-800/80">
+                    <p class="text-[11px] text-slate-400 leading-normal">
+                        <strong>Supported math:</strong> <code class="text-slate-300 font-mono">+, -, *, /, ^</code>, functions <code class="text-slate-300 font-mono">sin, cos, tan, sqrt, exp, log, abs, pi</code>.
+                    </p>
+                </div>
+            </div>
+            <div id="equation-error" class="hidden text-xs text-rose-400 font-mono mt-2 flex items-center gap-1">
+                <i data-lucide="alert-circle" class="w-3.5 h-3.5"></i> <span>Invalid mathematical format. Please verify variables.</span>
+            </div>
+        </section>
+        
+        <!-- TOP SECTION: Simulator & Live Graphic Dashboard -->
+        <section class="grid grid-cols-1 lg:grid-cols-12 gap-6">
+            
+            <!-- Left Panel: Runner Simulation Canvas & Controls (7 Cols) -->
+            <div class="lg:col-span-7 bg-slate-900 border border-slate-800 rounded-2xl p-4 sm:p-6 flex flex-col justify-between shadow-xl">
+                <div>
+                    <div class="flex items-center justify-between mb-4">
+                        <h2 class="text-lg font-bold flex items-center gap-2 text-indigo-400">
+                            <i data-lucide="play" class="w-5 h-5"></i> Live Runner Simulation
+                        </h2>
+                        <div class="flex items-center gap-2">
+                            <button id="btn-reset" class="px-3 py-1.5 bg-slate-800 hover:bg-slate-700 text-slate-300 rounded-lg text-xs font-medium transition flex items-center gap-1">
+                                <i data-lucide="rotate-ccw" class="w-3.5 h-3.5"></i> Reset
+                            </button>
+                            <button id="btn-play-pause" class="px-4 py-1.5 bg-indigo-600 hover:bg-indigo-500 text-white rounded-lg text-xs font-semibold shadow-md shadow-indigo-600/10 transition flex items-center gap-1">
+                                <i data-lucide="play" id="play-icon" class="w-3.5 h-3.5"></i> <span id="play-text">Run Simulation</span>
+                            </button>
+                        </div>
+                    </div>
+
+                    <!-- The Runner Track Canvas -->
+                    <div class="relative bg-slate-950 border border-slate-800/80 rounded-xl overflow-hidden mb-6">
+                        <div class="absolute top-2 left-3 bg-slate-900/90 border border-slate-800 rounded px-2 py-1 text-2xs code-font text-slate-400 z-10">
+                            Time: <span id="sim-time" class="text-indigo-400 font-bold">0.00</span>s | 
+                            Pos: <span id="sim-pos" class="text-amber-400 font-bold">0.00</span>m | 
+                            Vel: <span id="sim-vel" class="text-emerald-400 font-bold">0.00</span>m/s
+                        </div>
+                        <canvas id="runner-canvas" class="w-full h-48 block"></canvas>
+                    </div>
+
+                    <!-- Slider Controls -->
+                    <div class="grid grid-cols-1 sm:grid-cols-2 gap-4 bg-slate-950/40 p-4 rounded-xl border border-slate-800/50">
+                        <div>
+                            <div class="flex justify-between items-center mb-1.5">
+                                <label for="slider-b" class="text-xs font-semibold text-slate-300 flex items-center gap-1.5">
+                                    Slider Value <span class="code-font text-indigo-400">($b$)</span>
+                                </label>
+                                <span class="text-xs font-mono text-indigo-300 bg-indigo-950/50 px-2 py-0.5 rounded border border-indigo-900/30" id="val-b">1.00</span>
+                            </div>
+                            <input type="range" id="slider-b" min="0.1" max="2.5" step="0.1" value="1.00" class="w-full h-1.5 bg-slate-800 rounded-lg appearance-none cursor-pointer accent-indigo-500">
+                            <p class="text-[10px] text-slate-500 mt-1">Defines variable factor $b$ inside custom formulas dynamically</p>
+                        </div>
+
+                        <div>
+                            <div class="flex justify-between items-center mb-1.5">
+                                <label for="slider-time" class="text-xs font-semibold text-slate-300 flex items-center gap-1.5">
+                                    Manual Time Scrub <span class="code-font text-slate-400">($t$)</span>
+                                </label>
+                                <span class="text-xs font-mono text-slate-300 bg-slate-800 px-2 py-0.5 rounded border border-slate-700" id="val-t">0.00 s</span>
+                            </div>
+                            <input type="range" id="slider-time" min="0" max="6.0" step="0.05" value="0" class="w-full h-1.5 bg-slate-800 rounded-lg appearance-none cursor-pointer accent-indigo-500">
+                            <p class="text-[10px] text-slate-500 mt-1">Scrub backwards or forwards manually to inspect specific points</p>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="mt-6 border-t border-slate-800/80 pt-4 flex items-center justify-between text-xs text-slate-400">
+                    <span class="flex items-center gap-1"><i data-lucide="info" class="w-3.5 h-3.5 text-indigo-400"></i> Adjust parameters to observe changes in graphs instantly</span>
+                    <span class="font-mono text-slate-500 text-[10px]">v1.3.0-stable</span>
+                </div>
+            </div>
+
+            <!-- Right Panel: Kinematics Graph Overlays (5 Cols) -->
+            <div class="lg:col-span-5 bg-slate-900 border border-slate-800 rounded-2xl p-4 sm:p-6 flex flex-col justify-between shadow-xl">
+                <div>
+                    <h2 class="text-lg font-bold text-indigo-400 mb-4 flex items-center gap-2">
+                        <i data-lucide="trending-up" class="w-5 h-5"></i> Kinematic Profiles ($1\text{D}$)
+                    </h2>
+                    
+                    <div class="space-y-4">
+                        <!-- Position Curve Plot container -->
+                        <div class="bg-slate-950 p-3 rounded-xl border border-slate-800">
+                            <div class="flex justify-between items-center mb-1">
+                                <span class="text-xs font-bold text-amber-400 flex items-center gap-1">
+                                    <span class="w-2 h-2 rounded-full bg-amber-400"></span> Position $x(t)$
+                                </span>
+                                <span id="y-max-pos" class="text-[10px] text-slate-500 uppercase tracking-wider font-semibold font-mono">Max: 0m</span>
+                            </div>
+                            <div class="relative h-20">
+                                <canvas id="chart-pos" class="w-full h-full block"></canvas>
+                            </div>
+                        </div>
+
+                        <!-- Velocity Line Plot container -->
+                        <div class="bg-slate-950 p-3 rounded-xl border border-slate-800">
+                            <div class="flex justify-between items-center mb-1">
+                                <span class="text-xs font-bold text-emerald-400 flex items-center gap-1">
+                                    <span class="w-2 h-2 rounded-full bg-emerald-400"></span> Velocity $v(t) = \frac{dx}{dt}$
+                                </span>
+                                <span id="y-max-vel" class="text-[10px] text-slate-500 uppercase tracking-wider font-semibold font-mono">Max: 0m/s</span>
+                            </div>
+                            <div class="relative h-20">
+                                <canvas id="chart-vel" class="w-full h-full block"></canvas>
+                            </div>
+                        </div>
+
+                        <!-- Acceleration Line Plot container -->
+                        <div class="bg-slate-950 p-3 rounded-xl border border-slate-800">
+                            <div class="flex justify-between items-center mb-1">
+                                <span class="text-xs font-bold text-blue-400 flex items-center gap-1">
+                                    <span class="w-2 h-2 rounded-full bg-blue-400"></span> Acceleration $a(t) = \frac{d^2x}{dt^2}$
+                                </span>
+                                <span id="y-max-acc" class="text-[10px] text-slate-500 uppercase tracking-wider font-semibold font-mono">Max: 0m/s²</span>
+                            </div>
+                            <div class="relative h-20">
+                                <canvas id="chart-acc" class="w-full h-full block"></canvas>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                <p class="text-[11px] text-slate-400 text-center mt-4 italic">
+                    The curves above auto-range and sync in real-time, demonstrating dynamic derivative slopes.
+                </p>
+            </div>
+        </section>
+
+        <!-- MIDDLE SECTION: Interactive Educational Walkthrough Algorithm -->
+        <section class="bg-slate-900 border border-slate-800 rounded-2xl p-6 shadow-xl">
+            <h2 class="text-xl font-bold text-white mb-6 flex items-center gap-2">
+                <i data-lucide="calculator" class="w-6 h-6 text-indigo-400"></i> Mathematical Walkthrough & Unit Algorithm
+            </h2>
+
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-6 relative">
+                <!-- Connective path lines for visual progression (desktop only) -->
+                <div class="hidden md:block absolute top-1/2 left-[28%] w-[10%] h-[2px] bg-gradient-to-r from-indigo-500 to-emerald-500 -translate-y-1/2 z-0 opacity-40"></div>
+                <div class="hidden md:block absolute top-1/2 left-[61%] w-[10%] h-[2px] bg-gradient-to-r from-emerald-500 to-blue-500 -translate-y-1/2 z-0 opacity-40"></div>
+
+                <!-- Step 1: Position -->
+                <div class="bg-slate-950/60 hover:bg-slate-950 p-5 rounded-xl border border-slate-800/80 relative z-10 transition duration-300">
+                    <div class="absolute -top-3 left-4 bg-indigo-600 text-white font-bold text-xs px-2.5 py-0.5 rounded-full">
+                        Step 1: Position Equation
+                    </div>
+                    <div class="mt-2 mb-3 flex items-center justify-between">
+                        <span class="text-xs text-slate-400 font-medium">Function Evaluated</span>
+                        <span class="text-xs px-2 py-0.5 bg-amber-500/10 text-amber-400 rounded-full font-semibold">Dynamic</span>
+                    </div>
+                    <div class="bg-slate-900 p-3 rounded-lg border border-slate-800 mb-3 text-center overflow-x-auto">
+                        <p id="latex-pos-expr" class="text-sm font-bold text-amber-400 select-all">$x(t) = b \cdot t^2$</p>
+                    </div>
+                    <div class="space-y-2 text-xs text-slate-300">
+                        <p class="font-medium text-slate-400">Current Values:</p>
+                        <div class="bg-slate-900/40 p-2 rounded border border-slate-800/40 font-mono text-[11px] leading-relaxed">
+                            Time $t = $ <span id="walkthrough-t" class="text-indigo-300">0.00</span>s<br>
+                            Value $b = $ <span id="walkthrough-b" class="text-indigo-300">1.00</span><br>
+                            $x(t) = $ <span id="walkthrough-x" class="text-amber-400 font-semibold">0.00</span> m
+                        </div>
+                        <p class="text-slate-400 italic">This defines the instant-by-instant coordinates of the runner across the 1D track.</p>
+                    </div>
+                </div>
+
+                <!-- Step 2: Velocity Derivative -->
+                <div class="bg-slate-950/60 hover:bg-slate-950 p-5 rounded-xl border border-slate-800/80 relative z-10 transition duration-300">
+                    <div class="absolute -top-3 left-4 bg-emerald-600 text-white font-bold text-xs px-2.5 py-0.5 rounded-full">
+                        Step 2: Velocity Derivative
+                    </div>
+                    <div class="mt-2 mb-3 flex items-center justify-between">
+                        <span class="text-xs text-slate-400 font-medium">First Derivative</span>
+                        <span class="text-xs px-2 py-0.5 bg-emerald-500/10 text-emerald-400 rounded-full font-semibold">Tangent Slope</span>
+                    </div>
+                    <div class="bg-slate-900 p-3 rounded-lg border border-slate-800 mb-3 text-center overflow-x-auto">
+                        <p class="text-sm font-bold text-emerald-400">$v(t) = \frac{dx}{dt} = \lim_{h \to 0} \frac{x(t+h)-x(t-h)}{2h}$</p>
+                    </div>
+                    <div class="space-y-2 text-xs text-slate-300">
+                        <p class="font-medium text-slate-400">Calculus Calculation:</p>
+                        <div class="bg-slate-900/40 p-2 rounded border border-slate-800/40 font-mono text-[11px] leading-relaxed">
+                            Interval $h = 0.001$<br>
+                            $v(t) = $ <span id="walkthrough-v" class="text-emerald-400 font-semibold">0.00</span> m/s<br>
+                            Tangent Angle: <span id="walkthrough-v-angle" class="text-slate-400">0.00°</span>
+                        </div>
+                        <p class="text-slate-400 italic">The instantaneous rate of change corresponds to the slope of the tangent line to the position curve.</p>
+                    </div>
+                </div>
+
+                <!-- Step 3: Acceleration Derivative -->
+                <div class="bg-slate-950/60 hover:bg-slate-950 p-5 rounded-xl border border-slate-800/80 relative z-10 transition duration-300">
+                    <div class="absolute -top-3 left-4 bg-blue-600 text-white font-bold text-xs px-2.5 py-0.5 rounded-full">
+                        Step 3: Acceleration Derivative
+                    </div>
+                    <div class="mt-2 mb-3 flex items-center justify-between">
+                        <span class="text-xs text-slate-400 font-medium">Second Derivative</span>
+                        <span class="text-xs px-2 py-0.5 bg-blue-500/10 text-blue-400 rounded-full font-semibold">Curvature</span>
+                    </div>
+                    <div class="bg-slate-900 p-3 rounded-lg border border-slate-800 mb-3 text-center overflow-x-auto">
+                        <p class="text-sm font-bold text-blue-400">$a(t) = \frac{dv}{dt} = \frac{d^2x}{dt^2}$</p>
+                    </div>
+                    <div class="space-y-2 text-xs text-slate-300">
+                        <p class="font-medium text-slate-400">Second Derivative Analysis:</p>
+                        <div class="bg-slate-900/40 p-2 rounded border border-slate-800/40 font-mono text-[11px] leading-relaxed">
+                            $a(t) \approx \frac{x(t+h) - 2x(t) + x(t-h)}{h^2}$<br>
+                            $a(t) = $ <span id="walkthrough-a" class="text-blue-400 font-semibold">0.00</span> m/s²<br>
+                            Type: <span id="walkthrough-a-type" class="text-slate-400">Flat/Linear</span>
+                        </div>
+                        <p class="text-slate-400 italic">This identifies the force intensity and dynamic velocity adjustment factor operating on the runner.</p>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- BOTTOM SECTION: Interactive Study Quiz -->
+        <section class="bg-slate-900 border border-slate-800 rounded-2xl p-6 shadow-xl">
+            <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-6 border-b border-slate-800 pb-4">
+                <div>
+                    <h2 class="text-xl font-bold text-white flex items-center gap-2">
+                        <i data-lucide="check-square" class="w-6 h-6 text-emerald-400"></i> Conceptual Understanding Challenge
+                    </h2>
+                    <p class="text-xs text-slate-400 mt-1">Check your understanding of the derivative principles and constant acceleration units.</p>
+                </div>
+                <div class="flex items-center gap-3 bg-slate-950 px-4 py-2 rounded-xl border border-slate-800">
+                    <div class="text-xs">
+                        <span class="text-slate-400">Progress:</span>
+                        <span id="quiz-progress-text" class="font-bold text-indigo-400">1 of 4</span>
+                    </div>
+                    <div class="w-24 bg-slate-800 h-2 rounded-full overflow-hidden">
+                        <div id="quiz-progress-bar" class="bg-indigo-500 h-full w-1/4 transition-all duration-300"></div>
+                    </div>
+                    <div class="text-xs border-l border-slate-800 pl-3">
+                        <span class="text-slate-400">Score:</span>
+                        <span id="quiz-score" class="font-bold text-emerald-400">0%</span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Quiz Main Container -->
+            <div id="quiz-container" class="space-y-6">
+                <!-- Question Card -->
+                <div class="bg-slate-950 p-5 sm:p-6 rounded-xl border border-slate-800/80">
+                    <span class="inline-block bg-indigo-500/10 text-indigo-400 border border-indigo-500/20 text-xs px-2.5 py-1 rounded-md font-bold mb-3 uppercase tracking-wider" id="question-tag">
+                        Kinematics Units
+                    </span>
+                    <h3 class="text-base sm:text-lg font-semibold text-slate-100 mb-4" id="question-text">
+                        If the position function is given by $x(t) = b t^2$, what must the SI unit for the constant $b$ be to keep dimensions correct?
+                    </h3>
+
+                    <!-- Options Grid -->
+                    <div class="grid grid-cols-1 gap-3" id="options-grid">
+                        <!-- Dynamic Options will be loaded here -->
+                    </div>
+                </div>
+
+                <!-- Explanation / feedback panel (Hidden by default) -->
+                <div id="feedback-panel" class="hidden p-4 rounded-xl border flex gap-3 transition-all duration-300">
+                    <div id="feedback-icon-container" class="rounded-lg p-2 h-fit">
+                        <!-- Dynamic Lucide Icon -->
+                    </div>
+                    <div>
+                        <h4 class="font-bold text-sm mb-1" id="feedback-title">Correct!</h4>
+                        <p class="text-xs leading-relaxed text-slate-300" id="feedback-desc">
+                            Detailed math analysis explanation.
+                        </p>
+                    </div>
+                </div>
+
+                <!-- Nav Button -->
+                <div class="flex justify-end">
+                    <button id="btn-next-question" class="hidden px-5 py-2 bg-indigo-600 hover:bg-indigo-500 text-white font-semibold text-sm rounded-lg shadow-md shadow-indigo-600/15 transition flex items-center gap-1.5">
+                        <span>Next Question</span> <i data-lucide="arrow-right" class="w-4 h-4"></i>
+                    </button>
+                    <button id="btn-quiz-reset" class="hidden px-5 py-2 bg-slate-800 hover:bg-slate-700 text-slate-200 font-semibold text-sm rounded-lg transition flex items-center gap-1.5">
+                        <i data-lucide="rotate-ccw" class="w-4 h-4"></i> <span>Restart Quiz</span>
+                    </button>
+                </div>
+            </div>
+        </section>
+    </main>
+
+    <footer class="border-t border-slate-900 bg-slate-950 py-6 text-center text-xs text-slate-500 px-4">
+        <div class="max-w-7xl mx-auto flex flex-col sm:flex-row justify-between items-center gap-4">
+            <p>© 2026 Interactive Physics Lab. Designed for kinematics study and teaching demonstrations.</p>
+            <p class="flex items-center gap-1 text-slate-400">
+                <i data-lucide="heart" class="w-3.5 h-3.5 text-rose-500 fill-rose-500"></i> Math & Physics Visualization Tool
+            </p>
+        </div>
+    </footer>
+
+    <!-- Interactive JS Application -->
+    <script>
+        // Quiz Database Setup
+        const QUIZ_DATA = [
+            {
+                tag: "Dimensions & Units",
+                question: "In the lecture formula $x(t) = b t^2$, why does the constant coefficient $b$ have units of $\\text{m/s}^2$ (or $\\text{m}\\cdot\\text{s}^{-2}$)?",
+                options: [
+                    { text: "Because position $x(t)$ is in meters, and time $t^2$ is in seconds squared, requiring $b$ to cancel the seconds squared.", correct: true },
+                    { text: "Because the constant $b$ is directly equal to the speed of the runner.", correct: false },
+                    { text: "Because $b$ is a unitless constant parameter and does not need physical units.", correct: false },
+                    { text: "Because seconds and meters are interchangeable in derivative calculation spaces.", correct: false }
+                ],
+                explanation: "Correct! For the equation $x(t) = b t^2$ to balance dimensionally, the units on both sides must match. The left side is in meters $(\\text{m})$. The right side has $t^2$, which has units of $\\text{s}^2$. Therefore, $b$ must have units of $\\text{m/s}^2$ so that $(\\text{m/s}^2) \\cdot \\text{s}^2 = \\text{m}$."
+            },
+            {
+                tag: "Instantaneous Derivation",
+                question: "What mathematical technique converts the runner's quadratic position function $x(t) = b t^2$ into the linear velocity function $v(t) = 2b t$?",
+                options: [
+                    { text: "Integration over the time interval from $0$ to $t$.", correct: false },
+                    { text: "Taking the derivative with respect to time $\\frac{d}{dt}$ using the Power Rule.", correct: true },
+                    { text: "Dividing position by time directly for the average velocity $[x(t)/t]$.", correct: false },
+                    { text: "Evaluating the limit of the curve as time approaches infinity.", correct: false }
+                ],
+                explanation: "Excellent job! The instantaneous velocity is defined as the rate of change of position, which mathematically is the derivative: $v(t) = \\frac{dx}{dt}$. Applying the Power Rule: $\\frac{d}{dt}(b t^2) = b \\cdot (2t^{2-1}) = 2bt$."
+            },
+            {
+                tag: "Graphical Relationship",
+                question: "If you plot velocity $v(t)$ as a linear straight line starting at the origin, what does the slope of this line represent physically?",
+                options: [
+                    { text: "The total distance traveled by the runner over the entire trip.", correct: false },
+                    { text: "The acceleration of the runner, which has a constant value of $2b$.", correct: true },
+                    { text: "The total time elapsed since starting the movement from rest.", correct: false },
+                    { text: "The instant at which velocity reaches maximum threshold.", correct: false }
+                ],
+                explanation: "That is correct! The slope of a velocity-time graph represents acceleration. Since the line $v(t) = 2bt$ is linear, its slope is constant and equal to its derivative, which is $2b$."
+            },
+            {
+                tag: "Kinematics Analysis",
+                question: "If we double the value of our constant $b$ in this system, how does it affect the final acceleration of our runner?",
+                options: [
+                    { text: "The acceleration will remain completely unaffected since $b$ only defines position.", correct: false },
+                    { text: "The acceleration will quadruple because position depends on $t^2$.", correct: false },
+                    { text: "The acceleration will double, since acceleration $a(t) = 2b$.", correct: true },
+                    { text: "The acceleration will reduce by half because of inverse ratios.", correct: false }
+                ],
+                explanation: "Spot on! The constant acceleration value is given by the formula $a(t) = 2b$. Thus, if the coefficient $b$ is doubled, the constant acceleration value $2b$ doubles proportionally as well."
+            }
+        ];
+
+        // State variables
+        let appState = {
+            b: 1.0,               // constant parameter 'b'
+            currentTime: 0.0,     // current time value t
+            isRunning: false,     // play state
+            quizIndex: 0,         // current quiz question pointer
+            quizScore: 0,         // correct answers count
+            answered: false,      // check if active quiz question was already answered
+            rawEquation: "1.00 * b * t^2" // default custom raw formula
+        };
+
+        // Compiled math evaluation function holder
+        let compiledPosFunction = function(t, b) { return b * t * t; };
+
+        // Dynamic scale boundaries (auto-calculated to avoid chart clippings)
+        let dynamicScale = {
+            maxPos: 90.0,
+            maxVel: 30.0,
+            maxAcc: 6.0
+        };
+
+        // DOM elements
+        const sliderB = document.getElementById('slider-b');
+        const sliderTime = document.getElementById('slider-time');
+        const valB = document.getElementById('val-b');
+        const valT = document.getElementById('val-t');
+        const btnPlayPause = document.getElementById('btn-play-pause');
+        const btnReset = document.getElementById('btn-reset');
+        const playIcon = document.getElementById('play-icon');
+        const playText = document.getElementById('play-text');
+        const simTime = document.getElementById('sim-time');
+        const simPos = document.getElementById('sim-pos');
+        const simVel = document.getElementById('sim-vel');
+
+        // Formula elements
+        const equationInput = document.getElementById('equation-input');
+        const equationBadge = document.getElementById('equation-badge');
+        const equationError = document.getElementById('equation-error');
+        const latexPosExpr = document.getElementById('latex-pos-expr');
+
+        // Walkthrough indicators
+        const w_t = document.getElementById('walkthrough-t');
+        const w_b = document.getElementById('walkthrough-b');
+        const w_x = document.getElementById('walkthrough-x');
+        const w_v = document.getElementById('walkthrough-v');
+        const w_va = document.getElementById('walkthrough-v-angle');
+        const w_a = document.getElementById('walkthrough-a');
+        const w_atype = document.getElementById('walkthrough-a-type');
+
+        // Dynamic Range Labels
+        const lblMaxPos = document.getElementById('y-max-pos');
+        const lblMaxVel = document.getElementById('y-max-vel');
+        const lblMaxAcc = document.getElementById('y-max-acc');
+
+        // Canvases
+        const runnerCanvas = document.getElementById('runner-canvas');
+        const canvasPos = document.getElementById('chart-pos');
+        const canvasVel = document.getElementById('chart-vel');
+        const canvasAcc = document.getElementById('chart-acc');
+
+        // Quiz elements
+        const quizProgressText = document.getElementById('quiz-progress-text');
+        const quizProgressBar = document.getElementById('quiz-progress-bar');
+        const quizScoreLabel = document.getElementById('quiz-score');
+        const questionTag = document.getElementById('question-tag');
+        const questionText = document.getElementById('question-text');
+        const optionsGrid = document.getElementById('options-grid');
+        const feedbackPanel = document.getElementById('feedback-panel');
+        const feedbackIconContainer = document.getElementById('feedback-icon-container');
+        const feedbackTitle = document.getElementById('feedback-title');
+        const feedbackDesc = document.getElementById('feedback-desc');
+        const btnNextQuestion = document.getElementById('btn-next-question');
+        const btnQuizReset = document.getElementById('btn-quiz-reset');
+
+        const MaxTime = 6.0; // Max time in simulation seconds
+
+        // Initialize Canvas resolutions for crisp high-DPI displays
+        function setupCanvas(canvas) {
+            const rect = canvas.getBoundingClientRect();
+            const dpr = window.devicePixelRatio || 1;
+            canvas.width = rect.width * dpr;
+            canvas.height = rect.height * dpr;
+            const ctx = canvas.getContext('2d');
+            ctx.scale(dpr, dpr);
+            return ctx;
+        }
+
+        let ctxRunner = setupCanvas(runnerCanvas);
+        let ctxPos = setupCanvas(canvasPos);
+        let ctxVel = setupCanvas(canvasVel);
+        let ctxAcc = setupCanvas(canvasAcc);
+
+        // Resize Canvas dynamically
+        window.addEventListener('resize', () => {
+            ctxRunner = setupCanvas(runnerCanvas);
+            ctxPos = setupCanvas(canvasPos);
+            ctxVel = setupCanvas(canvasVel);
+            ctxAcc = setupCanvas(canvasAcc);
+            drawAll();
+        });
+
+        // --- MATH EXPRESSION PARSER & SANITIZER ---
+        function setPreset(rawExpr) {
+            equationInput.value = rawExpr;
+            processEquationInput();
+        }
+
+        function processEquationInput() {
+            const raw = equationInput.value.trim();
+            try {
+                const jsExpr = parseToJS(raw);
+                const testFunc = compileToFunction(jsExpr);
+                
+                // Test run the equation over limits to make sure no syntax/runtime errors exist
+                testFunc(0, 1.0);
+                testFunc(3.0, 1.5);
+                testFunc(6.0, 2.5);
+
+                // If successful, save state
+                appState.rawEquation = raw;
+                compiledPosFunction = testFunc;
+
+                // Adjust UI validation elements
+                equationBadge.innerHTML = `<i data-lucide="check" class="w-3 h-3"></i> Valid`;
+                equationBadge.className = "inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-2xs font-medium bg-emerald-500/10 text-emerald-400 border border-emerald-500/20";
+                equationError.classList.add('hidden');
+                
+                // Update dynamic limits of scales to support user inputs without clipping graphs
+                recalculateDynamicScales();
+                
+                // Re-render LaTeX equation label
+                latexPosExpr.textContent = `\\( x(t) = ${cleanLaTeXFormat(raw)} \\)`;
+                
+                lucide.createIcons();
+                updateFormulas();
+                drawAll();
+            } catch (err) {
+                // Show errors gracefully
+                equationBadge.innerHTML = `<i data-lucide="x" class="w-3 h-3"></i> Invalid`;
+                equationBadge.className = "inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-2xs font-medium bg-rose-500/10 text-rose-400 border border-rose-500/20";
+                equationError.classList.remove('hidden');
+                equationError.querySelector('span').textContent = `Format Error: ${err.message}`;
+                lucide.createIcons();
+            }
+        }
+
+        function parseToJS(formulaStr) {
+            let expr = formulaStr.toLowerCase().trim();
+            // Convert exponential ^ operators to standard JS power expressions
+            expr = expr.replace(/\^/g, '**');
+
+            // Regex rules to add implicit multiplication operators where omitted (e.g., 2b -> 2*b, bt -> b*t)
+            expr = expr.replace(/(\d+)([a-z\(])/g, '$1*$2');
+            expr = expr.replace(/([t|b])([t|b])/g, '$1*$2');
+            expr = expr.replace(/(\))(\()/g, '$1*$2');
+            expr = expr.replace(/(\))([a-z\d])/g, '$1*$2');
+            expr = expr.replace(/([t|b])(\()/g, '$1*$2');
+            
+            // Safe temporary obfuscation of standard JS functions to prevent accidental collision
+            const functions = ['sin', 'cos', 'tan', 'sqrt', 'exp', 'log', 'abs', 'pi'];
+            functions.forEach((f, idx) => {
+                const regex = new RegExp('\\b' + f + '\\b', 'g');
+                expr = expr.replace(regex, `__FN${idx}__`);
+            });
+
+            // Reconstruct functions using standard Math variables
+            functions.forEach((f, idx) => {
+                const replacement = f === 'pi' ? 'Math.PI' : `Math.${f}`;
+                expr = expr.replace(new RegExp(`__FN${idx}__`, 'g'), replacement);
+            });
+
+            return expr;
+        }
+
+        function compileToFunction(jsExpr) {
+            // Guardrail safety parsing - check against unauthorized JS functions or malicious scripts
+            const cleanExpr = jsExpr.replace(/Math\.(sin|cos|tan|sqrt|exp|log|abs|PI)/g, '');
+            const safeCharactersRegex = /[^tb0-9\+\-\*\/\(\)\.\s]/;
+            if (safeCharactersRegex.test(cleanExpr)) {
+                throw new Error("Contains restricted operators. Use only t, b, parameters, and standard trigonometric functions.");
+            }
+            return new Function('t', 'b', `try { 
+                let res = ${jsExpr}; 
+                return isNaN(res) || !isFinite(res) ? 0 : res;
+            } catch(e) { return 0; }`);
+        }
+
+        function cleanLaTeXFormat(raw) {
+            // Converts raw typing patterns into beautiful structured LaTeX formats
+            let out = raw.replace(/\*/g, ' \\cdot ')
+                         .replace(/\^(\w+)/g, '^{$1}')
+                         .replace(/sin/g, '\\sin')
+                         .replace(/cos/g, '\\cos')
+                         .replace(/tan/g, '\\tan')
+                         .replace(/sqrt/g, '\\sqrt')
+                         .replace(/exp/g, '\\exp')
+                         .replace(/pi/g, '\\pi');
+            return out;
+        }
+
+        // --- CALCULUS DERIVATIVE ENGINE ---
+        // Computes dynamic velocity and acceleration coordinates instantly at time step t
+        // using highly-accurate numerical symmetric difference quotients
+        function evalKinematics(t, b) {
+            const h = 0.001;
+            const xVal = compiledPosFunction(t, b);
+
+            // Symmetric differentiation for First Derivative (Velocity)
+            const xPlus = compiledPosFunction(t + h, b);
+            const xMinus = compiledPosFunction(t - h, b);
+            const vVal = (xPlus - xMinus) / (2 * h);
+
+            // Symmetric second derivative for Second Derivative (Acceleration)
+            const aVal = (xPlus - 2 * xVal + xMinus) / (h * h);
+
+            return { x: xVal, v: vVal, a: aVal };
+        }
+
+        function recalculateDynamicScales() {
+            let maxPosFound = 1.0;
+            let maxVelFound = 1.0;
+            let maxAccFound = 1.0;
+
+            // Iterate across bounds to discover maximum scaling envelopes
+            for (let step = 0; step <= 100; step++) {
+                const tempT = (step / 100) * MaxTime;
+                const physics = evalKinematics(tempT, appState.b);
+                
+                if (Math.abs(physics.x) > maxPosFound) maxPosFound = Math.abs(physics.x);
+                if (Math.abs(physics.v) > maxVelFound) maxVelFound = Math.abs(physics.v);
+                if (Math.abs(physics.a) > maxAccFound) maxAccFound = Math.abs(physics.a);
+            }
+
+            // Apply slight boundary padding (ceil ceilings)
+            dynamicScale.maxPos = maxPosFound * 1.1;
+            dynamicScale.maxVel = maxVelFound * 1.1;
+            dynamicScale.maxAcc = maxAccFound * 1.1;
+
+            // Set labels
+            lblMaxPos.textContent = `Max: ${maxPosFound.toFixed(1)}m`;
+            lblMaxVel.textContent = `Max: ${maxVelFound.toFixed(1)}m/s`;
+            lblMaxAcc.textContent = `Max: ${maxAccFound.toFixed(1)}m/s²`;
+        }
+
+        // Event Listeners for Controls
+        equationInput.addEventListener('input', processEquationInput);
+
+        sliderB.addEventListener('input', (e) => {
+            appState.b = parseFloat(e.target.value);
+            valB.textContent = appState.b.toFixed(2);
+            recalculateDynamicScales();
+            updateFormulas();
+            drawAll();
+        });
+
+        sliderTime.addEventListener('input', (e) => {
+            appState.currentTime = parseFloat(e.target.value);
+            // If running, pause when user manually scrubs
+            if (appState.isRunning) {
+                togglePlay(false);
+            }
+            updateTimeDisplay();
+            drawAll();
+        });
+
+        btnPlayPause.addEventListener('click', () => {
+            togglePlay(!appState.isRunning);
+        });
+
+        btnReset.addEventListener('click', () => {
+            togglePlay(false);
+            appState.currentTime = 0;
+            sliderTime.value = 0;
+            updateTimeDisplay();
+            drawAll();
+        });
+
+        function togglePlay(shouldPlay) {
+            appState.isRunning = shouldPlay;
+            if (shouldPlay) {
+                playIcon.setAttribute('data-lucide', 'pause');
+                playText.textContent = "Pause Simulator";
+                lastFrameTime = performance.now();
+                requestAnimationFrame(simLoop);
+            } else {
+                playIcon.setAttribute('data-lucide', 'play');
+                playText.textContent = "Run Simulation";
+            }
+            lucide.createIcons(); // Re-render icons
+        }
+
+        // Animation Loop Variables
+        let lastFrameTime = 0;
+        function simLoop(now) {
+            if (!appState.isRunning) return;
+            
+            const deltaSec = (now - lastFrameTime) / 1000;
+            lastFrameTime = now;
+
+            // Speed multiplier: 0.5x makes it easier to track visually
+            appState.currentTime += deltaSec * 0.7;
+
+            if (appState.currentTime >= MaxTime) {
+                appState.currentTime = MaxTime;
+                togglePlay(false); // Stop when limits reached
+            }
+
+            sliderTime.value = appState.currentTime.toFixed(2);
+            updateTimeDisplay();
+            drawAll();
+
+            if (appState.isRunning) {
+                requestAnimationFrame(simLoop);
+            }
+        }
+
+        function updateTimeDisplay() {
+            valT.textContent = `${appState.currentTime.toFixed(2)} s`;
+            simTime.textContent = appState.currentTime.toFixed(2);
+
+            // Compute dynamics
+            const kinematics = evalKinematics(appState.currentTime, appState.b);
+
+            simPos.textContent = kinematics.x.toFixed(2);
+            simVel.textContent = kinematics.v.toFixed(2);
+
+            // Update interactive walkthrough panel data
+            w_t.textContent = appState.currentTime.toFixed(2);
+            w_b.textContent = appState.b.toFixed(2);
+            w_x.textContent = kinematics.x.toFixed(2);
+            w_v.textContent = kinematics.v.toFixed(2);
+            w_a.textContent = kinematics.a.toFixed(2);
+
+            // Trigonometric angle slope of the tangent curve
+            const tangentAngleDeg = Math.atan(kinematics.v) * (180 / Math.PI);
+            w_va.textContent = `${tangentAngleDeg.toFixed(1)}°`;
+
+            // Classify current curve acceleration dynamics
+            if (Math.abs(kinematics.a) < 0.05) {
+                w_atype.textContent = "Zero / Uniform Motion";
+                w_atype.className = "text-slate-400 font-bold";
+            } else if (kinematics.a > 0) {
+                w_atype.textContent = "Positive Acceleration";
+                w_atype.className = "text-emerald-400 font-bold";
+            } else {
+                w_atype.textContent = "Negative Deceleration";
+                w_atype.className = "text-rose-400 font-bold";
+            }
+        }
+
+        function updateFormulas() {
+            if (window.MathJax) {
+                MathJax.typesetPromise();
+            }
+        }
+
+        // --- DRAWING FUNCTIONS ---
+
+        function drawAll() {
+            drawRunnerCanvas();
+            drawPosPlot();
+            drawVelPlot();
+            drawAccPlot();
+        }
+
+        function drawRunnerCanvas() {
+            const w = runnerCanvas.width / (window.devicePixelRatio || 1);
+            const h = runnerCanvas.height / (window.devicePixelRatio || 1);
+            ctxRunner.clearRect(0, 0, w, h);
+
+            // Draw clean background grid lines
+            ctxRunner.strokeStyle = '#1e293b';
+            ctxRunner.lineWidth = 1;
+            for(let gridX = 40; gridX < w; gridX += 40) {
+                ctxRunner.beginPath();
+                ctxRunner.moveTo(gridX, 0);
+                ctxRunner.lineTo(gridX, h);
+                ctxRunner.stroke();
+            }
+
+            // Track Ground Line
+            const groundY = h - 45;
+            ctxRunner.strokeStyle = '#475569';
+            ctxRunner.lineWidth = 2;
+            ctxRunner.beginPath();
+            ctxRunner.moveTo(20, groundY);
+            ctxRunner.lineTo(w - 20, groundY);
+            ctxRunner.stroke();
+
+            // Track labels and tick marks
+            ctxRunner.fillStyle = '#64748b';
+            ctxRunner.font = '10px "JetBrains Mono", monospace';
+            ctxRunner.textAlign = 'center';
+
+            const startX = 50;
+            const endX = w - 50;
+            const trackWidth = endX - startX;
+
+            for (let i = 0; i <= 10; i++) {
+                const tickX = startX + (trackWidth * (i / 10));
+                ctxRunner.beginPath();
+                ctxRunner.moveTo(tickX, groundY);
+                ctxRunner.lineTo(tickX, groundY + 5);
+                ctxRunner.stroke();
+
+                // Draw distance meters based on calculated dynamic maximum ranges
+                const distanceVal = (dynamicScale.maxPos * (i / 10)).toFixed(0);
+                ctxRunner.fillText(`${distanceVal}m`, tickX, groundY + 18);
+            }
+
+            // Draw start indicator line (O)
+            ctxRunner.fillStyle = '#6366f1';
+            ctxRunner.font = 'bold 12px "JetBrains Mono", sans-serif';
+            ctxRunner.fillText('Origin (0m)', startX, groundY - 25);
+
+            // Calculate Position
+            const kinematics = evalKinematics(appState.currentTime, appState.b);
+            const currentXVal = kinematics.x;
+            
+            // Map dynamic positions to runner coordinate boundaries safely
+            const normalizedPos = dynamicScale.maxPos !== 0 ? currentXVal / dynamicScale.maxPos : 0; 
+            const runnerX = startX + trackWidth * Math.min(Math.max(normalizedPos, 0), 1);
+
+            // Physical Constants for Figure
+            const rY = groundY;
+            const currentV = kinematics.v;
+
+            // Runner body geometry
+            const torsoH = 24;
+            const headR = 7;
+            const hipsY = rY - 22; 
+            const forwardLean = Math.min(currentV * 1.2, 12); // Dynamic tilt proportional to speed
+            const headY = hipsY - torsoH - headR + 2;
+
+            // STRIDE MOTION: Oscillations calculated dynamically based on accumulated positions
+            const strideScale = 0.65; 
+            const phase1 = currentXVal * strideScale;
+            const phase2 = phase1 + Math.PI;
+
+            ctxRunner.lineWidth = 3.5;
+            ctxRunner.lineCap = 'round';
+            ctxRunner.lineJoin = 'round';
+
+            // --- DRAW LIMBS (Legs) ---
+            // Leg 2 (Far side leg - rendered behind/deeper indigo for visual depth)
+            const knee2X = runnerX + Math.sin(phase2) * 8;
+            const knee2Y = hipsY + 12 + Math.cos(phase2) * 3;
+            const lift2 = Math.max(0, Math.sin(phase2)) * 6; // Lift feet off ground gracefully during swing phases
+            const foot2X = knee2X + Math.sin(phase2 - 0.4) * 8;
+            const foot2Y = rY - lift2;
+
+            ctxRunner.strokeStyle = '#4f46e5'; // Background leg
+            ctxRunner.beginPath();
+            ctxRunner.moveTo(runnerX, hipsY);
+            ctxRunner.lineTo(knee2X, knee2Y);
+            ctxRunner.lineTo(foot2X, foot2Y);
+            ctxRunner.stroke();
+
+            // Leg 1 (Near side leg - rendered in front / lighter indigo)
+            const knee1X = runnerX + Math.sin(phase1) * 8;
+            const knee1Y = hipsY + 12 + Math.cos(phase1) * 3;
+            const lift1 = Math.max(0, Math.sin(phase1)) * 6; 
+            const foot1X = knee1X + Math.sin(phase1 - 0.4) * 8;
+            const foot1Y = rY - lift1;
+
+            ctxRunner.strokeStyle = '#818cf8'; // Foreground leg
+            ctxRunner.beginPath();
+            ctxRunner.moveTo(runnerX, hipsY);
+            ctxRunner.lineTo(knee1X, knee1Y);
+            ctxRunner.lineTo(foot1X, foot1Y);
+            ctxRunner.stroke();
+
+            // --- DRAW TORSO & HEAD ---
+            ctxRunner.strokeStyle = '#818cf8';
+            ctxRunner.beginPath();
+            ctxRunner.moveTo(runnerX, hipsY);
+            ctxRunner.lineTo(runnerX + forwardLean, hipsY - torsoH);
+            ctxRunner.stroke();
+
+            // Head
+            ctxRunner.fillStyle = '#c7d2fe';
+            ctxRunner.beginPath();
+            ctxRunner.arc(runnerX + forwardLean, headY, headR, 0, Math.PI * 2);
+            ctxRunner.fill();
+            ctxRunner.strokeStyle = '#818cf8';
+            ctxRunner.stroke();
+
+            // --- DRAW LIMBS (Arms) ---
+            const shoulderX = runnerX + forwardLean;
+            const shoulderY = hipsY - torsoH + 4;
+
+            // Arm 2 (Far side arm - swings with Leg 1/phase1)
+            const elbow2X = shoulderX - 4 + Math.cos(phase1) * 7;
+            const elbow2Y = shoulderY + 8 + Math.sin(phase1) * 3;
+            const hand2X = elbow2X + 5 + Math.cos(phase1 - 0.5) * 5;
+            const hand2Y = elbow2Y + 3;
+
+            ctxRunner.strokeStyle = '#4f46e5'; // Background arm
+            ctxRunner.beginPath();
+            ctxRunner.moveTo(shoulderX, shoulderY);
+            ctxRunner.lineTo(elbow2X, elbow2Y);
+            ctxRunner.lineTo(hand2X, hand2Y);
+            ctxRunner.stroke();
+
+            // Arm 1 (Near side arm - swings with Leg 2/phase2)
+            const elbow1X = shoulderX - 4 + Math.cos(phase2) * 7;
+            const elbow1Y = shoulderY + 8 + Math.sin(phase2) * 3;
+            const hand1X = elbow1X + 5 + Math.cos(phase2 - 0.5) * 5;
+            const hand1Y = elbow1Y + 3;
+
+            ctxRunner.strokeStyle = '#818cf8'; // Foreground arm
+            ctxRunner.beginPath();
+            ctxRunner.moveTo(shoulderX, shoulderY);
+            ctxRunner.lineTo(elbow1X, elbow1Y);
+            ctxRunner.lineTo(hand1X, hand1Y);
+            ctxRunner.stroke();
+
+            // Motion trail lines behind the runner
+            if (Math.abs(currentV) > 1) {
+                ctxRunner.strokeStyle = 'rgba(129, 140, 248, 0.2)';
+                ctxRunner.lineWidth = 1.5;
+                for (let i = 1; i <= 3; i++) {
+                    const offset = i * (Math.abs(currentV) * 0.8) * Math.sign(currentV);
+                    ctxRunner.beginPath();
+                    ctxRunner.moveTo(runnerX - offset, hipsY + 2);
+                    ctxRunner.lineTo(runnerX - offset - 12 * Math.sign(currentV), hipsY + 2);
+                    ctxRunner.stroke();
+                }
+            }
+
+            // Draw coordinate vectors (Purple position vector)
+            ctxRunner.strokeStyle = '#c084fc'; 
+            ctxRunner.lineWidth = 2;
+            ctxRunner.beginPath();
+            ctxRunner.moveTo(startX, groundY - 50);
+            ctxRunner.lineTo(runnerX, groundY - 50);
+            ctxRunner.stroke();
+            // Arrowhead
+            ctxRunner.beginPath();
+            ctxRunner.moveTo(runnerX - 6, groundY - 54);
+            ctxRunner.lineTo(runnerX, groundY - 50);
+            ctxRunner.lineTo(runnerX - 6, groundY - 46);
+            ctxRunner.stroke();
+
+            ctxRunner.fillStyle = '#e9d5ff';
+            ctxRunner.font = 'italic 11px sans-serif';
+            ctxRunner.fillText('r(t) / x(t)', (startX + runnerX)/2, groundY - 56);
+        }
+
+        function drawPosPlot() {
+            const w = canvasPos.width / (window.devicePixelRatio || 1);
+            const h = canvasPos.height / (window.devicePixelRatio || 1);
+            ctxPos.clearRect(0, 0, w, h);
+
+            const padding = 18;
+            const plotW = w - padding * 2;
+            const plotH = h - padding * 1.5;
+
+            // Draw Axes
+            ctxPos.strokeStyle = '#334155';
+            ctxPos.lineWidth = 1.5;
+            ctxPos.beginPath();
+            ctxPos.moveTo(padding, padding);
+            ctxPos.lineTo(padding, h - padding);
+            ctxPos.lineTo(w - padding, h - padding);
+            ctxPos.stroke();
+
+            // Plot curve
+            ctxPos.strokeStyle = '#f59e0b'; 
+            ctxPos.lineWidth = 2.5;
+            ctxPos.beginPath();
+
+            for (let pixelX = 0; pixelX <= plotW; pixelX++) {
+                const t = (pixelX / plotW) * MaxTime;
+                const dynamics = evalKinematics(t, appState.b);
+                const xVal = dynamics.x;
+                
+                // Normalizing position dynamically
+                const normY = dynamicScale.maxPos !== 0 ? xVal / dynamicScale.maxPos : 0;
+                const pixelY = (h - padding) - (normY * plotH);
+
+                if (pixelX === 0) {
+                    ctxPos.moveTo(padding + pixelX, pixelY);
+                } else {
+                    ctxPos.lineTo(padding + pixelX, pixelY);
+                }
+            }
+            ctxPos.stroke();
+
+            // Current state coordinate tracking bubble
+            const currentT = appState.currentTime;
+            const currentXVal = evalKinematics(currentT, appState.b).x;
+            const plotX = padding + (currentT / MaxTime) * plotW;
+            const plotY = (h - padding) - (dynamicScale.maxPos !== 0 ? (currentXVal / dynamicScale.maxPos) : 0) * plotH;
+
+            // Draw coordinates
+            ctxPos.fillStyle = '#f59e0b';
+            ctxPos.beginPath();
+            ctxPos.arc(plotX, plotY, 4.5, 0, Math.PI*2);
+            ctxPos.fill();
+
+            // Label axes
+            ctxPos.fillStyle = '#94a3b8';
+            ctxPos.font = '9px sans-serif';
+            ctxPos.fillText('t', w - 10, h - 5);
+            ctxPos.fillText('x', 5, 12);
+        }
+
+        function drawVelPlot() {
+            const w = canvasVel.width / (window.devicePixelRatio || 1);
+            const h = canvasVel.height / (window.devicePixelRatio || 1);
+            ctxVel.clearRect(0, 0, w, h);
+
+            const padding = 18;
+            const plotW = w - padding * 2;
+            const plotH = h - padding * 1.5;
+
+            // Draw Axes
+            ctxVel.strokeStyle = '#334155';
+            ctxVel.lineWidth = 1.5;
+            ctxVel.beginPath();
+            ctxVel.moveTo(padding, padding);
+            ctxVel.lineTo(padding, h - padding);
+            ctxVel.lineTo(w - padding, h - padding);
+            ctxVel.stroke();
+
+            // Plot velocity curves
+            ctxVel.strokeStyle = '#10b981'; 
+            ctxVel.lineWidth = 2.5;
+            ctxVel.beginPath();
+
+            for (let pixelX = 0; pixelX <= plotW; pixelX++) {
+                const t = (pixelX / plotW) * MaxTime;
+                const vVal = evalKinematics(t, appState.b).v;
+                
+                const normY = dynamicScale.maxVel !== 0 ? vVal / dynamicScale.maxVel : 0;
+                const pixelY = (h - padding) - (normY * plotH);
+
+                if (pixelX === 0) {
+                    ctxVel.moveTo(padding + pixelX, pixelY);
+                } else {
+                    ctxVel.lineTo(padding + pixelX, pixelY);
+                }
+            }
+            ctxVel.stroke();
+
+            // Dynamic Tangent / Slope markers
+            const currentT = appState.currentTime;
+            const currentVVal = evalKinematics(currentT, appState.b).v;
+            const plotX = padding + (currentT / MaxTime) * plotW;
+            const plotY = (h - padding) - (dynamicScale.maxVel !== 0 ? (currentVVal / dynamicScale.maxVel) : 0) * plotH;
+
+            // Slope dynamic lines
+            ctxVel.strokeStyle = 'rgba(16, 185, 129, 0.3)';
+            ctxVel.lineWidth = 1;
+            ctxVel.beginPath();
+            ctxVel.moveTo(plotX, h - padding);
+            ctxVel.lineTo(plotX, plotY);
+            ctxVel.lineTo(padding, plotY);
+            ctxVel.stroke();
+
+            // Current state point
+            ctxVel.fillStyle = '#10b981';
+            ctxVel.beginPath();
+            ctxVel.arc(plotX, plotY, 4.5, 0, Math.PI*2);
+            ctxVel.fill();
+
+            // Label axes
+            ctxVel.fillStyle = '#94a3b8';
+            ctxVel.font = '9px sans-serif';
+            ctxVel.fillText('t', w - 10, h - 5);
+            ctxVel.fillText('v', 5, 12);
+        }
+
+        function drawAccPlot() {
+            const w = canvasAcc.width / (window.devicePixelRatio || 1);
+            const h = canvasAcc.height / (window.devicePixelRatio || 1);
+            ctxAcc.clearRect(0, 0, w, h);
+
+            const padding = 18;
+            const plotW = w - padding * 2;
+            const plotH = h - padding * 1.5;
+
+            // Draw Axes
+            ctxAcc.strokeStyle = '#334155';
+            ctxAcc.lineWidth = 1.5;
+            ctxAcc.beginPath();
+            ctxAcc.moveTo(padding, padding);
+            ctxAcc.lineTo(padding, h - padding);
+            ctxAcc.lineTo(w - padding, h - padding);
+            ctxAcc.stroke();
+
+            // Plot acceleration curve values
+            ctxAcc.strokeStyle = '#3b82f6'; 
+            ctxAcc.lineWidth = 2.5;
+            ctxAcc.beginPath();
+
+            for (let pixelX = 0; pixelX <= plotW; pixelX++) {
+                const t = (pixelX / plotW) * MaxTime;
+                const aVal = evalKinematics(t, appState.b).a;
+                
+                const normY = dynamicScale.maxAcc !== 0 ? aVal / dynamicScale.maxAcc : 0;
+                const pixelY = (h - padding) - (normY * plotH);
+
+                if (pixelX === 0) {
+                    ctxAcc.moveTo(padding + pixelX, pixelY);
+                } else {
+                    ctxAcc.lineTo(padding + pixelX, pixelY);
+                }
+            }
+            ctxAcc.stroke();
+
+            // Tracker
+            const currentT = appState.currentTime;
+            const currentAVal = evalKinematics(currentT, appState.b).a;
+            const plotX = padding + (currentT / MaxTime) * plotW;
+            const plotY = (h - padding) - (dynamicScale.maxAcc !== 0 ? (currentAVal / dynamicScale.maxAcc) : 0) * plotH;
+
+            ctxAcc.fillStyle = '#3b82f6';
+            ctxAcc.beginPath();
+            ctxAcc.arc(plotX, plotY, 4.5, 0, Math.PI*2);
+            ctxAcc.fill();
+
+            // Label axes
+            ctxAcc.fillStyle = '#94a3b8';
+            ctxAcc.font = '9px sans-serif';
+            ctxAcc.fillText('t', w - 10, h - 5);
+            ctxAcc.fillText('a', 5, 12);
+        }
+
+        // --- INTERACTIVE STUDY QUIZ ENGINE ---
+
+        function loadQuestion() {
+            const currentQuiz = QUIZ_DATA[appState.quizIndex];
+            appState.answered = false;
+
+            // Set progress
+            quizProgressText.textContent = `${appState.quizIndex + 1} of ${QUIZ_DATA.length}`;
+            const pct = ((appState.quizIndex + 1) / QUIZ_DATA.length) * 100;
+            quizProgressBar.style.width = `${pct}%`;
+
+            // Reset quiz text
+            questionTag.textContent = currentQuiz.tag;
+            questionText.textContent = currentQuiz.question;
+
+            // Render options
+            optionsGrid.innerHTML = '';
+            currentQuiz.options.forEach((opt, index) => {
+                const btn = document.createElement('button');
+                btn.className = "w-full text-left p-4 rounded-xl border border-slate-800 bg-slate-900/60 hover:bg-slate-800/80 hover:border-slate-700 transition duration-200 flex items-start gap-3 group";
+                btn.innerHTML = `
+                    <span class="w-6 h-6 rounded-full bg-slate-800 border border-slate-700 text-slate-400 group-hover:border-indigo-500 group-hover:text-indigo-400 font-bold flex items-center justify-center text-xs shrink-0 transition">
+                        ${String.fromCharCode(65 + index)}
+                    </span>
+                    <span class="text-xs sm:text-sm text-slate-200 font-medium group-hover:text-white transition">${opt.text}</span>
+                `;
+                btn.addEventListener('click', () => handleOptionClick(index, btn));
+                optionsGrid.appendChild(btn);
+            });
+
+            // Hide/Reset controls
+            feedbackPanel.classList.add('hidden');
+            btnNextQuestion.classList.add('hidden');
+            btnQuizReset.classList.add('hidden');
+
+            // Force Mathjax rendering of equations inside questions/answers
+            if (window.MathJax) {
+                MathJax.typesetPromise();
+            }
+        }
+
+        function handleOptionClick(selectedIndex, optionButton) {
+            if (appState.answered) return; // Allow only one selection per turn
+            appState.answered = true;
+
+            const currentQuiz = QUIZ_DATA[appState.quizIndex];
+            const selectedOpt = currentQuiz.options[selectedIndex];
+            
+            // Highlight incorrect options in red, and correct one in green
+            const children = optionsGrid.children;
+            for (let i = 0; i < children.length; i++) {
+                const child = children[i];
+                const letterBubble = child.querySelector('span');
+                
+                if (currentQuiz.options[i].correct) {
+                    // Correct styling
+                    child.className = "w-full text-left p-4 rounded-xl border border-emerald-500/30 bg-emerald-950/20 flex items-start gap-3";
+                    letterBubble.className = "w-6 h-6 rounded-full bg-emerald-500 text-white font-bold flex items-center justify-center text-xs shrink-0";
+                } else if (i === selectedIndex) {
+                    // Selected incorrect styling
+                    child.className = "w-full text-left p-4 rounded-xl border border-rose-500/30 bg-rose-950/20 flex items-start gap-3";
+                    letterBubble.className = "w-6 h-6 rounded-full bg-rose-500 text-white font-bold flex items-center justify-center text-xs shrink-0";
+                } else {
+                    // Inactive option styling
+                    child.className = "w-full text-left p-4 rounded-xl border border-slate-900 bg-slate-950 opacity-40 flex items-start gap-3";
+                    letterBubble.className = "w-6 h-6 rounded-full bg-slate-800 text-slate-500 font-bold flex items-center justify-center text-xs shrink-0";
+                }
+            }
+
+            // Record scores
+            if (selectedOpt.correct) {
+                appState.quizScore++;
+                showFeedback(true, currentQuiz.explanation);
+            } else {
+                showFeedback(false, currentQuiz.explanation);
+            }
+
+            // Update real-time score display
+            const currentScorePct = Math.round((appState.quizScore / (appState.quizIndex + 1)) * 100);
+            quizScoreLabel.textContent = `${currentScorePct}%`;
+
+            // Display controls
+            if (appState.quizIndex < QUIZ_DATA.length - 1) {
+                btnNextQuestion.classList.remove('hidden');
+            } else {
+                btnQuizReset.classList.remove('hidden');
+            }
+        }
+
+        function showFeedback(isCorrect, explanationText) {
+            feedbackPanel.classList.remove('hidden');
+            if (isCorrect) {
+                feedbackPanel.className = "p-4 rounded-xl border border-emerald-500/20 bg-emerald-950/10 flex gap-3";
+                feedbackIconContainer.className = "bg-emerald-500/20 text-emerald-400 rounded-lg p-2 h-fit";
+                feedbackIconContainer.innerHTML = `<i data-lucide="check" class="w-5 h-5"></i>`;
+                feedbackTitle.className = "font-bold text-sm text-emerald-400 mb-1";
+                feedbackTitle.textContent = "Correct Answer!";
+            } else {
+                feedbackPanel.className = "p-4 rounded-xl border border-rose-500/20 bg-rose-950/10 flex gap-3";
+                feedbackIconContainer.className = "bg-rose-500/20 text-rose-400 rounded-lg p-2 h-fit";
+                feedbackIconContainer.innerHTML = `<i data-lucide="x" class="w-5 h-5"></i>`;
+                feedbackTitle.className = "font-bold text-sm text-rose-400 mb-1";
+                feedbackTitle.textContent = "Incorrect Selection";
+            }
+            feedbackDesc.textContent = explanationText;
+            lucide.createIcons();
+
+            if (window.MathJax) {
+                MathJax.typesetPromise();
+            }
+        }
+
+        // Quiz Progression Actions
+        btnNextQuestion.addEventListener('click', () => {
+            appState.quizIndex++;
+            loadQuestion();
+        });
+
+        btnQuizReset.addEventListener('click', () => {
+            appState.quizIndex = 0;
+            appState.quizScore = 0;
+            quizScoreLabel.textContent = "0%";
+            loadQuestion();
+        });
+
+        // Initialize Application
+        window.onload = function() {
+            lucide.createIcons();
+            // Load starting configuration
+            processEquationInput();
+            updateTimeDisplay();
+            drawAll();
+            loadQuestion();
+        };
+    </script>
+</body>
+</html>

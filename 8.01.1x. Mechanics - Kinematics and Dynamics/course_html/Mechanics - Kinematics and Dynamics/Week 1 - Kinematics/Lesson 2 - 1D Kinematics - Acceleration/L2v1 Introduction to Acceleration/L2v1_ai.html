@@ -1,0 +1,873 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Physics of Motion: Velocity vs. Acceleration</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=Fira+Code:wght@400;500;600&family=Caveat:wght@600;700&display=swap" rel="stylesheet">
+    <style>
+        body {
+            font-family: 'Inter', sans-serif;
+        }
+        .mono-font {
+            font-family: 'Fira Code', monospace;
+        }
+        .chalkboard-font {
+            font-family: 'Caveat', cursive;
+        }
+        /* Custom scrollbar for better visual feel */
+        ::-webkit-scrollbar {
+            width: 6px;
+        }
+        ::-webkit-scrollbar-track {
+            background: #f1f5f9;
+        }
+        ::-webkit-scrollbar-thumb {
+            background: #cbd5e1;
+            border-radius: 3px;
+        }
+        ::-webkit-scrollbar-thumb:hover {
+            background: #94a3b8;
+        }
+    </style>
+</head>
+<body class="bg-slate-900 text-slate-100 min-h-screen p-4 md:p-8 selection:bg-blue-500 selection:text-white">
+
+    <header class="max-w-6xl mx-auto mb-8 border-b border-slate-800 pb-6">
+        <div class="flex flex-col md:flex-row md:items-center justify-between gap-4">
+            <div>
+                <span class="px-2.5 py-1 text-xs font-semibold bg-blue-500/10 text-blue-400 rounded-full border border-blue-500/20">MIT Physics Classroom Companion</span>
+                <h1 class="text-3xl md:text-4xl font-extrabold mt-2 tracking-tight bg-gradient-to-r from-blue-400 via-indigo-400 to-purple-400 bg-clip-text text-transparent">
+                    The Acceleration Paradox
+                </h1>
+                <p class="text-slate-400 mt-1 max-w-2xl text-sm md:text-base">
+                    Visualizing why acceleration is a highly abstract, invisible vector that never shuts off—even at absolute zero velocity.
+                </p>
+            </div>
+            <div class="flex items-center gap-2 bg-slate-800/80 border border-slate-700 p-2 rounded-xl">
+                <span class="w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></span>
+                <span class="text-xs font-semibold text-slate-300">Enhanced Sandbox & Grapher</span>
+            </div>
+        </div>
+    </header>
+
+    <main class="max-w-6xl mx-auto grid grid-cols-1 lg:grid-cols-12 gap-8">
+        
+        <div class="lg:col-span-7 flex flex-col gap-6">
+            <!-- Simulator & Real-time Graphing Canvas Card -->
+            <div class="bg-slate-800/50 border border-slate-800 rounded-2xl p-4 md:p-6 shadow-xl backdrop-blur-sm relative overflow-hidden">
+                <div class="absolute top-4 right-4 flex gap-2 z-10">
+                    <span class="px-2 py-1 bg-slate-900/95 text-slate-400 text-[10px] rounded border border-slate-700 flex items-center gap-1">
+                        <span class="w-1.5 h-1.5 rounded-full bg-rose-500"></span> Velocity (<span class="italic">v</span>)
+                    </span>
+                    <span class="px-2 py-1 bg-slate-900/95 text-slate-400 text-[10px] rounded border border-slate-700 flex items-center gap-1">
+                        <span class="w-1.5 h-1.5 rounded-full bg-blue-500"></span> Acceleration (<span class="italic">a</span>)
+                    </span>
+                </div>
+
+                <div class="flex items-center justify-between mb-4">
+                    <h2 class="text-lg font-bold text-slate-200 flex items-center gap-2">
+                        <span>🧪</span> Free Fall & Grapher Laboratory
+                    </h2>
+                    <span id="stateBadge" class="text-xs px-2.5 py-0.5 rounded-full font-medium bg-slate-700 text-slate-300">
+                        Ready
+                    </span>
+                </div>
+
+                <!-- Simulation Canvas Area - Now with Dual Visualizations -->
+                <div class="relative rounded-xl overflow-hidden bg-slate-950 border border-slate-800">
+                    <!-- Twin-Column Grid for Sandbox & Real-Time Plots -->
+                    <div class="grid grid-cols-1 md:grid-cols-2">
+                        <!-- Left Panel: Physical Sandbox -->
+                        <div class="relative border-b md:border-b-0 md:border-r border-slate-800/80">
+                            <div class="absolute top-2 left-2 bg-slate-900/80 text-[10px] text-slate-400 px-2 py-0.5 rounded uppercase font-semibold tracking-wider">Physics Sandbox</div>
+                            <canvas id="physicsCanvas" class="w-full cursor-pointer h-[320px] md:h-[380px]"></canvas>
+                        </div>
+                        <!-- Right Panel: Live Dual Kinematics Graphs -->
+                        <div class="relative bg-slate-950/40">
+                            <div class="absolute top-2 left-2 bg-slate-900/80 text-[10px] text-slate-400 px-2 py-0.5 rounded uppercase font-semibold tracking-wider">Live Scope Plotter</div>
+                            <canvas id="graphCanvas" class="w-full h-[320px] md:h-[380px]"></canvas>
+                        </div>
+                    </div>
+                    
+                    <!-- Real-time HUD overlay -->
+                    <div class="absolute bottom-4 left-4 right-4 bg-slate-900/95 border border-slate-800/80 p-3 rounded-xl grid grid-cols-3 gap-2 text-center text-xs backdrop-blur-md">
+                        <div>
+                            <div class="text-slate-500 font-medium mb-0.5">Height (y)</div>
+                            <div id="hudHeight" class="mono-font text-sm font-bold text-slate-200">0.00 m</div>
+                        </div>
+                        <div class="border-x border-slate-800">
+                            <div class="text-slate-500 font-medium mb-0.5">Velocity (v)</div>
+                            <div id="hudVelocity" class="mono-font text-sm font-bold text-rose-400">0.00 m/s</div>
+                        </div>
+                        <div>
+                            <div class="text-slate-500 font-medium mb-0.5">Acceleration (a)</div>
+                            <div id="hudAccel" class="mono-font text-sm font-bold text-blue-400">-9.80 m/s²</div>
+                        </div>
+                    </div>
+
+                    <!-- Highlight box for Apex Event -->
+                    <div id="apexAlert" class="absolute inset-x-4 top-12 hidden bg-amber-500/10 border border-amber-500/30 text-amber-200 px-4 py-2.5 rounded-xl text-xs md:text-sm text-center backdrop-blur-md shadow-lg animate-bounce">
+                        💡 <strong>APEX DETECTED:</strong> Velocity is exactly <strong>0 m/s</strong>, but Acceleration is non-zero at <strong><span id="apexGravityVal">-9.8</span> m/s²</strong>!
+                    </div>
+                </div>
+
+                <!-- Interactive Parameters & Controls Dashboard -->
+                <div class="mt-6 space-y-4">
+                    <!-- Sliders -->
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-4 bg-slate-900/40 p-4 rounded-xl border border-slate-800/60">
+                        <div>
+                            <div class="flex justify-between text-xs mb-1.5">
+                                <span class="text-slate-400 font-medium">Initial Velocity (v₀)</span>
+                                <span id="v0Display" class="text-rose-400 font-bold mono-font">18 m/s</span>
+                            </div>
+                            <input id="v0Slider" type="range" min="10" max="25" value="18" class="w-full accent-blue-500 bg-slate-800 h-1.5 rounded-lg appearance-none cursor-pointer">
+                            <span class="text-[10px] text-slate-500">Determines initial height projection.</span>
+                        </div>
+                        <div>
+                            <div class="flex justify-between text-xs mb-1.5">
+                                <span class="text-slate-400 font-medium">Choose Environment (g)</span>
+                                <span id="gDisplay" class="text-blue-400 font-bold mono-font">Earth (-9.8 m/s²)</span>
+                            </div>
+                            <select id="envSelect" class="w-full bg-slate-800 border border-slate-700 text-slate-200 rounded-lg p-1 text-xs focus:ring-1 focus:ring-blue-500 outline-none">
+                                <option value="9.8">Earth (g = 9.8 m/s²)</option>
+                                <option value="1.62">Moon (g = 1.62 m/s²)</option>
+                                <option value="3.71">Mars (g = 3.71 m/s²)</option>
+                                <option value="24.79">Jupiter (g = 24.79 m/s²)</option>
+                                <option value="0">Zero Gravity (g = 0 m/s²)</option>
+                            </select>
+                            <span class="text-[10px] text-slate-500">Modifies the gravitational downward force vector.</span>
+                        </div>
+                    </div>
+
+                    <!-- Sandbox Toggles & Control Buttons -->
+                    <div class="flex flex-col sm:flex-row gap-3 items-stretch sm:items-center justify-between pt-2">
+                        <!-- Playback Controls -->
+                        <div class="flex flex-wrap gap-2 items-center">
+                            <button id="tossBtn" class="flex-1 sm:flex-none px-6 py-2.5 bg-blue-600 hover:bg-blue-500 active:scale-95 text-white text-sm font-semibold rounded-xl transition shadow-lg shadow-blue-900/30 flex items-center justify-center gap-2">
+                                <svg class="w-4 h-4" fill="currentColor" viewBox="0 0 24 24"><path d="M8 5v14l11-7z"/></svg> Toss Marker
+                            </button>
+                            <button id="pausePlayBtn" class="px-3 py-2.5 bg-slate-800 hover:bg-slate-700 text-slate-300 text-sm rounded-xl border border-slate-700 flex items-center justify-center gap-1 disabled:opacity-50" disabled>
+                                <span id="pausePlayIcon">⏸</span> <span class="hidden sm:inline">Pause</span>
+                            </button>
+                            <button id="stepBtn" class="px-3 py-2.5 bg-slate-800 hover:bg-slate-700 text-slate-300 text-xs rounded-xl border border-slate-700 flex items-center justify-center gap-1 disabled:opacity-50" disabled>
+                                ⏭ <span class="hidden sm:inline">Step (0.05s)</span>
+                            </button>
+                            <button id="resetBtn" class="px-3.5 py-2.5 bg-slate-800 hover:bg-slate-700 text-slate-300 text-sm rounded-xl border border-slate-700 flex items-center justify-center">
+                                🔄 <span class="hidden sm:inline ml-1">Reset</span>
+                            </button>
+                        </div>
+
+                        <!-- Special Physics Toggles -->
+                        <div class="flex items-center gap-4 bg-slate-800/40 px-3 py-2 rounded-xl border border-slate-800/80">
+                            <label class="relative inline-flex items-center cursor-pointer">
+                                <input id="autoPauseToggle" type="checkbox" checked class="sr-only peer">
+                                <div class="w-9 h-5 bg-slate-700 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-slate-300 after:border after:rounded-full after:h-4 after:w-4 after:transition-all peer-checked:bg-amber-500"></div>
+                                <span class="ml-2 text-[11px] font-medium text-slate-300 whitespace-nowrap">Auto-Pause at Apex</span>
+                            </label>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="lg:col-span-5 flex flex-col gap-6">
+            <!-- Dynamic Virtual Chalkboard Card (Exact Blackboard replication from user's image) -->
+            <div class="bg-slate-950 border-4 border-slate-700 rounded-2xl p-6 shadow-2xl relative overflow-hidden">
+                <div class="absolute inset-0 bg-gradient-to-br from-slate-900 via-slate-950 to-slate-950 opacity-90"></div>
+                <!-- Chalkboard Texture/Lines -->
+                <div class="absolute inset-0 bg-[radial-gradient(#1e293b_1px,transparent_1px)] [background-size:16px_16px] opacity-20"></div>
+                
+                <div class="relative z-10">
+                    <div class="flex items-center justify-between border-b border-dashed border-slate-800 pb-3 mb-4">
+                        <span class="text-xs font-semibold text-slate-500 uppercase tracking-widest uppercase">MIT Lecture Blackboard notes</span>
+                        <span class="px-2 py-0.5 text-[10px] bg-sky-950 text-sky-400 rounded-full border border-sky-900 font-semibold">F = ma Proof</span>
+                    </div>
+
+                    <!-- Blackboard Text mimicking image_2341f2.png -->
+                    <div class="space-y-4 chalkboard-font text-sky-200 text-2xl tracking-wide select-none">
+                        <p class="text-slate-400 text-lg uppercase tracking-wider chalkboard-font mb-1">Mathematical Derivation:</p>
+                        
+                        <div class="pl-2">
+                            <span class="text-sky-100">object in free fall</span><br>
+                            <span class="text-slate-400 text-xl pl-4">(under the influence of the gravitational force)</span>
+                        </div>
+
+                        <!-- Division box matching blackboard writing style exactly -->
+                        <div class="my-6 border border-slate-800 bg-slate-900/40 rounded-xl p-4 shadow-inner">
+                            <div class="grid grid-cols-2 text-center text-3xl font-bold py-2 relative">
+                                <!-- Vertical divider -->
+                                <div class="absolute inset-y-0 left-1/2 w-[2px] bg-sky-500/30"></div>
+                                
+                                <!-- Top row -->
+                                <div class="pb-3 border-b-2 border-sky-500/30 pr-2">
+                                    <span class="relative">
+                                        F<sup class="absolute -top-3 left-1 text-sm">→</sup><sub class="text-lg">grav</sub>
+                                    </span>
+                                </div>
+                                <div class="pb-3 border-b-2 border-sky-500/30 pl-2">
+                                    <span>m</span><span class="relative ml-1">a<sup class="absolute -top-3 left-0.5 text-sm">→</sup></span>
+                                </div>
+                                
+                                <!-- Bottom row -->
+                                <div class="pt-3 pr-2 text-rose-400 text-2xl">
+                                    non-zero
+                                </div>
+                                <div class="pt-3 pl-2 text-blue-400 text-2xl flex items-center justify-center gap-1">
+                                    <span>⟹</span> <span>non-zero</span>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Narrative quote -->
+                        <div class="text-base text-slate-400 italic chalkboard-font border-l-2 border-slate-800 pl-3 py-1">
+                            "When this object was at the top of its motion, I didn't turn the Earth off. Therefore, if the gravitational force is non-zero, the acceleration must be non-zero."
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Conceptual Comparison Cards -->
+            <div class="bg-slate-800/50 border border-slate-800 rounded-2xl p-6 shadow-xl backdrop-blur-sm">
+                <h3 class="text-lg font-bold text-slate-200 mb-4 flex items-center gap-2">
+                    <span>🧠</span> Perception vs. Reality Check
+                </h3>
+                
+                <div class="space-y-4">
+                    <div class="p-3 bg-slate-900/60 rounded-xl border border-slate-800/80">
+                        <span class="text-[10px] font-bold text-rose-400 tracking-wider uppercase block mb-1">How our eyes view it</span>
+                        <p class="text-xs text-slate-300 leading-relaxed">
+                            Our retinas register motion displacements. Because the object stops moving momentarily at its peak, our mind tricks us into believing acceleration pauses alongside velocity.
+                        </p>
+                    </div>
+
+                    <div class="p-3 bg-slate-900/60 rounded-xl border border-slate-800/80">
+                        <span class="text-[10px] font-bold text-blue-400 tracking-wider uppercase block mb-1">Is Acceleration Constant or Polynomial?</span>
+                        <p class="text-xs text-slate-300 leading-relaxed font-semibold">
+                            It is a flat, continuous constant. Near Earth's surface, the acceleration doesn't vary with time or altitude; it remains a steady vector pointing straight down.
+                        </p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Interactive Concept Checker (Self-Assessment Quiz) -->
+            <div class="bg-slate-800/50 border border-slate-800 rounded-2xl p-6 shadow-xl backdrop-blur-sm">
+                <h3 class="text-lg font-bold text-slate-200 mb-3 flex items-center gap-2">
+                    <span>⚡</span> Physics Checkpoint
+                </h3>
+                <p class="text-xs text-slate-400 mb-4">
+                    Test your understanding of the concepts discussed in the MIT transcript.
+                </p>
+
+                <!-- Interactive Question Form -->
+                <div class="space-y-3">
+                    <div class="text-sm font-semibold text-slate-300">
+                        At the absolute peak of a vertical toss, which of the following statements is mathematically true?
+                    </div>
+                    
+                    <button onclick="checkAnswer('A')" class="quiz-option w-full p-3 bg-slate-900/60 hover:bg-slate-800 border border-slate-800 text-left text-xs rounded-xl text-slate-300 transition-all flex justify-between items-center group">
+                        <span>A) Velocity is zero and acceleration is zero because the marker is at rest.</span>
+                        <span class="status-marker opacity-0 group-hover:opacity-100 transition">❓</span>
+                    </button>
+
+                    <button onclick="checkAnswer('B')" class="quiz-option w-full p-3 bg-slate-900/60 hover:bg-slate-800 border border-slate-800 text-left text-xs rounded-xl text-slate-300 transition-all flex justify-between items-center group">
+                        <span>B) Velocity is non-zero, but acceleration is zero as gravity pauses.</span>
+                        <span class="status-marker opacity-0 group-hover:opacity-100 transition">❓</span>
+                    </button>
+
+                    <button onclick="checkAnswer('C')" class="quiz-option w-full p-3 bg-slate-900/60 hover:bg-slate-800 border border-slate-800 text-left text-xs rounded-xl text-slate-300 transition-all flex justify-between items-center group">
+                        <span>C) Velocity is zero, but acceleration remains non-zero because gravity continues pulling.</span>
+                        <span class="status-marker opacity-0 group-hover:opacity-100 transition">❓</span>
+                    </button>
+                </div>
+
+                <!-- Custom Notification feedback block -->
+                <div id="quizFeedback" class="mt-4 p-3 bg-slate-900 rounded-xl border border-slate-800 hidden text-xs transition-all duration-300">
+                    <!-- Feedback content injected dynamically -->
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <!-- Footer notes on physical constants & equations -->
+    <footer class="max-w-6xl mx-auto mt-8 border-t border-slate-800 pt-6 text-center text-slate-500 text-xs pb-12">
+        <p class="mb-2">Calculations solved using classic Newtonian kinematics equations:</p>
+        <div class="flex justify-center gap-4 text-[11px] text-slate-400 mono-font mb-4">
+            <span>v(t) = v₀ - gt</span>
+            <span>y(t) = v₀t - 0.5gt²</span>
+        </div>
+        <p>© 2026 Sandbox Interactive Laboratory. Built with Tailwind CSS and Canvas Engine.</p>
+    </footer>
+
+    <script>
+        const canvas = document.getElementById('physicsCanvas');
+        const ctx = canvas.getContext('2d');
+        const graphCanvas = document.getElementById('graphCanvas');
+        const graphCtx = graphCanvas.getContext('2d');
+        
+        // Control elements
+        const tossBtn = document.getElementById('tossBtn');
+        const pausePlayBtn = document.getElementById('pausePlayBtn');
+        const stepBtn = document.getElementById('stepBtn');
+        const resetBtn = document.getElementById('resetBtn');
+        const autoPauseToggle = document.getElementById('autoPauseToggle');
+        
+        // Display values
+        const hudHeight = document.getElementById('hudHeight');
+        const hudVelocity = document.getElementById('hudVelocity');
+        const hudAccel = document.getElementById('hudAccel');
+        
+        // Inputs
+        const v0Slider = document.getElementById('v0Slider');
+        const v0Display = document.getElementById('v0Display');
+        const envSelect = document.getElementById('envSelect');
+        const gDisplay = document.getElementById('gDisplay');
+        const stateBadge = document.getElementById('stateBadge');
+        const apexAlert = document.getElementById('apexAlert');
+        const apexGravityVal = document.getElementById('apexGravityVal');
+
+        let isRunning = false;
+        let isPaused = false;
+        let t = 0;              // Current time
+        let g = 9.8;            // Gravity variable
+        let v0 = 18;            // Initial upward launch speed
+        let y = 0;              // Ball altitude
+        let currentVelocity = 0;
+        let animationId;
+        let hasAlertedApex = false;
+
+        // Kinematics Plot history values for plotting graphs
+        let timeHistory = [];
+        let velocityHistory = [];
+        let accelHistory = [];
+
+        // Particles for apex boom
+        let particles = [];
+
+        function initCanvas() {
+            // Setup Physics Sandbox Canvas
+            const rect = canvas.getBoundingClientRect();
+            const dpr = window.devicePixelRatio || 1;
+            canvas.width = rect.width * dpr;
+            canvas.height = rect.height * dpr;
+            ctx.scale(dpr, dpr);
+
+            // Setup Plotter Canvas
+            const graphRect = graphCanvas.getBoundingClientRect();
+            graphCanvas.width = graphRect.width * dpr;
+            graphCanvas.height = graphRect.height * dpr;
+            graphCtx.scale(dpr, dpr);
+
+            draw(currentVelocity);
+            drawGraphs();
+        }
+
+        function computeMotion() {
+            if (!isRunning || isPaused) return;
+
+            // Physics calculation step (dt = 0.04)
+            const dt = 0.04;
+            
+            // Current instantaneous state
+            currentVelocity = v0 - (g * t);
+            y = (v0 * t) - (0.5 * g * Math.pow(t, 2));
+
+            // Record dynamic graphing statistics
+            if (y >= 0) {
+                timeHistory.push(t);
+                velocityHistory.push(currentVelocity);
+                accelHistory.push(-g);
+            }
+
+            // Apex detection triggers (when velocity shifts past zero)
+            const nextVelocity = v0 - (g * (t + dt));
+            if (currentVelocity >= 0 && nextVelocity < 0) {
+                // Pin directly to exact mathematical apex for visual presentation
+                y = Math.pow(v0, 2) / (2 * g);
+                currentVelocity = 0;
+                
+                triggerApexEvent();
+
+                if (autoPauseToggle.checked) {
+                    isPaused = true;
+                    pausePlayBtn.innerHTML = `<span>▶</span> <span class="hidden sm:inline">Resume</span>`;
+                    stateBadge.innerText = "Paused at Apex";
+                    stateBadge.className = "text-xs px-2.5 py-0.5 rounded-full font-medium bg-amber-500/20 text-amber-300 border border-amber-500/30";
+                }
+            }
+
+            // Impact detection at the ground
+            if (y < 0 && t > 0) {
+                y = 0;
+                currentVelocity = 0;
+                isRunning = false;
+                t = 0;
+                hasAlertedApex = false;
+                updateButtons();
+                stateBadge.innerText = "Finished";
+                stateBadge.className = "text-xs px-2.5 py-0.5 rounded-full font-medium bg-emerald-500/20 text-emerald-300 border border-emerald-500/30";
+                apexAlert.classList.add('hidden');
+            }
+
+            // Move step forward
+            if (isRunning && !isPaused) {
+                t += dt;
+            }
+
+            updateHUD();
+            draw(currentVelocity);
+            drawGraphs();
+            
+            if (isRunning) {
+                animationId = requestAnimationFrame(computeMotion);
+            }
+        }
+
+        function triggerApexEvent() {
+            if (hasAlertedApex) return;
+            hasAlertedApex = true;
+            
+            // Show alert banner above canvas
+            apexGravityVal.innerText = (-g).toFixed(2);
+            apexAlert.classList.remove('hidden');
+
+            // Spawn particles at apex position
+            const canvasLogicalWidth = canvas.width / (window.devicePixelRatio || 1);
+            const canvasLogicalHeight = canvas.height / (window.devicePixelRatio || 1);
+            const py = canvasLogicalHeight - 60 - (y * 10);
+            
+            for (let i = 0; i < 30; i++) {
+                particles.push({
+                    x: canvasLogicalWidth / 2,
+                    y: py,
+                    vx: (Math.random() - 0.5) * 8,
+                    vy: (Math.random() - 0.5) * 8,
+                    color: i % 3 === 0 ? '#f59e0b' : (i % 3 === 1 ? '#3b82f6' : '#ec4899'),
+                    life: 1.0
+                });
+            }
+        }
+
+        function updateHUD() {
+            hudHeight.innerText = y.toFixed(2) + " m";
+            hudVelocity.innerText = currentVelocity.toFixed(2) + " m/s";
+            hudAccel.innerText = (-g).toFixed(2) + " m/s²";
+        }
+
+        function draw(v) {
+            const logicalWidth = canvas.width / (window.devicePixelRatio || 1);
+            const logicalHeight = canvas.height / (window.devicePixelRatio || 1);
+            
+            ctx.clearRect(0, 0, logicalWidth, logicalHeight);
+            
+            // Draw background guidelines/grid
+            ctx.strokeStyle = '#1e293b';
+            ctx.lineWidth = 1;
+            for (let i = 40; i < logicalHeight - 40; i += 40) {
+                ctx.beginPath();
+                ctx.moveTo(30, i);
+                ctx.lineTo(logicalWidth - 30, i);
+                ctx.stroke();
+            }
+
+            // Draw Y-axis reference scale ticks
+            ctx.fillStyle = '#64748b';
+            ctx.font = '9px "Fira Code", monospace';
+            ctx.textAlign = 'right';
+            for (let heightMark = 0; heightMark <= 40; heightMark += 10) {
+                const markY = logicalHeight - 60 - (heightMark * 10);
+                if (markY > 20) {
+                    ctx.fillText(heightMark + 'm', 25, markY + 3);
+                }
+            }
+
+            // Draw Ground reference
+            ctx.beginPath();
+            ctx.strokeStyle = '#334155';
+            ctx.lineWidth = 4;
+            ctx.moveTo(15, logicalHeight - 60);
+            ctx.lineTo(logicalWidth - 15, logicalHeight - 60);
+            ctx.stroke();
+
+            // Calculate current physical rendering center
+            const cx = logicalWidth / 2;
+            const cy = logicalHeight - 60 - (y * 10); // Scale: 1 meter = 10 pixels
+
+            // Update & Render Confetti Particles
+            particles.forEach((p, idx) => {
+                p.x += p.vx;
+                p.y += p.vy;
+                p.life -= 0.02;
+                if (p.life <= 0) {
+                    particles.splice(idx, 1);
+                    return;
+                }
+                ctx.beginPath();
+                ctx.arc(p.x, p.y, 2.5, 0, Math.PI * 2);
+                ctx.fillStyle = p.color;
+                ctx.globalAlpha = p.life;
+                ctx.fill();
+                ctx.globalAlpha = 1.0;
+            });
+
+            // Path/Glow trail
+            if (isRunning && y > 0) {
+                ctx.beginPath();
+                ctx.strokeStyle = 'rgba(148, 163, 184, 0.2)';
+                ctx.setLineDash([4, 4]);
+                ctx.moveTo(cx, logicalHeight - 60);
+                ctx.lineTo(cx, cy);
+                ctx.stroke();
+                ctx.setLineDash([]); // Reset dash pattern
+            }
+
+            // Launch base
+            ctx.fillStyle = '#1e293b';
+            ctx.beginPath();
+            ctx.arc(cx, logicalHeight - 60, 20, Math.PI, 0);
+            ctx.fill();
+
+            // Draw the Object (Marker ball)
+            ctx.shadowBlur = 12;
+            ctx.shadowColor = 'rgba(59, 130, 246, 0.4)';
+            ctx.beginPath();
+            ctx.arc(cx, cy, 12, 0, Math.PI * 2);
+            ctx.fillStyle = '#3b82f6';
+            ctx.fill();
+            ctx.lineWidth = 2;
+            ctx.strokeStyle = '#e2e8f0';
+            ctx.stroke();
+            ctx.shadowBlur = 0; 
+
+            // Velocity (Rose Arrow)
+            if (v !== 0) {
+                const velArrowLength = v * 2.5; // Scalar length multiplier
+                ctx.beginPath();
+                ctx.strokeStyle = '#f43f5e'; 
+                ctx.lineWidth = 3.5;
+                ctx.lineCap = 'round';
+                ctx.moveTo(cx - 18, cy);
+                ctx.lineTo(cx - 18, cy - velArrowLength);
+                ctx.stroke();
+
+                // Draw arrowhead pointing in velocity direction
+                ctx.beginPath();
+                ctx.fillStyle = '#f43f5e';
+                const sign = Math.sign(v);
+                ctx.moveTo(cx - 22, cy - velArrowLength + (sign * 4));
+                ctx.lineTo(cx - 18, cy - velArrowLength - (sign * 5));
+                ctx.lineTo(cx - 14, cy - velArrowLength + (sign * 4));
+                ctx.fill();
+            } else if (isRunning) {
+                // Apex state: explicit indicator that v = 0
+                ctx.fillStyle = '#f43f5e';
+                ctx.font = 'bold 9px Inter';
+                ctx.textAlign = 'right';
+                ctx.fillText("v = 0 (Peak)", cx - 18, cy + 3);
+                
+                ctx.strokeStyle = '#f43f5e';
+                ctx.lineWidth = 1;
+                ctx.beginPath();
+                ctx.arc(cx - 18, cy, 4, 0, Math.PI * 2);
+                ctx.stroke();
+            }
+
+            // Gravity Acceleration (Constant Blue Arrow)
+            if (g > 0) {
+                const accArrowLength = Math.max(15, g * 2.5); // Scaled visual length
+                ctx.beginPath();
+                ctx.strokeStyle = '#3b82f6'; 
+                ctx.lineWidth = 3.5;
+                ctx.lineCap = 'round';
+                ctx.moveTo(cx + 18, cy);
+                ctx.lineTo(cx + 18, cy + accArrowLength);
+                ctx.stroke();
+
+                // Downward arrowhead
+                ctx.beginPath();
+                ctx.fillStyle = '#3b82f6';
+                ctx.moveTo(cx + 14, cy + accArrowLength - 4);
+                ctx.lineTo(cx + 18, cy + accArrowLength + 5);
+                ctx.lineTo(cx + 22, cy + accArrowLength - 4);
+                ctx.fill();
+            } else {
+                ctx.fillStyle = '#3b82f6';
+                ctx.font = 'bold 9px Inter';
+                ctx.textAlign = 'left';
+                ctx.fillText("a = 0 (0G)", cx + 18, cy + 3);
+            }
+        }
+
+        // Real-Time Graph Renderer mapping kinematics profiles
+        function drawGraphs() {
+            const w = graphCanvas.width / (window.devicePixelRatio || 1);
+            const h = graphCanvas.height / (window.devicePixelRatio || 1);
+            
+            graphCtx.clearRect(0, 0, w, h);
+
+            // Set up plot boundaries (top plot is Velocity, bottom plot is Acceleration)
+            const padding = 25;
+            const graphH = (h - (padding * 3)) / 2; // Height of each plot
+
+            // 1. Draw Plot 1: Velocity vs Time
+            const yOffset1 = padding;
+            graphCtx.fillStyle = '#0f172a';
+            graphCtx.fillRect(padding, yOffset1, w - (padding * 2), graphH);
+            
+            // Grid & Labels for Velocity Plot
+            graphCtx.strokeStyle = '#1e293b';
+            graphCtx.lineWidth = 1;
+            graphCtx.beginPath();
+            graphCtx.moveTo(padding, yOffset1 + (graphH / 2));
+            graphCtx.lineTo(w - padding, yOffset1 + (graphH / 2)); // Axis line (v = 0)
+            graphCtx.stroke();
+
+            graphCtx.fillStyle = '#94a3b8';
+            graphCtx.font = '8px "Fira Code", monospace';
+            graphCtx.textAlign = 'left';
+            graphCtx.fillText("Velocity (v) vs Time", padding + 5, yOffset1 + 12);
+            graphCtx.textAlign = 'right';
+            graphCtx.fillText("v=0", w - padding - 5, yOffset1 + (graphH / 2) + 3);
+
+            // 2. Draw Plot 2: Acceleration vs Time
+            const yOffset2 = (padding * 2) + graphH;
+            graphCtx.fillStyle = '#0f172a';
+            graphCtx.fillRect(padding, yOffset2, w - (padding * 2), graphH);
+
+            graphCtx.beginPath();
+            graphCtx.moveTo(padding, yOffset2 + (graphH / 2));
+            graphCtx.lineTo(w - padding, yOffset2 + (graphH / 2)); // Axis line (a = 0)
+            graphCtx.stroke();
+
+            graphCtx.fillStyle = '#94a3b8';
+            graphCtx.textAlign = 'left';
+            graphCtx.fillText("Acceleration (a) vs Time", padding + 5, yOffset2 + 12);
+            graphCtx.textAlign = 'right';
+            graphCtx.fillText("a=0", w - padding - 5, yOffset2 + (graphH / 2) + 3);
+
+            // Plot trails if there is history
+            if (timeHistory.length > 1) {
+                const totalT = Math.max(5, t); // Scale time limit proportionally
+                const scaleX = (w - (padding * 2)) / totalT;
+
+                // Render Velocity Line
+                graphCtx.strokeStyle = '#f43f5e';
+                graphCtx.lineWidth = 2.5;
+                graphCtx.beginPath();
+                for (let i = 0; i < timeHistory.length; i++) {
+                    const plotX = padding + (timeHistory[i] * scaleX);
+                    // Map velocity scale (-25 to +25 range)
+                    const normV = (velocityHistory[i] / 25); // Normalize to [-1, 1]
+                    const plotY = yOffset1 + (graphH / 2) - (normV * (graphH / 2) * 0.9);
+                    
+                    if (plotX <= w - padding) {
+                        if (i === 0) graphCtx.moveTo(plotX, plotY);
+                        else graphCtx.lineTo(plotX, plotY);
+                    }
+                }
+                graphCtx.stroke();
+
+                // Render Acceleration Line (Notice that it stays entirely constant, answering the transcript question!)
+                graphCtx.strokeStyle = '#3b82f6';
+                graphCtx.lineWidth = 2.5;
+                graphCtx.beginPath();
+                for (let i = 0; i < timeHistory.length; i++) {
+                    const plotX = padding + (timeHistory[i] * scaleX);
+                    // Map acceleration scale (-30 to +30 range)
+                    const normA = (accelHistory[i] / 30); // Normalize
+                    const plotY = yOffset2 + (graphH / 2) - (normA * (graphH / 2) * 0.9);
+
+                    if (plotX <= w - padding) {
+                        if (i === 0) graphCtx.moveTo(plotX, plotY);
+                        else graphCtx.lineTo(plotX, plotY);
+                    }
+                }
+                graphCtx.stroke();
+            }
+        }
+
+        tossBtn.addEventListener('click', () => {
+            if (isRunning && !isPaused) return;
+            
+            if (isPaused) {
+                isPaused = false;
+                stateBadge.innerText = "Simulating";
+                stateBadge.className = "text-xs px-2.5 py-0.5 rounded-full font-medium bg-blue-500/20 text-blue-300 border border-blue-500/30";
+                pausePlayBtn.innerHTML = `<span>⏸</span> <span class="hidden sm:inline">Pause</span>`;
+                computeMotion();
+                return;
+            }
+
+            // Reset history buffers
+            timeHistory = [];
+            velocityHistory = [];
+            accelHistory = [];
+
+            isRunning = true;
+            isPaused = false;
+            t = 0;
+            hasAlertedApex = false;
+            particles = [];
+            apexAlert.classList.add('hidden');
+            
+            v0 = parseFloat(v0Slider.value);
+            g = parseFloat(envSelect.value);
+
+            // Feed zero timestamp initial entries
+            timeHistory.push(0);
+            velocityHistory.push(v0);
+            accelHistory.push(-g);
+
+            stateBadge.innerText = "Simulating";
+            stateBadge.className = "text-xs px-2.5 py-0.5 rounded-full font-medium bg-blue-500/20 text-blue-300 border border-blue-500/30";
+            updateButtons();
+            
+            cancelAnimationFrame(animationId);
+            computeMotion();
+        });
+
+        pausePlayBtn.addEventListener('click', () => {
+            if (!isRunning) return;
+            isPaused = !isPaused;
+            if (isPaused) {
+                stateBadge.innerText = "Paused";
+                stateBadge.className = "text-xs px-2.5 py-0.5 rounded-full font-medium bg-slate-700 text-slate-300";
+                pausePlayBtn.innerHTML = `<span>▶</span> <span class="hidden sm:inline">Resume</span>`;
+            } else {
+                stateBadge.innerText = "Simulating";
+                stateBadge.className = "text-xs px-2.5 py-0.5 rounded-full font-medium bg-blue-500/20 text-blue-300 border border-blue-500/30";
+                pausePlayBtn.innerHTML = `<span>⏸</span> <span class="hidden sm:inline">Pause</span>`;
+                computeMotion();
+            }
+            updateButtons();
+        });
+
+        stepBtn.addEventListener('click', () => {
+            if (!isRunning || !isPaused) return;
+            
+            t += 0.05;
+            currentVelocity = v0 - (g * t);
+            y = (v0 * t) - (0.5 * g * Math.pow(t, 2));
+
+            timeHistory.push(t);
+            velocityHistory.push(currentVelocity);
+            accelHistory.push(-g);
+
+            if (y < 0) {
+                y = 0;
+                currentVelocity = 0;
+                isRunning = false;
+                t = 0;
+                hasAlertedApex = false;
+                apexAlert.classList.add('hidden');
+                stateBadge.innerText = "Finished";
+                stateBadge.className = "text-xs px-2.5 py-0.5 rounded-full font-medium bg-emerald-500/20 text-emerald-300 border border-emerald-500/30";
+            }
+
+            updateHUD();
+            draw(currentVelocity);
+            drawGraphs();
+            updateButtons();
+        });
+
+        resetBtn.addEventListener('click', () => {
+            cancelAnimationFrame(animationId);
+            isRunning = false;
+            isPaused = false;
+            t = 0;
+            y = 0;
+            currentVelocity = 0;
+            hasAlertedApex = false;
+            particles = [];
+            timeHistory = [];
+            velocityHistory = [];
+            accelHistory = [];
+            apexAlert.classList.add('hidden');
+            
+            g = parseFloat(envSelect.value);
+            v0 = parseFloat(v0Slider.value);
+
+            stateBadge.innerText = "Ready";
+            stateBadge.className = "text-xs px-2.5 py-0.5 rounded-full font-medium bg-slate-700 text-slate-300";
+            
+            updateHUD();
+            draw(currentVelocity);
+            drawGraphs();
+            updateButtons();
+        });
+
+        v0Slider.addEventListener('input', (e) => {
+            v0Display.innerText = e.target.value + " m/s";
+            if (!isRunning) {
+                v0 = parseFloat(e.target.value);
+            }
+        });
+
+        envSelect.addEventListener('change', (e) => {
+            const gravityVal = parseFloat(e.target.value);
+            const optText = e.target.options[e.target.selectedIndex].text;
+            gDisplay.innerText = optText.split('(')[0] + ' (-' + gravityVal + ' m/s²)';
+            g = gravityVal;
+            updateHUD();
+            if (!isRunning) {
+                draw(0);
+                drawGraphs();
+            }
+        });
+
+        function updateButtons() {
+            pausePlayBtn.disabled = !isRunning;
+            stepBtn.disabled = !(isRunning && isPaused);
+            if (!isRunning) {
+                pausePlayBtn.innerHTML = `<span>⏸</span> <span class="hidden sm:inline">Pause</span>`;
+            }
+        }
+
+        function checkAnswer(option) {
+            const feedback = document.getElementById('quizFeedback');
+            const options = document.querySelectorAll('.quiz-option');
+            
+            options.forEach(opt => {
+                opt.className = "quiz-option w-full p-3 bg-slate-900/60 border border-slate-800 text-left text-xs rounded-xl text-slate-300 transition-all flex justify-between items-center group";
+                opt.querySelector('.status-marker').innerText = "❓";
+                opt.querySelector('.status-marker').className = "status-marker opacity-0 group-hover:opacity-100 transition";
+            });
+
+            feedback.classList.remove('hidden');
+
+            let chosenIdx = option === 'A' ? 0 : option === 'B' ? 1 : 2;
+            let chosenButton = options[chosenIdx];
+
+            if (option === 'C') {
+                chosenButton.className = "quiz-option w-full p-3 bg-emerald-500/10 border-emerald-500/40 border text-left text-xs rounded-xl text-emerald-200 transition-all flex justify-between items-center";
+                chosenButton.querySelector('.status-marker').innerText = "✅ Correct!";
+                chosenButton.querySelector('.status-marker').className = "status-marker opacity-100 text-emerald-400 font-semibold";
+                
+                feedback.className = "mt-4 p-3 bg-emerald-500/10 rounded-xl border border-emerald-500/20 text-xs text-emerald-300 transition-all duration-300";
+                feedback.innerHTML = "🎯 <strong>Absolutely correct!</strong> At the apex, velocity drops instantly to 0 m/s. However, because gravity never turns off, the gravitational force (and thus acceleration) remains fully active at -9.8 m/s².";
+            } else {
+                chosenButton.className = "quiz-option w-full p-3 bg-rose-500/10 border-rose-500/40 border text-left text-xs rounded-xl text-rose-200 transition-all flex justify-between items-center";
+                chosenButton.querySelector('.status-marker').innerText = "❌ Incorrect";
+                chosenButton.querySelector('.status-marker').className = "status-marker opacity-100 text-rose-400 font-semibold";
+
+                feedback.className = "mt-4 p-3 bg-rose-500/10 rounded-xl border border-rose-500/20 text-xs text-rose-300 transition-all duration-300";
+                if (option === 'A') {
+                    feedback.innerHTML = "❌ <strong>Incorrect.</strong> If acceleration was zero at the peak, the object would stay permanently levitated in the sky! Since gravity is never turned off, acceleration stays at -9.8 m/s².";
+                } else {
+                    feedback.innerHTML = "❌ <strong>Incorrect.</strong> Velocity is exactly zero at the peak because the object shifts direction. However, gravity does not pause, meaning acceleration is active and non-zero.";
+                }
+            }
+        }
+
+        window.onload = function () {
+            initCanvas();
+            updateHUD();
+        };
+
+        window.addEventListener('resize', () => {
+            initCanvas();
+        });
+    </script>
+</body>
+</html>
