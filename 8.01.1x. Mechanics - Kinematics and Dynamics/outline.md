@@ -58,11 +58,11 @@
 
     3. Lesson 2 - 1D Kinematics - Acceleration
         1. Topics and Reading List
-        2. L2v1: Introduction to Acceleration
-        3. L2v2: Acceleration in 1D
-        4. L2WE1/L2v3: Worked Example - Acceleration from Position
+        2. [L2v1](https://engineer-e.github.io/Physics-MIT-University/8.01.1x.%20Mechanics%20-%20Kinematics%20and%20Dynamics/course_html/Mechanics%20-%20Kinematics%20and%20Dynamics/Week%201%20-%20Kinematics/Lesson%202%20-%201D%20Kinematics%20-%20Acceleration/L2v1%20Introduction%20to%20Acceleration/L2v1_ai.html): Introduction to Acceleration
+        3. [L2v2](https://engineer-e.github.io/Physics-MIT-University/8.01.1x.%20Mechanics%20-%20Kinematics%20and%20Dynamics/course_html/Mechanics%20-%20Kinematics%20and%20Dynamics/Week%201%20-%20Kinematics/Lesson%202%20-%201D%20Kinematics%20-%20Acceleration/L2v2%20Acceleration%20in%201D/L2v2_ai1.html): Acceleration in 1D
+        4. L2WE1/[L2v3](https://engineer-e.github.io/Physics-MIT-University/8.01.1x.%20Mechanics%20-%20Kinematics%20and%20Dynamics/course_html/Mechanics%20-%20Kinematics%20and%20Dynamics/Week%201%20-%20Kinematics/Lesson%202%20-%201D%20Kinematics%20-%20Acceleration/L2WE1L2v3%20Worked%20Example%20-%20Acceleration%20from%20Position/L2v3_ai1.html): Worked Example - Acceleration from Position
         5. L2Q1: Acceleration from Position
-        6. L2v4: Integration
+        6. [L2v4](https://engineer-e.github.io/Physics-MIT-University/8.01.1x.%20Mechanics%20-%20Kinematics%20and%20Dynamics/course_html/Mechanics%20-%20Kinematics%20and%20Dynamics/Week%201%20-%20Kinematics/Lesson%202%20-%201D%20Kinematics%20-%20Acceleration/L2v4%20Integration/L2v4.html): Integration
         7. List of Useful Integrals
         8. L2Q2: Integrating Acceleration
         9. L2Q3: Integrating Acceleration Graph
