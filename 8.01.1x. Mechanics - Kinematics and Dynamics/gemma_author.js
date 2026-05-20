@@ -1,0 +1,17 @@
+authors = [
+    {name = "Alek Andreev", email="alekandreev@google.com"},
+    {name = "Armand Joulin", email="ajoulin@google.com"},
+    {name = "Cassidy Hardin", email="cassidyhardin@google.com"},
+    {name = "Juliette Love", email="juliettelove@google.com"},
+    {name = "Kathleen Kenealy", email="kkenealy@google.com"},
+    {name = "Laurent Sifre", email="sifre@google.com"},
+    {name = "Léonard Hussenot", email="hussenot@google.com"},
+    {name = "Michelle Casbon", email="michellecasbon@google.com"},
+    {name = "Mihir Sanjay Kale", email="mihirkale@google.com"},
+    {name = "Morgane Riviere", email="mriviere@google.com"},
+    {name = "Ravin Kumar", email="ravink@google.com"},
+    {name = "Robert Dadashi", email="dadashi@google.com"},
+    {name = "Shreya Pathak", email="shreyapa@google.com"},
+    {name = "Surya Bhupatiraju", email="sbhupatiraju@google.com"},
+    {name = "Thomas Mesnard", email="mesnard@google.com"},
+]
