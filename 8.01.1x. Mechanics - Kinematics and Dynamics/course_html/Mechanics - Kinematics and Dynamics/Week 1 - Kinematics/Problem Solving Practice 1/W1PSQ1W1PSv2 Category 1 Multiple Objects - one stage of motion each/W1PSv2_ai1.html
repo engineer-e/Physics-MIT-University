@@ -1,0 +1,976 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>The Bullet and the Falling Apple - Interactive Physics Suite</title>
+    <!-- Tailwind CSS for high-quality UI styling -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Lucide Icons for clean, modern interface visuals -->
+    <script src="https://unpkg.com/lucide@latest"></script>
+    
+    <!-- MathJax v3 Configuration and Script for LaTeX rendering -->
+    <script>
+        window.MathJax = {
+            tex: {
+                inlineMath: [['$', '$'], ['\\(', '\\)']],
+                displayMath: [['$$', '$$'], ['\\[', '\\]']],
+                processEscapes: true
+            },
+            options: {
+                ignoreHtmlClass: 'tex2jax_ignore',
+                processHtmlClass: 'tex2jax_process'
+            },
+            svg: {
+                fontCache: 'global'
+            }
+        };
+    </script>
+    <script id="MathJax-script" async src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
+
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;700&display=swap');
+        body {
+            font-family: 'Plus Jakarta Sans', sans-serif;
+        }
+        .code-font {
+            font-family: 'JetBrains Mono', monospace;
+        }
+    </style>
+</head>
+<body class="bg-slate-950 text-slate-100 min-h-screen flex flex-col selection:bg-cyan-500 selection:text-slate-950">
+
+    <!-- HEADER -->
+    <header class="border-b border-slate-800 bg-slate-900/50 backdrop-blur sticky top-0 z-50">
+        <div class="max-w-7xl mx-auto px-4 py-4 flex flex-col md:flex-row items-center justify-between gap-4">
+            <div class="flex items-center gap-3">
+                <div class="p-2 bg-gradient-to-br from-amber-400 to-red-500 rounded-xl text-slate-950">
+                    <i data-lucide="target" class="w-6 h-6"></i>
+                </div>
+                <div>
+                    <h1 class="text-xl font-bold tracking-tight bg-gradient-to-r from-amber-400 via-orange-400 to-cyan-400 bg-clip-text text-transparent">
+                        The Falling Apple & The Bullet
+                    </h1>
+                    <p class="text-xs text-slate-400">Interactive Masterclass & Physics Simulator</p>
+                </div>
+            </div>
+            <nav class="flex gap-1 bg-slate-950 p-1 rounded-xl border border-slate-800/80">
+                <button onclick="switchTab('simulator')" id="btn-simulator" class="tab-btn px-4 py-1.5 rounded-lg text-sm font-medium transition-all bg-gradient-to-r from-cyan-500 to-blue-600 text-white shadow-lg shadow-cyan-500/10">
+                    Simulator
+                </button>
+                <button onclick="switchTab('theory')" id="btn-theory" class="tab-btn px-4 py-1.5 rounded-lg text-sm font-medium transition-all text-slate-400 hover:text-white">
+                    Theory & Algorithm
+                </button>
+                <button onclick="switchTab('memory')" id="btn-memory" class="tab-btn px-4 py-1.5 rounded-lg text-sm font-medium transition-all text-slate-400 hover:text-white">
+                    Memory Anchors
+                </button>
+                <button onclick="switchTab('quiz')" id="btn-quiz" class="tab-btn px-4 py-1.5 rounded-lg text-sm font-medium transition-all text-slate-400 hover:text-white">
+                    Quiz & Flashcards
+                </button>
+            </nav>
+        </div>
+    </header>
+
+    <main class="flex-grow max-w-7xl w-full mx-auto px-4 py-8">
+
+        <!-- TAB 1: SIMULATOR -->
+        <section id="tab-simulator" class="tab-content grid grid-cols-1 lg:grid-cols-12 gap-8">
+            <!-- Canvas Simulation Side -->
+            <div class="lg:col-span-8 flex flex-col gap-4">
+                <div class="bg-slate-900 border border-slate-800 rounded-2xl p-4 shadow-xl overflow-hidden relative">
+                    <!-- Top Status Bar -->
+                    <div class="flex justify-between items-center mb-4">
+                        <span class="text-xs font-semibold tracking-wider text-slate-400 uppercase flex items-center gap-1.5">
+                            <span class="w-2.5 h-2.5 rounded-full bg-emerald-500 animate-pulse"></span>
+                            Live Vector Space Engine
+                        </span>
+                        <div class="flex gap-2">
+                            <span class="text-xs bg-slate-950 px-2 py-1 rounded border border-slate-800 text-cyan-400 font-mono" id="time-display">t = 0.00s</span>
+                            <span class="text-xs bg-slate-950 px-2 py-1 rounded border border-slate-800 text-amber-400 font-mono" id="status-display">Ready to Fire</span>
+                        </div>
+                    </div>
+
+                    <!-- Simulator Container -->
+                    <div class="relative w-full aspect-[16/9] bg-slate-950 rounded-xl overflow-hidden border border-slate-800/60">
+                        <canvas id="simCanvas" class="w-full h-full block cursor-crosshair"></canvas>
+                        
+                        <!-- Overlay Aiming Sight Lines Helper -->
+                        <div class="absolute top-4 left-4 bg-slate-900/90 backdrop-blur-md px-3 py-2 rounded-lg border border-slate-800 text-xs flex flex-col gap-1 pointer-events-none">
+                            <div class="flex items-center gap-2"><div class="w-2.5 h-2.5 rounded-full bg-cyan-400"></div> <span>Bullet (Projectile)</span></div>
+                            <div class="flex items-center gap-2"><div class="w-2.5 h-2.5 rounded-full bg-red-500"></div> <span>Apple (Target)</span></div>
+                            <div class="flex items-center gap-2"><div class="w-6 h-0.5 border-t border-dashed border-slate-500"></div> <span>Direct Line of Sight (Aim Line)</span></div>
+                        </div>
+                    </div>
+
+                    <!-- Simulation Control Buttons -->
+                    <div class="flex flex-wrap items-center justify-between gap-4 mt-4 pt-4 border-t border-slate-800/80">
+                        <div class="flex flex-wrap gap-2">
+                            <button id="fireBtn" onclick="fireSimulation()" class="px-6 py-2.5 bg-gradient-to-r from-emerald-500 to-teal-600 hover:from-emerald-400 hover:to-teal-500 text-slate-950 font-bold rounded-xl transition-all shadow-lg shadow-emerald-500/10 flex items-center gap-2">
+                                <i data-lucide="play" class="w-4 h-4 fill-slate-950"></i> Fire!
+                            </button>
+                            <button onclick="resetSimulation()" class="px-4 py-2.5 bg-slate-800 hover:bg-slate-700 text-white font-medium rounded-xl transition-all flex items-center gap-2">
+                                <i data-lucide="rotate-ccw" class="w-4 h-4"></i> Reset
+                            </button>
+                            <button onclick="toggleSlowMo()" id="slowMoBtn" class="px-4 py-2.5 bg-slate-800 hover:bg-slate-700 text-white font-medium rounded-xl transition-all flex items-center gap-2">
+                                <i data-lucide="gauge" class="w-4 h-4"></i> Speed: 1x
+                            </button>
+                        </div>
+                        <div class="flex gap-2">
+                            <button onclick="setAimDirectly()" class="px-3 py-1.5 bg-cyan-950/50 hover:bg-cyan-900/50 text-cyan-400 text-xs font-semibold rounded-lg border border-cyan-800/50 transition-all">
+                                Auto-Aim directly at Apple
+                            </button>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Simulation Live Data Readout -->
+                <div class="grid grid-cols-2 sm:grid-cols-4 gap-4">
+                    <div class="bg-slate-900 border border-slate-800/80 rounded-xl p-3 text-center">
+                        <span class="block text-[10px] text-slate-400 font-semibold uppercase tracking-wider">Aim Angle ($\theta_0$)</span>
+                        <span class="text-xl font-extrabold text-cyan-400" id="readout-angle">0.0°</span>
+                    </div>
+                    <div class="bg-slate-900 border border-slate-800/80 rounded-xl p-3 text-center">
+                        <span class="block text-[10px] text-slate-400 font-semibold uppercase tracking-wider">Initial Velocity ($v_0$)</span>
+                        <span class="text-xl font-extrabold text-indigo-400" id="readout-v0">0.0 m/s</span>
+                    </div>
+                    <div class="bg-slate-900 border border-slate-800/80 rounded-xl p-3 text-center">
+                        <span class="block text-[10px] text-slate-400 font-semibold uppercase tracking-wider">Bullet Drop ($\Delta y_{\text{bullet}}$)</span>
+                        <span class="text-xl font-extrabold text-amber-400" id="readout-bdrop">0.00 m</span>
+                    </div>
+                    <div class="bg-slate-900 border border-slate-800/80 rounded-xl p-3 text-center">
+                        <span class="block text-[10px] text-slate-400 font-semibold uppercase tracking-wider">Apple Fall ($\Delta y_{\text{apple}}$)</span>
+                        <span class="text-xl font-extrabold text-red-400" id="readout-afall">0.00 m</span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Parameters and Controls Side -->
+            <div class="lg:col-span-4 flex flex-col gap-6">
+                <!-- Modes Panel -->
+                <div class="bg-slate-900 border border-slate-800 rounded-2xl p-5 shadow-xl font-sans">
+                    <h3 class="text-sm font-bold text-slate-200 mb-4 flex items-center gap-2">
+                        <i data-lucide="git-branch" class="w-4 h-4 text-cyan-400"></i>
+                        Scenario Configuration
+                    </h3>
+                    
+                    <div class="flex flex-col gap-3">
+                        <label class="relative flex items-start gap-3 p-3 rounded-xl border border-slate-800 bg-slate-950 hover:bg-slate-900/60 transition cursor-pointer group">
+                            <input type="radio" name="scenario" value="drop-sync" checked onchange="updateScenario(this.value)" class="mt-1 accent-cyan-500">
+                            <div>
+                                <span class="block text-sm font-bold text-slate-200 group-hover:text-cyan-400 transition">Standard Free-Fall Sync</span>
+                                <span class="block text-xs text-slate-400 mt-0.5">The apple drops at the exact millisecond of muzzle firing. (Standard proof)</span>
+                            </div>
+                        </label>
+
+                        <label class="relative flex items-start gap-3 p-3 rounded-xl border border-slate-800 bg-slate-950 hover:bg-slate-900/60 transition cursor-pointer group">
+                            <input type="radio" name="scenario" value="stay" onchange="updateScenario(this.value)" class="mt-1 accent-cyan-500">
+                            <div>
+                                <span class="block text-sm font-bold text-slate-200 group-hover:text-cyan-400 transition">Static Apple (Stays in Tree)</span>
+                                <span class="block text-xs text-slate-400 mt-0.5">Apple remains stuck. Demonstrates gravitational bullet drop offset.</span>
+                            </div>
+                        </label>
+
+                        <label class="relative flex items-start gap-3 p-3 rounded-xl border border-slate-800 bg-slate-950 hover:bg-slate-900/60 transition cursor-pointer group">
+                            <input type="radio" name="scenario" value="delay" onchange="updateScenario(this.value)" class="mt-1 accent-cyan-500">
+                            <div>
+                                <span class="block text-sm font-bold text-slate-200 group-hover:text-cyan-400 transition">Early Drop Delay</span>
+                                <span class="block text-xs text-slate-400 mt-0.5">Apple starts falling 0.35s BEFORE you fire. Require leading adjustments!</span>
+                            </div>
+                        </label>
+                    </div>
+
+                    <div class="mt-4 p-3 rounded-lg bg-indigo-950/20 border border-indigo-800/30 flex items-start gap-2.5">
+                        <i data-lucide="sparkles" class="w-4.5 h-4.5 text-indigo-400 flex-shrink-0 mt-0.5"></i>
+                        <p class="text-xs text-indigo-300 leading-relaxed">
+                            <strong>Note:</strong> Observe how switching on/off the gravity slider affects the alignment and hitting coordinates.
+                        </p>
+                    </div>
+                </div>
+
+                <!-- Live Parameters Adjustments -->
+                <div class="bg-slate-900 border border-slate-800 rounded-2xl p-5 shadow-xl flex flex-col gap-4">
+                    <h3 class="text-sm font-bold text-slate-200 flex items-center gap-2">
+                        <i data-lucide="sliders" class="w-4 h-4 text-cyan-400"></i>
+                        Vector Tuning Controls
+                    </h3>
+
+                    <!-- Gravity On/Off -->
+                    <div class="flex items-center justify-between p-2 rounded-lg bg-slate-950 border border-slate-800/80">
+                        <span class="text-xs font-bold text-slate-300">Gravity ($g = 9.81\text{ m/s}^2$)</span>
+                        <button id="gravityToggle" onclick="toggleGravity()" class="px-3 py-1 bg-emerald-500 hover:bg-emerald-400 text-slate-950 text-xs font-extrabold rounded transition-all">
+                            ENABLED
+                        </button>
+                    </div>
+
+                    <!-- Angle Slider -->
+                    <div>
+                        <div class="flex justify-between text-xs font-semibold text-slate-400 mb-1.5">
+                            <span>Launch Angle ($\theta_0$)</span>
+                            <span class="text-cyan-400 font-mono" id="val-angle">25°</span>
+                        </div>
+                        <input type="range" id="param-angle" min="0" max="75" value="25" step="0.5" class="w-full accent-cyan-500 bg-slate-950" oninput="paramChange('angle', this.value)">
+                    </div>
+
+                    <!-- Velocity Slider -->
+                    <div>
+                        <div class="flex justify-between text-xs font-semibold text-slate-400 mb-1.5">
+                            <span>Initial Speed ($v_0$)</span>
+                            <span class="text-indigo-400 font-mono" id="val-v0">45 m/s</span>
+                        </div>
+                        <input type="range" id="param-v0" min="20" max="100" value="45" step="1" class="w-full accent-indigo-500 bg-slate-950" oninput="paramChange('v0', this.value)">
+                    </div>
+
+                    <!-- Distance d Slider -->
+                    <div>
+                        <div class="flex justify-between text-xs font-semibold text-slate-400 mb-1.5">
+                            <span>Horizontal Range ($d$)</span>
+                            <span class="text-amber-400 font-mono" id="val-d">120 m</span>
+                        </div>
+                        <input type="range" id="param-d" min="60" max="150" value="120" step="5" class="w-full accent-amber-500 bg-slate-950" oninput="paramChange('d', this.value)">
+                    </div>
+
+                    <!-- Height h Slider -->
+                    <div>
+                        <div class="flex justify-between text-xs font-semibold text-slate-400 mb-1.5">
+                            <span>Target Initial Height ($h$)</span>
+                            <span class="text-red-400 font-mono" id="val-h">65 m</span>
+                        </div>
+                        <input type="range" id="param-h" min="30" max="90" value="65" step="2" class="w-full accent-red-500 bg-slate-950" oninput="paramChange('h', this.value)">
+                    </div>
+
+                    <!-- Launcher offset s Slider -->
+                    <div>
+                        <div class="flex justify-between text-xs font-semibold text-slate-400 mb-1.5">
+                            <span>Launcher Initial Height ($s$)</span>
+                            <span class="text-teal-400 font-mono" id="val-s">10 m</span>
+                        </div>
+                        <input type="range" id="param-s" min="0" max="25" value="10" step="1" class="w-full accent-teal-500 bg-slate-950" oninput="paramChange('s', this.value)">
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- TAB 2: THEORY & ALGORITHM -->
+        <section id="tab-theory" class="tab-content hidden flex flex-col gap-8">
+            <div class="bg-slate-900 border border-slate-800 rounded-2xl p-6 md:p-8 shadow-xl">
+                <h2 class="text-2xl font-black bg-gradient-to-r from-amber-400 to-orange-500 bg-clip-text text-transparent mb-6">
+                    Mathematical Proof & Vector Logic
+                </h2>
+
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-8 items-start">
+                    <!-- Proof Text -->
+                    <div class="flex flex-col gap-6">
+                        <div class="p-4 rounded-xl bg-slate-950 border border-slate-800">
+                            <h3 class="font-bold text-amber-400 text-sm tracking-wider uppercase mb-3">Kinematics of the System</h3>
+                            <div class="space-y-4 text-sm text-slate-300 leading-relaxed">
+                                <div class="text-slate-200 font-medium">For the Apple (Free Fall Target):</div>
+                                <p class="text-xs text-slate-400">Starts at coordinate $(d, h)$ with no initial velocity.</p>
+                                <div class="p-3 bg-slate-900 rounded border border-slate-800/50">
+                                    $$x_{\text{apple}}(t) = d$$
+                                    $$y_{\text{apple}}(t) = h - \frac{1}{2}gt^2$$
+                                </div>
+                                <div class="text-slate-200 font-medium mt-4">For the Bullet (Projectile):</div>
+                                <p class="text-xs text-slate-400">Starts at launcher point $(0, s)$ with velocity vectors determined by angle $\theta_0$.</p>
+                                <div class="p-3 bg-slate-900 rounded border border-slate-800/50">
+                                    $$x_{\text{bullet}}(t) = v_0 \cdot t \cdot \cos\theta_0$$
+                                    $$y_{\text{bullet}}(t) = s + v_0 \cdot t \cdot \sin\theta_0 - \frac{1}{2}gt^2$$
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="p-4 rounded-xl bg-slate-950 border border-slate-800">
+                            <h3 class="font-bold text-cyan-400 text-sm tracking-wider uppercase mb-3">The Magic of the Collision Time ($T$)</h3>
+                            <div class="space-y-3 text-sm text-slate-300 leading-relaxed">
+                                <p>
+                                    For a hit to occur, both objects must share identical vertical and horizontal positions at some moment $T$:
+                                </p>
+                                <div class="p-3 bg-slate-900 rounded border border-slate-800/50">
+                                    $$x_{\text{bullet}}(T) = x_{\text{apple}}(T) \implies v_0 T \cos\theta_0 = d \implies T = \frac{d}{v_0 \cos\theta_0}$$
+                                </div>
+                                <p>
+                                    Now we equate the vertical coordinates $y_{\text{bullet}}(T) = y_{\text{apple}}(T)$:
+                                </p>
+                                <div class="p-3 bg-slate-900 rounded border border-slate-800/50">
+                                    $$s + v_0 T \sin\theta_0 - \frac{1}{2}gT^2 = h - \frac{1}{2}gT^2$$
+                                </div>
+                                <p class="text-xs text-amber-300 flex items-center gap-1.5 py-1">
+                                    <i data-lucide="info" class="w-4 h-4 shrink-0"></i>
+                                    Look closely! The gravity components ($-\frac{1}{2}gT^2$) exist on both sides and cancel out perfectly!
+                                </p>
+                                <div class="p-3 bg-slate-900 rounded border border-slate-800/50">
+                                    $$s + v_0 T \sin\theta_0 = h \implies v_0 T \sin\theta_0 = h - s$$
+                                </div>
+                                <p>
+                                    Substitute the value of $T$ derived from the horizontal motion into this relation:
+                                </p>
+                                <div class="p-3 bg-slate-900 rounded border border-slate-800/50">
+                                    $$v_0 \left(\frac{d}{v_0 \cos\theta_0}\right) \sin\theta_0 = h - s \implies d \cdot \tan\theta_0 = h - s$$
+                                </div>
+                                <div class="p-4 bg-cyan-950/40 text-cyan-300 rounded-lg border border-cyan-800/60 font-bold text-center">
+                                    $$\tan\theta_0 = \frac{h - s}{d}$$
+                                </div>
+                                <p class="text-xs text-slate-400 mt-2">
+                                    This proves that the required angle $\theta_0$ is completely independent of gravity $g$ and velocity $v_0$. You must aim exactly along the geometric straight line connecting the gun and the apple!
+                                </p>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Right Column: Algorithms & Workflows -->
+                    <div class="flex flex-col gap-6">
+                        <div class="p-5 rounded-xl bg-slate-950 border border-slate-800">
+                            <h3 class="font-bold text-indigo-400 text-sm tracking-wider uppercase mb-4 flex items-center gap-2">
+                                <i data-lucide="binary" class="w-5 h-5"></i>
+                                Computational Physics Loop (Simulation Code Step)
+                            </h3>
+                            <p class="text-xs text-slate-400 mb-3">
+                                Below is the double-layered algorithm used to power our real-time simulation update loop.
+                            </p>
+                            
+                            <!-- Steps List -->
+                            <div class="space-y-4">
+                                <div class="flex gap-3 items-start">
+                                    <div class="w-6 h-6 rounded-full bg-slate-900 border border-slate-700 text-xs font-mono flex items-center justify-center text-indigo-400 shrink-0 mt-0.5">1</div>
+                                    <div>
+                                        <h4 class="text-xs font-bold text-slate-200 uppercase">Input & Initial Setup</h4>
+                                        <p class="text-xs text-slate-400 mt-1">
+                                            Read values for $d, h, s, v_0, \theta_0,$ and gravity status. Compute analytical collision time: $T = d / (v_0 \cos\theta_0)$.
+                                        </p>
+                                    </div>
+                                </div>
+
+                                <div class="flex gap-3 items-start">
+                                    <div class="w-6 h-6 rounded-full bg-slate-900 border border-slate-700 text-xs font-mono flex items-center justify-center text-indigo-400 shrink-0 mt-0.5">2</div>
+                                    <div>
+                                        <h4 class="text-xs font-bold text-slate-200 uppercase">Dynamic Euler Loop (At each Frame $\Delta t$)</h4>
+                                        <div class="text-xs text-slate-400 mt-1">
+                                            Update variables incrementally:
+                                            <code class="block mt-1 p-2 bg-slate-900 rounded text-amber-300 text-[11px] code-font whitespace-pre overflow-x-auto">t = t + dt;
+// Target Kinematics
+if (scenario == 'drop-sync') y_apple = h - 0.5 * g * t^2;
+else if (scenario == 'stay') y_apple = h;
+
+// Bullet Kinematics
+x_bullet = v_0 * t * cos(theta);
+y_bullet = s + (v_0 * t * sin(theta)) - 0.5 * g * t^2;</code>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <div class="flex gap-3 items-start">
+                                    <div class="w-6 h-6 rounded-full bg-slate-900 border border-slate-700 text-xs font-mono flex items-center justify-center text-indigo-400 shrink-0 mt-0.5">3</div>
+                                    <div>
+                                        <h4 class="text-xs font-bold text-slate-200 uppercase">Proximity Collision Test</h4>
+                                        <p class="text-xs text-slate-400 mt-1">
+                                            Each frame calculates distance: $D = \sqrt{(x_{\text{bullet}} - x_{\text{apple}})^2 + (y_{\text{bullet}} - y_{\text{apple}})^2}$. If $D < \text{CollisionThreshold}$, register hit, trigger splash, and halt physics updates.
+                                        </p>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="p-5 rounded-xl bg-gradient-to-br from-indigo-950/40 to-slate-900 border border-indigo-500/20">
+                            <h3 class="font-bold text-indigo-300 text-sm tracking-wider uppercase mb-2 flex items-center gap-1.5">
+                                <i data-lucide="workflow" class="w-4 h-4"></i>
+                                Intuitive Vector Summary
+                            </h3>
+                            <p class="text-xs text-indigo-200 leading-relaxed">
+                                Think of it like this: If gravity were turned off completely, a bullet fired directly at the target would hit it in a straight line. Now, turn gravity back on. Gravity pulls both the bullet and the apple downward by exactly the same amount ($\frac{1}{2}gt^2$) at every single millisecond. The bullet still intersects the target at the exact same point in time, just lower in vertical space!
+                            </p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- TAB 3: MEMORY ANCHORS -->
+        <section id="tab-memory" class="tab-content hidden flex flex-col gap-6">
+            <div class="bg-slate-900 border border-slate-800 rounded-2xl p-6 md:p-8 shadow-xl">
+                <h2 class="text-2xl font-black text-slate-100 mb-6 flex items-center gap-2">
+                    <i data-lucide="brain-circuit" class="w-7 h-7 text-amber-400"></i>
+                    Long-Term Memory Trigger Anchors
+                </h2>
+
+                <p class="text-sm text-slate-400 mb-8 max-w-2xl leading-relaxed">
+                    Dry physics formulas fade quickly from memory. To lock this concept down forever, connect it with emotional, high-contrast imagery, vivid storytelling, and extreme logical simplifyers.
+                </p>
+
+                <!-- High-Emotion Cues and Anchors Grid -->
+                <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+                    <!-- Anchor card 1 -->
+                    <div class="bg-slate-950 border border-slate-800 rounded-xl p-5 hover:border-amber-500/50 transition duration-300 flex flex-col justify-between">
+                        <div>
+                            <div class="p-2.5 bg-amber-500/10 rounded-lg text-amber-400 w-fit mb-4">
+                                <i data-lucide="heart" class="w-5 h-5"></i>
+                            </div>
+                            <h3 class="font-bold text-slate-100 text-base mb-2">The Cosmic Bond / "Gravity Equalizer"</h3>
+                            <p class="text-xs text-slate-400 leading-relaxed mb-4">
+                                Imagine the bullet and the apple are connected by an invisible elastic sheet pulling them down at the same rate. Gravity treats them as <strong class="text-amber-400">equal children</strong>. They both fall exactly at the same speed downward. So, the relative perspective of the shooter is exactly the same as if they were in deep outer space with zero gravity!
+                            </p>
+                        </div>
+                        <span class="text-[10px] font-bold tracking-wider uppercase text-amber-500/70">EMOTIONAL CORE: EQUALITY</span>
+                    </div>
+
+                    <!-- Anchor card 2 -->
+                    <div class="bg-slate-950 border border-slate-800 rounded-xl p-5 hover:border-cyan-500/50 transition duration-300 flex flex-col justify-between">
+                        <div>
+                            <div class="p-2.5 bg-cyan-500/10 rounded-lg text-cyan-400 w-fit mb-4">
+                                <i data-lucide="eye" class="w-5 h-5"></i>
+                            </div>
+                            <h3 class="font-bold text-slate-100 text-base mb-2">The Optical Illusion Principle</h3>
+                            <p class="text-xs text-slate-400 leading-relaxed mb-4">
+                                "Aim straight, shoot straight." The gravity cancellation means you only need to use <strong class="text-cyan-400">basic geometry</strong> to aim. If you can see it in your sight, and it drops when you click, aim dead center! You never have to compensate for gravity drop because the target is compensating for gravity at the same speed!
+                            </p>
+                        </div>
+                        <span class="text-[10px] font-bold tracking-wider uppercase text-cyan-500/70">EMOTIONAL CORE: SIMPLICITY</span>
+                    </div>
+
+                    <!-- Anchor card 3 -->
+                    <div class="bg-slate-950 border border-slate-800 rounded-xl p-5 hover:border-red-500/50 transition duration-300 flex flex-col justify-between">
+                        <div>
+                            <div class="p-2.5 bg-red-500/10 rounded-lg text-red-400 w-fit mb-4">
+                                <i data-lucide="flame" class="w-5 h-5"></i>
+                            </div>
+                            <h3 class="font-bold text-slate-100 text-base mb-2">The Tragic Monkey Myth</h3>
+                            <p class="text-xs text-slate-400 leading-relaxed mb-4">
+                                This is classically known as the <strong class="text-red-400">"Monkey and the Hunter"</strong>. A clever monkey lets go of a branch to dodge a bullet. Poor monkey! The very act of letting go of the branch is exactly what guarantees it will be hit! If it had just stayed still, the bullet would have dropped below it!
+                            </p>
+                        </div>
+                        <span class="text-[10px] font-bold tracking-wider uppercase text-red-500/70">EMOTIONAL CORE: THE TRAGIC TWIST</span>
+                    </div>
+                </div>
+
+                <!-- One liner summary -->
+                <div class="mt-8 p-4 rounded-xl bg-slate-950 border border-slate-800/80 flex flex-col md:flex-row items-center justify-between gap-4">
+                    <div class="flex items-center gap-3">
+                        <div class="p-1.5 bg-emerald-500/10 rounded-md text-emerald-400">
+                            <i data-lucide="check" class="w-5 h-5"></i>
+                        </div>
+                        <div>
+                            <span class="block text-xs text-slate-400 font-bold uppercase tracking-wider">Super Memory Rule:</span>
+                            <span class="text-slate-200 font-medium text-sm">"If it falls at the trigger, point the gun right at the figure."</span>
+                        </div>
+                    </div>
+                    <div class="text-xs px-3 py-1 bg-slate-900 border border-slate-800 rounded text-slate-400 font-sans">
+                        Aim Straight = Perfect Hit
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- TAB 4: QUIZ & FLASHCARDS -->
+        <section id="tab-quiz" class="tab-content hidden flex flex-col gap-8">
+            <!-- Active Recall Flashcards Section -->
+            <div class="bg-slate-900 border border-slate-800 rounded-2xl p-6 shadow-xl">
+                <h2 class="text-xl font-black text-slate-100 mb-6 flex items-center gap-2">
+                    <i data-lucide="cards" class="w-5 h-5 text-indigo-400"></i>
+                    Active Recall Flashcards
+                </h2>
+                
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    <!-- Flashcard 1 -->
+                    <div class="bg-slate-950 border border-slate-800 p-5 rounded-xl flex flex-col justify-between min-h-[160px] relative overflow-hidden group">
+                        <div>
+                            <span class="text-[10px] text-indigo-400 font-bold uppercase tracking-wider">Card 1 / Gravity Independence</span>
+                            <p class="text-sm font-semibold text-slate-200 mt-2">
+                                How does the value of local gravity ($g$) change the angle we need to hit the falling apple?
+                            </p>
+                        </div>
+                        <div class="mt-4">
+                            <button onclick="toggleAnswer(1)" class="text-xs text-cyan-400 font-bold hover:underline flex items-center gap-1">
+                                <span id="btn-text-1">Show Answer</span> <i data-lucide="chevron-down" class="w-3 h-3"></i>
+                            </button>
+                            <div id="ans-1" class="hidden text-xs text-slate-400 mt-2 border-t border-slate-800 pt-2 leading-relaxed">
+                                It does NOT! The required angle is $\theta_0 = \arctan\left(\frac{h-s}{d}\right)$, which has no gravity variable. Whether on the Moon, Earth, or Jupiter, the aiming angle is identical!
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Flashcard 2 -->
+                    <div class="bg-slate-950 border border-slate-800 p-5 rounded-xl flex flex-col justify-between min-h-[160px] relative overflow-hidden group">
+                        <div>
+                            <span class="text-[10px] text-indigo-400 font-bold uppercase tracking-wider">Card 2 / Static Case Trap</span>
+                            <p class="text-sm font-semibold text-slate-200 mt-2">
+                                What happens if we aim directly at the apple, but the apple does NOT drop?
+                            </p>
+                        </div>
+                        <div class="mt-4">
+                            <button onclick="toggleAnswer(2)" class="text-xs text-cyan-400 font-bold hover:underline flex items-center gap-1">
+                                <span id="btn-text-2">Show Answer</span> <i data-lucide="chevron-down" class="w-3 h-3"></i>
+                            </button>
+                            <div id="ans-2" class="hidden text-xs text-slate-400 mt-2 border-t border-slate-800 pt-2 leading-relaxed">
+                                We will miss! If the apple stays static, gravity still pulls the bullet down during its flight, causing it to drop below the apple. We would need to aim higher to hit it.
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Conceptual Quiz Section -->
+            <div class="bg-slate-900 border border-slate-800 rounded-2xl p-6 shadow-xl">
+                <h2 class="text-xl font-black text-slate-100 mb-6 flex items-center gap-2">
+                    <i data-lucide="help-circle" class="w-5 h-5 text-emerald-400"></i>
+                    Interactive Concept Check
+                </h2>
+
+                <div class="space-y-6">
+                    <!-- Q1 -->
+                    <div class="p-5 rounded-xl bg-slate-950 border border-slate-800/80">
+                        <span class="text-xs font-bold text-indigo-400 uppercase tracking-widest">Question 1</span>
+                        <h4 class="text-sm font-bold text-slate-200 mt-1 mb-3">
+                            If you shoot with a very low muzzle velocity $v_0$ (very slow), but still aim directly at the falling apple, what happens?
+                        </h4>
+                        <div class="grid grid-cols-1 sm:grid-cols-2 gap-2 text-xs">
+                            <button onclick="checkQuiz(1, 'A', this)" class="q-btn-1 text-left p-3 rounded-lg border border-slate-800 hover:bg-slate-900/60 transition text-slate-300">
+                                A) You will miss, because the slow bullet will fall way too fast compared to the apple.
+                            </button>
+                            <button onclick="checkQuiz(1, 'B', this)" class="q-btn-1 text-left p-3 rounded-lg border border-slate-800 hover:bg-slate-900/60 transition text-slate-300">
+                                B) You will still hit the apple (provided it hasn't hit the ground yet).
+                            </button>
+                        </div>
+                        <div id="quiz-explain-1" class="hidden text-xs text-slate-400 mt-3 p-2 bg-slate-900/50 rounded border border-slate-800 leading-relaxed"></div>
+                    </div>
+
+                    <!-- Q2 -->
+                    <div class="p-5 rounded-xl bg-slate-950 border border-slate-800/80">
+                        <span class="text-xs font-bold text-indigo-400 uppercase tracking-widest">Question 2</span>
+                        <h4 class="text-sm font-bold text-slate-200 mt-1 mb-3">
+                            Why does the gravity offset cancel out so perfectly in the math?
+                        </h4>
+                        <div class="grid grid-cols-1 sm:grid-cols-2 gap-2 text-xs">
+                            <button onclick="checkQuiz(2, 'A', this)" class="q-btn-2 text-left p-3 rounded-lg border border-slate-800 hover:bg-slate-900/60 transition text-slate-300">
+                                A) Because gravity affects horizontal motion, making both speed up dynamically.
+                            </button>
+                            <button onclick="checkQuiz(2, 'B', this)" class="q-btn-2 text-left p-3 rounded-lg border border-slate-800 hover:bg-slate-900/60 transition text-slate-300">
+                                B) Because the acceleration of gravity ($g$) acts exactly the same on both bodies, reducing their heights relative to the aim line by exactly $\frac{1}{2}gt^2$.
+                            </button>
+                        </div>
+                        <div id="quiz-explain-2" class="hidden text-xs text-slate-400 mt-3 p-2 bg-slate-900/50 rounded border border-slate-800 leading-relaxed"></div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+    </main>
+
+    <!-- FOOTER -->
+    <footer class="border-t border-slate-800 py-6 bg-slate-950 text-center text-xs text-slate-500">
+        <p>© 2026 Interactive Physics Lab. Designed for rapid memory retrieval & visual reasoning.</p>
+    </footer>
+
+    <!-- INTERACTIVE SCRIPT LOGIC -->
+    <script>
+        // Init Lucide Icons
+        window.addEventListener('DOMContentLoaded', () => {
+            lucide.createIcons();
+            initSimulation();
+        });
+
+        // Tab Switching Logic
+        function switchTab(tabId) {
+            document.querySelectorAll('.tab-content').forEach(el => el.classList.add('hidden'));
+            document.getElementById('tab-' + tabId).classList.remove('hidden');
+            
+            document.querySelectorAll('.tab-btn').forEach(btn => {
+                btn.className = "tab-btn px-4 py-1.5 rounded-lg text-sm font-medium transition-all text-slate-400 hover:text-white";
+            });
+            
+            const activeBtn = document.getElementById('btn-' + tabId);
+            activeBtn.className = "tab-btn px-4 py-1.5 rounded-lg text-sm font-medium transition-all bg-gradient-to-r from-cyan-500 to-blue-600 text-white shadow-lg shadow-cyan-500/10";
+            
+            // Trigger MathJax re-render for formulas inside newly visible tabs
+            if (window.MathJax) {
+                MathJax.typesetPromise();
+            }
+        }
+
+        // Active Recall Accordions
+        function toggleAnswer(id) {
+            const ans = document.getElementById('ans-' + id);
+            const btnText = document.getElementById('btn-text-' + id);
+            if (ans.classList.contains('hidden')) {
+                ans.classList.remove('hidden');
+                btnText.textContent = 'Hide Answer';
+            } else {
+                ans.classList.add('hidden');
+                btnText.textContent = 'Show Answer';
+            }
+            // Typeset LaTeX inside the newly revealed elements
+            if (window.MathJax) {
+                MathJax.typesetPromise([ans]);
+            }
+        }
+
+        // Quiz Verification
+        function checkQuiz(qNum, choice, btnElement) {
+            // Reset styles for this quiz block
+            document.querySelectorAll('.q-btn-' + qNum).forEach(btn => {
+                btn.className = `q-btn-${qNum} text-left p-3 rounded-lg border border-slate-800 bg-transparent transition text-slate-300`;
+            });
+
+            const explanation = document.getElementById('quiz-explain-' + qNum);
+            explanation.classList.remove('hidden');
+
+            if (qNum === 1) {
+                if (choice === 'B') {
+                    btnElement.className = "q-btn-1 text-left p-3 rounded-lg border border-emerald-500/50 bg-emerald-950/20 text-emerald-400 font-bold";
+                    explanation.innerHTML = "<strong>CORRECT!</strong> As long as the bullet has enough speed to reach distance $d$ before the apple lands on the ground, the bullet will hit the apple. Gravity pulls both down by the same amount, irrespective of velocity!";
+                } else {
+                    btnElement.className = "q-btn-1 text-left p-3 rounded-lg border border-red-500/50 bg-red-950/20 text-red-400 font-bold";
+                    explanation.innerHTML = "<strong>INCORRECT.</strong> Try again! Remember, time of horizontal transit is the only factor. A slower bullet just takes longer, meaning the collision will happen lower down—but they will still meet perfectly!";
+                }
+            } else if (qNum === 2) {
+                if (choice === 'B') {
+                    btnElement.className = "q-btn-2 text-left p-3 rounded-lg border border-emerald-500/50 bg-emerald-950/20 text-emerald-400 font-bold";
+                    explanation.innerHTML = "<strong>CORRECT!</strong> Both experience the identical acceleration of gravity, reducing both vertical coordinates by exactly $-\\frac{1}{2} g t^2$ at any given instant. This makes the relative physics linear!";
+                } else {
+                    btnElement.className = "q-btn-2 text-left p-3 rounded-lg border border-red-500/50 bg-red-950/20 text-red-400 font-bold";
+                    explanation.innerHTML = "<strong>INCORRECT.</strong> Keep in mind that gravity does not affect the horizontal motion in this standard vacuum scenario. It acts purely on the vertical components equally.";
+                }
+            }
+
+            // Trigger MathJax typesetting for the dynamic explanation paragraph
+            if (window.MathJax) {
+                MathJax.typesetPromise([explanation]);
+            }
+        }
+
+        // ==========================================
+        //         PHYSICS SIMULATION CODE
+        // ==========================================
+        const canvas = document.getElementById('simCanvas');
+        const ctx = canvas.getContext('2d');
+
+        // Physics variables configuration
+        let physics = {
+            angle: 25,     // Deg
+            v0: 45,        // m/s
+            d: 120,        // m
+            h: 65,         // m
+            s: 10,         // m
+            g: 9.81,       // m/s^2
+            hasGravity: true,
+            scenario: 'drop-sync' // drop-sync, stay, delay
+        };
+
+        // State Machine
+        let simTime = 0;
+        let isRunning = false;
+        let isSlowMo = false;
+        let animationFrameId = null;
+        let collisionOccurred = false;
+
+        // Visual position coordinates (pixels)
+        let bullet = { x: 0, y: 0, initialY: 0 };
+        let apple = { x: 0, y: 0, initialY: 0, delayStarted: false, delayTime: 0 };
+
+        // Scale factors to map real-world metrics into pixel coordinates
+        let scaleX, scaleY;
+        const margin = 40;
+
+        function initSimulation() {
+            resizeCanvas();
+            resetSimulation();
+            window.addEventListener('resize', () => {
+                resizeCanvas();
+                draw();
+            });
+        }
+
+        function resizeCanvas() {
+            const container = canvas.parentElement;
+            canvas.width = container.clientWidth * window.devicePixelRatio;
+            canvas.height = container.clientHeight * window.devicePixelRatio;
+            ctx.scale(window.devicePixelRatio, window.devicePixelRatio);
+            
+            // Map physical space (150m wide, 100m high) to canvas pixels
+            scaleX = (canvas.width / window.devicePixelRatio - 2 * margin) / 160;
+            scaleY = (canvas.height / window.devicePixelRatio - 2 * margin) / 100;
+        }
+
+        function toggleGravity() {
+            physics.hasGravity = !physics.hasGravity;
+            const btn = document.getElementById('gravityToggle');
+            if (physics.hasGravity) {
+                btn.textContent = "ENABLED";
+                btn.className = "px-3 py-1 bg-emerald-500 hover:bg-emerald-400 text-slate-950 text-xs font-extrabold rounded transition-all";
+            } else {
+                btn.textContent = "DISABLED";
+                btn.className = "px-3 py-1 bg-slate-800 hover:bg-slate-750 text-slate-300 text-xs font-extrabold rounded transition-all";
+            }
+            resetSimulation();
+        }
+
+        function toggleSlowMo() {
+            isSlowMo = !isSlowMo;
+            const btn = document.getElementById('slowMoBtn');
+            btn.innerHTML = `<i data-lucide="gauge" class="w-4 h-4"></i> Speed: ${isSlowMo ? '0.25x' : '1x'}`;
+            lucide.createIcons();
+        }
+
+        function updateScenario(val) {
+            physics.scenario = val;
+            resetSimulation();
+        }
+
+        function setAimDirectly() {
+            // Formula: tan(theta) = (h - s) / d
+            const dx = physics.d;
+            const dy = physics.h - physics.s;
+            const angleRad = Math.atan2(dy, dx);
+            const angleDeg = angleRad * (180 / Math.PI);
+            
+            physics.angle = Math.round(angleDeg * 10) / 10;
+            document.getElementById('param-angle').value = physics.angle;
+            document.getElementById('val-angle').textContent = physics.angle + '°';
+            
+            resetSimulation();
+        }
+
+        function paramChange(key, val) {
+            physics[key] = parseFloat(val);
+            document.getElementById('val-' + key).textContent = val + (key==='angle'?'°':(key==='v0'?' m/s':' m'));
+            resetSimulation();
+        }
+
+        function resetSimulation() {
+            isRunning = false;
+            collisionOccurred = false;
+            simTime = 0;
+            if (animationFrameId) cancelAnimationFrame(animationFrameId);
+
+            // Calculate analytical values for readouts
+            const rad = physics.angle * Math.PI / 180;
+            document.getElementById('readout-angle').textContent = physics.angle.toFixed(1) + '°';
+            document.getElementById('readout-v0').textContent = physics.v0.toFixed(0) + ' m/s';
+            document.getElementById('readout-bdrop').textContent = '0.00 m';
+            document.getElementById('readout-afall').textContent = '0.00 m';
+
+            document.getElementById('status-display').textContent = "Ready";
+            document.getElementById('status-display').className = "text-xs bg-slate-950 px-2 py-1 rounded border border-slate-800 text-amber-400 font-mono";
+            document.getElementById('time-display').textContent = 't = 0.00s';
+
+            // Setup positions
+            bullet.x = 0;
+            bullet.y = physics.s;
+            apple.x = physics.d;
+            apple.y = physics.h;
+            apple.delayStarted = false;
+            apple.delayTime = 0;
+
+            draw();
+        }
+
+        // Project coordinate values to pixels
+        function getPixelCoords(x, y) {
+            const px = margin + x * scaleX;
+            const py = (canvas.height / window.devicePixelRatio) - margin - y * scaleY;
+            return { x: px, y: py };
+        }
+
+        function draw() {
+            const w = canvas.width / window.devicePixelRatio;
+            const h = canvas.height / window.devicePixelRatio;
+            ctx.clearRect(0, 0, w, h);
+
+            // Draw Ground Plane
+            ctx.beginPath();
+            ctx.moveTo(0, h - margin);
+            ctx.lineTo(w, h - margin);
+            ctx.strokeStyle = '#334155';
+            ctx.lineWidth = 3;
+            ctx.stroke();
+
+            // Draw Aim line (straight path from launcher to apple)
+            const pStart = getPixelCoords(0, physics.s);
+            const pAppleStart = getPixelCoords(physics.d, physics.h);
+            ctx.beginPath();
+            ctx.setLineDash([5, 5]);
+            ctx.moveTo(pStart.x, pStart.y);
+            ctx.lineTo(pAppleStart.x, pAppleStart.y);
+            ctx.strokeStyle = 'rgba(148, 163, 184, 0.4)';
+            ctx.lineWidth = 1.5;
+            ctx.stroke();
+            ctx.setLineDash([]);
+
+            // Draw Muzzle/Launcher
+            ctx.save();
+            ctx.translate(pStart.x, pStart.y);
+            const angleRad = physics.angle * Math.PI / 180;
+            ctx.rotate(-angleRad);
+            ctx.fillStyle = '#1e293b';
+            ctx.strokeStyle = '#06b6d4';
+            ctx.lineWidth = 2;
+            ctx.fillRect(0, -6, 22, 12);
+            ctx.strokeRect(0, -6, 22, 12);
+            ctx.restore();
+
+            // Draw Launcher pivot base
+            ctx.beginPath();
+            ctx.arc(pStart.x, pStart.y, 6, 0, Math.PI * 2);
+            ctx.fillStyle = '#06b6d4';
+            ctx.fill();
+
+            // Draw Tree Representation
+            const pTreeBase = getPixelCoords(physics.d, 0);
+            ctx.beginPath();
+            ctx.moveTo(pTreeBase.x, pTreeBase.y);
+            ctx.lineTo(pAppleStart.x, pAppleStart.y + 10);
+            ctx.strokeStyle = '#1e293b';
+            ctx.lineWidth = 6;
+            ctx.stroke();
+
+            // Tree Canopy Foliage
+            ctx.beginPath();
+            ctx.arc(pAppleStart.x, pAppleStart.y - 12, 24, 0, Math.PI * 2);
+            ctx.fillStyle = 'rgba(16, 185, 129, 0.15)';
+            ctx.fill();
+            ctx.strokeStyle = 'rgba(16, 185, 129, 0.3)';
+            ctx.stroke();
+
+            // Draw Bullet Trail
+            if (simTime > 0) {
+                ctx.beginPath();
+                ctx.moveTo(pStart.x, pStart.y);
+                const steps = 50;
+                const dt_step = simTime / steps;
+                for (let i = 1; i <= steps; i++) {
+                    const t_val = i * dt_step;
+                    const x_val = physics.v0 * t_val * Math.cos(angleRad);
+                    const y_val = physics.s + (physics.v0 * t_val * Math.sin(angleRad)) - (physics.hasGravity ? 0.5 * physics.g * t_val * t_val : 0);
+                    const pos = getPixelCoords(x_val, y_val);
+                    ctx.lineTo(pos.x, pos.y);
+                }
+                ctx.strokeStyle = 'rgba(6, 182, 212, 0.35)';
+                ctx.lineWidth = 2;
+                ctx.stroke();
+            }
+
+            // Draw Bullet Ball
+            const pBullet = getPixelCoords(bullet.x, bullet.y);
+            ctx.beginPath();
+            ctx.arc(pBullet.x, pBullet.y, 5, 0, Math.PI * 2);
+            ctx.fillStyle = '#22d3ee';
+            ctx.shadowColor = '#06b6d4';
+            ctx.shadowBlur = 8;
+            ctx.fill();
+            ctx.shadowBlur = 0; // reset
+
+            // Draw Apple Target
+            const pApple = getPixelCoords(apple.x, apple.y);
+            ctx.beginPath();
+            ctx.arc(pApple.x, pApple.y, 8, 0, Math.PI * 2);
+            ctx.fillStyle = '#ef4444';
+            ctx.shadowColor = '#ef4444';
+            ctx.shadowBlur = collisionOccurred ? 15 : 0;
+            ctx.fill();
+            ctx.shadowBlur = 0;
+
+            // Draw Leaf on top of the Apple
+            ctx.beginPath();
+            ctx.ellipse(pApple.x + 2, pApple.y - 8, 4, 2, Math.PI / 4, 0, Math.PI * 2);
+            ctx.fillStyle = '#10b981';
+            ctx.fill();
+
+            // Draw target box when hit occurs
+            if (collisionOccurred) {
+                ctx.beginPath();
+                ctx.arc(pApple.x, pApple.y, 16, 0, Math.PI * 2);
+                ctx.strokeStyle = '#f59e0b';
+                ctx.lineWidth = 2;
+                ctx.setLineDash([4, 4]);
+                ctx.stroke();
+                ctx.setLineDash([]);
+                
+                ctx.fillStyle = '#f59e0b';
+                ctx.font = 'bold 11px system-ui';
+                ctx.fillText("COLLISION!", pApple.x + 20, pApple.y + 4);
+            }
+        }
+
+        function fireSimulation() {
+            if (isRunning) {
+                resetSimulation();
+            }
+            isRunning = true;
+            simTime = 0;
+            collisionOccurred = false;
+            document.getElementById('status-display').textContent = "Flying...";
+            document.getElementById('status-display').className = "text-xs bg-slate-950 px-2 py-1 rounded border border-slate-800 text-cyan-400 font-mono";
+            
+            lastFrameTime = performance.now();
+            runLoop();
+        }
+
+        let lastFrameTime = 0;
+        function runLoop() {
+            if (!isRunning) return;
+
+            const now = performance.now();
+            let dt = (now - lastFrameTime) / 1000;
+            
+            // Adjust for slow motion setup
+            if (isSlowMo) {
+                dt *= 0.25;
+            }
+
+            lastFrameTime = now;
+            
+            // Step loop logic
+            simTime += dt;
+            document.getElementById('time-display').textContent = 't = ' + simTime.toFixed(2) + 's';
+
+            const angleRad = physics.angle * Math.PI / 180;
+            const g_val = physics.hasGravity ? physics.g : 0;
+
+            // 1. Calculate Bullet position
+            bullet.x = physics.v0 * simTime * Math.cos(angleRad);
+            bullet.y = physics.s + (physics.v0 * simTime * Math.sin(angleRad)) - (0.5 * g_val * simTime * simTime);
+
+            // 2. Calculate Apple position depending on configured scenario mode
+            if (physics.scenario === 'drop-sync') {
+                apple.y = physics.h - (0.5 * g_val * simTime * simTime);
+            } else if (physics.scenario === 'stay') {
+                apple.y = physics.h;
+            } else if (physics.scenario === 'delay') {
+                // drops early by 0.35s before trigger
+                const effectiveTime = simTime + 0.35; 
+                apple.y = physics.h - (0.5 * g_val * effectiveTime * effectiveTime);
+            }
+
+            // Calculations of displacement differences
+            const perfectNoGravYBullet = physics.s + (physics.v0 * simTime * Math.sin(angleRad));
+            const bulletDrop = perfectNoGravYBullet - bullet.y;
+            const appleFall = physics.h - apple.y;
+
+            document.getElementById('readout-bdrop').textContent = bulletDrop.toFixed(2) + ' m';
+            document.getElementById('readout-afall').textContent = appleFall.toFixed(2) + ' m';
+
+            // Check boundaries
+            const dist = Math.hypot(bullet.x - apple.x, bullet.y - apple.y);
+            
+            // Register Hit
+            if (dist < 2.5) {
+                collisionOccurred = true;
+                isRunning = false;
+                document.getElementById('status-display').textContent = "🎯 HIT!";
+                document.getElementById('status-display').className = "text-xs bg-slate-950 px-2 py-1 rounded border border-emerald-800/80 text-emerald-400 font-bold font-mono";
+                draw();
+                return;
+            }
+
+            // Miss logic if bullet passes beyond d limit or lands on ground
+            if (bullet.x > physics.d + 10 || bullet.y < 0 || apple.y < 0) {
+                isRunning = false;
+                document.getElementById('status-display').textContent = "❌ MISSED";
+                document.getElementById('status-display').className = "text-xs bg-slate-950 px-2 py-1 rounded border border-red-800/80 text-red-500 font-bold font-mono";
+                draw();
+                return;
+            }
+
+            draw();
+            animationFrameId = requestAnimationFrame(runLoop);
+        }
+    </script>
+</body>
+</html>

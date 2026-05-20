@@ -1,0 +1,716 @@
+0
+00:00:00,000 --> 00:00:03,660
+
+
+1
+00:00:03,660 --> 00:00:07,090
+So in this example, we want to hit
+
+2
+00:00:07,090 --> 00:00:10,360
+an apple that's hanging from a tree with a projectile.
+
+3
+00:00:10,360 --> 00:00:12,200
+And the main point of the problem
+
+4
+00:00:12,200 --> 00:00:14,440
+is to figure out at what angle to the ground
+
+5
+00:00:14,440 --> 00:00:17,340
+should we aim our projectile when we fire it off
+
+6
+00:00:17,340 --> 00:00:18,570
+in order to hit the apple.
+
+7
+00:00:18,570 --> 00:00:20,150
+And in this example, we're assuming
+
+8
+00:00:20,150 --> 00:00:22,860
+that the apple drops from the tree at the same instant
+
+9
+00:00:22,860 --> 00:00:24,590
+that we fire the projectile.
+
+10
+00:00:24,590 --> 00:00:27,590
+So in this drawing, let's just put some dimensions in here.
+
+11
+00:00:27,590 --> 00:00:29,470
+We'll assume that the apple starts out
+
+12
+00:00:29,470 --> 00:00:34,520
+at a height h above the ground, that the horizontal distance
+
+13
+00:00:34,520 --> 00:00:39,360
+from where the projectile starts to the apple
+
+14
+00:00:39,360 --> 00:00:46,708
+is a distance d, that the projectile starts at a distance
+
+15
+00:00:46,708 --> 00:00:53,990
+s above the ground, and that we fire the projectile off
+
+16
+00:00:53,990 --> 00:00:59,440
+with an initial velocity v0 at an angle theta
+
+17
+00:00:59,440 --> 00:01:04,280
+0 with respect to the horizontal.
+
+18
+00:01:04,280 --> 00:01:08,780
+And let's define our origin to be
+
+19
+00:01:08,780 --> 00:01:12,870
+right here on the ground directly
+
+20
+00:01:12,870 --> 00:01:17,550
+below where the projectile begins.
+
+21
+00:01:17,550 --> 00:01:19,310
+We need to define our coordinate system.
+
+22
+00:01:19,310 --> 00:01:24,440
+So the i hat direction will be horizontally to the right,
+
+23
+00:01:24,440 --> 00:01:27,250
+and the j hat direction will be vertically upwards
+
+24
+00:01:27,250 --> 00:01:29,320
+with an origin at this point.
+
+25
+00:01:29,320 --> 00:01:33,210
+So the question that we have is, what should our angle theta 0
+
+26
+00:01:33,210 --> 00:01:37,100
+be in order to hit the apple, which
+
+27
+00:01:37,100 --> 00:01:39,250
+starts falling from the tree at the same instant
+
+28
+00:01:39,250 --> 00:01:40,990
+that we fire our projectile, and we
+
+29
+00:01:40,990 --> 00:01:43,790
+want to hit the apple before it hits the ground?
+
+30
+00:01:43,790 --> 00:01:46,900
+OK, so to work this out, we need to consider
+
+31
+00:01:46,900 --> 00:01:50,170
+the kinematics of two separate objects, our projectile
+
+32
+00:01:50,170 --> 00:01:51,520
+and the apple.
+
+33
+00:01:51,520 --> 00:01:55,070
+So let's begin with the apple.
+
+34
+00:01:55,070 --> 00:02:03,101
+So for our apple, the apple drops vertically straight
+
+35
+00:02:03,101 --> 00:02:03,600
+downward.
+
+36
+00:02:03,600 --> 00:02:05,660
+So its horizontal position throughout its motion
+
+37
+00:02:05,660 --> 00:02:08,750
+is just unchanged.
+
+38
+00:02:08,750 --> 00:02:12,570
+So the x-coordinate of the apple as a function of time
+
+39
+00:02:12,570 --> 00:02:17,310
+is just d, it's just a constant.
+
+40
+00:02:17,310 --> 00:02:24,960
+Its y-coordinate, it starts out at a height h,
+
+41
+00:02:24,960 --> 00:02:28,950
+and then it drops due to the acceleration of gravity.
+
+42
+00:02:28,950 --> 00:02:33,240
+And so that's given by minus 1/2 gt squared.
+
+43
+00:02:33,240 --> 00:02:35,780
+It's a minus because it's falling in the minus j hat
+
+44
+00:02:35,780 --> 00:02:36,875
+direction.
+
+45
+00:02:36,875 --> 00:02:38,375
+Now, for our projectile-- let's call
+
+46
+00:02:38,375 --> 00:02:49,540
+it a bullet-- for our bullet, the x-coordinate of the bullet,
+
+47
+00:02:49,540 --> 00:02:53,210
+it starts out at the origin, at x equals 0.
+
+48
+00:02:53,210 --> 00:02:56,653
+And its initial motion, it has an initial velocity v0
+
+49
+00:02:56,653 --> 00:02:58,120
+in this direction.
+
+50
+00:02:58,120 --> 00:03:00,680
+The horizontal component of that is v0
+
+51
+00:03:00,680 --> 00:03:02,330
+times the cosine of theta 0l.
+
+52
+00:03:02,330 --> 00:03:05,010
+And so its displacement at time t
+
+53
+00:03:05,010 --> 00:03:09,910
+is v0 t times the cosine of theta 0.
+
+54
+00:03:09,910 --> 00:03:11,540
+And there's no horizontal acceleration,
+
+55
+00:03:11,540 --> 00:03:14,330
+so that completes our x-coordinate
+
+56
+00:03:14,330 --> 00:03:15,810
+as a function of time.
+
+57
+00:03:15,810 --> 00:03:20,610
+For our y-coordinate, we start out
+
+58
+00:03:20,610 --> 00:03:23,400
+at a height s above the ground.
+
+59
+00:03:23,400 --> 00:03:25,180
+There is the change in the y-coordinate
+
+60
+00:03:25,180 --> 00:03:28,760
+due to the initial velocity, which has component v0
+
+61
+00:03:28,760 --> 00:03:29,880
+sine theta 0.
+
+62
+00:03:29,880 --> 00:03:38,010
+So that's plus v0 t sine theta 0.
+
+63
+00:03:38,010 --> 00:03:40,260
+And there's also a vertical acceleration
+
+64
+00:03:40,260 --> 00:03:48,330
+due to gravity, which gives us minus 1/2 gt squared.
+
+65
+00:03:48,330 --> 00:03:51,460
+So that's the kinematics of the apple and the bullet.
+
+66
+00:03:51,460 --> 00:03:58,609
+Now, for there to be a hit at time t equals capital T,
+
+67
+00:03:58,609 --> 00:04:00,400
+the coordinates of the apple and the bullet
+
+68
+00:04:00,400 --> 00:04:03,880
+have to be the same at that collision time.
+
+69
+00:04:03,880 --> 00:04:13,270
+So for a hit at t equals big T, we
+
+70
+00:04:13,270 --> 00:04:17,350
+require that the x-coordinate of the bullet at time big T
+
+71
+00:04:17,350 --> 00:04:20,610
+is the same as the x-coordinate of the apple,
+
+72
+00:04:20,610 --> 00:04:23,770
+and likewise that the y-coordinate of the bullet
+
+73
+00:04:23,770 --> 00:04:27,310
+is equal to the y-coordinate of the apple.
+
+74
+00:04:27,310 --> 00:04:29,860
+OK, so let's look at each of these in turn.
+
+75
+00:04:29,860 --> 00:04:36,550
+For our x-coordinate, the x-coordinate of the bullet
+
+76
+00:04:36,550 --> 00:04:42,710
+is v0 capital T times the cosine of theta 0,
+
+77
+00:04:42,710 --> 00:04:47,140
+and that has to be equal to the x-coordinate
+
+78
+00:04:47,140 --> 00:04:48,980
+of the apple, which is just d.
+
+79
+00:04:48,980 --> 00:04:52,900
+So notice that I can solve this for the time of the collision,
+
+80
+00:04:52,900 --> 00:04:59,780
+capital T. And that's just d minus v0 times
+
+81
+00:04:59,780 --> 00:05:03,660
+the cosine of theta 0.
+
+82
+00:05:03,660 --> 00:05:09,590
+Now, for our y-coordinate, the y-coordinate of the bullet
+
+83
+00:05:09,590 --> 00:05:21,100
+is s plus v0 capital T times the sine of theta not minus 1/2 gt
+
+84
+00:05:21,100 --> 00:05:23,260
+squared.
+
+85
+00:05:23,260 --> 00:05:25,740
+And that's equal to the y-coordinate
+
+86
+00:05:25,740 --> 00:05:32,320
+of the apple, which is h minus 1/2 gt squared.
+
+87
+00:05:32,320 --> 00:05:37,070
+
+
+88
+00:05:37,070 --> 00:05:37,760
+All right.
+
+89
+00:05:37,760 --> 00:05:39,840
+Now, I can rearrange that.
+
+90
+00:05:39,840 --> 00:05:43,077
+Notice that I have a minus 1/2 gt squared on both sides,
+
+91
+00:05:43,077 --> 00:05:43,910
+so those cancel out.
+
+92
+00:05:43,910 --> 00:05:48,660
+I can rearrange that to write v0 times capital T
+
+93
+00:05:48,660 --> 00:05:56,220
+times the sine of theta 0 is equal to h minus s.
+
+94
+00:05:56,220 --> 00:06:01,070
+So that the sine of theta 0 is equal to h
+
+95
+00:06:01,070 --> 00:06:06,100
+minus s over v0 capital T.
+
+96
+00:06:06,100 --> 00:06:10,130
+But remember, we solved for capital T here.
+
+97
+00:06:10,130 --> 00:06:11,350
+So I can substitute that in.
+
+98
+00:06:11,350 --> 00:06:13,900
+
+
+99
+00:06:13,900 --> 00:06:24,530
+So that gives me h minus s over v0 times 1 over t,
+
+100
+00:06:24,530 --> 00:06:34,170
+which is v0 cosine theta 0 over d.
+
+101
+00:06:34,170 --> 00:06:42,500
+And so I can rewrite that as h minus s over d
+
+102
+00:06:42,500 --> 00:06:44,154
+times the cosine of theta 0.
+
+103
+00:06:44,154 --> 00:06:47,510
+
+
+104
+00:06:47,510 --> 00:06:50,010
+So rewriting that, I have on the left hand side
+
+105
+00:06:50,010 --> 00:06:55,050
+sine of theta 0 over cosine of theta 0
+
+106
+00:06:55,050 --> 00:06:59,436
+is equal to h minus s over d.
+
+107
+00:06:59,436 --> 00:07:01,760
+And notice on the left hand side sine over cosine
+
+108
+00:07:01,760 --> 00:07:09,150
+is just tangent, so this is just the tangent of theta 0.
+
+109
+00:07:09,150 --> 00:07:10,920
+Now, think about what that means.
+
+110
+00:07:10,920 --> 00:07:20,260
+If I draw a right triangle where this is theta 0
+
+111
+00:07:20,260 --> 00:07:23,360
+and this is h minus s and this is
+
+112
+00:07:23,360 --> 00:07:26,380
+d, and so this is the same geometry
+
+113
+00:07:26,380 --> 00:07:30,950
+we have here if we drew the triangle like this.
+
+114
+00:07:30,950 --> 00:07:35,430
+So theta 0 is just the angle to the location of the apple
+
+115
+00:07:35,430 --> 00:07:37,380
+just before it drops.
+
+116
+00:07:37,380 --> 00:07:39,091
+So what this calculation tells us
+
+117
+00:07:39,091 --> 00:07:41,590
+is that the correct thing to do if we want to hit the apple,
+
+118
+00:07:41,590 --> 00:07:43,923
+if we know the apple's going to drop at the same instant
+
+119
+00:07:43,923 --> 00:07:47,260
+that we fire, then we should aim at the location
+
+120
+00:07:47,260 --> 00:07:49,950
+that the apple is at that instant.
+
+121
+00:07:49,950 --> 00:07:53,250
+We shouldn't try and lead the apple and fire below it
+
+122
+00:07:53,250 --> 00:07:54,210
+or fire above it.
+
+123
+00:07:54,210 --> 00:07:56,050
+We should aim directly at the apple.
+
+124
+00:07:56,050 --> 00:07:58,120
+And what the kinematics tells us is
+
+125
+00:07:58,120 --> 00:07:59,650
+that both the bullet and the apple
+
+126
+00:07:59,650 --> 00:08:01,650
+fall vertically down at the same rate.
+
+127
+00:08:01,650 --> 00:08:04,710
+And so that will give us a collision.
+
+128
+00:08:04,710 --> 00:08:08,590
+Now, it's worth thinking about two different cases,
+
+129
+00:08:08,590 --> 00:08:10,870
+which I'm not going to solve for you here.
+
+130
+00:08:10,870 --> 00:08:14,770
+The first is, what if the apple didn't drop?
+
+131
+00:08:14,770 --> 00:08:19,010
+Suppose the apple just stayed in the tree, and I fired?
+
+132
+00:08:19,010 --> 00:08:22,584
+If I aimed directly at the apple and the apple didn't drop,
+
+133
+00:08:22,584 --> 00:08:24,750
+then I would miss the apple because the bullet would
+
+134
+00:08:24,750 --> 00:08:29,210
+drop as it went across this distance d.
+
+135
+00:08:29,210 --> 00:08:32,080
+Now, of course, if the apple were big enough,
+
+136
+00:08:32,080 --> 00:08:34,830
+or if the bullet were flying fast enough, if v0
+
+137
+00:08:34,830 --> 00:08:38,580
+was fast enough, then it might be
+
+138
+00:08:38,580 --> 00:08:40,225
+that the amount that the bullet dropped
+
+139
+00:08:40,225 --> 00:08:42,350
+wouldn't be bigger than the thickness of the apple.
+
+140
+00:08:42,350 --> 00:08:44,059
+So I might still graze the apple.
+
+141
+00:08:44,059 --> 00:08:46,020
+But I wouldn't hit the apple dead center.
+
+142
+00:08:46,020 --> 00:08:49,072
+So if I knew that the apple wasn't going to drop,
+
+143
+00:08:49,072 --> 00:08:50,530
+and I wanted to hit it dead center,
+
+144
+00:08:50,530 --> 00:08:53,370
+I would have to choose some different angle, theta 0l.
+
+145
+00:08:53,370 --> 00:08:54,820
+And we can sort of see intuitively
+
+146
+00:08:54,820 --> 00:08:58,290
+that that angle would have to be a little bit steeper so
+
+147
+00:08:58,290 --> 00:09:00,859
+that the bullet would drop and then hit the apple.
+
+148
+00:09:00,859 --> 00:09:02,400
+And so the way we would solve that is
+
+149
+00:09:02,400 --> 00:09:04,950
+in our original kinematics equations,
+
+150
+00:09:04,950 --> 00:09:08,460
+for the motion of the apple, x would still
+
+151
+00:09:08,460 --> 00:09:11,750
+be a constant d, but if the apple wasn't dropping, then
+
+152
+00:09:11,750 --> 00:09:13,590
+y of the apple would also be a constant.
+
+153
+00:09:13,590 --> 00:09:15,070
+We wouldn't have the second term.
+
+154
+00:09:15,070 --> 00:09:18,070
+We would just have y equals h.
+
+155
+00:09:18,070 --> 00:09:21,190
+And then I would have to solve for a collision.
+
+156
+00:09:21,190 --> 00:09:22,780
+The other case to think about that I'd
+
+157
+00:09:22,780 --> 00:09:25,530
+like you to think about is, what if the apple
+
+158
+00:09:25,530 --> 00:09:29,800
+begins dropping for a short interval before we fired?
+
+159
+00:09:29,800 --> 00:09:32,310
+So that at the time that we fire our projectile,
+
+160
+00:09:32,310 --> 00:09:34,840
+the apple is already dropping.
+
+161
+00:09:34,840 --> 00:09:37,080
+Well, that's equivalent to saying that at time equals
+
+162
+00:09:37,080 --> 00:09:40,910
+0 when I fire, that the apple has some initial velocity,
+
+163
+00:09:40,910 --> 00:09:43,730
+whatever velocity it's picked up by dropping
+
+164
+00:09:43,730 --> 00:09:45,680
+in whatever interval it was dropping before.
+
+165
+00:09:45,680 --> 00:09:48,990
+So now my kinematics for my apple
+
+166
+00:09:48,990 --> 00:09:50,620
+in the vertical direction, I would
+
+167
+00:09:50,620 --> 00:09:53,870
+have an additional term here, a minus v0 t,
+
+168
+00:09:53,870 --> 00:09:55,462
+where v0 is that initial velocity.
+
+169
+00:09:55,462 --> 00:09:57,970
+
+
+170
+00:09:57,970 --> 00:09:59,157
+And that's a different v0.
+
+171
+00:09:59,157 --> 00:10:00,740
+I should have used a different symbol.
+
+172
+00:10:00,740 --> 00:10:02,656
+It's a different v0 than the v0 of the bullet.
+
+173
+00:10:02,656 --> 00:10:05,550
+But there would be an initial velocity, falling velocity,
+
+174
+00:10:05,550 --> 00:10:07,680
+of the apple that I'd have to consider.
+
+175
+00:10:07,680 --> 00:10:10,720
+So the particular details of what's happening with the apple
+
+176
+00:10:10,720 --> 00:10:11,850
+change the kinematics.
+
+177
+00:10:11,850 --> 00:10:13,225
+And it's worth thinking about how
+
+178
+00:10:13,225 --> 00:10:15,100
+that would change your answer.
+

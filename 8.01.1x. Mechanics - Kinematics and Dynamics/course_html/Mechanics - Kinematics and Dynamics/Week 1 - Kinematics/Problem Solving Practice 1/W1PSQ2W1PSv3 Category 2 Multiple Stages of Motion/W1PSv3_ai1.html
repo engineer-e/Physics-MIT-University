@@ -1,0 +1,1298 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Physics Study Module: Car Braking Dynamics</title>
+    <!-- Tailwind CSS for modern look -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Lucide Icons -->
+    <script src="https://unpkg.com/lucide@latest"></script>
+    <!-- KaTeX for beautiful math equations -->
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.8/dist/katex.min.css">
+    <script src="https://cdn.jsdelivr.net/npm/katex@0.16.8/dist/katex.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/katex@0.16.8/dist/contrib/auto-render.min.js"></script>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600&display=swap');
+        
+        body {
+            font-family: 'Plus Jakarta Sans', sans-serif;
+            background-color: #0f172a; /* Slate 900 */
+            color: #f8fafc; /* Slate 50 */
+        }
+        .code-font {
+            font-family: 'JetBrains Mono', monospace;
+        }
+        /* Custom scrollbar */
+        ::-webkit-scrollbar {
+            width: 8px;
+            height: 8px;
+        }
+        ::-webkit-scrollbar-track {
+            background: #1e293b;
+        }
+        ::-webkit-scrollbar-thumb {
+            background: #475569;
+            border-radius: 4px;
+        }
+        ::-webkit-scrollbar-thumb:hover {
+            background: #64748b;
+        }
+        /* Flashcard Flip Effect */
+        .perspective {
+            perspective: 1000px;
+        }
+        .preserve-3d {
+            transform-style: preserve-3d;
+        }
+        .backface-hidden {
+            backface-visibility: hidden;
+        }
+        .rotate-y-180 {
+            transform: rotateY(180deg);
+        }
+    </style>
+</head>
+<body class="min-h-screen flex flex-col antialiased">
+
+    <!-- Top Navigation Header -->
+    <header class="border-b border-slate-800 bg-slate-900/80 backdrop-blur sticky top-0 z-50 px-6 py-4 flex items-center justify-between">
+        <div class="flex items-center space-x-3">
+            <div class="p-2 bg-emerald-500/10 text-emerald-400 rounded-lg">
+                <i data-lucide="zap" class="w-6 h-6"></i>
+            </div>
+            <div>
+                <h1 class="text-xl font-extrabold tracking-tight bg-gradient-to-r from-emerald-400 to-cyan-400 bg-clip-text text-transparent">
+                    Motion Transition & Braking Dynamics
+                </h1>
+                <p class="text-xs text-slate-400 font-medium">Kinematics Simulator & Cognitive Learning Suite</p>
+            </div>
+        </div>
+        <div class="flex space-x-2 text-xs font-semibold bg-slate-950 p-1 rounded-lg border border-slate-800">
+            <button onclick="scrollToSection('simulator-sec')" class="px-3 py-1.5 rounded-md bg-slate-800 text-white hover:text-emerald-400 transition">Simulator</button>
+            <button onclick="scrollToSection('theory-sec')" class="px-3 py-1.5 rounded-md hover:bg-slate-900 text-slate-300 hover:text-emerald-400 transition">Equations & Core Theory</button>
+            <button onclick="scrollToSection('memory-sec')" class="px-3 py-1.5 rounded-md hover:bg-slate-900 text-slate-300 hover:text-emerald-400 transition">Memory Anchors</button>
+            <button onclick="scrollToSection('algorithm-sec')" class="px-3 py-1.5 rounded-md hover:bg-slate-900 text-slate-300 hover:text-emerald-400 transition">Algorithm</button>
+            <button onclick="scrollToSection('flashcard-sec')" class="px-3 py-1.5 rounded-md hover:bg-slate-900 text-slate-300 hover:text-emerald-400 transition">Flashcards</button>
+            <button onclick="scrollToSection('quiz-sec')" class="px-3 py-1.5 rounded-md hover:bg-slate-900 text-slate-300 hover:text-emerald-400 transition">Mastery Quiz</button>
+        </div>
+    </header>
+
+    <main class="flex-grow p-6 space-y-10 max-w-7xl mx-auto w-full">
+
+        <!-- INTRO HERO CONTAINER -->
+        <div class="bg-gradient-to-br from-slate-900 via-slate-950 to-emerald-950/20 border border-slate-800 rounded-2xl p-6 md:p-8 shadow-2xl relative overflow-hidden">
+            <div class="absolute top-0 right-0 w-96 h-96 bg-emerald-500/5 rounded-full blur-3xl pointer-events-none"></div>
+            <div class="absolute bottom-0 left-0 w-80 h-80 bg-cyan-500/5 rounded-full blur-3xl pointer-events-none"></div>
+            
+            <div class="relative z-10 grid grid-cols-1 lg:grid-cols-12 gap-8 items-center">
+                <div class="lg:col-span-7 space-y-4">
+                    <span class="inline-flex items-center gap-1.5 px-3 py-1 text-xs font-bold text-emerald-400 bg-emerald-400/10 rounded-full">
+                        <span class="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse"></span>
+                        Interactive Kinematics Masterclass
+                    </span>
+                    <h2 class="text-3xl md:text-4xl font-black text-white tracking-tight leading-none">
+                        Master the Physics of <br><span class="text-emerald-400">Two-Phase Motion Transitions</span>
+                    </h2>
+                    <p class="text-slate-300 leading-relaxed text-sm md:text-base">
+                        How do we model a vehicle that cruises at constant velocity and then smoothly brakes with time-dependent deceleration? Dive deep into the mathematical transition where 
+                        <strong>Phase 1 (Constant Speed)</strong> transforms into <strong>Phase 2 (Deceleration)</strong>, turning integrated equations into long-term recallable sensory knowledge.
+                    </p>
+                    <div class="flex flex-wrap gap-4 pt-2">
+                        <div class="flex items-center space-x-2 text-xs bg-slate-950 border border-slate-800 px-3 py-2 rounded-lg">
+                            <span class="text-slate-400">Phase 1 Acceleration:</span>
+                            <span class="text-emerald-400 font-bold">$a(t) = 0$</span>
+                        </div>
+                        <div class="flex items-center space-x-2 text-xs bg-slate-950 border border-slate-800 px-3 py-2 rounded-lg">
+                            <span class="text-slate-400">Phase 2 Acceleration:</span>
+                            <span class="text-cyan-400 font-bold">$a(t) = -c(t-t_1)$</span>
+                        </div>
+                    </div>
+                </div>
+                <div class="lg:col-span-5 bg-slate-950/80 border border-slate-800 p-5 rounded-xl space-y-3">
+                    <div class="flex items-center space-x-2 text-amber-400">
+                        <i data-lucide="shield-alert" class="w-5 h-5"></i>
+                        <h4 class="font-bold text-sm">The Boundary Constraint Key</h4>
+                    </div>
+                    <p class="text-xs text-slate-400 leading-relaxed">
+                        The ultimate secret of multi-phase kinematics lies in the <strong>continuity boundary</strong>. The final conditions of Phase 1 (at $t = t_1$) become the critical initial conditions for Phase 2:
+                    </p>
+                    <div class="bg-slate-900 p-3 rounded-lg border border-slate-800 space-y-2 text-xs font-semibold text-slate-300">
+                        <div class="flex justify-between items-center">
+                            <span>Velocity Boundary:</span>
+                            <span class="text-emerald-400">$v_1(t_1) = v_2(t_1) = v_0$</span>
+                        </div>
+                        <div class="flex justify-between items-center">
+                            <span>Position Boundary:</span>
+                            <span class="text-emerald-400">$x_1(t_1) = x_2(t_1) = v_0 t_1$</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- SECTION 1: VISUAL SIMULATOR (HIGH INTENSITY INTERACTION) -->
+        <section id="simulator-sec" class="bg-slate-900 border border-slate-800 rounded-2xl overflow-hidden shadow-xl">
+            <div class="border-b border-slate-800 bg-slate-900/50 p-5 flex flex-wrap items-center justify-between gap-4">
+                <div class="flex items-center space-x-3">
+                    <div class="p-1.5 bg-cyan-500/10 text-cyan-400 rounded-lg">
+                        <i data-lucide="gauge" class="w-5 h-5"></i>
+                    </div>
+                    <div>
+                        <h3 class="font-bold text-lg text-white">Dynamic 2-Phase Braking Simulator</h3>
+                        <p class="text-xs text-slate-400">Observe displacement, velocity, and linear jerk deceleration dynamically</p>
+                    </div>
+                </div>
+                <!-- Control Buttons -->
+                <div class="flex items-center space-x-2">
+                    <button id="btn-play" onclick="toggleSimulation()" class="bg-emerald-500 hover:bg-emerald-600 text-slate-950 font-bold text-xs px-4 py-2 rounded-lg flex items-center space-x-1.5 transition">
+                        <i data-lucide="play" class="w-4 h-4" id="play-icon"></i>
+                        <span id="play-text">Start Simulation</span>
+                    </button>
+                    <button onclick="resetSimulation()" class="bg-slate-800 hover:bg-slate-700 text-white font-bold text-xs px-4 py-2 rounded-lg flex items-center space-x-1.5 transition">
+                        <i data-lucide="rotate-ccw" class="w-4 h-4"></i>
+                        <span>Reset</span>
+                    </button>
+                </div>
+            </div>
+
+            <div class="p-6 grid grid-cols-1 lg:grid-cols-12 gap-8">
+                <!-- Left Sidebar: Controls -->
+                <div class="lg:col-span-4 space-y-5">
+                    <div class="bg-slate-950 border border-slate-800/80 p-5 rounded-xl space-y-6">
+                        <h4 class="text-sm font-bold text-slate-300 uppercase tracking-wider border-b border-slate-800 pb-2 flex items-center gap-1.5">
+                            <i data-lucide="sliders" class="w-4 h-4 text-emerald-400"></i> Adjustable System Parameters
+                        </h4>
+
+                        <!-- Slider 1: Initial Velocity -->
+                        <div class="space-y-2">
+                            <div class="flex justify-between text-xs font-semibold">
+                                <span class="text-slate-400">Initial Speed ($v_0$)</span>
+                                <span class="text-emerald-400" id="val-v0">20 m/s</span>
+                            </div>
+                            <input type="range" id="input-v0" min="10" max="40" value="20" step="1" 
+                                   class="w-full accent-emerald-400 h-1.5 bg-slate-800 rounded-lg cursor-pointer"
+                                   oninput="updateParams()">
+                            <div class="flex justify-between text-[10px] text-slate-500">
+                                <span>10 m/s</span>
+                                <span>40 m/s</span>
+                            </div>
+                        </div>
+
+                        <!-- Slider 2: Phase Transition Time t1 -->
+                        <div class="space-y-2">
+                            <div class="flex justify-between text-xs font-semibold">
+                                <span class="text-slate-400">Braking Trigger Point ($t_1$)</span>
+                                <span class="text-cyan-400" id="val-t1">2.0 s</span>
+                            </div>
+                            <input type="range" id="input-t1" min="1" max="4" value="2" step="0.5" 
+                                   class="w-full accent-cyan-400 h-1.5 bg-slate-800 rounded-lg cursor-pointer"
+                                   oninput="updateParams()">
+                            <div class="flex justify-between text-[10px] text-slate-500">
+                                <span>1.0 s</span>
+                                <span>4.0 s</span>
+                            </div>
+                        </div>
+
+                        <!-- Slider 3: Braking Intensity c -->
+                        <div class="space-y-2">
+                            <div class="flex justify-between text-xs font-semibold">
+                                <span class="text-indigo-400">Braking Constant ($c$)</span>
+                                <span class="text-indigo-400" id="val-c">3.0 m/s³</span>
+                            </div>
+                            <input type="range" id="input-c" min="1" max="8" value="3.0" step="0.5" 
+                                   class="w-full accent-indigo-400 h-1.5 bg-slate-800 rounded-lg cursor-pointer"
+                                   oninput="updateParams()">
+                            <div class="flex justify-between text-[10px] text-slate-500">
+                                <span>1.0 m/s³</span>
+                                <span>8.0 m/s³</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Readouts -->
+                    <div class="bg-slate-950 border border-slate-800/80 p-5 rounded-xl space-y-4">
+                        <h4 class="text-sm font-bold text-slate-300 uppercase tracking-wider border-b border-slate-800 pb-2">
+                            Live Telemetry
+                        </h4>
+                        <div class="grid grid-cols-2 gap-3">
+                            <div class="bg-slate-900 p-3 rounded-lg border border-slate-850">
+                                <p class="text-[10px] text-slate-400 font-bold uppercase">Time Elapsed</p>
+                                <p class="text-xl font-black text-white font-mono mt-1"><span id="telemetry-time">0.00</span>s</p>
+                            </div>
+                            <div class="bg-slate-900 p-3 rounded-lg border border-slate-850">
+                                <p class="text-[10px] text-slate-400 font-bold uppercase">Active State</p>
+                                <p class="text-sm font-bold mt-1.5 py-0.5 px-2 rounded text-center inline-block" id="telemetry-phase"></p>
+                            </div>
+                            <div class="bg-slate-900 p-3 rounded-lg border border-slate-850">
+                                <p class="text-[10px] text-slate-400 font-bold uppercase">Displacement</p>
+                                <p class="text-xl font-black text-emerald-400 font-mono mt-1"><span id="telemetry-x">0.0</span>m</p>
+                            </div>
+                            <div class="bg-slate-900 p-3 rounded-lg border border-slate-850">
+                                <p class="text-[10px] text-slate-400 font-bold uppercase">Current Velocity</p>
+                                <p class="text-xl font-black text-cyan-400 font-mono mt-1"><span id="telemetry-v">0.0</span>m/s</p>
+                            </div>
+                        </div>
+                        <div class="bg-indigo-950/30 p-3 rounded-lg border border-indigo-900/40 text-xs">
+                            <div class="flex justify-between font-bold text-indigo-300">
+                                <span>Theoretical Stopping Time ($t_2$):</span>
+                                <span id="telemetry-t2" class="font-mono">3.63s</span>
+                            </div>
+                            <div class="flex justify-between font-bold text-indigo-300 mt-1">
+                                <span>Total Stopping Distance:</span>
+                                <span id="telemetry-total-dist" class="font-mono">56.2m</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Right Side: Interactive Visualizer & Plot Panel -->
+                <div class="lg:col-span-8 space-y-6 flex flex-col justify-between">
+                    <!-- Animation Canvas Container -->
+                    <div class="bg-slate-950 border border-slate-800 rounded-xl p-4 flex-grow relative overflow-hidden">
+                        <span class="absolute top-3 left-3 bg-slate-900 text-[10px] font-bold tracking-widest text-slate-400 uppercase border border-slate-800 px-2 py-1 rounded">
+                            Motion Canvas
+                        </span>
+                        
+                        <!-- Visual representation of Phase Transition Line on the track -->
+                        <div class="absolute bottom-16 w-1 border-r border-dashed border-red-500/60 z-10 text-center" id="canvas-boundary-line" style="left: 40%; height: 60px;">
+                            <span class="absolute -top-6 left-1/2 -translate-x-1/2 text-[9px] font-bold text-red-400 whitespace-nowrap bg-slate-950 px-1 border border-slate-850 rounded">
+                                BRAKES TRIGGERED ($t_1$)
+                            </span>
+                        </div>
+                        
+                        <canvas id="motionCanvas" class="w-full bg-slate-950 h-44 rounded-lg block"></canvas>
+                        
+                        <div class="flex justify-between items-center text-xs text-slate-400 px-2 mt-2">
+                            <span>$x = 0$ m</span>
+                            <span class="font-mono text-xs text-indigo-400 font-semibold" id="scale-indicator">Track length: 150m</span>
+                            <span id="scale-stop-label">Stopped</span>
+                        </div>
+                    </div>
+
+                    <!-- Dynamic Graph Visualization (Custom rendered in canvas) -->
+                    <div class="bg-slate-950 border border-slate-800 rounded-xl p-4">
+                        <div class="flex items-center justify-between mb-2">
+                            <span class="bg-slate-900 text-[10px] font-bold tracking-widest text-slate-400 uppercase border border-slate-800 px-2 py-1 rounded">
+                                Live Graphs
+                            </span>
+                            <div class="flex space-x-4 text-xs">
+                                <span class="flex items-center gap-1.5 text-emerald-400 font-semibold">
+                                    <span class="w-2.5 h-2.5 bg-emerald-400 rounded-full inline-block"></span> Position $x(t)$
+                                </span>
+                                <span class="flex items-center gap-1.5 text-cyan-400 font-semibold">
+                                    <span class="w-2.5 h-2.5 bg-cyan-400 rounded-full inline-block"></span> Velocity $v(t)$
+                                </span>
+                                <span class="flex items-center gap-1.5 text-red-400 font-semibold">
+                                    <span class="w-2.5 h-2.5 bg-red-400 rounded-full inline-block"></span> Accel. $a(t)$
+                                </span>
+                            </div>
+                        </div>
+                        <canvas id="graphCanvas" class="w-full h-44 bg-slate-950 rounded-lg block"></canvas>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- SECTION 2: CORE FORMULA & KINEMATICS THEORY (LATEX RENDERED) -->
+        <section id="theory-sec" class="grid grid-cols-1 lg:grid-cols-2 gap-8">
+            
+            <!-- Left Panel: Phase 1 Deep-Dive -->
+            <div class="bg-slate-900 border border-slate-800 rounded-2xl p-6 space-y-4">
+                <div class="flex items-center space-x-3 border-b border-slate-800 pb-3">
+                    <div class="p-2 bg-emerald-500/10 text-emerald-400 rounded-lg">
+                        <span class="font-extrabold text-sm font-mono">P1</span>
+                    </div>
+                    <div>
+                        <h3 class="font-bold text-lg text-white">Phase 1: Cruising with Constant Speed</h3>
+                        <p class="text-xs text-emerald-400">Boundary Domain: $0 \le t \le t_1$</p>
+                    </div>
+                </div>
+
+                <div class="space-y-4 text-slate-300 text-sm leading-relaxed">
+                    <p>
+                        In Phase 1, the driver cruises undisturbed. Because velocity is perfectly uniform, there is no change in momentum, hence the net force and acceleration are strictly zero.
+                    </p>
+                    <div class="bg-slate-950 p-4 rounded-xl border border-slate-850 space-y-4 font-mono text-xs">
+                        <div class="space-y-1">
+                            <span class="text-[10px] font-mono uppercase text-slate-400">1. Acceleration Equation</span>
+                            <div class="text-base text-white py-1 font-semibold">
+                                $$a(t) = 0$$
+                            </div>
+                        </div>
+                        <div class="space-y-1">
+                            <span class="text-[10px] font-mono uppercase text-slate-400">2. Velocity via Calculus Integration</span>
+                            <p class="text-xs text-slate-400 mb-1">Integrating acceleration with initial condition $v(0) = v_0$:</p>
+                            <div class="text-base text-white py-1 font-semibold">
+                                $$v(t) - v(0) = \int_0^t a(t') \, dt' = \int_0^t 0 \, dt' \implies v(t) = v_0$$
+                            </div>
+                        </div>
+                        <div class="space-y-1">
+                            <span class="text-[10px] font-mono uppercase text-slate-400">3. Position via Calculus Integration</span>
+                            <p class="text-xs text-slate-400 mb-1">Integrating constant velocity with initial condition $x(0) = 0$:</p>
+                            <div class="text-base text-white py-1 font-semibold">
+                                $$x(t) - x(0) = \int_0^t v(t') \, dt' = \int_0^t v_0 \, dt' \implies x(t) = v_0 t$$
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Right Panel: Phase 2 Deep-Dive -->
+            <div class="bg-slate-900 border border-slate-800 rounded-2xl p-6 space-y-4">
+                <div class="flex items-center space-x-3 border-b border-slate-800 pb-3">
+                    <div class="p-2 bg-cyan-500/10 text-cyan-400 rounded-lg">
+                        <span class="font-extrabold text-sm font-mono">P2</span>
+                    </div>
+                    <div>
+                        <h3 class="font-bold text-lg text-white">Phase 2: Deceleration with Jerk</h3>
+                        <p class="text-xs text-cyan-400">Boundary Domain: $t_1 \le t \le t_2$</p>
+                    </div>
+                </div>
+
+                <div class="space-y-4 text-slate-300 text-sm leading-relaxed">
+                    <p>
+                        At $t_1$, the brakes are engaged. The deceleration increases linearly over time with a scale factor $c$. This produces a linearly increasing negative acceleration (a constant rate of Jerk $-c$).
+                    </p>
+                    <div class="bg-slate-950 p-4 rounded-xl border border-slate-850 space-y-4 overflow-x-auto font-mono text-xs">
+                        <div class="space-y-1">
+                            <span class="text-[10px] font-mono uppercase text-slate-400">1. Linear Deceleration Profile</span>
+                            <div class="text-sm text-white py-1 font-semibold">
+                                $$a(t) = -c(t - t_1)$$
+                            </div>
+                        </div>
+                        <div class="space-y-1">
+                            <span class="text-[10px] font-mono uppercase text-slate-400">2. Velocity Profile via Definite Integration</span>
+                            <p class="text-xs text-slate-400 mb-1">Integrating with boundary condition $v(t_1) = v_0$:</p>
+                            <div class="text-sm text-white py-1 font-semibold">
+                                $$v(t) - v(t_1) = \int_{t_1}^t -c(t' - t_1) \, dt'$$
+                                $$v(t) = v_0 - \frac{1}{2}c(t - t_1)^2$$
+                            </div>
+                        </div>
+                        <div class="space-y-1">
+                            <span class="text-[10px] font-mono uppercase text-slate-400">3. Position Profile via Integration</span>
+                            <p class="text-xs text-slate-400 mb-1">Integrating with boundary transition condition $x(t_1) = v_0 t_1$:</p>
+                            <div class="text-sm text-white py-1 font-semibold">
+                                $$x(t) - x(t_1) = \int_{t_1}^t \left[v_0 - \frac{1}{2}c(t' - t_1)^2\right] dt'$$
+                                $$x(t) = v_0 t_1 + v_0(t - t_1) - \frac{1}{6}c(t - t_1)^3$$
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- SECTION 3: CORE INTUITION & MEMORY ANCHORS (SENSORY WORDS & EMOTIONS) -->
+        <section id="memory-sec" class="bg-slate-900 border border-slate-800 rounded-2xl p-6 shadow-xl space-y-6">
+            <div class="border-b border-slate-800 pb-3 flex items-center space-x-3">
+                <div class="p-2 bg-amber-500/10 text-amber-400 rounded-lg">
+                    <i data-lucide="brain-circuit" class="w-5 h-5"></i>
+                </div>
+                <div>
+                    <h3 class="font-bold text-lg text-white">Sticky Memory Anchors & Sensory Cues</h3>
+                    <p class="text-xs text-slate-400">Using visual metaphors and structural triggers to build long-term retention</p>
+                </div>
+            </div>
+
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+                <!-- Anchor 1 -->
+                <div class="bg-slate-950 p-5 rounded-xl border border-slate-850 space-y-3 relative overflow-hidden group hover:border-emerald-500/30 transition">
+                    <div class="absolute -top-6 -right-6 w-16 h-16 bg-emerald-500/5 rounded-full group-hover:scale-150 transition-transform duration-500"></div>
+                    <div class="flex items-center space-x-2 text-emerald-400">
+                        <i data-lucide="navigation-2" class="w-5 h-5"></i>
+                        <h4 class="font-bold text-sm">The Cruise Control Calm</h4>
+                    </div>
+                    <p class="text-xs text-slate-300 leading-relaxed">
+                        <strong>Mental Image:</strong> Cruising smoothly over flat glass. 
+                        No wind resistance, no bumps. You are drifting forward like an ice hockey puck. 
+                        Since acceleration is dead silent at <span class="text-emerald-400">$a=0$</span>, velocity is frozen at <span class="text-emerald-400">$v_0$</span>. 
+                        Position strictly accumulates linearly like steps on a conveyor belt: 
+                        <span class="text-emerald-400 text-xs font-semibold font-mono bg-slate-900 px-1 py-0.5 rounded">$x(t) = v_0 t$</span>.
+                    </p>
+                </div>
+
+                <!-- Anchor 2 -->
+                <div class="bg-slate-950 p-5 rounded-xl border border-slate-850 space-y-3 relative overflow-hidden group hover:border-cyan-500/30 transition">
+                    <div class="absolute -top-6 -right-6 w-16 h-16 bg-cyan-500/5 rounded-full group-hover:scale-150 transition-transform duration-500"></div>
+                    <div class="flex items-center space-x-2 text-cyan-400">
+                        <i data-lucide="footprints" class="w-5 h-5"></i>
+                        <h4 class="font-bold text-sm">The Stop-Line Squeeze</h4>
+                    </div>
+                    <p class="text-xs text-slate-300 leading-relaxed">
+                        <strong>Mental Image:</strong> At time $t_1$, you don't instantly lock the tires. You press down the brake pedal deeper and deeper. 
+                        This is a <strong>gradual, crushing squeeze</strong>. 
+                        The force increases smoothly—which is why the deceleration curve slopes down. 
+                        Because deceleration is dynamic, the velocity doesn't drop as a flat line; it plunges downwards in an increasingly steep <strong>quadratic avalanche</strong>.
+                    </p>
+                </div>
+
+                <!-- Anchor 3 -->
+                <div class="bg-slate-950 p-5 rounded-xl border border-slate-850 space-y-3 relative overflow-hidden group hover:border-indigo-500/30 transition">
+                    <div class="absolute -top-6 -right-6 w-16 h-16 bg-indigo-500/5 rounded-full group-hover:scale-150 transition-transform duration-500"></div>
+                    <div class="flex items-center space-x-2 text-indigo-400">
+                        <i data-lucide="arrow-right-left" class="w-5 h-5"></i>
+                        <h4 class="font-bold text-sm">The Kinematic Relay Baton</h4>
+                    </div>
+                    <p class="text-xs text-slate-300 leading-relaxed">
+                        <strong>Mental Image:</strong> Two runners handing off a baton. 
+                        At exactly $t = t_1$, Phase 1 (cruising) ends, and Phase 2 (braking) starts. 
+                        The position and velocity cannot jump instantly (that would require infinite force!). 
+                        So, Phase 1 hands over its current position <span class="text-emerald-400">$v_0 t_1$</span> and speed <span class="text-emerald-400">$v_0$</span> to Phase 2. 
+                        These become the absolute anchor points of the next phase.
+                    </p>
+                </div>
+            </div>
+        </section>
+
+        <!-- SECTION 4: ALGORITHMIC COMPONENT & STEP-BY-STEP FLOW -->
+        <section id="algorithm-sec" class="bg-slate-900 border border-slate-800 rounded-2xl overflow-hidden shadow-xl">
+            <div class="border-b border-slate-800 bg-slate-900/50 p-5">
+                <div class="flex items-center space-x-3">
+                    <div class="p-1.5 bg-violet-500/10 text-violet-400 rounded-lg">
+                        <i data-lucide="workflow" class="w-5 h-5"></i>
+                    </div>
+                    <div>
+                        <h3 class="font-bold text-lg text-white">Algorithms & Integration Mechanics</h3>
+                        <p class="text-xs text-slate-400">The computational steps to solve or simulate this multi-phase transition</p>
+                    </div>
+                </div>
+            </div>
+
+            <div class="p-6 grid grid-cols-1 md:grid-cols-2 gap-8">
+                <!-- Physical Integration Steps -->
+                <div class="space-y-4">
+                    <h4 class="text-xs font-bold text-slate-400 uppercase tracking-widest border-b border-slate-850 pb-2 flex items-center gap-1">
+                        <span class="w-1.5 h-1.5 rounded-full bg-violet-400"></span> Analytical Physics Calculus Algorithm
+                    </h4>
+                    <ol class="space-y-4 text-xs text-slate-300">
+                        <li class="flex gap-3">
+                            <span class="font-black text-violet-400 bg-violet-500/10 w-6 h-6 rounded-full flex items-center justify-center shrink-0">1</span>
+                            <div>
+                                <span class="font-bold text-white block">Define the Domains and Bounds</span>
+                                Break down the problem timeline into non-overlapping domains: $D_1 = [0, t_1]$ and $D_2 = [t_1, t_2]$. Write down constant parameters ($v_0, c, t_1$).
+                            </div>
+                        </li>
+                        <li class="flex gap-3">
+                            <span class="font-black text-violet-400 bg-violet-500/10 w-6 h-6 rounded-full flex items-center justify-center shrink-0">2</span>
+                            <div>
+                                <span class="font-bold text-white block">Solve Phase 1 Equations ($t \in D_1$)</span>
+                                Integrate $a(t) = 0$ with $v(0) = v_0$ to find $v_1(t) = v_0$. Integrate $v_1(t)$ with $x(0) = 0$ to get $x_1(t) = v_0 t$.
+                            </div>
+                        </li>
+                        <li class="flex gap-3">
+                            <span class="font-black text-violet-400 bg-violet-500/10 w-6 h-6 rounded-full flex items-center justify-center shrink-0">3</span>
+                            <div>
+                                <span class="font-bold text-white block">Calculate Phase 1 Handover Limits</span>
+                                Compute the state variables at the transition boundary:
+                                <div class="bg-slate-950 p-2 rounded border border-slate-850 mt-1 space-y-1 font-mono text-[10px] text-emerald-400">
+                                    v1_end = v_0;<br>
+                                    x1_end = v_0 * t_1;
+                                </div>
+                            </div>
+                        </li>
+                        <li class="flex gap-3">
+                            <span class="font-black text-violet-400 bg-violet-500/10 w-6 h-6 rounded-full flex items-center justify-center shrink-0">4</span>
+                            <div>
+                                <span class="font-bold text-white block">Solve Phase 2 with Phase Offset Integration ($t \in D_2$)</span>
+                                Use the substitution variable $u = (t' - t_1)$ to integrate $a(t) = -cu$. 
+                                This simplifies the definite integral and cleanly matches initial conditions at the transition boundary:
+                                $$v(t) = v_1\_end + \int_{t_1}^t -c(t' - t_1)dt' = v_0 - \frac{1}{2}c(t-t_1)^2$$
+                            </div>
+                        </li>
+                        <li class="flex gap-3">
+                            <span class="font-black text-violet-400 bg-violet-500/10 w-6 h-6 rounded-full flex items-center justify-center shrink-0">5</span>
+                            <div>
+                                <span class="font-bold text-white block">Find Total Stopping Point ($t_2$)</span>
+                                Set the velocity function in Phase 2 to $0$:
+                                $$v(t_2) = 0 \implies v_0 - \frac{1}{2}c(t_2-t_1)^2 = 0 \implies t_2 = t_1 + \sqrt{\frac{2v_0}{c}}$$
+                            </div>
+                        </li>
+                    </ol>
+                </div>
+
+                <!-- Simulation Computation Steps (JavaScript Pseudo-logic) -->
+                <div class="space-y-4">
+                    <h4 class="text-xs font-bold text-slate-400 uppercase tracking-widest border-b border-slate-850 pb-2 flex items-center gap-1">
+                        <span class="w-1.5 h-1.5 rounded-full bg-cyan-400"></span> Computational Simulation Loop
+                    </h4>
+                    <div class="bg-slate-950 p-4 rounded-xl border border-slate-850 space-y-3">
+                        <p class="text-xs text-slate-300">
+                            Our interactive simulator uses high-fidelity numerical integrations and analytical formula evaluation. The render update function processes each frame as follows:
+                        </p>
+                        <div class="code-font text-[11px] text-slate-400 space-y-1 bg-slate-900/60 p-3 rounded-lg border border-slate-850/50">
+                            <p class="text-emerald-400">// Frame Update Loop (Executed at 60 FPS)</p>
+                            <p><span class="text-purple-400">function</span> <span class="text-blue-400">updateState</span>(t, v0, t1, c) {</p>
+                            <p class="pl-4"><span class="text-purple-400">const</span> delta_stop = Math.sqrt((2 * v0) / c);</p>
+                            <p class="pl-4"><span class="text-purple-400">const</span> t2 = t1 + delta_stop;</p>
+                            <p class="pl-4 text-slate-500">// Clamp time simulation to stopped state</p>
+                            <p class="pl-4">t = Math.min(t, t2);</p>
+                            <br>
+                            <p class="pl-4"><span class="text-purple-400">if</span> (t &lt;= t1) {</p>
+                            <p class="pl-8 text-emerald-400">// Phase 1: Constant Velocity</p>
+                            <p class="pl-8">current_a = 0;</p>
+                            <p class="pl-8">current_v = v0;</p>
+                            <p class="pl-8">current_x = v0 * t;</p>
+                            <p class="pl-4">} <span class="text-purple-400">else</span> {</p>
+                            <p class="pl-8 text-cyan-400">// Phase 2: Variable Deceleration</p>
+                            <p class="pl-8">let dt = t - t1;</p>
+                            <p class="pl-8">current_a = -c * dt;</p>
+                            <p class="pl-8">current_v = v0 - 0.5 * c * dt * dt;</p>
+                            <p class="pl-8">current_x = v0 * t1 + v0 * dt - (1/6) * c * dt * dt * dt;</p>
+                            <p class="pl-4">}</p>
+                            <p class="pl-4"><span class="text-purple-400">return</span> { x: current_x, v: current_v, a: current_a, t2: t2 };</p>
+                            <p>}</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- SECTION 5: SPACED-REPETITION FLASHCARDS -->
+        <section id="flashcard-sec" class="bg-slate-900 border border-slate-800 rounded-2xl p-6 shadow-xl space-y-6">
+            <div class="border-b border-slate-800 pb-3 flex items-center space-x-3">
+                <div class="p-2 bg-pink-500/10 text-pink-400 rounded-lg">
+                    <i data-lucide="layers" class="w-5 h-5"></i>
+                </div>
+                <div>
+                    <h3 class="font-bold text-lg text-white">Active Recall Flashcards</h3>
+                    <p class="text-xs text-slate-400">Tap on a card to flip it over and test your rapid recall</p>
+                </div>
+            </div>
+
+            <!-- Flashcard Grid -->
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+                <!-- Card 1 -->
+                <div class="h-44 perspective cursor-pointer" onclick="flipCard(this)">
+                    <div class="w-full h-full relative preserve-3d transition-transform duration-500 rounded-xl border border-slate-800 bg-slate-950 flex items-center justify-center p-6 text-center shadow-lg">
+                        <!-- Front Face -->
+                        <div class="absolute inset-0 flex flex-col justify-between p-4 backface-hidden bg-slate-950/90 rounded-xl">
+                            <span class="text-[10px] font-bold text-slate-500 uppercase tracking-widest text-left">Recall Card 1</span>
+                            <p class="text-sm font-bold text-slate-200 px-2 leading-relaxed">
+                                Why do we use $x_2(t_1) = v_0 t_1$ as our position constant in Phase 2?
+                            </p>
+                            <span class="text-[10px] text-pink-400 font-semibold flex items-center justify-center gap-1">
+                                <i data-lucide="refresh-cw" class="w-3 h-3 animate-spin"></i> Tap to flip
+                            </span>
+                        </div>
+                        <!-- Back Face -->
+                        <div class="absolute inset-0 flex flex-col justify-between p-4 backface-hidden rotate-y-180 bg-slate-900 border border-emerald-500/30 rounded-xl">
+                            <span class="text-[10px] font-bold text-emerald-400 uppercase tracking-widest text-left">Explanation</span>
+                            <p class="text-xs text-slate-300 px-2 leading-relaxed">
+                                For <strong>physical continuity</strong>. The car cannot magically teleport instantly. 
+                                The final position of Phase 1 ($x(t_1) = v_0 t_1$) must seamlessly match the start position of Phase 2.
+                            </p>
+                            <span class="text-[10px] text-slate-500 font-mono">Continuous Boundary Constraint</span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Card 2 -->
+                <div class="h-44 perspective cursor-pointer" onclick="flipCard(this)">
+                    <div class="w-full h-full relative preserve-3d transition-transform duration-500 rounded-xl border border-slate-800 bg-slate-950 flex items-center justify-center p-6 text-center shadow-lg">
+                        <!-- Front Face -->
+                        <div class="absolute inset-0 flex flex-col justify-between p-4 backface-hidden bg-slate-950/90 rounded-xl">
+                            <span class="text-[10px] font-bold text-slate-500 uppercase tracking-widest text-left">Recall Card 2</span>
+                            <p class="text-sm font-bold text-slate-200 px-2 leading-relaxed">
+                                What is the physical significance of the constant $c$ in the acceleration equation $a(t) = -c(t-t_1)$?
+                            </p>
+                            <span class="text-[10px] text-pink-400 font-semibold flex items-center justify-center gap-1">
+                                <i data-lucide="refresh-cw" class="w-3 h-3 animate-spin"></i> Tap to flip
+                            </span>
+                        </div>
+                        <!-- Back Face -->
+                        <div class="absolute inset-0 flex flex-col justify-between p-4 backface-hidden rotate-y-180 bg-slate-900 border border-emerald-500/30 rounded-xl">
+                            <span class="text-[10px] font-bold text-emerald-400 uppercase tracking-widest text-left">Explanation</span>
+                            <p class="text-xs text-slate-300 px-2 leading-relaxed">
+                                $c$ represents the <strong>jerk rate</strong>, which is the rate of change of acceleration over time ($\frac{da}{dt} = -c$). It measures how aggressively the braking force escalates.
+                            </p>
+                            <span class="text-[10px] text-slate-500 font-mono">Unit: m/s³ (Jerk constant)</span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Card 3 -->
+                <div class="h-44 perspective cursor-pointer" onclick="flipCard(this)">
+                    <div class="w-full h-full relative preserve-3d transition-transform duration-500 rounded-xl border border-slate-800 bg-slate-950 flex items-center justify-center p-6 text-center shadow-lg">
+                        <!-- Front Face -->
+                        <div class="absolute inset-0 flex flex-col justify-between p-4 backface-hidden bg-slate-950/90 rounded-xl">
+                            <span class="text-[10px] font-bold text-slate-500 uppercase tracking-widest text-left">Recall Card 3</span>
+                            <p class="text-sm font-bold text-slate-200 px-2 leading-relaxed">
+                                How does stopping time $t_2$ scale if you double the initial cruising speed $v_0$?
+                            </p>
+                            <span class="text-[10px] text-pink-400 font-semibold flex items-center justify-center gap-1">
+                                <i data-lucide="refresh-cw" class="w-3 h-3 animate-spin"></i> Tap to flip
+                            </span>
+                        </div>
+                        <!-- Back Face -->
+                        <div class="absolute inset-0 flex flex-col justify-between p-4 backface-hidden rotate-y-180 bg-slate-900 border border-emerald-500/30 rounded-xl">
+                            <span class="text-[10px] font-bold text-emerald-400 uppercase tracking-widest text-left">Explanation</span>
+                            <p class="text-xs text-slate-300 px-2 leading-relaxed">
+                                The braking duration $(t_2 - t_1)$ is $\sqrt{2v_0/c}$. 
+                                Therefore, if you double $v_0$, the braking time scales by a factor of <strong>$\sqrt{2} \approx 1.414$</strong>, not by double.
+                            </p>
+                            <span class="text-[10px] text-slate-500 font-mono">Proportionality: $(t_2 - t_1) \propto \sqrt{v_0}$</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- SECTION 6: CONCEPT MASTERY QUIZ -->
+        <section id="quiz-sec" class="bg-slate-900 border border-slate-800 rounded-2xl p-6 shadow-xl space-y-6">
+            <div class="border-b border-slate-800 pb-3 flex items-center justify-between">
+                <div class="flex items-center space-x-3">
+                    <div class="p-2 bg-emerald-500/10 text-emerald-400 rounded-lg">
+                        <i data-lucide="clipboard-check" class="w-5 h-5"></i>
+                    </div>
+                    <div>
+                        <h3 class="font-bold text-lg text-white">Concept Mastery Quiz</h3>
+                        <p class="text-xs text-slate-400">Validate your analytical understanding of continuous kinematic systems</p>
+                    </div>
+                </div>
+                <div class="bg-slate-950 px-3 py-1 border border-slate-800 rounded-md text-xs font-bold text-emerald-400">
+                    Questions: <span id="quiz-score">0 / 4</span> answered correctly
+                </div>
+            </div>
+
+            <!-- Quiz Questions -->
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <!-- Q1 -->
+                <div class="bg-slate-950 p-5 rounded-xl border border-slate-850 space-y-4 flex flex-col justify-between" id="q1-card">
+                    <div class="space-y-2">
+                        <span class="text-[10px] font-bold text-slate-500 uppercase tracking-widest">Question 1 (Analytical)</span>
+                        <p class="text-xs text-slate-300 font-semibold leading-relaxed">
+                            A car drives at constant velocity $v_0 = 18\text{ m/s}$ for $t_1 = 3\text{ s}$, then brakes with $c = 4\text{ m/s}^3$. What is the absolute position of the car when it starts braking ($t = 3\text{ s}$)?
+                        </p>
+                    </div>
+                    <div class="space-y-2">
+                        <button onclick="checkAnswer(this, 1, 'A')" class="w-full text-left text-xs bg-slate-900 hover:bg-slate-850 border border-slate-800 hover:border-slate-700 p-2.5 rounded-lg text-slate-300 transition-colors flex justify-between items-center">
+                            <span>A) $x = 18\text{ m}$</span>
+                            <i data-lucide="circle" class="w-4 h-4 text-slate-600"></i>
+                        </button>
+                        <button onclick="checkAnswer(this, 1, 'B')" class="w-full text-left text-xs bg-slate-900 hover:bg-slate-850 border border-slate-800 hover:border-slate-700 p-2.5 rounded-lg text-slate-300 transition-colors flex justify-between items-center">
+                            <span>B) $x = 54\text{ m}$ (Correct because $x_1(t_1) = v_0 t_1 = 18 \times 3$)</span>
+                            <i data-lucide="circle" class="w-4 h-4 text-slate-600"></i>
+                        </button>
+                        <button onclick="checkAnswer(this, 1, 'C')" class="w-full text-left text-xs bg-slate-900 hover:bg-slate-850 border border-slate-800 hover:border-slate-700 p-2.5 rounded-lg text-slate-300 transition-colors flex justify-between items-center">
+                            <span>C) $x = 72\text{ m}$</span>
+                            <i data-lucide="circle" class="w-4 h-4 text-slate-600"></i>
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Q2 -->
+                <div class="bg-slate-950 p-5 rounded-xl border border-slate-850 space-y-4 flex flex-col justify-between" id="q2-card">
+                    <div class="space-y-2">
+                        <span class="text-[10px] font-bold text-slate-500 uppercase tracking-widest">Question 2 (Integration Step)</span>
+                        <p class="text-xs text-slate-300 font-semibold leading-relaxed">
+                            Which of the following describes the correct velocity equation in Phase 2 ($t \ge t_1$) before the car has come to a stop?
+                        </p>
+                    </div>
+                    <div class="space-y-2">
+                        <button onclick="checkAnswer(this, 2, 'A')" class="w-full text-left text-xs bg-slate-900 hover:bg-slate-850 border border-slate-800 hover:border-slate-700 p-2.5 rounded-lg text-slate-300 transition-colors flex justify-between items-center">
+                            <span>A) $v(t) = v_0 - c(t - t_1)$</span>
+                            <i data-lucide="circle" class="w-4 h-4 text-slate-600"></i>
+                        </button>
+                        <button onclick="checkAnswer(this, 2, 'B')" class="w-full text-left text-xs bg-slate-900 hover:bg-slate-850 border border-slate-800 hover:border-slate-700 p-2.5 rounded-lg text-slate-300 transition-colors flex justify-between items-center">
+                            <span>B) $v(t) = v_0 - c(t - t_1)^2$</span>
+                            <i data-lucide="circle" class="w-4 h-4 text-slate-600"></i>
+                        </button>
+                        <button onclick="checkAnswer(this, 2, 'C')" class="w-full text-left text-xs bg-slate-900 hover:bg-slate-850 border border-slate-800 hover:border-slate-700 p-2.5 rounded-lg text-slate-300 transition-colors flex justify-between items-center">
+                            <span>C) $v(t) = v_0 - \frac{1}{2}c(t - t_1)^2$</span>
+                            <i data-lucide="circle" class="w-4 h-4 text-slate-600"></i>
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Q3 -->
+                <div class="bg-slate-950 p-5 rounded-xl border border-slate-850 space-y-4 flex flex-col justify-between" id="q3-card">
+                    <div class="space-y-2">
+                        <span class="text-[10px] font-bold text-slate-500 uppercase tracking-widest">Question 3 (Calculus Mastery)</span>
+                        <p class="text-xs text-slate-300 font-semibold leading-relaxed">
+                            What is the position equation $x(t)$ of the car during the deceleration phase ($t \ge t_1$)?
+                        </p>
+                    </div>
+                    <div class="space-y-2">
+                        <button onclick="checkAnswer(this, 3, 'A')" class="w-full text-left text-xs bg-slate-900 hover:bg-slate-850 border border-slate-800 hover:border-slate-700 p-2.5 rounded-lg text-slate-300 transition-colors flex justify-between items-center">
+                            <span>A) $x(t) = v_0 t_1 + v_0(t-t_1) - \frac{1}{6}c(t-t_1)^3$</span>
+                            <i data-lucide="circle" class="w-4 h-4 text-slate-600"></i>
+                        </button>
+                        <button onclick="checkAnswer(this, 3, 'B')" class="w-full text-left text-xs bg-slate-900 hover:bg-slate-850 border border-slate-800 hover:border-slate-700 p-2.5 rounded-lg text-slate-300 transition-colors flex justify-between items-center">
+                            <span>B) $x(t) = v_0 t - \frac{1}{3}c(t-t_1)^3$</span>
+                            <i data-lucide="circle" class="w-4 h-4 text-slate-600"></i>
+                        </button>
+                        <button onclick="checkAnswer(this, 3, 'C')" class="w-full text-left text-xs bg-slate-900 hover:bg-slate-850 border border-slate-800 hover:border-slate-700 p-2.5 rounded-lg text-slate-300 transition-colors flex justify-between items-center">
+                            <span>C) $x(t) = v_0 t_1 + \frac{1}{2}v_0(t-t_1)^2 - \frac{1}{6}c(t-t_1)^3$</span>
+                            <i data-lucide="circle" class="w-4 h-4 text-slate-600"></i>
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Q4 -->
+                <div class="bg-slate-950 p-5 rounded-xl border border-slate-850 space-y-4 flex flex-col justify-between" id="q4-card">
+                    <div class="space-y-2">
+                        <span class="text-[10px] font-bold text-slate-500 uppercase tracking-widest">Question 4 (Graphical Intuition)</span>
+                        <p class="text-xs text-slate-300 font-semibold leading-relaxed">
+                            How do the slopes of the position-time ($x$-$t$) and velocity-time ($v$-$t$) graphs behave precisely at transition point $t_1$?
+                        </p>
+                    </div>
+                    <div class="space-y-2">
+                        <button onclick="checkAnswer(this, 4, 'A')" class="w-full text-left text-xs bg-slate-900 hover:bg-slate-850 border border-slate-800 hover:border-slate-700 p-2.5 rounded-lg text-slate-300 transition-colors flex justify-between items-center">
+                            <span>A) Both slopes change instantly (kinks/sharp points on both graphs).</span>
+                            <i data-lucide="circle" class="w-4 h-4 text-slate-600"></i>
+                        </button>
+                        <button onclick="checkAnswer(this, 4, 'B')" class="w-full text-left text-xs bg-slate-900 hover:bg-slate-850 border border-slate-800 hover:border-slate-700 p-2.5 rounded-lg text-slate-300 transition-colors flex justify-between items-center flex-wrap gap-1">
+                            <span>B) Both curves are perfectly smooth (no kink on $x$- $t$, and $v$- $t$ slope transitions smoothly).</span>
+                            <i data-lucide="circle" class="w-4 h-4 text-slate-600"></i>
+                        </button>
+                        <button onclick="checkAnswer(this, 4, 'C')" class="w-full text-left text-xs bg-slate-900 hover:bg-slate-850 border border-slate-800 hover:border-slate-700 p-2.5 rounded-lg text-slate-300 transition-colors flex justify-between items-center">
+                            <span>C) The $x$-$t$ slope is smooth (no kink), but the $v$-$t$ slope starts curving downwards instantly (kink in acceleration).</span>
+                            <i data-lucide="circle" class="w-4 h-4 text-slate-600"></i>
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+    </main>
+
+    <!-- Footer -->
+    <footer class="border-t border-slate-800 bg-slate-950 py-6 text-center text-xs text-slate-500">
+        <p>&copy; 2026 Kinematics Interactive Learning Suite. Crafted for long-term physics cognitive retention.</p>
+    </footer>
+
+    <script>
+        // SYSTEM CONTROLS & STATE VARIABLES
+        let simState = {
+            v0: 20,            // Initial speed (m/s)
+            t1: 2.0,           // Braking trigger point (s)
+            c: 3.0,            // Deceleration jerk constant (m/s³)
+            time: 0.0,         // Current time elapsed (s)
+            isPlaying: false,  // Is the animation playing?
+            x: 0,              // Position (m)
+            v: 20,             // Velocity (m/s)
+            a: 0,              // Acceleration (m/s²)
+            t2: 5.65,          // Final stopping point (s)
+            scaleFactorX: 3.5  // Scaling for layout display
+        };
+
+        let lastFrameTime = null;
+        let animationId = null;
+
+        // Canvas & Graph Init
+        const motionCanvas = document.getElementById('motionCanvas');
+        const ctxMotion = motionCanvas.getContext('2d');
+        const graphCanvas = document.getElementById('graphCanvas');
+        const ctxGraph = graphCanvas.getContext('2d');
+
+        // Quiz answers checking state
+        let correctAnswers = {
+            1: 'B',
+            2: 'C',
+            3: 'A',
+            4: 'C'
+        };
+        let userAnswers = {};
+
+        // Start everything
+        window.onload = function() {
+            renderMath();
+            lucide.createIcons();
+            resizeCanvases();
+            updateParams();
+            resetSimulation();
+
+            window.addEventListener('resize', () => {
+                resizeCanvases();
+                drawTrack();
+                drawPlots();
+            });
+        };
+
+        function scrollToSection(id) {
+            document.getElementById(id).scrollIntoView({ behavior: 'smooth' });
+        }
+
+        // Render equations using KaTeX (Safe execution block)
+        function renderMath() {
+            try {
+                renderMathInElement(document.body, {
+                    delimiters: [
+                        {left: '$$', right: '$$', display: true},
+                        {left: '$', right: '$', display: false}
+                    ],
+                    throwOnError: false
+                });
+            } catch (err) {
+                console.warn("Math rendering deferred.", err);
+            }
+        }
+
+        // Handle adaptive canvas size resizing
+        function resizeCanvases() {
+            // Get CSS computed sizes
+            const wM = motionCanvas.parentElement.clientWidth;
+            motionCanvas.width = wM * 2; // high-dpi
+            motionCanvas.style.width = wM + 'px';
+            motionCanvas.height = 176 * 2;
+            motionCanvas.style.height = 176 + 'px';
+
+            const wG = graphCanvas.parentElement.clientWidth;
+            graphCanvas.width = wG * 2;
+            graphCanvas.style.width = wG + 'px';
+            graphCanvas.height = 176 * 2;
+            graphCanvas.style.height = 176 + 'px';
+        }
+
+        // Update the slider control values
+        function updateParams() {
+            simState.v0 = parseFloat(document.getElementById('input-v0').value);
+            simState.t1 = parseFloat(document.getElementById('input-t1').value);
+            simState.c = parseFloat(document.getElementById('input-c').value);
+
+            document.getElementById('val-v0').innerText = simState.v0 + " m/s";
+            document.getElementById('val-t1').innerText = simState.t1.toFixed(1) + " s";
+            document.getElementById('val-c').innerText = simState.c.toFixed(1) + " m/s³";
+
+            // Recalculate theoretical stopping time t2
+            const stoppingDelta = Math.sqrt((2 * simState.v0) / simState.c);
+            simState.t2 = simState.t1 + stoppingDelta;
+            
+            // Total distance analytical formula
+            const x_t1 = simState.v0 * simState.t1;
+            const braking_dist = simState.v0 * stoppingDelta - (1/6) * simState.c * Math.pow(stoppingDelta, 3);
+            const total_dist = x_t1 + braking_dist;
+
+            document.getElementById('telemetry-t2').innerText = simState.t2.toFixed(2) + "s";
+            document.getElementById('telemetry-total-dist').innerText = total_dist.toFixed(1) + "m";
+
+            // Dynamically adjust scale factor of layout depending on total distance
+            // Keep the car on the track visualization
+            simState.scaleFactorX = Math.max(0.2, (motionCanvas.width - 200) / total_dist);
+            document.getElementById('scale-indicator').innerText = "Track length: " + Math.ceil(total_dist * 1.1) + "m";
+            document.getElementById('scale-stop-label').innerText = "Stop Point: " + total_dist.toFixed(1) + "m";
+
+            // Position transition boundary marker line on visual track
+            const leftPct = (x_t1 / (total_dist * 1.1)) * 100;
+            document.getElementById('canvas-boundary-line').style.left = leftPct.toFixed(1) + "%";
+
+            // If not playing, reset values to state t=0 to reflect updates
+            if(!simState.isPlaying) {
+                resetSimulation();
+            }
+        }
+
+        // Simulate step at time "t" and return active physics states
+        function getPhysicsStateAt(t) {
+            const v0 = simState.v0;
+            const t1 = simState.t1;
+            const c = simState.c;
+            const t2 = simState.t2;
+
+            let curTime = Math.min(t, t2);
+            let x, v, a;
+
+            if (curTime <= t1) {
+                a = 0;
+                v = v0;
+                x = v0 * curTime;
+            } else {
+                let dt = curTime - t1;
+                a = -c * dt;
+                v = v0 - 0.5 * c * dt * dt;
+                x = v0 * t1 + v0 * dt - (1/6) * c * Math.pow(dt, 3);
+            }
+
+            return { x, v, a, isStopped: curTime >= t2, phase: curTime <= t1 ? 1 : 2 };
+        }
+
+        function toggleSimulation() {
+            simState.isPlaying = !simState.isPlaying;
+            const playIcon = document.getElementById('play-icon');
+            const playText = document.getElementById('play-text');
+
+            if (simState.isPlaying) {
+                playIcon.setAttribute('data-lucide', 'pause');
+                playText.innerText = "Pause";
+                lucide.createIcons();
+                lastFrameTime = performance.now();
+                requestAnimationFrame(animationLoop);
+            } else {
+                playIcon.setAttribute('data-lucide', 'play');
+                playText.innerText = "Resume";
+                lucide.createIcons();
+                cancelAnimationFrame(animationId);
+            }
+        }
+
+        function resetSimulation() {
+            simState.isPlaying = false;
+            simState.time = 0;
+            const playIcon = document.getElementById('play-icon');
+            const playText = document.getElementById('play-text');
+            playIcon.setAttribute('data-lucide', 'play');
+            playText.innerText = "Start Simulation";
+            lucide.createIcons();
+            cancelAnimationFrame(animationId);
+
+            // Compute physics at t=0
+            const state = getPhysicsStateAt(0);
+            updateTelemetry(0, state);
+            drawTrack(state);
+            drawPlots(0);
+        }
+
+        function animationLoop(timestamp) {
+            if (!simState.isPlaying) return;
+
+            const elapsed = (timestamp - lastFrameTime) / 1000;
+            lastFrameTime = timestamp;
+
+            // Speed multiplier can be adjusted if simulation feels too fast
+            simState.time += elapsed * 0.8; 
+
+            const state = getPhysicsStateAt(simState.time);
+            updateTelemetry(simState.time, state);
+            drawTrack(state);
+            drawPlots(simState.time);
+
+            if (state.isStopped) {
+                simState.isPlaying = false;
+                document.getElementById('play-icon').setAttribute('data-lucide', 'play');
+                document.getElementById('play-text').innerText = "Finished";
+                lucide.createIcons();
+                return;
+            }
+
+            animationId = requestAnimationFrame(animationLoop);
+        }
+
+        function updateTelemetry(t, state) {
+            document.getElementById('telemetry-time').innerText = t.toFixed(2);
+            document.getElementById('telemetry-x').innerText = state.x.toFixed(1);
+            document.getElementById('telemetry-v').innerText = Math.max(0, state.v).toFixed(1);
+
+            const pElement = document.getElementById('telemetry-phase');
+            if (state.isStopped) {
+                pElement.innerText = "Stopped";
+                pElement.className = "text-sm font-bold mt-1.5 py-0.5 px-2 rounded text-center inline-block bg-slate-800 text-slate-400";
+            } else if (state.phase === 1) {
+                pElement.innerText = "Phase 1: Cruising";
+                pElement.className = "text-sm font-bold mt-1.5 py-0.5 px-2 rounded text-center inline-block bg-emerald-500/20 text-emerald-400";
+            } else {
+                pElement.innerText = "Phase 2: Braking";
+                pElement.className = "text-sm font-bold mt-1.5 py-0.5 px-2 rounded text-center inline-block bg-cyan-500/20 text-cyan-400 animate-pulse";
+            }
+        }
+
+        // VISUAL DESIGN: Draw the highway and animated car
+        function drawTrack(state) {
+            const ctx = ctxMotion;
+            const W = motionCanvas.width;
+            const H = motionCanvas.height;
+
+            ctx.clearRect(0, 0, W, H);
+
+            // Safety fallback if no state is provided (e.g., during resize events)
+            if (!state) {
+                state = getPhysicsStateAt(simState.time);
+            }
+
+            // Scale factor computed for adaptive fitting
+            const margin = 100;
+            const scaleX = simState.scaleFactorX;
+
+            // Draw Highway lines
+            const roadY = H * 0.7;
+            ctx.strokeStyle = '#334155'; // Slate 700
+            ctx.lineWidth = 12;
+            ctx.beginPath();
+            ctx.moveTo(0, roadY);
+            ctx.lineTo(W, roadY);
+            ctx.stroke();
+
+            // Middle dotted road line
+            ctx.strokeStyle = '#e2e8f0'; 
+            ctx.lineWidth = 2;
+            ctx.setLineDash([20, 15]);
+            ctx.beginPath();
+            ctx.moveTo(0, roadY - 15);
+            ctx.lineTo(W, roadY - 15);
+            ctx.stroke();
+            ctx.setLineDash([]); // clear
+
+            // Draw Transition Point Indicator (t1) on the highway
+            const x_t1 = simState.v0 * simState.t1;
+            const screenX_t1 = margin + x_t1 * scaleX;
+            ctx.strokeStyle = 'rgba(239, 68, 68, 0.4)'; // Red-500
+            ctx.lineWidth = 4;
+            ctx.beginPath();
+            ctx.moveTo(screenX_t1, roadY - 50);
+            ctx.lineTo(screenX_t1, roadY + 20);
+            ctx.stroke();
+
+            // Draw Car
+            const carX = margin + state.x * scaleX;
+            const carY = roadY - 55;
+            
+            // Draw Car body
+            ctx.fillStyle = state.phase === 1 ? '#10b981' : '#06b6d4'; // emerald vs cyan
+            ctx.beginPath();
+            // Rounded body corners
+            ctx.roundRect(carX - 45, carY, 90, 30, 8);
+            ctx.fill();
+
+            // Car Cabin dome
+            ctx.fillStyle = '#1e293b';
+            ctx.beginPath();
+            ctx.roundRect(carX - 25, carY - 20, 50, 22, [10, 10, 0, 0]);
+            ctx.fill();
+
+            // Headlight beam (if braking, make red brakes glowing back)
+            if (state.phase === 2) {
+                // brake light glow
+                ctx.fillStyle = 'rgba(239, 68, 68, 0.3)';
+                ctx.beginPath();
+                ctx.moveTo(carX - 48, carY + 5);
+                ctx.lineTo(carX - 90, carY - 5);
+                ctx.lineTo(carX - 90, carY + 35);
+                ctx.closePath();
+                ctx.fill();
+
+                // Braking light bulb red
+                ctx.fillStyle = '#ef4444';
+                ctx.beginPath();
+                ctx.arc(carX - 45, carY + 12, 5, 0, Math.PI * 2);
+                ctx.fill();
+            } else {
+                // Front cruise light glow
+                ctx.fillStyle = 'rgba(16, 185, 129, 0.2)';
+                ctx.beginPath();
+                ctx.moveTo(carX + 48, carY + 5);
+                ctx.lineTo(carX + 110, carY - 5);
+                ctx.lineTo(carX + 110, carY + 35);
+                ctx.closePath();
+                ctx.fill();
+            }
+
+            // Wheels
+            ctx.fillStyle = '#0f172a';
+            ctx.strokeStyle = '#475569';
+            ctx.lineWidth = 3;
+            // Wheel 1
+            ctx.beginPath();
+            ctx.arc(carX - 22, carY + 32, 12, 0, Math.PI * 2);
+            ctx.fill();
+            ctx.stroke();
+            // Wheel 2
+            ctx.beginPath();
+            ctx.arc(carX + 22, carY + 32, 12, 0, Math.PI * 2);
+            ctx.fill();
+            ctx.stroke();
+
+            // Spin center hub cap
+            ctx.fillStyle = '#94a3b8';
+            ctx.beginPath();
+            ctx.arc(carX - 22, carY + 32, 4, 0, Math.PI * 2);
+            ctx.arc(carX + 22, carY + 32, 4, 0, Math.PI * 2);
+            ctx.fill();
+
+            // Draw Car Indicator Arrow
+            ctx.strokeStyle = '#ffffff';
+            ctx.lineWidth = 2;
+            ctx.beginPath();
+            ctx.moveTo(carX, carY - 30);
+            ctx.lineTo(carX, carY - 45);
+            ctx.stroke();
+            
+            // Text speed label
+            ctx.fillStyle = '#f8fafc';
+            ctx.font = 'bold 18px "Plus Jakarta Sans"';
+            ctx.textAlign = 'center';
+            ctx.fillText(state.v.toFixed(1) + " m/s", carX, carY - 55);
+        }
+
+        // Draw Live Plots of dynamics
+        function drawPlots(activeTime) {
+            const ctx = ctxGraph;
+            const W = graphCanvas.width;
+            const H = graphCanvas.height;
+            ctx.clearRect(0, 0, W, H);
+
+            // Safety fallback if no activeTime is provided
+            if (activeTime === undefined) {
+                activeTime = simState.time;
+            }
+
+            const padding = 60;
+            const graphW = W - padding * 2;
+            const graphH = H - padding * 1.5;
+
+            // Maximum bounds computed analytically
+            const maxTime = simState.t2 * 1.1; 
+            // Max positions based on current dynamics
+            const finalState = getPhysicsStateAt(simState.t2);
+            const maxPosition = finalState.x * 1.1;
+            const maxVelocity = simState.v0 * 1.2;
+
+            // Draw axes
+            ctx.strokeStyle = '#334155';
+            ctx.lineWidth = 2;
+            ctx.beginPath();
+            // Y Axis
+            ctx.moveTo(padding, padding / 2);
+            ctx.lineTo(padding, H - padding);
+            // X Axis
+            ctx.lineTo(W - padding / 2, H - padding);
+            ctx.stroke();
+
+            // Axis labels
+            ctx.fillStyle = '#94a3b8';
+            ctx.font = 'bold 16px "Plus Jakarta Sans"';
+            ctx.textAlign = 'center';
+            ctx.fillText("Time (s)", W / 2, H - 15);
+
+            // Phase transition point dotted boundary
+            const t1_screenX = padding + (simState.t1 / maxTime) * graphW;
+            ctx.strokeStyle = 'rgba(148, 163, 184, 0.25)';
+            ctx.setLineDash([8, 8]);
+            ctx.beginPath();
+            ctx.moveTo(t1_screenX, padding / 2);
+            ctx.lineTo(t1_screenX, H - padding);
+            ctx.stroke();
+            ctx.setLineDash([]);
+
+            // Draw t1 label
+            ctx.fillStyle = '#64748b';
+            ctx.font = 'bold 14px "JetBrains Mono"';
+            ctx.fillText("t1=" + simState.t1.toFixed(1) + "s", t1_screenX, padding / 2 + 15);
+
+            // Generate plotted points arrays up to t2
+            const numSteps = 100;
+            let pathX = [];
+            let pathV = [];
+            let pathA = [];
+
+            for (let i = 0; i <= numSteps; i++) {
+                let tempTime = (i / numSteps) * simState.t2;
+                let data = getPhysicsStateAt(tempTime);
+                
+                let screenX = padding + (tempTime / maxTime) * graphW;
+                // Position curve (Emerald)
+                let screenY_pos = H - padding - (data.x / maxPosition) * graphH;
+                // Velocity curve (Cyan)
+                let screenY_vel = H - padding - (data.v / maxVelocity) * graphH;
+                // Acceleration curve (Red) scaling: mapping accel from [-c*dt to 0]
+                let screenY_acc = H - padding - ((data.a + simState.c*3) / (simState.c*3.5)) * graphH;
+
+                pathX.push({x: screenX, y: screenY_pos});
+                pathV.push({x: screenX, y: screenY_vel});
+                pathA.push({x: screenX, y: screenY_acc});
+            }
+
+            // Draw Position Plot Curve
+            ctx.lineWidth = 4;
+            ctx.strokeStyle = '#10b981';
+            ctx.beginPath();
+            ctx.moveTo(pathX[0].x, pathX[0].y);
+            for(let p of pathX) ctx.lineTo(p.x, p.y);
+            ctx.stroke();
+
+            // Draw Velocity Plot Curve
+            ctx.strokeStyle = '#06b6d4';
+            ctx.beginPath();
+            ctx.moveTo(pathV[0].x, pathV[0].y);
+            for(let p of pathV) ctx.lineTo(p.x, p.y);
+            ctx.stroke();
+
+            // Draw Acceleration Plot Curve
+            ctx.strokeStyle = '#f43f5e';
+            ctx.beginPath();
+            ctx.moveTo(pathA[0].x, pathA[0].y);
+            for(let p of pathA) ctx.lineTo(p.x, p.y);
+            ctx.stroke();
+
+            // Draw Current Time tracking marker cursor
+            const liveX = padding + (Math.min(activeTime, simState.t2) / maxTime) * graphW;
+            ctx.strokeStyle = '#e2e8f0';
+            ctx.lineWidth = 1.5;
+            ctx.beginPath();
+            ctx.moveTo(liveX, padding/2);
+            ctx.lineTo(liveX, H - padding);
+            ctx.stroke();
+
+            // Pulsing point coordinates tracking
+            const activeData = getPhysicsStateAt(activeTime);
+            
+            // Draw tracking node on Position
+            const trackingY_X = H - padding - (activeData.x / maxPosition) * graphH;
+            ctx.fillStyle = '#10b981';
+            ctx.beginPath();
+            ctx.arc(liveX, trackingY_X, 8, 0, Math.PI * 2);
+            ctx.fill();
+
+            // Draw tracking node on Velocity
+            const trackingY_V = H - padding - (activeData.v / maxVelocity) * graphH;
+            ctx.fillStyle = '#06b6d4';
+            ctx.beginPath();
+            ctx.arc(liveX, trackingY_V, 8, 0, Math.PI * 2);
+            ctx.fill();
+        }
+
+        // FLASHCARD FLIP INTERACTION
+        function flipCard(cardElement) {
+            const innerCard = cardElement.firstElementChild;
+            innerCard.classList.toggle('rotate-y-180');
+        }
+
+        // QUIZ VALIDATION
+        function checkAnswer(button, questionNum, choice) {
+            const isCorrect = correctAnswers[questionNum] === choice;
+            
+            // Mark user answers
+            userAnswers[questionNum] = choice;
+
+            // Find all buttons inside parent card to reset styling
+            const cardElement = document.getElementById(`q${questionNum}-card`);
+            const buttons = cardElement.querySelectorAll('button');
+
+            buttons.forEach(btn => {
+                btn.className = "w-full text-left text-xs bg-slate-900 border border-slate-800 p-2.5 rounded-lg text-slate-400 pointer-events-none flex justify-between items-center transition";
+                const icon = btn.querySelector('i');
+                if (icon) {
+                    icon.setAttribute('data-lucide', 'circle');
+                }
+            });
+
+            // Highlight chosen button
+            if (isCorrect) {
+                button.className = "w-full text-left text-xs bg-emerald-500/10 border border-emerald-500 p-2.5 rounded-lg text-emerald-400 font-bold pointer-events-none flex justify-between items-center transition";
+                const icon = button.querySelector('i');
+                if (icon) icon.setAttribute('data-lucide', 'check-circle-2');
+            } else {
+                button.className = "w-full text-left text-xs bg-red-500/10 border border-red-500 p-2.5 rounded-lg text-red-400 font-bold pointer-events-none flex justify-between items-center transition";
+                const icon = button.querySelector('i');
+                if (icon) icon.setAttribute('data-lucide', 'alert-circle');
+
+                // Highlight correct choice in green silently as learning aid
+                buttons.forEach(btn => {
+                    const textValue = btn.querySelector('span').innerText;
+                    if (textValue.startsWith(correctAnswers[questionNum])) {
+                        btn.className = "w-full text-left text-xs bg-emerald-500/5 border border-emerald-500/40 p-2.5 rounded-lg text-emerald-500/80 pointer-events-none flex justify-between items-center transition";
+                    }
+                });
+            }
+
+            // Update lucide icons
+            lucide.createIcons();
+
+            // Recalculate score tally
+            let solved = 0;
+            Object.keys(userAnswers).forEach(q => {
+                if (userAnswers[q] === correctAnswers[q]) solved++;
+            });
+            document.getElementById('quiz-score').innerText = `${solved} / 4`;
+        }
+    </script>
+</body>
+</html>

@@ -1,0 +1,106 @@
+We all regularly drive the car.
+We want to get from point A to point B. Usually,
+we like to drive with a constant speed.
+But what happens if there's a traffic light?
+Well, we have to stop eventually,
+which means we have to brake, and that
+makes the car decelerate.
+So there are different parts of motion when we ride a car.
+It can be constant.
+It can be accelerating.
+It can be decelerating.
+So let's consider this in a little graphic.
+We have a little car here, and it drives with constant speed
+until someone slams into the brakes,
+and the car will eventually stop.
+Let's add a timeline to this.
+Here we're going to put t equals 0.
+The point in time where the car stops
+driving with a constant speed is t1,
+and the point where the car has come to a complete stop is t2.
+And the problem now asks for, what is the position function?
+What is the distance at any kind of time here
+as the car goes through these two different phases of motion?
+So ultimately, we want to get to x of t.
+But we can't actually just write this up.
+We need to first look at other information
+that we have about this kind of set up.
+And what we have is information on the acceleration.
+And we have to consider these two phases separately.
+So we have here phase 1 and phase 2.
+And phase 1 is from 0 to t1.
+And phase 2 is from t1 to t2.
+And we know when a car is going with a constant velocity,
+its acceleration is going to be 0.
+So that keeps life easy for phase 1.
+And then when it brakes, well, we know it decelerates,
+so we're definitely going to have a minus sign.
+And it brakes between t and t1, and we
+need to multiply this factor here with a constant.
+So this is our acceleration information
+that the problem has given us.
+And we know, of course, that if we integrate the acceleration,
+we're going to get to the velocity function.
+And if we integrate that one again,
+we're going to get to our position function.
+So let's do that first for phase 1.
+And what is also important here is
+that we need to carefully consider
+the initial conditions.
+Again, what additional information
+is this problem giving us?
+So initial conditions, they always make life a lot easier.
+So it's important to carefully look for them.
+And what that means is we want to know
+what the distance is at t equals 0
+and what the velocity at time 0 is.
+And we know the distance here is 0,
+and we know that the problem starts when the car is already
+driving with a constant speed.
+So that's going to be v0.
+So let's then make use of this and start
+integrating our acceleration.
+We want to get to the velocity.
+So v of t minus v of t equals 0 is going to be that integral.
+And here already we know that v of t equals 0 is the v0.
+So this already looks pretty nice.
+And now we have our integral here of a.
+And, of course, now t is an integration variable,
+so we have to give this a prime, and we're
+integrating from t prime equals 0 to t prime equals t.
+And when we plug this in, well, a
+is 0 in phase 1, which means actually our integral is
+going to be 0.
+That's handy.
+And from that, we will find that v of t equal simply v0.
+All good.
+Now we need to integrate this to get to our position function.
+Same thing again-- x of t minus x of t equals 0.
+Let's quickly check here what we know about x of t0.
+Well, it's 0 from the initial conditions,
+and now we have to integrate our velocity function here,
+v0 dt, again, prime.
+t prime equals 0.
+t prime equals t.
+These are our boundaries.
+And this is simply going to be v0t prime evaluated from 0
+to t.
+And we can add that in there, and it's just going to be vt.
+So x of t-- I can just write it here again. x of if t
+equals v0t.
+Good.
+So half of the problem is solved.
+Let's look at the same things for phase 2.
+So let's consider the initial conditions for phase 2 now.
+And again, now we want to, in the analogous way,
+look at the distance of what we know about the distance at t1
+and the velocity a t1.
+And about the position, we know from over there,
+that this is v0t.
+So our previous result now actually becomes
+the initial condition for the next step, right?
+Because whatever happens here sets
+whatever happens afterwards.
+So that's nice.
+And we know that up to this moment
+here, this car goes with a velocity of v0.

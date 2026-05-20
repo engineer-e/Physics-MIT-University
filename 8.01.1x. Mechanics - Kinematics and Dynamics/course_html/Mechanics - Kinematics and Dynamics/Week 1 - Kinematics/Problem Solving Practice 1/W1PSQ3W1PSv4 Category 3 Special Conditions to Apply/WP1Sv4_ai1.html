@@ -1,0 +1,910 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>W1SPQ3-1 Study Guide & Dynamic Simulator</title>
+  <!-- Tailwind CSS -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  <!-- FontAwesome Icons -->
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  <!-- MathJax for rendering LaTeX equations safely -->
+  <script>
+    window.MathJax = {
+      tex: {
+        inlineMath: [['$', '$'], ['\\(', '\\)']],
+        displayMath: [['$$', '$$'], ['\\[', '\\]']]
+      },
+      svg: {
+        fontCache: 'global'
+      }
+    };
+  </script>
+  <script id="MathJax-script" async src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
+  <style>
+    @import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&family=Space+Grotesk:wght@400;500;600;700&display=swap');
+    body {
+      font-family: 'Plus Jakarta Sans', sans-serif;
+    }
+    .heading-font {
+      font-family: 'Space Grotesk', sans-serif;
+    }
+    .scrollbar-hide::-webkit-scrollbar {
+      display: none;
+    }
+    .scrollbar-hide {
+      -ms-overflow-style: none;
+      scrollbar-width: none;
+    }
+  </style>
+</head>
+<body class="bg-slate-900 text-slate-100 min-h-screen selection:bg-cyan-500 selection:text-slate-900">
+
+  <!-- Header Banner -->
+  <header class="border-b border-slate-800 bg-slate-950/60 backdrop-blur-md sticky top-0 z-50">
+    <div class="max-w-7xl mx-auto px-4 py-4 flex flex-col sm:flex-row justify-between items-center gap-4">
+      <div class="flex items-center gap-3">
+        <div class="p-2.5 bg-gradient-to-br from-cyan-500 to-blue-600 rounded-xl shadow-lg shadow-cyan-500/10">
+          <i class="fa-solid fa-atom text-2xl text-white animate-spin-slow"></i>
+        </div>
+        <div>
+          <h1 class="text-xl font-bold heading-font bg-gradient-to-r from-cyan-400 to-blue-400 bg-clip-text text-transparent">
+            W1SPQ3-1: Particle Moving Between Plates
+          </h1>
+          <p class="text-xs text-slate-400">Interactive Masterclass & Physics Simulator</p>
+        </div>
+      </div>
+      <div class="flex gap-2">
+        <a href="#simulator" class="px-4 py-2 text-sm bg-cyan-500/10 hover:bg-cyan-500/20 text-cyan-400 border border-cyan-500/20 rounded-lg transition duration-200">
+          <i class="fa-solid fa-gamepad mr-2"></i>Simulator
+        </a>
+        <a href="#quick-notes" class="px-4 py-2 text-sm bg-slate-800 hover:bg-slate-700 text-slate-200 rounded-lg transition duration-200">
+          <i class="fa-solid fa-book-open mr-2"></i>Study Guide
+        </a>
+      </div>
+    </div>
+  </header>
+
+  <main class="max-w-7xl mx-auto px-4 py-8 space-y-12">
+
+    <!-- Hero / Conceptual Anchor Section with Emotion-Triggering Anchors -->
+    <section class="grid grid-cols-1 lg:grid-cols-12 gap-8 items-stretch">
+      <div class="lg:col-span-7 bg-gradient-to-br from-slate-950 to-slate-900 border border-slate-800 rounded-3xl p-8 flex flex-col justify-between relative overflow-hidden">
+        <div class="absolute -top-32 -left-32 w-64 h-64 bg-cyan-500/10 rounded-full blur-3xl"></div>
+        <div class="relative z-10 space-y-6">
+          <span class="px-3 py-1 bg-cyan-500/10 text-cyan-400 border border-cyan-500/20 rounded-full text-xs font-semibold tracking-wider uppercase">
+            Deep Cognitive Anchor
+          </span>
+          <h2 class="text-3xl lg:text-4xl font-extrabold heading-font text-white leading-tight">
+            The Tug-of-War of <span class="bg-gradient-to-r from-cyan-400 to-teal-400 bg-clip-text text-transparent">Time & Gravity</span>
+          </h2>
+          <p class="text-slate-300 leading-relaxed text-base">
+            Imagine a particle performing a daring, microscopic bungee jump. When it enters, gravity drags it down immediately. 
+            But there is a ticking time-bomb of a restoring force: $F_y(t) = bt$. At first, it is powerless. 
+            As time marches on, the force grows exponentially stronger. It drags the particle out of its dark dive, pulling it into a spectacular upward swoop.
+          </p>
+          <div class="grid grid-cols-2 gap-4 pt-4 border-t border-slate-800/80">
+            <div>
+              <p class="text-xs text-slate-500 font-medium uppercase tracking-wider">The Emotional Hook</p>
+              <p class="text-sm text-cyan-300 font-semibold mt-1">"The Dramatic Swoop"</p>
+              <p class="text-xs text-slate-400 mt-1">Starts with a gravitational plunge, saved by a ticking force boost.</p>
+            </div>
+            <div>
+              <p class="text-xs text-slate-500 font-medium uppercase tracking-wider">The Mathematical Crux</p>
+              <p class="text-sm text-amber-300 font-semibold mt-1">Cubic Time Dependence</p>
+              <p class="text-xs text-slate-400 mt-1">Integrating a linear force ($t$) twice yields displacement proportional to $t^3$.</p>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Quick Cues / High Emotion Flash-Terms -->
+      <div class="lg:col-span-5 bg-slate-950 border border-slate-800 rounded-3xl p-8 flex flex-col justify-between">
+        <h3 class="text-lg font-bold heading-font text-white mb-4 flex items-center gap-2">
+          <i class="fa-solid fa-brain text-purple-400"></i> Emotion-Driven Memory Anchors
+        </h3>
+        <div class="space-y-4 flex-1">
+          <div class="p-3 bg-red-500/5 hover:bg-red-500/10 transition border border-red-500/15 rounded-xl flex gap-3">
+            <span class="text-2xl">📉</span>
+            <div>
+              <h4 class="text-sm font-semibold text-red-300">Gravity's Domination (Early Stage)</h4>
+              <p class="text-xs text-slate-400 mt-0.5">At $t=0$, upward force is zero! The particle dives downwards helplessly. Do not sketch a flat entry!</p>
+            </div>
+          </div>
+          <div class="p-3 bg-cyan-500/5 hover:bg-cyan-500/10 transition border border-cyan-500/15 rounded-xl flex gap-3">
+            <span class="text-2xl">⚖️</span>
+            <div>
+              <h4 class="text-sm font-semibold text-cyan-300">The Turning Point of Zero Acceleration</h4>
+              <p class="text-xs text-slate-400 mt-0.5">At $t_{eq} = \frac{mg}{b}$, forces balance perfectly. Velocity down peaks here, and starts decelerating!</p>
+            </div>
+          </div>
+          <div class="p-3 bg-emerald-500/5 hover:bg-emerald-500/10 transition border border-emerald-500/15 rounded-xl flex gap-3">
+            <span class="text-2xl">🚀</span>
+            <div>
+              <h4 class="text-sm font-semibold text-emerald-300">The Slingshot Rise (Late Stage)</h4>
+              <p class="text-xs text-slate-400 mt-0.5">As $t \gg t_{eq}$, the upward force overpowers gravity like a rocket booster, producing an upward-curved trajectory.</p>
+            </div>
+          </div>
+        </div>
+        <p class="text-[10px] text-slate-500 italic mt-4 text-center">Visualizing physical stories builds indestructible cognitive paths.</p>
+      </div>
+    </section>
+
+    <!-- Interactive Simulator Section -->
+    <section id="simulator" class="scroll-mt-20">
+      <div class="bg-slate-950 border border-slate-800 rounded-3xl p-6 lg:p-8 space-y-6">
+        <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
+          <div>
+            <span class="text-xs text-cyan-400 font-semibold tracking-wider uppercase">Interactive Laboratory</span>
+            <h2 class="text-2xl font-bold heading-font text-white flex items-center gap-2">
+              <i class="fa-solid fa-gamepad text-cyan-400"></i> Particle Trajectory Sandbox
+            </h2>
+            <p class="text-sm text-slate-400 mt-1">Modify physical values to see how the mathematical path unfolds dynamically.</p>
+          </div>
+          <div class="flex gap-2">
+            <button onclick="resetSim()" class="px-4 py-2 text-xs font-semibold bg-slate-800 hover:bg-slate-700 text-white rounded-lg transition duration-150">
+              <i class="fa-solid fa-rotate-left mr-1"></i> Reset Sandbox
+            </button>
+            <button id="playBtn" onclick="toggleSim()" class="px-4 py-2 text-xs font-semibold bg-cyan-500 hover:bg-cyan-600 text-slate-950 rounded-lg transition duration-150 flex items-center gap-1.5">
+              <i class="fa-solid fa-play"></i> <span id="playText">Animate</span>
+            </button>
+          </div>
+        </div>
+
+        <div class="grid grid-cols-1 lg:grid-cols-12 gap-8">
+          <!-- Canvas Visualization Container -->
+          <div class="lg:col-span-8 flex flex-col justify-center items-center bg-slate-900 rounded-2xl border border-slate-800 p-4 relative overflow-hidden">
+            <!-- Coordinates overlays -->
+            <div class="absolute top-6 left-6 text-xs text-slate-500 flex flex-col gap-1 z-10 pointer-events-none bg-slate-950/80 p-2.5 rounded-lg border border-slate-800/50">
+              <span class="flex items-center gap-1 text-slate-300 font-semibold"><i class="fa-solid fa-crosshairs text-cyan-400"></i> Local Coordinates:</span>
+              <span>Origin $(0,0)$ located at entry midpoint:</span>
+              <span>$y_{\text{initial}} = 0$ (Middle of plate gap)</span>
+              <span>Top Plate: $y = +h/2$</span>
+              <span>Bottom Plate: $y = -h/2$</span>
+            </div>
+            
+            <div class="absolute top-6 right-6 z-10">
+              <span id="collisionBadge" class="hidden px-2.5 py-1 text-xs font-extrabold rounded-md shadow-lg"></span>
+            </div>
+
+            <!-- Main Canvas Element -->
+            <div class="w-full aspect-[16/9] max-w-full relative">
+              <canvas id="simCanvas" class="w-full h-full block bg-slate-950/80 rounded-xl cursor-crosshair border border-slate-800"></canvas>
+            </div>
+
+            <!-- Dynamic Telemetry HUD -->
+            <div class="w-full grid grid-cols-2 md:grid-cols-4 gap-4 mt-4 bg-slate-950/50 p-4 rounded-xl border border-slate-800/40 text-center">
+              <div>
+                <p class="text-[10px] text-slate-500 uppercase font-semibold">Current Time ($t$)</p>
+                <p class="text-sm font-bold text-slate-200" id="telemetryTime">0.00 s</p>
+              </div>
+              <div>
+                <p class="text-[10px] text-slate-500 uppercase font-semibold">Net Vertical Accel ($a_y$)</p>
+                <p class="text-sm font-bold text-slate-200" id="telemetryAccel">0.00 m/s²</p>
+              </div>
+              <div>
+                <p class="text-[10px] text-slate-500 uppercase font-semibold">Vertical Velocity ($v_y$)</p>
+                <p class="text-sm font-bold text-slate-200" id="telemetryVy">0.00 m/s</p>
+              </div>
+              <div>
+                <p class="text-[10px] text-slate-500 uppercase font-semibold">Vertical Position ($y$)</p>
+                <p class="text-sm font-bold text-slate-200" id="telemetryY">0.00 m</p>
+              </div>
+            </div>
+          </div>
+
+          <!-- Simulation Sliders / Configuration Column -->
+          <div class="lg:col-span-4 bg-slate-950 p-6 rounded-2xl border border-slate-800 flex flex-col justify-between space-y-6">
+            <div>
+              <h3 class="text-sm font-bold heading-font text-slate-300 uppercase tracking-wider mb-4 pb-2 border-b border-slate-800/60">
+                System Parameters
+              </h3>
+              
+              <!-- Slider for Force rate b -->
+              <div class="space-y-2 mb-5">
+                <div class="flex justify-between items-center text-xs">
+                  <label class="font-semibold text-amber-300 flex items-center gap-1">
+                    Force Rate Constant ($b$):
+                  </label>
+                  <span class="font-mono text-amber-400 bg-amber-500/10 px-1.5 py-0.5 rounded" id="valB">25.0 N/s</span>
+                </div>
+                <input type="range" id="paramB" min="5" max="80" step="1" value="35" oninput="updateParams()" class="w-full accent-amber-500 h-1.5 bg-slate-800 rounded-lg appearance-none cursor-pointer">
+                <p class="text-[10px] text-slate-500">Low $b$ = Hits bottom plate first. High $b$ = Sweeps aggressively upwards!</p>
+              </div>
+
+              <!-- Slider for Gravity g -->
+              <div class="space-y-2 mb-5">
+                <div class="flex justify-between items-center text-xs">
+                  <label class="font-semibold text-cyan-300">Gravity ($g$):</label>
+                  <span class="font-mono text-cyan-400 bg-cyan-500/10 px-1.5 py-0.5 rounded" id="valG">9.81 m/s²</span>
+                </div>
+                <input type="range" id="paramG" min="2" max="25" step="0.1" value="9.8" oninput="updateParams()" class="w-full accent-cyan-500 h-1.5 bg-slate-800 rounded-lg appearance-none cursor-pointer">
+              </div>
+
+              <!-- Slider for Mass m -->
+              <div class="space-y-2 mb-5">
+                <div class="flex justify-between items-center text-xs">
+                  <label class="font-semibold text-teal-300">Mass of Particle ($m$):</label>
+                  <span class="font-mono text-teal-400 bg-teal-500/10 px-1.5 py-0.5 rounded" id="valM">1.00 kg</span>
+                </div>
+                <input type="range" id="paramM" min="0.5" max="3.0" step="0.1" value="1.0" oninput="updateParams()" class="w-full accent-teal-500 h-1.5 bg-slate-800 rounded-lg appearance-none cursor-pointer">
+              </div>
+
+              <!-- Slider for Entry Velocity v_0 -->
+              <div class="space-y-2 mb-5">
+                <div class="flex justify-between items-center text-xs">
+                  <label class="font-semibold text-purple-300">Initial Horizontal Velocity ($v_0$):</label>
+                  <span class="font-mono text-purple-400 bg-purple-500/10 px-1.5 py-0.5 rounded" id="valV0">8.00 m/s</span>
+                </div>
+                <input type="range" id="paramV0" min="4" max="20" step="0.5" value="10" oninput="updateParams()" class="w-full accent-purple-500 h-1.5 bg-slate-800 rounded-lg appearance-none cursor-pointer">
+              </div>
+
+              <!-- Plate separation h -->
+              <div class="space-y-2 mb-5">
+                <div class="flex justify-between items-center text-xs">
+                  <label class="font-semibold text-pink-300">Plate Separation ($h$):</label>
+                  <span class="font-mono text-pink-400 bg-pink-500/10 px-1.5 py-0.5 rounded" id="valH">4.00 m</span>
+                </div>
+                <input type="range" id="paramH" min="2" max="6" step="0.1" value="4.0" oninput="updateParams()" class="w-full accent-pink-500 h-1.5 bg-slate-800 rounded-lg appearance-none cursor-pointer">
+              </div>
+            </div>
+
+            <div class="p-3.5 bg-slate-900 border border-slate-800/80 rounded-xl space-y-2">
+              <span class="text-xs font-bold text-amber-300 uppercase tracking-wider block">Theoretical Threshold Condition</span>
+              <p class="text-xs text-slate-400 leading-relaxed">
+                For the particle to touch the top plate without touching the bottom plate, $b$ must exceed a mathematically derived critical value. Experiment above to find the cliff-edge threshold between hitting the top and bottom plates!
+              </p>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- Detailed Notes & Study Guide -->
+    <section id="quick-notes" class="scroll-mt-20">
+      <div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
+        
+        <!-- Left 2 Cols: Notes & Scientific Algorithms -->
+        <div class="lg:col-span-2 space-y-8">
+          <div class="bg-slate-950 border border-slate-800 rounded-3xl p-6 lg:p-8 space-y-6">
+            <h2 class="text-2xl font-bold heading-font text-white flex items-center gap-2">
+              <i class="fa-solid fa-circle-info text-cyan-400"></i> Core Theory & Analytical Derivation
+            </h2>
+
+            <div class="prose prose-invert max-w-none text-slate-300 space-y-4">
+              <h3 class="text-lg font-bold text-white mt-4 border-b border-slate-800 pb-1 flex items-center gap-2">
+                1. Force Equations & Dimensional Analysis
+              </h3>
+              <p>
+                A particle is acted upon in the vertical direction by:
+              </p>
+              <ul class="list-disc pl-5 space-y-1 text-sm">
+                <li>Downward force of constant gravity: $F_{\text{gravity}} = -mg\,\hat{j}$</li>
+                <li>Time-varying upward force: $F_{\text{upward}} = bt\,\hat{j}$</li>
+              </ul>
+              <p class="text-sm">
+                Using Newton's Second Law along the vertical axis ($\hat{j}$ direction):
+                $$F_{\text{net}, y} = bt - mg = m \frac{d^2y}{dt^2}$$
+              </p>
+
+              <div class="bg-slate-900 p-4 rounded-xl border border-slate-800">
+                <span class="text-xs font-extrabold text-cyan-400 tracking-wider uppercase block mb-1">Part 1 Answer Explanation: Units of $b$</span>
+                <p class="text-sm leading-relaxed">
+                  The magnitude of the upward force is $F = bt$. 
+                  Since force is measured in Newtons ($\text{N} = \text{kg}\cdot\text{m/s}^2$) and time $t$ is measured in seconds ($\text{s}$):
+                  $$[b] = \frac{[F]}{[t]} = \frac{\text{kg}\cdot\text{m/s}^2}{\text{s}} = \text{kg}\cdot\text{m/s}^3 \quad \left(\text{or} \quad \text{N/s}\right)$$
+                </p>
+              </div>
+
+              <h3 class="text-lg font-bold text-white mt-6 border-b border-slate-800 pb-1">
+                2. Step-by-Step Computational Integration Path
+              </h3>
+              <p class="text-sm">
+                We integrate the vertical acceleration equation sequentially with initial conditions $y(0) = 0$ (starting at the center) and $v_y(0) = 0$:
+              </p>
+              
+              <!-- Integration visual timeline / steps -->
+              <div class="space-y-3 mt-4">
+                <!-- Step A -->
+                <div class="flex items-start gap-3 bg-slate-900/60 p-3 rounded-lg border border-slate-800/60">
+                  <div class="bg-cyan-500/10 text-cyan-400 text-xs font-bold rounded-full w-6 h-6 flex items-center justify-center border border-cyan-500/25 flex-shrink-0 mt-0.5">A</div>
+                  <div>
+                    <h5 class="text-sm font-semibold text-slate-200">The Equation of Motion for Acceleration</h5>
+                    <p class="text-xs text-slate-400 mt-0.5">$$\frac{d^2y}{dt^2} = a_y(t) = \frac{b}{m}t - g$$</p>
+                  </div>
+                </div>
+                <!-- Step B -->
+                <div class="flex items-start gap-3 bg-slate-900/60 p-3 rounded-lg border border-slate-800/60">
+                  <div class="bg-cyan-500/10 text-cyan-400 text-xs font-bold rounded-full w-6 h-6 flex items-center justify-center border border-cyan-500/25 flex-shrink-0 mt-0.5">B</div>
+                  <div>
+                    <h5 class="text-sm font-semibold text-slate-200">Integrating once for Velocity ($v_y(t)$)</h5>
+                    <p class="text-xs text-slate-400 mt-0.5">Since $v_y(0) = 0$:
+                    $$v_y(t) = \int_{0}^{t} \left(\frac{b}{m}\tau - g\right)d\tau = \frac{b}{2m}t^2 - gt$$</p>
+                  </div>
+                </div>
+                <!-- Step C -->
+                <div class="flex items-start gap-3 bg-slate-900/60 p-3 rounded-lg border border-slate-800/60">
+                  <div class="bg-cyan-500/10 text-cyan-400 text-xs font-bold rounded-full w-6 h-6 flex items-center justify-center border border-cyan-500/25 flex-shrink-0 mt-0.5">C</div>
+                  <div>
+                    <h5 class="text-sm font-semibold text-slate-200">Integrating twice for Position ($y(t)$)</h5>
+                    <p class="text-xs text-slate-400 mt-0.5">Since $y(0) = 0$ (at middle line of gap):
+                    $$y(t) = \int_{0}^{t} \left(\frac{b}{2m}\tau^2 - g\tau\right)d\tau = \frac{b}{6m}t^3 - \frac{1}{2}gt^2$$</p>
+                  </div>
+                </div>
+              </div>
+
+              <h3 class="text-lg font-bold text-white mt-6 border-b border-slate-800 pb-1">
+                3. The Critical Condition Algorithm (Theoretical Logic)
+              </h3>
+              <p class="text-sm leading-relaxed text-slate-300">
+                How do we guarantee the particle hits the top plate ($y = +h/2$) without ever touching the bottom plate ($y = -h/2$)?
+              </p>
+              <div class="p-4 bg-slate-900/80 rounded-xl border border-slate-800 space-y-2 text-xs">
+                <p><strong>Step 1: Locate the Extremum (Turning Point)</strong></p>
+                <p>The turning point in vertical position is reached when $v_y(t) = 0$ (excluding $t=0$):</p>
+                <p class="text-cyan-300 font-mono">$$\frac{b}{2m}t_{\text{ex}}^2 - gt_{\text{ex}} = 0 \implies t_{\text{ex}} = \frac{2mg}{b}$$</p>
+                
+                <p class="pt-2"><strong>Step 2: Evaluate the Lowest Dip Depth</strong></p>
+                <p>Substitute $t_{\text{ex}}$ into the vertical position function to find the maximum downward dip:</p>
+                <p class="text-cyan-300 font-mono">$$y_{\text{dip}} = y(t_{\text{ex}}) = \frac{b}{6m}\left(\frac{2mg}{b}\right)^3 - \frac{1}{2}g\left(\frac{2mg}{b}\right)^2 = \frac{4}{3}\frac{m^2g^3}{b^2} - \frac{2m^2g^3}{b^2} = -\frac{2}{3}\frac{m^2g^3}{b^2}$$</p>
+                
+                <p class="pt-2"><strong>Step 3: Define "No Bottom-Collision" Inequality</strong></p>
+                <p>To avoid touching the bottom plate, the minimum value must be strictly higher than $-h/2$:</p>
+                <p class="text-amber-300 font-mono">$$y_{\text{dip}} > -\frac{h}{2} \implies -\frac{2}{3}\frac{m^2g^3}{b^2} > -\frac{h}{2} \implies \frac{2}{3}\frac{m^2g^3}{b^2} < \frac{h}{2} \implies b^2 > \frac{4m^2g^3}{3h}$$</p>
+                <p class="text-amber-300 font-bold font-mono">$$b > 2mg \sqrt{\frac{g}{3h}}$$</p>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Right 1 Col: Dynamic Flashcards & Informative Sidebar -->
+        <div class="space-y-8">
+          
+          <!-- Interactive Flashcards -->
+          <div class="bg-slate-950 border border-slate-800 rounded-3xl p-6 space-y-4">
+            <h3 class="text-lg font-bold heading-font text-white flex items-center gap-2">
+              <i class="fa-solid fa-layer-group text-pink-400"></i> Active Recall Flashcards
+            </h3>
+            <p class="text-xs text-slate-400">Click a card to reveal critical theoretical details.</p>
+
+            <div class="space-y-4">
+              <!-- Card 1 -->
+              <div onclick="toggleFlashcard(this)" class="group cursor-pointer select-none bg-slate-900 border border-slate-800 hover:border-slate-700 p-4 rounded-xl transition duration-200">
+                <div class="flex justify-between items-center">
+                  <span class="text-xs font-bold text-pink-400 uppercase">Recall Card 1</span>
+                  <i class="fa-solid fa-chevron-down text-slate-500 text-xs transition-transform duration-200"></i>
+                </div>
+                <h4 class="text-sm font-semibold text-slate-200 mt-2">What physical state is occurring at $t_{eq} = \frac{mg}{b}$?</h4>
+                <div class="flashcard-answer hidden mt-3 pt-3 border-t border-slate-800 text-xs text-slate-300 leading-relaxed space-y-1">
+                  <p class="font-semibold text-emerald-400">Equilibrium state of Forces!</p>
+                  <p>Here, $F_{\text{up}} = mg$, making the instantaneous vertical acceleration $a_y = 0$. This is the moment of peak downward velocity before deceleration begins.</p>
+                </div>
+              </div>
+
+              <!-- Card 2 -->
+              <div onclick="toggleFlashcard(this)" class="group cursor-pointer select-none bg-slate-900 border border-slate-800 hover:border-slate-700 p-4 rounded-xl transition duration-200">
+                <div class="flex justify-between items-center">
+                  <span class="text-xs font-bold text-pink-400 uppercase">Recall Card 2</span>
+                  <i class="fa-solid fa-chevron-down text-slate-500 text-xs transition-transform duration-200"></i>
+                </div>
+                <h4 class="text-sm font-semibold text-slate-200 mt-2">What is the shape of the trajectory along the plates?</h4>
+                <div class="flashcard-answer hidden mt-3 pt-3 border-t border-slate-800 text-xs text-slate-300 leading-relaxed space-y-1">
+                  <p class="font-semibold text-cyan-400">Superimposed Linear-Cubic Path!</p>
+                  <p>With constant horizontal speed $x(t) = v_0 t$, substituting $t = x/v_0$ into $y(t)$ yields:
+                  $$y(x) = \frac{b}{6m v_0^3}x^3 - \frac{g}{2 v_0^2}x^2$$
+                  It acts as a parabola near the origin and transforms into a cubic rise far away.</p>
+                </div>
+              </div>
+
+              <!-- Card 3 -->
+              <div onclick="toggleFlashcard(this)" class="group cursor-pointer select-none bg-slate-900 border border-slate-800 hover:border-slate-700 p-4 rounded-xl transition duration-200">
+                <div class="flex justify-between items-center">
+                  <span class="text-xs font-bold text-pink-400 uppercase">Recall Card 3</span>
+                  <i class="fa-solid fa-chevron-down text-slate-500 text-xs transition-transform duration-200"></i>
+                </div>
+                <h4 class="text-sm font-semibold text-slate-200 mt-2">Why is $[b]$ measured in $\text{kg}\cdot\text{m/s}^3$?</h4>
+                <div class="flashcard-answer hidden mt-3 pt-3 border-t border-slate-800 text-xs text-slate-300 leading-relaxed space-y-1">
+                  <p class="font-semibold text-amber-400">Dimensional Matching Constraint!</p>
+                  <p>For the equation $F = bt$ to have units of Force ($\text{kg}\cdot\text{m/s}^2$), the coefficient $b$ must be multiplied by seconds. Dividing force by seconds gives $\text{kg}\cdot\text{m/s}^3$.</p>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Formula Quick Sheet -->
+          <div class="bg-slate-950 border border-slate-800 rounded-3xl p-6 space-y-4">
+            <h3 class="text-sm font-bold uppercase tracking-wider heading-font text-slate-400">
+              <i class="fa-solid fa-square-root-variable text-teal-400"></i> Quick Reference Formulae
+            </h3>
+            <div class="space-y-3 font-mono text-xs">
+              <div class="p-2.5 bg-slate-900 rounded-lg flex justify-between items-center">
+                <span class="text-slate-400">Vertical acceleration:</span>
+                <span class="text-teal-300">$a_y(t) = \frac{b}{m}t - g$</span>
+              </div>
+              <div class="p-2.5 bg-slate-900 rounded-lg flex justify-between items-center">
+                <span class="text-slate-400">Vertical velocity:</span>
+                <span class="text-teal-300">$v_y(t) = \frac{bt^2}{2m} - gt$</span>
+              </div>
+              <div class="p-2.5 bg-slate-900 rounded-lg flex justify-between items-center">
+                <span class="text-slate-400">Vertical position:</span>
+                <span class="text-teal-300">$y(t) = \frac{bt^3}{6m} - \frac{gt^2}{2}$</span>
+              </div>
+              <div class="p-2.5 bg-slate-900 rounded-lg flex justify-between items-center">
+                <span class="text-slate-400">Horizontal position:</span>
+                <span class="text-teal-300">$x(t) = v_0 t$</span>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- Quiz Section -->
+    <section class="scroll-mt-20">
+      <div class="bg-slate-950 border border-slate-800 rounded-3xl p-6 lg:p-8 space-y-6">
+        <div>
+          <span class="text-xs text-purple-400 font-semibold tracking-wider uppercase">Assess Understanding</span>
+          <h2 class="text-2xl font-bold heading-font text-white flex items-center gap-2">
+            <i class="fa-solid fa-clipboard-question text-purple-400"></i> Concept Verification Quiz
+          </h2>
+          <p class="text-sm text-slate-400 mt-1">Test your mastery of the temporal dynamics inside the plates.</p>
+        </div>
+
+        <div id="quiz-container" class="space-y-6">
+          <!-- Question 1 -->
+          <div class="bg-slate-900/60 p-5 rounded-2xl border border-slate-800 space-y-3" data-q="1">
+            <h4 class="text-sm font-semibold text-white">1. What is the particle's initial vertical acceleration at $t=0$?</h4>
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-3">
+              <label class="p-3 bg-slate-950 border border-slate-800 rounded-xl flex items-center gap-2 cursor-pointer hover:border-slate-700 transition">
+                <input type="radio" name="q1" value="A" class="accent-purple-500">
+                <span class="text-xs text-slate-300">$a_y(0) = 0$</span>
+              </label>
+              <label class="p-3 bg-slate-950 border border-slate-800 rounded-xl flex items-center gap-2 cursor-pointer hover:border-slate-700 transition">
+                <input type="radio" name="q1" value="B" class="accent-purple-500">
+                <span class="text-xs text-slate-300">$a_y(0) = -g$ (Pointing Downwards)</span>
+              </label>
+              <label class="p-3 bg-slate-950 border border-slate-800 rounded-xl flex items-center gap-2 cursor-pointer hover:border-slate-700 transition">
+                <input type="radio" name="q1" value="C" class="accent-purple-500">
+                <span class="text-xs text-slate-300">$a_y(0) = \frac{b}{m}$ (Pointing Upwards)</span>
+              </label>
+              <label class="p-3 bg-slate-950 border border-slate-800 rounded-xl flex items-center gap-2 cursor-pointer hover:border-slate-700 transition">
+                <input type="radio" name="q1" value="D" class="accent-purple-500">
+                <span class="text-xs text-slate-300">$a_y(0) = \infty$</span>
+              </label>
+            </div>
+          </div>
+
+          <!-- Question 2 -->
+          <div class="bg-slate-900/60 p-5 rounded-2xl border border-slate-800 space-y-3" data-q="2">
+            <h4 class="text-sm font-semibold text-white">2. Which dimension correctly matches the variable $b$?</h4>
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-3">
+              <label class="p-3 bg-slate-950 border border-slate-800 rounded-xl flex items-center gap-2 cursor-pointer hover:border-slate-700 transition">
+                <input type="radio" name="q2" value="A" class="accent-purple-500">
+                <span class="text-xs text-slate-300">$\text{kg} \cdot \text{m} \cdot \text{s}^{-2}$</span>
+              </label>
+              <label class="p-3 bg-slate-950 border border-slate-800 rounded-xl flex items-center gap-2 cursor-pointer hover:border-slate-700 transition">
+                <input type="radio" name="q2" value="B" class="accent-purple-500">
+                <span class="text-xs text-slate-300">$\text{kg} \cdot \text{m} \cdot \text{s}^{-1}$</span>
+              </label>
+              <label class="p-3 bg-slate-950 border border-slate-800 rounded-xl flex items-center gap-2 cursor-pointer hover:border-slate-700 transition">
+                <input type="radio" name="q2" value="C" class="accent-purple-500">
+                <span class="text-xs text-slate-300">$\text{kg} \cdot \text{m} \cdot \text{s}^{-3}$</span>
+              </label>
+              <label class="p-3 bg-slate-950 border border-slate-800 rounded-xl flex items-center gap-2 cursor-pointer hover:border-slate-700 transition">
+                <input type="radio" name="q2" value="D" class="accent-purple-500">
+                <span class="text-xs text-slate-300">$\text{kg} \cdot \text{m}^{-1} \cdot \text{s}^{-2}$</span>
+              </label>
+            </div>
+          </div>
+
+          <!-- Question 3 -->
+          <div class="bg-slate-900/60 p-5 rounded-2xl border border-slate-800 space-y-3" data-q="3">
+            <h4 class="text-sm font-semibold text-white">3. If you double $b$, the maximum depth of the downward dip:</h4>
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-3">
+              <label class="p-3 bg-slate-950 border border-slate-800 rounded-xl flex items-center gap-2 cursor-pointer hover:border-slate-700 transition">
+                <input type="radio" name="q3" value="A" class="accent-purple-500">
+                <span class="text-xs text-slate-300">Decreases by a factor of 4 ($\propto 1/b^2$)</span>
+              </label>
+              <label class="p-3 bg-slate-950 border border-slate-800 rounded-xl flex items-center gap-2 cursor-pointer hover:border-slate-700 transition">
+                <input type="radio" name="q3" value="B" class="accent-purple-500">
+                <span class="text-xs text-slate-300">Decreases by a factor of 2 ($\propto 1/b$)</span>
+              </label>
+              <label class="p-3 bg-slate-950 border border-slate-800 rounded-xl flex items-center gap-2 cursor-pointer hover:border-slate-700 transition">
+                <input type="radio" name="q3" value="C" class="accent-purple-500">
+                <span class="text-xs text-slate-300">Remains completely unchanged</span>
+              </label>
+              <label class="p-3 bg-slate-950 border border-slate-800 rounded-xl flex items-center gap-2 cursor-pointer hover:border-slate-700 transition">
+                <input type="radio" name="q3" value="D" class="accent-purple-500">
+                <span class="text-xs text-slate-300">Increases because there is more force</span>
+              </label>
+            </div>
+          </div>
+
+          <div class="flex items-center gap-4">
+            <button onclick="gradeQuiz()" class="px-6 py-2.5 bg-gradient-to-r from-purple-500 to-indigo-600 hover:from-purple-600 hover:to-indigo-700 text-white font-bold text-sm rounded-xl shadow-lg shadow-purple-500/20 transition duration-150">
+              Grade My Answers
+            </button>
+            <span id="quizScore" class="hidden text-sm font-bold bg-slate-900 border border-slate-800 px-4 py-2 rounded-xl text-indigo-400"></span>
+          </div>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <footer class="border-t border-slate-800 bg-slate-950/40 py-8 text-center text-xs text-slate-500">
+    <div class="max-w-7xl mx-auto px-4 space-y-2">
+      <p>W1SPQ3-1 Study Guide, Dynamic Simulator & Computational Algorithm Platform.</p>
+      <p class="text-slate-600">&copy; 2026 Physics Interactive Immersive Canvas. Created with Academic Rigor.</p>
+    </div>
+  </footer>
+
+  <!-- Simulation Control Code -->
+  <script>
+    const canvas = document.getElementById('simCanvas');
+    const ctx = canvas.getContext('2d');
+
+    // Physical Constants and UI values
+    let params = {
+      b: 35.0,     // Force multiplier (N/s)
+      g: 9.8,      // Gravity (m/s^2)
+      m: 1.0,      // Mass (kg)
+      v0: 10.0,    // Initial velocity (m/s)
+      h: 4.0,      // Total distance separating plates (m)
+    };
+
+    let animationId = null;
+    let isPlaying = false;
+    let simTime = 0.0;
+    const timeStep = 0.016; // 60 FPS approximate dt
+    let trail = [];
+
+    // Setup Canvas Resolution handling
+    function resizeCanvas() {
+      const parent = canvas.parentElement;
+      canvas.width = parent.clientWidth;
+      canvas.height = parent.clientHeight;
+      drawFrame();
+    }
+
+    // Capture user slider adjustments
+    function updateParams() {
+      params.b = parseFloat(document.getElementById('paramB').value);
+      params.g = parseFloat(document.getElementById('paramG').value);
+      params.m = parseFloat(document.getElementById('paramM').value);
+      params.v0 = parseFloat(document.getElementById('paramV0').value);
+      params.h = parseFloat(document.getElementById('paramH').value);
+
+      // Render updated slider labels
+      document.getElementById('valB').innerText = params.b.toFixed(1) + " N/s";
+      document.getElementById('valG').innerText = params.g.toFixed(1) + " m/s²";
+      document.getElementById('valM').innerText = params.m.toFixed(2) + " kg";
+      document.getElementById('valV0').innerText = params.v0.toFixed(2) + " m/s";
+      document.getElementById('valH').innerText = params.h.toFixed(2) + " m";
+
+      if (!isPlaying) {
+        resetSim();
+      }
+    }
+
+    // Convert physics positions to canvas coordinates
+    function getCanvasCoords(physX, physY) {
+      // Input bounds: x = [0, 16], y = [-h/2 - 0.5, +h/2 + 0.5]
+      // To scale nicely, let's keep vertical range centered around middle line (y=0)
+      const scaleX = canvas.width / 16;
+      // We want to scale such that total gap height h fits cleanly with room for plates
+      const verticalSpan = params.h * 1.5;
+      const scaleY = canvas.height / verticalSpan;
+
+      const cX = physX * scaleX;
+      // Flip vertical coordinate because canvas Y increases downwards
+      const cY = canvas.height / 2 - physY * scaleY;
+
+      return { x: cX, y: cY };
+    }
+
+    // Initialize/Reset physics simulation state
+    function resetSim() {
+      simTime = 0.0;
+      trail = [];
+      const playBtn = document.getElementById('playBtn');
+      const playText = document.getElementById('playText');
+      playBtn.classList.remove('bg-amber-500', 'hover:bg-amber-600');
+      playBtn.classList.add('bg-cyan-500', 'hover:bg-cyan-600');
+      playText.innerHTML = "Animate";
+      const icon = playBtn.querySelector('i');
+      icon.className = 'fa-solid fa-play';
+
+      isPlaying = false;
+      if (animationId) {
+        cancelAnimationFrame(animationId);
+        animationId = null;
+      }
+
+      document.getElementById('collisionBadge').className = 'hidden';
+      drawFrame();
+    }
+
+    // Handle Simulation Toggle
+    function toggleSim() {
+      const playBtn = document.getElementById('playBtn');
+      const playText = document.getElementById('playText');
+      const icon = playBtn.querySelector('i');
+
+      if (isPlaying) {
+        // Pause
+        isPlaying = false;
+        icon.className = 'fa-solid fa-play';
+        playText.innerHTML = "Animate";
+        if (animationId) cancelAnimationFrame(animationId);
+      } else {
+        // Play
+        // If we hit the bounds previously, clear state before looping
+        const currentY = (params.b / (6 * params.m)) * Math.pow(simTime, 3) - 0.5 * params.g * Math.pow(simTime, 2);
+        if (simTime > 0 && (currentY >= params.h/2 || currentY <= -params.h/2 || simTime * params.v0 >= 16)) {
+          simTime = 0;
+          trail = [];
+          document.getElementById('collisionBadge').className = 'hidden';
+        }
+
+        isPlaying = true;
+        icon.className = 'fa-solid fa-pause';
+        playText.innerHTML = "Pause";
+        runSimLoop();
+      }
+    }
+
+    // Run dynamic frame generation
+    function runSimLoop() {
+      if (!isPlaying) return;
+
+      // Update calculations
+      simTime += timeStep;
+
+      // Analytical Position Calculations
+      const currentX = params.v0 * simTime;
+      const currentY = (params.b / (6 * params.m)) * Math.pow(simTime, 3) - 0.5 * params.g * Math.pow(simTime, 2);
+
+      // Analytical Instants Calculations for HUD Telemetry
+      const currentAccel = (params.b / params.m) * simTime - params.g;
+      const currentVy = (params.b / (2 * params.m)) * Math.pow(simTime, 2) - params.g * simTime;
+
+      // Log positions to rendering path
+      trail.push({ x: currentX, y: currentY });
+
+      // Update HUD telemetry values
+      document.getElementById('telemetryTime').innerText = simTime.toFixed(2) + " s";
+      document.getElementById('telemetryAccel').innerText = currentAccel.toFixed(2) + " m/s²";
+      document.getElementById('telemetryVy').innerText = currentVy.toFixed(2) + " m/s";
+      document.getElementById('telemetryY').innerText = currentY.toFixed(2) + " m";
+
+      drawFrame();
+
+      // Collision Check Bounds
+      const collisionBadge = document.getElementById('collisionBadge');
+      if (currentY >= params.h / 2) {
+        // Hits top plate
+        isPlaying = false;
+        collisionBadge.innerText = "SUCCESS: Touched Top Plate! 🎯";
+        collisionBadge.className = "px-3 py-1 text-xs font-bold rounded-lg shadow-lg bg-emerald-500 text-slate-950 animate-bounce";
+        togglePlayUIReset();
+      } else if (currentY <= -params.h / 2) {
+        // Hits bottom plate
+        isPlaying = false;
+        collisionBadge.innerText = "CRASH: Touched Bottom Plate! 💥";
+        collisionBadge.className = "px-3 py-1 text-xs font-bold rounded-lg shadow-lg bg-red-500 text-white animate-bounce";
+        togglePlayUIReset();
+      } else if (currentX >= 16) {
+        // Exited plate region without touching anything
+        isPlaying = false;
+        collisionBadge.innerText = "EXITED: Missed both plates! 💨";
+        collisionBadge.className = "px-3 py-1 text-xs font-bold rounded-lg shadow-lg bg-slate-700 text-slate-200 animate-pulse";
+        togglePlayUIReset();
+      }
+
+      if (isPlaying) {
+        animationId = requestAnimationFrame(runSimLoop);
+      }
+    }
+
+    function togglePlayUIReset() {
+      const playBtn = document.getElementById('playBtn');
+      const playText = document.getElementById('playText');
+      const icon = playBtn.querySelector('i');
+      icon.className = 'fa-solid fa-play';
+      playText.innerHTML = "Animate";
+    }
+
+    // Drawing Canvas Loop
+    function drawFrame() {
+      ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+      // 1. Draw Grid Lines background
+      ctx.strokeStyle = 'rgba(30, 41, 59, 0.5)';
+      ctx.lineWidth = 1;
+      const numLines = 16;
+      for (let i = 0; i <= numLines; i++) {
+        const xPos = (canvas.width / numLines) * i;
+        ctx.beginPath();
+        ctx.moveTo(xPos, 0);
+        ctx.lineTo(xPos, canvas.height);
+        ctx.stroke();
+      }
+      for (let i = 0; i <= 10; i++) {
+        const yPos = (canvas.height / 10) * i;
+        ctx.beginPath();
+        ctx.moveTo(0, yPos);
+        ctx.lineTo(canvas.width, yPos);
+        ctx.stroke();
+      }
+
+      // 2. Draw Parallel Plates
+      const topPlateCoords = getCanvasCoords(0, params.h / 2);
+      const bottomPlateCoords = getCanvasCoords(0, -params.h / 2);
+      const plateLength = canvas.width; // Plate covers full screen width
+
+      ctx.lineWidth = 8;
+      // Top Plate (Positive charged plate color)
+      ctx.strokeStyle = '#e2e8f0'; // Light slate color
+      ctx.shadowColor = 'rgba(255, 255, 255, 0.15)';
+      ctx.shadowBlur = 10;
+      ctx.beginPath();
+      ctx.moveTo(topPlateCoords.x, topPlateCoords.y);
+      ctx.lineTo(plateLength, topPlateCoords.y);
+      ctx.stroke();
+
+      // Bottom Plate (Negative charged plate color)
+      ctx.strokeStyle = '#64748b'; // Darker slate
+      ctx.shadowBlur = 0;
+      ctx.beginPath();
+      ctx.moveTo(bottomPlateCoords.x, bottomPlateCoords.y);
+      ctx.lineTo(plateLength, bottomPlateCoords.y);
+      ctx.stroke();
+
+      // Label Plates
+      ctx.fillStyle = '#94a3b8';
+      ctx.font = '10px monospace';
+      ctx.fillText("TOP PLATE (y = +h/2)", 15, topPlateCoords.y - 12);
+      ctx.fillText("BOTTOM PLATE (y = -h/2)", 15, bottomPlateCoords.y + 20);
+
+      // Draw Center Entrance dotted line
+      const entryCenterCoords = getCanvasCoords(0, 0);
+      ctx.setLineDash([5, 5]);
+      ctx.strokeStyle = 'rgba(148, 163, 184, 0.25)';
+      ctx.lineWidth = 1;
+      ctx.beginPath();
+      ctx.moveTo(entryCenterCoords.x, entryCenterCoords.y);
+      ctx.lineTo(canvas.width, entryCenterCoords.y);
+      ctx.stroke();
+      ctx.setLineDash([]); // Reset line dash
+
+      // 3. Draw Complete Path Trajectory (Trail)
+      if (trail.length > 1) {
+        ctx.strokeStyle = 'rgba(6, 182, 212, 1)'; // Cyan Glow
+        ctx.shadowColor = 'rgba(6, 182, 212, 0.4)';
+        ctx.shadowBlur = 12;
+        ctx.lineWidth = 3;
+        ctx.beginPath();
+        const startPoint = getCanvasCoords(trail[0].x, trail[0].y);
+        ctx.moveTo(startPoint.x, startPoint.y);
+
+        for (let i = 1; i < trail.length; i++) {
+          const pt = getCanvasCoords(trail[i].x, trail[i].y);
+          ctx.lineTo(pt.x, pt.y);
+        }
+        ctx.stroke();
+        ctx.shadowBlur = 0; // Reset shadow
+      }
+
+      // 4. Draw Current Floating Particle Point
+      const currentX = params.v0 * simTime;
+      const currentY = (params.b / (6 * params.m)) * Math.pow(simTime, 3) - 0.5 * params.g * Math.pow(simTime, 2);
+      const particleCoord = getCanvasCoords(currentX, currentY);
+
+      // Keep drawing within boundaries for safety
+      if (currentX <= 16 && Math.abs(currentY) <= params.h * 1.5) {
+        ctx.fillStyle = '#06b6d4'; // Cyan core
+        ctx.shadowColor = '#06b6d4';
+        ctx.shadowBlur = 15;
+        ctx.beginPath();
+        ctx.arc(particleCoord.x, particleCoord.y, 7, 0, 2 * Math.PI);
+        ctx.fill();
+        ctx.shadowBlur = 0; // Reset
+
+        // Draw particle dynamic vectors overlay (Force vectors)
+        // Upward variable Force vector (amber)
+        const fUpMag = params.b * simTime;
+        const fyScale = 3.5; // conversion multiplier for physics to canvas visual vector arrow length
+        ctx.strokeStyle = '#f59e0b'; // Amber
+        ctx.lineWidth = 2.5;
+        ctx.beginPath();
+        ctx.moveTo(particleCoord.x, particleCoord.y);
+        ctx.lineTo(particleCoord.x, particleCoord.y - (fUpMag * fyScale));
+        ctx.stroke();
+        if (fUpMag > 0.5) {
+          drawArrowhead(ctx, particleCoord.x, particleCoord.y - (fUpMag * fyScale), 'up', '#f59e0b');
+        }
+
+        // Downward gravity vector (red)
+        const fDownMag = params.m * params.g;
+        ctx.strokeStyle = '#ef4444'; // Red
+        ctx.lineWidth = 2.5;
+        ctx.beginPath();
+        ctx.moveTo(particleCoord.x, particleCoord.y);
+        ctx.lineTo(particleCoord.x, particleCoord.y + (fDownMag * fyScale));
+        ctx.stroke();
+        drawArrowhead(ctx, particleCoord.x, particleCoord.y + (fDownMag * fyScale), 'down', '#ef4444');
+      }
+    }
+
+    function drawArrowhead(context, x, y, direction, color) {
+      context.fillStyle = color;
+      context.beginPath();
+      if (direction === 'up') {
+        context.moveTo(x, y);
+        context.lineTo(x - 5, y + 8);
+        context.lineTo(x + 5, y + 8);
+      } else {
+        context.moveTo(x, y);
+        context.lineTo(x - 5, y - 8);
+        context.lineTo(x + 5, y - 8);
+      }
+      context.closePath();
+      context.fill();
+    }
+
+    // Interactive Flashcard Reveal Logic
+    function toggleFlashcard(cardElement) {
+      const answerBlock = cardElement.querySelector('.flashcard-answer');
+      const chevron = cardElement.querySelector('i');
+      if (answerBlock.classList.contains('hidden')) {
+        answerBlock.classList.remove('hidden');
+        chevron.classList.add('rotate-180');
+      } else {
+        answerBlock.classList.add('hidden');
+        chevron.classList.remove('rotate-180');
+      }
+    }
+
+    // Interactive Quiz Grader Logic
+    function gradeQuiz() {
+      const key = { q1: 'B', q2: 'C', q3: 'A' };
+      let correctCount = 0;
+      let totalQuestions = 3;
+
+      for (let keyProp in key) {
+        const userSelect = document.querySelector(`input[name="${keyProp}"]:checked`);
+        const questionBlock = document.querySelector(`[data-q="${keyProp.slice(1)}"]`);
+
+        if (userSelect) {
+          if (userSelect.value === key[keyProp]) {
+            correctCount++;
+            questionBlock.classList.remove('border-slate-800', 'border-red-500/30');
+            questionBlock.classList.add('border-emerald-500/30', 'bg-emerald-950/10');
+          } else {
+            questionBlock.classList.remove('border-slate-800', 'border-emerald-500/30');
+            questionBlock.classList.add('border-red-500/30', 'bg-red-950/10');
+          }
+        } else {
+          questionBlock.classList.add('border-red-500/30');
+        }
+      }
+
+      const scoreText = document.getElementById('quizScore');
+      scoreText.classList.remove('hidden');
+      scoreText.innerHTML = `<i class="fa-solid fa-graduation-cap mr-1.5"></i> Score: ${correctCount} / ${totalQuestions} (${Math.round((correctCount/totalQuestions)*100)}%)`;
+      if (correctCount === totalQuestions) {
+        scoreText.className = "text-sm font-bold bg-emerald-500/10 border border-emerald-500/20 px-4 py-2 rounded-xl text-emerald-400";
+      } else {
+        scoreText.className = "text-sm font-bold bg-amber-500/10 border border-amber-500/20 px-4 py-2 rounded-xl text-amber-400";
+      }
+    }
+
+    // Set up canvas sizing listeners on window events
+    window.addEventListener('resize', resizeCanvas);
+    window.onload = function() {
+      resizeCanvas();
+      updateParams();
+    };
+  </script>
+</body>
+</html>
