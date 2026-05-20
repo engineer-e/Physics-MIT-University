@@ -81,11 +81,11 @@
         10. L3WE1: Throwing a projectile (Worked Example)
 
     5. Problem Solving Practice 1
-        1. W1PSv1: Three Questions Before Starting
-        2. W1PSQ1/W1PSv2: Category 1. Multiple Objects - one stage of motion each
-        3. W1PSQ2/W1PSv3: Category 2: Multiple Stages of Motion
-        4. W1PSQ3/W1PSv4: Category 3: Special Conditions to Apply
-        5. W1PSQ4/W1PSv5: Combining the 3 Categories
+        1. [W1PSv1](https://engineer-e.github.io/Physics-MIT-University/8.01.1x.%20Mechanics%20-%20Kinematics%20and%20Dynamics/course_html/Mechanics%20-%20Kinematics%20and%20Dynamics/Week%201%20-%20Kinematics/Problem%20Solving%20Practice%201/W1PSv1%20Three%20Questions%20Before%20Starting/W1PSv1_ai1.html): Three Questions Before Starting
+        2. W1PSQ1/[W1PSv2](https://engineer-e.github.io/Physics-MIT-University/8.01.1x.%20Mechanics%20-%20Kinematics%20and%20Dynamics/course_html/Mechanics%20-%20Kinematics%20and%20Dynamics/Week%201%20-%20Kinematics/Problem%20Solving%20Practice%201/W1PSQ1W1PSv2%20Category%201%20Multiple%20Objects%20-%20one%20stage%20of%20motion%20each/W1PSv2_ai1.html): Category 1. Multiple Objects - one stage of motion each
+        3. W1PSQ2/[W1PSv3](https://engineer-e.github.io/Physics-MIT-University/8.01.1x.%20Mechanics%20-%20Kinematics%20and%20Dynamics/course_html/Mechanics%20-%20Kinematics%20and%20Dynamics/Week%201%20-%20Kinematics/Problem%20Solving%20Practice%201/W1PSQ2W1PSv3%20Category%202%20Multiple%20Stages%20of%20Motion/W1PSv3_ai1.html): Category 2: Multiple Stages of Motion
+        4. W1PSQ3/[W1PSv4](https://engineer-e.github.io/Physics-MIT-University/8.01.1x.%20Mechanics%20-%20Kinematics%20and%20Dynamics/course_html/Mechanics%20-%20Kinematics%20and%20Dynamics/Week%201%20-%20Kinematics/Problem%20Solving%20Practice%201/W1PSQ3W1PSv4%20Category%203%20Special%20Conditions%20to%20Apply/WP1Sv4_ai1.html): Category 3: Special Conditions to Apply
+        5. W1PSQ4/[W1PSv5](https://engineer-e.github.io/Physics-MIT-University/8.01.1x.%20Mechanics%20-%20Kinematics%20and%20Dynamics/course_html/Mechanics%20-%20Kinematics%20and%20Dynamics/Week%201%20-%20Kinematics/Problem%20Solving%20Practice%201/W1PSQ4W1PSv5%20Combining%20the%203%20Categories/W1PSv5_ai1.html): Combining the 3 Categories
 
 4. Week 2 - Newton's Laws
 
