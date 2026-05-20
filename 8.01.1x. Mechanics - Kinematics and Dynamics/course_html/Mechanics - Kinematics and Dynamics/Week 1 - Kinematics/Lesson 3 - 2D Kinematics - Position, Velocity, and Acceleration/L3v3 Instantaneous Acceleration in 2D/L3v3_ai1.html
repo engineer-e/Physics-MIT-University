@@ -1,0 +1,899 @@
+<!DOCTYPE html>
+<html lang="en" class="dark">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>2D Kinematics: Velocity & Acceleration Visualizer</title>
+  
+  <!-- Tailwind CSS -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script>
+    tailwind.config = {
+      darkMode: 'class',
+      theme: {
+        extend: {
+          colors: {
+            brand: {
+              50: '#f0f9ff',
+              100: '#e0f2fe',
+              500: '#0284c7',
+              600: '#0369a1',
+              700: '#075985',
+              900: '#0c4a6e',
+            },
+            accent: {
+              emerald: '#10b981',
+              rose: '#f43f5e',
+              amber: '#f59e0b',
+              violet: '#8b5cf6'
+            }
+          }
+        }
+      }
+    }
+  </script>
+
+  <!-- KaTeX for beautiful math typesetting -->
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.8/dist/katex.min.css">
+  <script src="https://cdn.jsdelivr.net/npm/katex@0.16.8/dist/katex.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/katex@0.16.8/dist/contrib/auto-render.min.js"></script>
+  <script>
+    document.addEventListener("DOMContentLoaded", function() {
+      // Ensure KaTeX auto-render script is loaded before execution
+      const checkKaTeX = setInterval(() => {
+        if (typeof renderMathInElement !== 'undefined') {
+          clearInterval(checkKaTeX);
+          renderMathInElement(document.body, {
+            delimiters: [
+              {left: '$$', right: '$$', display: true},
+              {left: '$', right: '$', display: false}
+            ],
+            ignoredTags: ["script", "noscript", "style", "textarea", "pre", "code"]
+          });
+        }
+      }, 50);
+    });
+  </script>
+
+  <!-- Google Fonts for premium look -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+
+  <style>
+    body {
+      font-family: 'Plus Jakarta Sans', sans-serif;
+    }
+    code, pre {
+      font-family: 'JetBrains Mono', monospace;
+    }
+    /* Smooth transitions */
+    .transition-all-300 {
+      transition: all 0.3s ease;
+    }
+  </style>
+</head>
+<body class="bg-slate-950 text-slate-100 min-h-screen selection:bg-brand-500 selection:text-white">
+
+  <!-- Header Banner -->
+  <header class="border-b border-slate-800 bg-slate-900/60 backdrop-blur sticky top-0 z-50">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4 flex flex-col sm:flex-row items-center justify-between gap-4">
+      <div class="flex items-center gap-3">
+        <div class="p-2.5 bg-brand-900/50 text-brand-500 rounded-xl border border-brand-500/30">
+          <svg class="w-6 h-6" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" d="M12 18a3.75 3.75 0 0 0 .495-7.467 5.99 5.99 0 0 0-1.925 3.546 5.974 5.974 0 0 1-2.133-1A3.75 3.75 0 0 0 12 18Z" />
+            <path stroke-linecap="round" stroke-linejoin="round" d="M9 12.75V11.25a3.375 3.375 0 0 1 6.75 0v1.5m-6.75 0a3.375 3.375 0 0 0 6.75 0V11.25" />
+          </svg>
+        </div>
+        <div>
+          <h1 class="text-xl font-bold tracking-tight bg-gradient-to-r from-white via-slate-200 to-slate-400 bg-clip-text text-transparent">
+            2D Kinematics Explorer
+          </h1>
+          <p class="text-xs text-slate-400 font-medium">Visualizing Velocity Change & Instantaneous Acceleration</p>
+        </div>
+      </div>
+      <div class="flex items-center gap-2 text-xs text-slate-400 bg-slate-950/80 px-3 py-1.5 rounded-full border border-slate-800">
+        <span class="w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></span>
+        Interactive Lecture Companion
+      </div>
+    </div>
+  </header>
+
+  <main class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 space-y-8">
+    
+    <!-- Top Concept Brief Card -->
+    <div class="bg-gradient-to-r from-slate-900 to-slate-950 border border-slate-800 rounded-2xl p-6 relative overflow-hidden">
+      <div class="absolute -right-16 -top-16 w-64 h-64 bg-brand-500/10 rounded-full blur-3xl"></div>
+      <div class="absolute -left-16 -bottom-16 w-64 h-64 bg-accent-violet/10 rounded-full blur-3xl"></div>
+      
+      <div class="relative z-10 max-w-4xl space-y-3">
+        <span class="px-2.5 py-1 text-xs font-semibold uppercase tracking-wider text-brand-100 bg-brand-900/80 rounded-md border border-brand-500/20">Core Principle</span>
+        <h2 class="text-2xl font-bold text-white tracking-tight">How do we visualize acceleration in two dimensions?</h2>
+        <p class="text-slate-300 leading-relaxed text-sm sm:text-base">
+          Unlike 1D motion where velocity only changes in magnitude (forward/backward), 2D motion introduces changes in both <strong>magnitude</strong> and <strong>direction</strong>. To find the acceleration vector $\vec{a}$, we must perform vector subtraction $\Delta \vec{v} = \vec{v}(t_2) - \vec{v}(t_1)$ by translating both velocity vectors to a common origin to line up their tails.
+        </p>
+      </div>
+    </div>
+
+    <!-- MAIN INTERACTIVE GRID -->
+    <div class="grid grid-cols-1 lg:grid-cols-12 gap-8">
+      
+      <!-- LEFT WORKSPACE: SIMULATOR & CONTROLS (7 columns) -->
+      <section class="lg:col-span-7 space-y-6">
+        
+        <!-- Live Simulator Container -->
+        <div class="bg-slate-900 rounded-2xl border border-slate-800 shadow-xl overflow-hidden">
+          
+          <!-- Simulator Header -->
+          <div class="px-6 py-4 bg-slate-900 border-b border-slate-800 flex items-center justify-between">
+            <div class="flex items-center gap-2">
+              <span class="w-2 h-2 rounded-full bg-brand-500"></span>
+              <h3 class="text-sm font-semibold tracking-wide text-slate-200">Interactive Projectile Sandbox</h3>
+            </div>
+            <span class="text-xs text-slate-400 bg-slate-950 px-2 py-1 rounded border border-slate-800">Drag sliders below</span>
+          </div>
+
+          <!-- Canvas Display Area -->
+          <div class="p-6 bg-slate-950/40 flex flex-col items-center justify-center relative">
+            
+            <!-- Canvas -->
+            <div class="relative w-full max-w-lg aspect-[4/3] bg-slate-950 rounded-xl border border-slate-800 overflow-hidden shadow-inner">
+              <canvas id="kinematicsCanvas" class="w-full h-full block"></canvas>
+              
+              <!-- Floating Legend -->
+              <div class="absolute top-3 left-3 bg-slate-900/90 backdrop-blur-md px-3 py-2 rounded-lg border border-slate-800 text-[11px] space-y-1.5 shadow-md">
+                <div class="flex items-center gap-2">
+                  <span class="w-2.5 h-0.5 bg-slate-500 inline-block"></span>
+                  <span class="text-slate-300">Trajectory Path</span>
+                </div>
+                <div class="flex items-center gap-2">
+                  <span class="w-2.5 h-0.5 bg-accent-emerald inline-block"></span>
+                  <span class="text-slate-300">$\vec{v}(t_1)$ (Initial Velocity)</span>
+                </div>
+                <div class="flex items-center gap-2">
+                  <span class="w-2.5 h-0.5 bg-accent-amber inline-block"></span>
+                  <span class="text-slate-300">$\vec{v}(t_2)$ (Final Velocity)</span>
+                </div>
+                <div class="flex items-center gap-2">
+                  <span class="w-2.5 h-0.5 bg-accent-rose inline-block"></span>
+                  <span class="text-slate-300">$\Delta \vec{v}$ (Change in Velocity)</span>
+                </div>
+              </div>
+            </div>
+
+            <!-- Tail-To-Tail Vector Subtraction Visualizer -->
+            <div class="w-full max-w-lg mt-6 bg-slate-900/70 rounded-xl border border-slate-800 p-4 space-y-3">
+              <div class="flex items-center justify-between border-b border-slate-800/80 pb-2">
+                <h4 class="text-xs font-semibold text-slate-200 flex items-center gap-2">
+                  <svg class="w-4 h-4 text-accent-violet" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" d="M7.5 21 3 16.5m0 0L7.5 12M3 16.5h13.5m0-13.5L21 7.5m0 0L16.5 12M21 7.5H7.5" />
+                  </svg>
+                  Step 2 Visualizer: Tail-To-Tail Vector Construction
+                </h4>
+                <span class="text-[10px] text-accent-violet bg-accent-violet/10 px-2 py-0.5 rounded border border-accent-violet/20 font-medium">Blackboard Logic</span>
+              </div>
+              
+              <div class="grid grid-cols-1 md:grid-cols-12 gap-4 items-center">
+                <div class="md:col-span-5 flex justify-center bg-slate-950 rounded-lg p-2 border border-slate-800/50 aspect-square max-w-[150px] mx-auto w-full">
+                  <canvas id="subtractionCanvas" class="w-full h-full block"></canvas>
+                </div>
+                <div class="md:col-span-7 space-y-2 text-xs text-slate-300">
+                  <p>
+                    Translating the tails of both vectors to the origin $(0,0)$ lets us map the vector subtraction directly:
+                  </p>
+                  <div class="bg-slate-950/60 p-2.5 rounded border border-slate-800/80 font-mono text-[11px] text-slate-300 space-y-1">
+                    <div>$\Delta \vec{v} = \vec{v}(t_2) - \vec{v}(t_1)$</div>
+                    <div class="text-slate-400 mt-1">
+                      x-component: <span id="vDiffX">0.00</span> m/s<br>
+                      y-component: <span id="vDiffY">0.00</span> m/s
+                    </div>
+                  </div>
+                  <p class="text-[11px] text-slate-400 italic">
+                    💡 Observe how $\Delta \vec{v}$ points straight downwards. This confirms a constant downward acceleration (gravity)!
+                  </p>
+                </div>
+              </div>
+            </div>
+
+          </div>
+
+          <!-- Interactive Sliders / Dashboard Controls -->
+          <div class="p-6 bg-slate-900 border-t border-slate-800 space-y-6">
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+              
+              <!-- Time t1 slider -->
+              <div class="space-y-2">
+                <div class="flex justify-between items-center text-xs">
+                  <label for="t1Slider" class="font-medium text-slate-300 flex items-center gap-1.5">
+                    <span class="w-2.5 h-2.5 rounded-full bg-accent-emerald inline-block"></span>
+                    Initial Time ($t_1$):
+                  </label>
+                  <span id="t1Val" class="font-mono bg-slate-950 px-2 py-0.5 rounded border border-slate-800 text-accent-emerald font-semibold">0.40s</span>
+                </div>
+                <input type="range" id="t1Slider" min="0.1" max="1.4" step="0.05" value="0.4"
+                  class="w-full h-1.5 bg-slate-800 rounded-lg appearance-none cursor-pointer accent-accent-emerald">
+                <p class="text-[11px] text-slate-400">Sets the location of first particle observation.</p>
+              </div>
+
+              <!-- Time t2 slider -->
+              <div class="space-y-2">
+                <div class="flex justify-between items-center text-xs">
+                  <label for="t2Slider" class="font-medium text-slate-300 flex items-center gap-1.5">
+                    <span class="w-2.5 h-2.5 rounded-full bg-accent-amber inline-block"></span>
+                    Final Time ($t_2$):
+                  </label>
+                  <span id="t2Val" class="font-mono bg-slate-950 px-2 py-0.5 rounded border border-slate-800 text-accent-amber font-semibold">1.20s</span>
+                </div>
+                <input type="range" id="t2Slider" min="0.2" max="1.9" step="0.05" value="1.2"
+                  class="w-full h-1.5 bg-slate-800 rounded-lg appearance-none cursor-pointer accent-accent-amber">
+                <p class="text-[11px] text-slate-400">Sets the location of second particle observation.</p>
+              </div>
+
+            </div>
+
+            <!-- Vector Toggle Switches & Live Readout -->
+            <div class="pt-4 border-t border-slate-800/80 flex flex-wrap gap-4 items-center justify-between">
+              <div class="flex flex-wrap gap-3">
+                <label class="inline-flex items-center gap-2 cursor-pointer bg-slate-950/80 px-3 py-1.5 rounded-lg border border-slate-800 text-xs text-slate-300 hover:border-slate-700 transition-all-300">
+                  <input type="checkbox" id="chkPositionVec" class="rounded border-slate-800 text-brand-500 focus:ring-0 bg-slate-900">
+                  Show Pos. Vectors ($\vec{r}$)
+                </label>
+                <label class="inline-flex items-center gap-2 cursor-pointer bg-slate-950/80 px-3 py-1.5 rounded-lg border border-slate-800 text-xs text-slate-300 hover:border-slate-700 transition-all-300">
+                  <input type="checkbox" id="chkComponents" checked class="rounded border-slate-800 text-brand-500 focus:ring-0 bg-slate-900">
+                  Show Vector Components
+                </label>
+              </div>
+
+              <div class="text-xs text-slate-400">
+                $\Delta t = t_2 - t_1 = $ <span id="deltaTime" class="font-mono font-semibold text-slate-200">0.80s</span>
+              </div>
+            </div>
+
+          </div>
+
+        </div>
+
+        <!-- LIVE COMPUTATION CARD -->
+        <div class="bg-slate-900 rounded-2xl border border-slate-800 p-6 space-y-4">
+          <h3 class="text-sm font-semibold tracking-wider uppercase text-slate-300 flex items-center gap-2">
+            <span class="p-1 bg-brand-900/40 text-brand-400 rounded-md">
+              <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" d="M15.75 15.75V18m-3-3.675a3 3 0 0 0-3 3m13.5 3.375c0-1.842-1.428-3.375-3.188-3.375H14.25m-1.5-11.25a3.375 3.375 0 1 1-6.75 0 3.375 3.375 0 0 1 6.75 0ZM3 19.125c0-2.4 1.35-4.352 3.375-5.25" />
+              </svg>
+            </span>
+            Real-time Analytical Readout
+          </h3>
+          
+          <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+            
+            <div class="bg-slate-950 p-4 rounded-xl border border-slate-800 space-y-1">
+              <span class="text-[10px] uppercase tracking-wider text-accent-emerald font-semibold">Initial state at $t_1$</span>
+              <div class="font-mono text-sm space-y-0.5 text-slate-300">
+                <div>$\vec{r}_1$: (<span id="r1x">0.00</span>, <span id="r1y">0.00</span>) m</div>
+                <div>$\vec{v}_1$: (<span id="v1x">0.00</span>, <span id="v1y">0.00</span>) m/s</div>
+                <div>$|\vec{v}_1|$: <span id="v1Mag">0.00</span> m/s</div>
+              </div>
+            </div>
+
+            <div class="bg-slate-950 p-4 rounded-xl border border-slate-800 space-y-1">
+              <span class="text-[10px] uppercase tracking-wider text-accent-amber font-semibold">Final state at $t_2$</span>
+              <div class="font-mono text-sm space-y-0.5 text-slate-300">
+                <div>$\vec{r}_2$: (<span id="r2x">0.00</span>, <span id="r2y">0.00</span>) m</div>
+                <div>$\vec{v}_2$: (<span id="v2x">0.00</span>, <span id="v2y">0.00</span>) m/s</div>
+                <div>$|\vec{v}_2|$: <span id="v2Mag">0.00</span> m/s</div>
+              </div>
+            </div>
+
+            <div class="bg-slate-950 p-4 rounded-xl border border-slate-800 space-y-1">
+              <span class="text-[10px] uppercase tracking-wider text-accent-rose font-semibold">Resulting Kinematics</span>
+              <div class="font-mono text-sm space-y-0.5 text-slate-300">
+                <div>$\Delta \vec{v}$ Mag: <span id="dvMag">0.00</span> m/s</div>
+                <div>$\vec{a}_{\text{avg}}$: (0.00, <span id="aAvgY">-9.80</span>) m/s²</div>
+                <div>$|\vec{a}_{\text{avg}}|$: <span id="aAvgMag">9.80</span> m/s²</div>
+              </div>
+            </div>
+
+          </div>
+        </div>
+
+      </section>
+
+      <!-- RIGHT WORKSPACE: INFOGRAPHICS, FORMULAS & QUIZ (5 columns) -->
+      <section class="lg:col-span-5 space-y-6">
+        
+        <!-- STEP-BY-STEP PHYSICS ALGORITHM -->
+        <div class="bg-slate-900 rounded-2xl border border-slate-800 p-6 space-y-4">
+          <h3 class="text-sm font-bold uppercase tracking-wider text-slate-300 flex items-center gap-2">
+            <span class="p-1 bg-accent-violet/30 text-accent-violet rounded-md">
+              <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" d="M9 12h6m-6 4h6m2 5H7a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5.586a1 1 0 0 1 .707.293l5.414 5.414a1 1 0 0 1 .293.707V19a2 2 0 0 1-2 2Z" />
+              </svg>
+            </span>
+            Computation Infographic & Algorithm
+          </h3>
+          
+          <div class="relative pl-6 border-l-2 border-slate-800 space-y-6 text-xs text-slate-300">
+            
+            <!-- Step 1 -->
+            <div class="relative">
+              <div class="absolute -left-[31px] top-0 bg-slate-900 border-2 border-brand-500 w-4.5 h-4.5 rounded-full flex items-center justify-center text-[9px] font-bold text-brand-400">1</div>
+              <h4 class="font-semibold text-slate-200 text-sm">Express Velocity as Independent Vector Components</h4>
+              <p class="text-slate-400 mt-1">
+                Decompose the 2D velocity vector into $x$ and $y$ dimensions:
+              </p>
+              <div class="bg-slate-950 p-2 rounded border border-slate-800/80 my-2 font-mono text-[11px] text-brand-300">
+                $$\vec{v} = v_x \hat{i} + v_y \hat{j} = \frac{dx}{dt} \hat{i} + \frac{dy}{dt} \hat{j}$$
+              </div>
+            </div>
+
+            <!-- Step 2 -->
+            <div class="relative">
+              <div class="absolute -left-[31px] top-0 bg-slate-900 border-2 border-accent-emerald w-4.5 h-4.5 rounded-full flex items-center justify-center text-[9px] font-bold text-accent-emerald">2</div>
+              <h4 class="font-semibold text-slate-200 text-sm">Analyze the Velocity Difference ($\Delta \vec{v}$)</h4>
+              <p class="text-slate-400 mt-1">
+                Subtract the initial velocity vector from the final velocity vector. Graphically translate the tails to the same origin:
+              </p>
+              <div class="bg-slate-950 p-2 rounded border border-slate-800/80 my-2 font-mono text-[11px] text-accent-emerald">
+                $$\Delta \vec{v} = \vec{v}(t_2) - \vec{v}(t_1)$$
+              </div>
+            </div>
+
+            <!-- Step 3 -->
+            <div class="relative">
+              <div class="absolute -left-[31px] top-0 bg-slate-900 border-2 border-accent-rose w-4.5 h-4.5 rounded-full flex items-center justify-center text-[9px] font-bold text-accent-rose">3</div>
+              <h4 class="font-semibold text-slate-200 text-sm">Take Limit to Yield Instantaneous Acceleration</h4>
+              <p class="text-slate-400 mt-1">
+                Let $\Delta t$ approach $0$. Take the derivatives of each independent vector component:
+              </p>
+              <div class="bg-slate-950 p-2 rounded border border-slate-800/80 my-2 font-mono text-[11px] text-accent-rose">
+                $$\vec{a}(t) = \lim_{\Delta t \to 0} \frac{\Delta \vec{v}}{\Delta t} = \frac{d\vec{v}}{dt} = \frac{dv_x}{dt}\hat{i} + \frac{dv_y}{dt}\hat{j}$$
+              </div>
+            </div>
+
+            <!-- Step 4 -->
+            <div class="relative">
+              <div class="absolute -left-[31px] top-0 bg-slate-900 border-2 border-accent-amber w-4.5 h-4.5 rounded-full flex items-center justify-center text-[9px] font-bold text-accent-amber">4</div>
+              <h4 class="font-semibold text-slate-200 text-sm">Obtain Acceleration Magnitude</h4>
+              <p class="text-slate-400 mt-1">
+                Calculate the net physical scalar size of the acceleration vector using the Pythagorean theorem:
+              </p>
+              <div class="bg-slate-950 p-2 rounded border border-slate-800/80 my-2 font-mono text-[11px] text-accent-amber">
+                $$a = |\vec{a}| = \left(a_x^2 + a_y^2\right)^{1/2}$$
+              </div>
+            </div>
+
+          </div>
+        </div>
+
+        <!-- FORMULA CHEAT SHEET -->
+        <div class="bg-slate-900 rounded-2xl border border-slate-800 p-6 space-y-4">
+          <div class="flex items-center justify-between border-b border-slate-800 pb-2">
+            <h3 class="text-xs font-bold uppercase tracking-wider text-slate-400">Formula Cheat Sheet</h3>
+            <span class="text-[10px] text-brand-400 bg-brand-900/30 px-2 py-0.5 rounded border border-brand-800">Kinematics</span>
+          </div>
+
+          <div class="grid grid-cols-2 gap-3 text-xs">
+            <div class="bg-slate-950/60 p-2.5 rounded-lg border border-slate-800">
+              <div class="text-slate-400 text-[10px] mb-1">X-Velocity Component</div>
+              <div class="font-semibold text-slate-200">$v_x = \frac{dx}{dt}$</div>
+            </div>
+            <div class="bg-slate-950/60 p-2.5 rounded-lg border border-slate-800">
+              <div class="text-slate-400 text-[10px] mb-1">Y-Velocity Component</div>
+              <div class="font-semibold text-slate-200">$v_y = \frac{dy}{dt}$</div>
+            </div>
+            <div class="bg-slate-950/60 p-2.5 rounded-lg border border-slate-800">
+              <div class="text-slate-400 text-[10px] mb-1">X-Acceleration Component</div>
+              <div class="font-semibold text-slate-200">$a_x = \frac{d^2x}{dt^2}$</div>
+            </div>
+            <div class="bg-slate-950/60 p-2.5 rounded-lg border border-slate-800">
+              <div class="text-slate-400 text-[10px] mb-1">Y-Acceleration Component</div>
+              <div class="font-semibold text-slate-200">$a_y = \frac{d^2y}{dt^2}$</div>
+            </div>
+          </div>
+        </div>
+
+        <!-- ASSESSMENT PANEL (QUIZ) -->
+        <div class="bg-slate-900 rounded-2xl border border-slate-800 p-6 space-y-4 shadow-xl">
+          <div class="flex items-center justify-between border-b border-slate-800 pb-3">
+            <h3 class="text-sm font-semibold tracking-wide text-slate-200 flex items-center gap-2">
+              <span class="p-1 bg-accent-amber/20 text-accent-amber rounded-md">
+                <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" d="M9.879 7.519c1.171-1.025 3.071-1.025 4.242 0 1.172 1.025 1.172 2.687 0 3.712-.203.179-.43.326-.67.442-.745.361-1.45.999-1.45 1.827v.75M21 12a9 9 0 1 1-18 0 9 9 0 0 1 18 0Zm-9 5.25h.008v.008H12v-.008Z" />
+                </svg>
+              </span>
+              Concept Check Challenge
+            </h3>
+            <span class="text-xs font-mono text-slate-400" id="quizProgress">Question 1/3</span>
+          </div>
+
+          <!-- Quiz Question View -->
+          <div id="quizContainer" class="space-y-4">
+            <p id="quizQuestion" class="text-sm text-slate-200 leading-relaxed font-medium">
+              Loading quiz question...
+            </p>
+
+            <div class="space-y-2" id="quizAnswers">
+              <!-- Dynamically populated choices -->
+            </div>
+
+            <!-- Action Area / Feedback Panel -->
+            <div id="quizFeedback" class="hidden p-3 rounded-lg text-xs leading-relaxed border transition-all-300">
+              <!-- Feedback text -->
+            </div>
+
+            <div class="flex justify-end pt-2">
+              <button id="btnSubmitQuiz" class="px-4 py-2 bg-brand-500 hover:bg-brand-600 active:bg-brand-700 text-white font-semibold text-xs rounded-lg shadow-md transition-all-300">
+                Submit Answer
+              </button>
+            </div>
+          </div>
+
+        </div>
+
+      </section>
+
+    </div>
+
+  </main>
+
+  <!-- Interactive JavaScript -->
+  <script>
+    // --- Trajectory Constants & Functions ---
+    // Perfect downward opening parabola mapping projectile motion
+    const trajectory = {
+      x0: 40,
+      y0: 250,
+      v0x: 230,  // pixels per sec
+      v0y: 280,  // pixels per sec (upwards is negative on canvas, so we will transform)
+      g: 220,    // pixels per sec^2
+      
+      // Get position vector at time t
+      getPos(t) {
+        return {
+          x: this.x0 + this.v0x * t,
+          y: this.y0 - (this.v0y * t - 0.5 * this.g * t * t)
+        };
+      },
+      
+      // Get velocity vector at time t
+      getVel(t) {
+        return {
+          x: this.v0x,
+          y: -(this.v0y - this.g * t) // canvas coordinates
+        };
+      }
+    };
+
+    // --- DOM Elements ---
+    const canvas = document.getElementById('kinematicsCanvas');
+    const ctx = canvas.getContext('2d');
+    const subCanvas = document.getElementById('subtractionCanvas');
+    const subCtx = subCanvas.getContext('2d');
+
+    const t1Slider = document.getElementById('t1Slider');
+    const t2Slider = document.getElementById('t2Slider');
+    const t1Val = document.getElementById('t1Val');
+    const t2Val = document.getElementById('t2Val');
+    const deltaTimeSpan = document.getElementById('deltaTime');
+
+    const chkPositionVec = document.getElementById('chkPositionVec');
+    const chkComponents = document.getElementById('chkComponents');
+
+    // Readout fields
+    const r1x = document.getElementById('r1x');
+    const r1y = document.getElementById('r1y');
+    const v1x = document.getElementById('v1x');
+    const v1y = document.getElementById('v1y');
+    const v1Mag = document.getElementById('v1Mag');
+
+    const r2x = document.getElementById('r2x');
+    const r2y = document.getElementById('r2y');
+    const v2x = document.getElementById('v2x');
+    const v2y = document.getElementById('v2y');
+    const v2Mag = document.getElementById('v2Mag');
+
+    const vDiffX = document.getElementById('vDiffX');
+    const vDiffY = document.getElementById('vDiffY');
+    const dvMag = document.getElementById('dvMag');
+    const aAvgY = document.getElementById('aAvgY');
+    const aAvgMag = document.getElementById('aAvgMag');
+
+    // --- High-DPI Canvas Setup ---
+    function setupCanvas(canvasElement) {
+      const rect = canvasElement.getBoundingClientRect();
+      const dpr = window.devicePixelRatio || 1;
+      canvasElement.width = rect.width * dpr;
+      canvasElement.height = rect.height * dpr;
+      const context = canvasElement.getContext('2d');
+      context.scale(dpr, dpr);
+    }
+
+    // --- Draw Vector Utility ---
+    function drawArrow(context, fromX, fromY, toX, toY, color, width = 2, dashed = false) {
+      context.beginPath();
+      context.strokeStyle = color;
+      context.lineWidth = width;
+      if (dashed) {
+        context.setLineDash([4, 4]);
+      } else {
+        context.setLineDash([]);
+      }
+      context.moveTo(fromX, fromY);
+      context.lineTo(toX, toY);
+      context.stroke();
+
+      // Arrow head calculation
+      const angle = Math.atan2(toY - fromY, toX - fromX);
+      const headLength = 8;
+      context.setLineDash([]);
+      context.beginPath();
+      context.fillStyle = color;
+      context.moveTo(toX, toY);
+      context.lineTo(toX - headLength * Math.cos(angle - Math.PI / 6), toY - headLength * Math.sin(angle - Math.PI / 6));
+      context.lineTo(toX - headLength * Math.cos(angle + Math.PI / 6), toY - headLength * Math.sin(angle + Math.PI / 6));
+      context.fill();
+    }
+
+    // --- Render Loop & Kinematics Calculations ---
+    function render() {
+      // Setup / Clear main canvas
+      const width = canvas.width / (window.devicePixelRatio || 1);
+      const height = canvas.height / (window.devicePixelRatio || 1);
+      ctx.clearRect(0, 0, width, height);
+
+      const t1 = parseFloat(t1Slider.value);
+      const t2 = parseFloat(t2Slider.value);
+
+      // Update Slider value displays
+      t1Val.textContent = t1.toFixed(2) + 's';
+      t2Val.textContent = t2.toFixed(2) + 's';
+      const dt = t2 - t1;
+      deltaTimeSpan.textContent = dt.toFixed(2) + 's';
+
+      // 1. Draw coordinate axes
+      ctx.strokeStyle = '#334155';
+      ctx.lineWidth = 1;
+      // Y Axis
+      ctx.beginPath();
+      ctx.moveTo(40, 20);
+      ctx.lineTo(40, height - 30);
+      ctx.stroke();
+      // X Axis
+      ctx.beginPath();
+      ctx.moveTo(30, height - 30);
+      ctx.lineTo(width - 20, height - 30);
+      ctx.stroke();
+
+      // Axis labels
+      ctx.fillStyle = '#94a3b8';
+      ctx.font = '11px sans-serif';
+      ctx.fillText('+y', 20, 25);
+      ctx.fillText('+x', width - 25, height - 15);
+      ctx.fillText('0', 25, height - 20);
+
+      // 2. Draw full trajectory path (parabola curve)
+      ctx.beginPath();
+      ctx.strokeStyle = '#475569';
+      ctx.lineWidth = 2.5;
+      ctx.setLineDash([2, 4]);
+      for (let t = 0; t <= 1.95; t += 0.02) {
+        const p = trajectory.getPos(t);
+        if (t === 0) ctx.moveTo(p.x, p.y);
+        else ctx.lineTo(p.x, p.y);
+      }
+      ctx.stroke();
+      ctx.setLineDash([]);
+
+      // 3. Get key physics points
+      const pos1 = trajectory.getPos(t1);
+      const vel1 = trajectory.getVel(t1);
+      const pos2 = trajectory.getPos(t2);
+      const vel2 = trajectory.getVel(t2);
+
+      // Scaling down velocity vector lengths for aesthetic clarity on canvas
+      const vScale = 0.45;
+
+      // Draw position vectors if enabled
+      if (chkPositionVec.checked) {
+        drawArrow(ctx, 40, height - 30, pos1.x, pos1.y, '#8b5cf6', 1.5, true); // r1
+        drawArrow(ctx, 40, height - 30, pos2.x, pos2.y, '#c084fc', 1.5, true); // r2
+        
+        ctx.fillStyle = '#c084fc';
+        ctx.fillText('r₁', pos1.x - 20, pos1.y + 15);
+        ctx.fillText('r₂', pos2.x - 20, pos2.y + 25);
+      }
+
+      // Draw Velocity 1 at t1 location
+      drawArrow(ctx, pos1.x, pos1.y, pos1.x + vel1.x * vScale, pos1.y + vel1.y * vScale, '#10b981', 2.5);
+      
+      // Draw Velocity 2 at t2 location
+      drawArrow(ctx, pos2.x, pos2.y, pos2.x + vel2.x * vScale, pos2.y + vel2.y * vScale, '#f59e0b', 2.5);
+
+      // Draw components if checked
+      if (chkComponents.checked) {
+        // v1 components
+        drawArrow(ctx, pos1.x, pos1.y, pos1.x + vel1.x * vScale, pos1.y, '#10b981', 1, true); // v1x
+        drawArrow(ctx, pos1.x + vel1.x * vScale, pos1.y, pos1.x + vel1.x * vScale, pos1.y + vel1.y * vScale, '#10b981', 1, true); // v1y
+        
+        // v2 components
+        drawArrow(ctx, pos2.x, pos2.y, pos2.x + vel2.x * vScale, pos2.y, '#f59e0b', 1, true); // v2x
+        drawArrow(ctx, pos2.x + vel2.x * vScale, pos2.y, pos2.x + vel2.x * vScale, pos2.y + vel2.y * vScale, '#f59e0b', 1, true); // v2y
+      }
+
+      // 4. Draw particle point circles
+      ctx.beginPath();
+      ctx.fillStyle = '#34d399';
+      ctx.arc(pos1.x, pos1.y, 6, 0, 2 * Math.PI);
+      ctx.fill();
+      ctx.strokeStyle = '#059669';
+      ctx.lineWidth = 1.5;
+      ctx.stroke();
+
+      ctx.beginPath();
+      ctx.fillStyle = '#fbbf24';
+      ctx.arc(pos2.x, pos2.y, 6, 0, 2 * Math.PI);
+      ctx.fill();
+      ctx.strokeStyle = '#d97706';
+      ctx.lineWidth = 1.5;
+      ctx.stroke();
+
+      // Text labels for points
+      ctx.fillStyle = '#e2e8f0';
+      ctx.font = 'bold 11px sans-serif';
+      ctx.fillText(`t₁ = ${t1.toFixed(1)}s`, pos1.x - 22, pos1.y - 12);
+      ctx.fillText(`t₂ = ${t2.toFixed(1)}s`, pos2.x - 22, pos2.y - 12);
+
+      // Text label for velocities
+      ctx.fillStyle = '#10b981';
+      ctx.fillText('v(t₁)', pos1.x + vel1.x * vScale + 4, pos1.y + vel1.y * vScale - 4);
+      ctx.fillStyle = '#f59e0b';
+      ctx.fillText('v(t₂)', pos2.x + vel2.x * vScale + 4, pos2.y + vel2.y * vScale + 12);
+
+      // --- 5. RENDER SUBTRACTION CANVAS ---
+      const subWidth = subCanvas.width / (window.devicePixelRatio || 1);
+      const subHeight = subCanvas.height / (window.devicePixelRatio || 1);
+      subCtx.clearRect(0, 0, subWidth, subHeight);
+
+      // We place the aligned tail origin at the center of this smaller display
+      const originX = subWidth / 2 - 25;
+      const originY = subHeight / 2 - 10;
+
+      // Draw light axis reference for the subtraction origin
+      subCtx.strokeStyle = '#1e293b';
+      subCtx.lineWidth = 0.75;
+      subCtx.beginPath();
+      subCtx.moveTo(0, originY);
+      subCtx.lineTo(subWidth, originY);
+      subCtx.moveTo(originX, 0);
+      subCtx.lineTo(originX, subHeight);
+      subCtx.stroke();
+
+      // Render v1 (translated)
+      const subScale = 0.45; 
+      const destV1_X = originX + vel1.x * subScale;
+      const destV1_Y = originY + vel1.y * subScale;
+      drawArrow(subCtx, originX, originY, destV1_X, destV1_Y, '#10b981', 2);
+      subCtx.fillStyle = '#10b981';
+      subCtx.font = '10px sans-serif';
+      subCtx.fillText('v(t₁)', destV1_X + 4, destV1_Y - 4);
+
+      // Render v2 (translated)
+      const destV2_X = originX + vel2.x * subScale;
+      const destV2_Y = originY + vel2.y * subScale;
+      drawArrow(subCtx, originX, originY, destV2_X, destV2_Y, '#f59e0b', 2);
+      subCtx.fillStyle = '#f59e0b';
+      subCtx.fillText('v(t₂)', destV2_X + 4, destV2_Y + 12);
+
+      // Change in velocity delta V = v(t2) - v(t1). Vector goes from tip of v1 to tip of v2.
+      drawArrow(subCtx, destV1_X, destV1_Y, destV2_X, destV2_Y, '#f43f5e', 2.5);
+      subCtx.fillStyle = '#f43f5e';
+      subCtx.font = 'bold 11px sans-serif';
+      subCtx.fillText('Δv', (destV1_X + destV2_X)/2 - 18, (destV1_Y + destV2_Y)/2);
+
+      // --- 6. CALCULATIONS & READOUT STATS UPDATE ---
+      // We scale simulation pixels to metric values for realistic readout
+      const pixelToMeterScale = 1 / 40; // 40 pixels = 1 meter
+
+      // Real scale measurements
+      const real_r1x = (pos1.x * pixelToMeterScale).toFixed(2);
+      const real_r1y = ((height - pos1.y) * pixelToMeterScale).toFixed(2); // Invert axis for upward positive
+      const real_r2x = (pos2.x * pixelToMeterScale).toFixed(2);
+      const real_r2y = ((height - pos2.y) * pixelToMeterScale).toFixed(2);
+
+      const real_v1x = (vel1.x * pixelToMeterScale).toFixed(2);
+      const real_v1y = (-vel1.y * pixelToMeterScale).toFixed(2); // Convert Canvas down-vector to positive upwards
+      const real_v2x = (vel2.x * pixelToMeterScale).toFixed(2);
+      const real_v2y = (-vel2.y * pixelToMeterScale).toFixed(2);
+
+      const magV1 = Math.sqrt(real_v1x*real_v1x + real_v1y*real_v1y);
+      const magV2 = Math.sqrt(real_v2x*real_v2x + real_v2y*real_v2y);
+
+      const dv_x = (real_v2x - real_v1x);
+      const dv_y = (real_v2y - real_v1y);
+      const magDV = Math.sqrt(dv_x*dv_x + dv_y*dv_y);
+
+      const computedAccY = dv_y / dt;
+
+      // Update UI Text elements
+      r1x.textContent = real_r1x;
+      r1y.textContent = real_r1y;
+      v1x.textContent = real_v1x;
+      v1y.textContent = real_v1y;
+      v1Mag.textContent = magV1.toFixed(2);
+
+      r2x.textContent = real_r2x;
+      r2y.textContent = real_r2y;
+      v2x.textContent = real_v2x;
+      v2y.textContent = real_v2y;
+      v2Mag.textContent = magV2.toFixed(2);
+
+      vDiffX.textContent = dv_x.toFixed(2);
+      vDiffY.textContent = dv_y.toFixed(2);
+      dvMag.textContent = magDV.toFixed(2);
+      aAvgY.textContent = computedAccY.toFixed(2);
+      aAvgMag.textContent = Math.abs(computedAccY).toFixed(2);
+    }
+
+    // Window Resizing or initialization updates
+    function initVisuals() {
+      setupCanvas(canvas);
+      setupCanvas(subCanvas);
+      render();
+    }
+
+    // --- Add Listeners ---
+    t1Slider.addEventListener('input', () => {
+      // Keep t1 smaller than t2
+      if (parseFloat(t1Slider.value) >= parseFloat(t2Slider.value)) {
+        t1Slider.value = (parseFloat(t2Slider.value) - 0.1).toFixed(2);
+      }
+      render();
+    });
+
+    t2Slider.addEventListener('input', () => {
+      // Keep t2 greater than t1
+      if (parseFloat(t2Slider.value) <= parseFloat(t1Slider.value)) {
+        t2Slider.value = (parseFloat(t1Slider.value) + 0.1).toFixed(2);
+      }
+      render();
+    });
+
+    chkPositionVec.addEventListener('change', render);
+    chkComponents.addEventListener('change', render);
+
+    window.addEventListener('resize', initVisuals);
+    window.addEventListener('load', initVisuals);
+
+
+    // ==========================================
+    // --- QUIZ GAME ENGINE ---
+    // ==========================================
+    const quizData = [
+      {
+        question: "When we translate the velocity vectors v(t₁) and v(t₂) tail-to-tail to perform vector subtraction, which way does the change-in-velocity vector (Δv) point in our projectile simulator?",
+        choices: [
+          "Straight down, because gravity works uniformly vertically.",
+          "Straight up, because the object was climbing up.",
+          "To the right, because x-axis velocity keeps increasing.",
+          "Tangential to the curve at the vertex."
+        ],
+        correct: 0,
+        explanation: "Correct! The change in velocity vector Δv points straight downwards. This confirms that the net acceleration is purely negative in the y-direction (gravity) with 0 x-acceleration."
+      },
+      {
+        question: "How is the instantaneous acceleration components related to the position function of a particle in two dimensions?",
+        choices: [
+          "It is the first derivative of the position function with respect to time.",
+          "It is the product of the position and velocity components.",
+          "It is the second derivative of the x and y component functions of position with respect to time.",
+          "It is simply the square root of the position."
+        ],
+        correct: 2,
+        explanation: "Perfect! By definition: a_x = d²x/dt² and a_y = d²y/dt². They represent the independent second-order rates of change of position in each spatial component."
+      },
+      {
+        question: "If we bring the initial and final times closer together (Δt approaching 0), what does the average acceleration vector (Δv / Δt) become?",
+        choices: [
+          "The instantaneous acceleration vector, tangential to the velocity curve.",
+          "It vanishes to absolute zero.",
+          "It becomes equivalent to the net position vector.",
+          "It flips and points directly backward."
+        ],
+        correct: 0,
+        explanation: "Excellent! Taking the limit of average acceleration (Δv / Δt) as Δt approaches 0 yields the calculus derivative, which is the instantaneous acceleration vector."
+      }
+    ];
+
+    let currentQuestionIndex = 0;
+    const quizQuestionText = document.getElementById('quizQuestion');
+    const quizAnswersBox = document.getElementById('quizAnswers');
+    const quizFeedback = document.getElementById('quizFeedback');
+    const quizProgress = document.getElementById('quizProgress');
+    const btnSubmitQuiz = document.getElementById('btnSubmitQuiz');
+
+    let selectedAnswerIndex = null;
+
+    function renderQuiz() {
+      // Clear selection
+      selectedAnswerIndex = null;
+      quizFeedback.classList.add('hidden');
+      btnSubmitQuiz.textContent = "Submit Answer";
+      
+      const q = quizData[currentQuestionIndex];
+      quizProgress.textContent = `Question ${currentQuestionIndex + 1}/${quizData.length}`;
+      quizQuestionText.textContent = q.question;
+      
+      // Clear old answers
+      quizAnswersBox.innerHTML = '';
+      
+      q.choices.forEach((choice, idx) => {
+        const btn = document.createElement('button');
+        btn.type = 'button';
+        btn.className = "w-full text-left p-3 rounded-xl border border-slate-800 bg-slate-950/40 text-xs text-slate-300 hover:border-slate-700 hover:bg-slate-900/50 transition-all-300 flex items-center gap-3";
+        btn.innerHTML = `
+          <span class="w-5 h-5 rounded-full border border-slate-700 flex items-center justify-center text-[10px] text-slate-400 font-mono flex-shrink-0">${String.fromCharCode(65 + idx)}</span>
+          <span class="flex-1">${choice}</span>
+        `;
+        
+        btn.addEventListener('click', () => {
+          // Reset all siblings selection style
+          Array.from(quizAnswersBox.children).forEach(child => {
+            child.classList.remove('border-brand-500', 'bg-brand-900/10');
+            child.querySelector('span').classList.remove('border-brand-500', 'text-brand-400');
+          });
+          // Highlight current choice
+          btn.classList.add('border-brand-500', 'bg-brand-900/10');
+          btn.querySelector('span').classList.add('border-brand-500', 'text-brand-400');
+          selectedAnswerIndex = idx;
+        });
+        
+        quizAnswersBox.appendChild(btn);
+      });
+    }
+
+    btnSubmitQuiz.addEventListener('click', () => {
+      const q = quizData[currentQuestionIndex];
+      
+      // If we are showing results, advance to next question or reset
+      if (btnSubmitQuiz.textContent === "Next Question") {
+        currentQuestionIndex = (currentQuestionIndex + 1) % quizData.length;
+        renderQuiz();
+        return;
+      }
+      
+      if (selectedAnswerIndex === null) {
+        quizFeedback.className = "p-3 rounded-lg text-xs leading-relaxed border bg-accent-amber/10 border-accent-amber/20 text-accent-amber block";
+        quizFeedback.textContent = "Please select an answer choice before submitting!";
+        return;
+      }
+
+      const isCorrect = (selectedAnswerIndex === q.correct);
+      
+      // Update styling of children to show correct/incorrect
+      Array.from(quizAnswersBox.children).forEach((child, idx) => {
+        child.setAttribute('disabled', 'true');
+        if (idx === q.correct) {
+          child.classList.add('border-emerald-500/50', 'bg-emerald-950/20');
+          child.querySelector('span').className = "w-5 h-5 rounded-full border border-emerald-500 flex items-center justify-center text-[10px] text-emerald-400 font-mono flex-shrink-0";
+        } else if (idx === selectedAnswerIndex) {
+          child.classList.add('border-rose-500/50', 'bg-rose-950/20');
+          child.querySelector('span').className = "w-5 h-5 rounded-full border border-rose-500 flex items-center justify-center text-[10px] text-rose-400 font-mono flex-shrink-0";
+        }
+      });
+
+      if (isCorrect) {
+        quizFeedback.className = "p-3 rounded-lg text-xs leading-relaxed border bg-emerald-950/30 border-emerald-500/20 text-emerald-400 block";
+        quizFeedback.innerHTML = `<strong>✨ Correct!</strong> ${q.explanation}`;
+      } else {
+        quizFeedback.className = "p-3 rounded-lg text-xs leading-relaxed border bg-rose-950/30 border-rose-500/20 text-rose-400 block";
+        quizFeedback.innerHTML = `<strong>❌ Incorrect.</strong> ${q.explanation}`;
+      }
+
+      btnSubmitQuiz.textContent = "Next Question";
+    });
+
+    // Initialize Quiz
+    renderQuiz();
+  </script>
+</body>
+</html>

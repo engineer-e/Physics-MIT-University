@@ -1,0 +1,810 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>2D Kinematics: Displacement, Velocity & Limits</title>
+  
+  <!-- Tailwind CSS CDN -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  
+  <!-- MathJax for rendering LaTeX formulas -->
+  <script>
+    window.MathJax = {
+      tex: {
+        inlineMath: [['$', '$'], ['\\(', '\\)']],
+        displayMath: [['$$', '$$'], ['\\[', '\\]']]
+      },
+      svg: {
+        fontCache: 'global'
+      }
+    };
+  </script>
+  <script id="MathJax-script" async src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
+
+  <!-- Lucide Icons CDN -->
+  <script src="https://unpkg.com/lucide@latest"></script>
+
+  <style>
+    /* Custom CSS transitions & dark style additions */
+    .vector-btn-active {
+      background-color: #3b82f6;
+      color: white;
+    }
+    canvas {
+      image-rendering: -moz-crisp-edges;
+      image-rendering: -webkit-crisp-edges;
+      image-rendering: pixelated;
+      image-rendering: crisp-edges;
+    }
+  </style>
+</head>
+<body class="bg-slate-900 text-slate-100 min-h-screen flex flex-col font-sans">
+
+  <!-- Header Section -->
+  <header class="border-b border-slate-800 bg-slate-950/80 backdrop-blur sticky top-0 z-50 py-4 px-6 flex flex-wrap items-center justify-between gap-4">
+    <div class="flex items-center gap-3">
+      <div class="p-2 bg-blue-600/20 text-blue-400 rounded-lg">
+        <i data-lucide="activity" class="w-6 h-6"></i>
+      </div>
+      <div>
+        <h1 class="text-xl font-bold tracking-tight text-white">2D Kinematics Laboratory</h1>
+        <p class="text-xs text-slate-400">Visualizing $\Delta t \to 0$ and the Derivative of Motion</p>
+      </div>
+    </div>
+    <div class="flex items-center gap-2 text-xs bg-slate-800/80 px-3 py-1.5 rounded-full border border-slate-700">
+      <span class="w-2 h-2 bg-emerald-500 rounded-full animate-pulse"></span>
+      Interactive Learning Sandbox
+    </div>
+  </header>
+
+  <main class="flex-grow max-w-7xl w-full mx-auto p-4 md:p-6 grid grid-cols-1 lg:grid-cols-12 gap-6">
+    
+    <!-- Left Column: Simulator Controls & Screen (7 cols) -->
+    <div class="lg:col-span-7 flex flex-col gap-6">
+      
+      <!-- Simulation Card -->
+      <div class="bg-slate-950/50 rounded-2xl border border-slate-800 p-4 md:p-6 flex flex-col gap-4">
+        <div class="flex items-center justify-between">
+          <div class="flex items-center gap-2">
+            <i data-lucide="play-circle" class="w-5 h-5 text-blue-400"></i>
+            <h2 class="text-lg font-semibold text-white">Interactive Vector Sandbox</h2>
+          </div>
+          <div class="flex gap-2">
+            <button id="preset-circular" class="px-3 py-1 text-xs rounded-md bg-slate-800 border border-slate-700 hover:bg-slate-700 transition" onclick="setPreset('circular')">Circular</button>
+            <button id="preset-projectile" class="px-3 py-1 text-xs rounded-md bg-slate-800 border border-slate-700 hover:bg-slate-700 transition" onclick="setPreset('projectile')">Projectile</button>
+            <button id="preset-lissajous" class="px-3 py-1 text-xs rounded-md bg-slate-800 border border-slate-700 hover:bg-slate-700 transition" onclick="setPreset('lissajous')">Lissajous</button>
+          </div>
+        </div>
+
+        <!-- Canvas Container -->
+        <div class="relative w-full aspect-[4/3] bg-slate-950 rounded-xl border border-slate-850 overflow-hidden flex items-center justify-center">
+          <canvas id="sim-canvas" class="w-full h-full block"></canvas>
+          
+          <!-- On-screen Legends / Overlays -->
+          <div class="absolute top-3 left-3 flex flex-col gap-1.5 bg-slate-900/90 p-3 rounded-lg border border-slate-800 text-[11px] backdrop-blur-sm shadow-xl">
+            <span class="font-bold text-slate-200 uppercase tracking-wider text-[9px] mb-1">Vector Legend</span>
+            <div class="flex items-center gap-2">
+              <span class="w-3.5 h-0.5 bg-blue-500 inline-block"></span>
+              <span>Position Vector $\vec{r}(t)$</span>
+            </div>
+            <div class="flex items-center gap-2">
+              <span class="w-3.5 h-0.5 bg-indigo-400 inline-block"></span>
+              <span>Position Vector $\vec{r}(t + \Delta t)$</span>
+            </div>
+            <div class="flex items-center gap-2">
+              <span class="w-3.5 h-0.5 bg-fuchsia-500 inline-block"></span>
+              <span>Displacement $\Delta \vec{r}$</span>
+            </div>
+            <div class="flex items-center gap-2">
+              <span class="w-3.5 h-0.5 bg-emerald-400 inline-block"></span>
+              <span>Velocity Vector $\vec{v}(t)$ (Tangent)</span>
+            </div>
+            <div class="flex items-center gap-2">
+              <span class="w-3.5 h-0.5 border-t border-dashed border-red-400 inline-block"></span>
+              <span>Average Velocity $\frac{\Delta\vec{r}}{\Delta t}$ (Secant)</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- Simulator Interface Sliders -->
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-4 bg-slate-900/40 p-4 rounded-xl border border-slate-850">
+          
+          <!-- Delta T Slider (Crucial for visualizing the derivative limit) -->
+          <div class="flex flex-col gap-1.5">
+            <div class="flex justify-between items-center text-xs">
+              <label for="delta-t" class="font-medium text-slate-300 flex items-center gap-1">
+                <i data-lucide="chevrons-right" class="w-3.5 h-3.5 text-fuchsia-400"></i>
+                Time Delta ($\Delta t$)
+              </label>
+              <span id="delta-t-val" class="text-fuchsia-400 font-mono font-bold">1.20 s</span>
+            </div>
+            <input type="range" id="delta-t" min="0.01" max="2.00" step="0.01" value="1.20" class="w-full h-1.5 bg-slate-850 rounded-lg appearance-none cursor-pointer accent-fuchsia-500">
+            <p class="text-[10px] text-slate-400 italic">As you slide to 0, notice how the average velocity secant (red dashed) converges to the exact tangent velocity (green).</p>
+          </div>
+
+          <!-- Time Slider -->
+          <div class="flex flex-col gap-1.5">
+            <div class="flex justify-between items-center text-xs">
+              <label for="current-time" class="font-medium text-slate-300 flex items-center gap-1">
+                <i data-lucide="clock" class="w-3.5 h-3.5 text-blue-400"></i>
+                Time ($t$)
+              </label>
+              <span id="current-time-val" class="text-blue-400 font-mono font-bold">1.50 s</span>
+            </div>
+            <input type="range" id="current-time" min="0" max="10" step="0.01" value="1.50" class="w-full h-1.5 bg-slate-850 rounded-lg appearance-none cursor-pointer accent-blue-500">
+            
+            <div class="flex items-center justify-between mt-1">
+              <button id="btn-play-pause" class="flex items-center gap-1 text-[11px] bg-blue-600 hover:bg-blue-500 text-white font-medium py-1 px-2.5 rounded transition shadow-md shadow-blue-900/25" onclick="togglePlay()">
+                <i data-lucide="pause" id="btn-icon" class="w-3 h-3"></i> <span id="btn-text">Pause</span>
+              </button>
+              <button class="flex items-center gap-1 text-[11px] bg-slate-800 hover:bg-slate-700 text-slate-300 font-medium py-1 px-2.5 rounded transition" onclick="resetSim()">
+                <i data-lucide="rotate-ccw" class="w-3 h-3"></i> Reset Time
+              </button>
+            </div>
+          </div>
+
+        </div>
+      </div>
+
+      <!-- Real-Time Computational Dashboard -->
+      <div class="bg-slate-950/50 rounded-2xl border border-slate-800 p-5 flex flex-col gap-4">
+        <h3 class="text-md font-semibold text-white flex items-center gap-2">
+          <i data-lucide="cpu" class="w-5 h-5 text-emerald-400"></i>
+          Real-Time Computations & Vector Metrics
+        </h3>
+        <div class="grid grid-cols-2 md:grid-cols-4 gap-3">
+          
+          <div class="bg-slate-900/60 p-3 rounded-lg border border-slate-800/80">
+            <span class="text-[10px] text-slate-400 font-medium uppercase tracking-wider block">Position $\vec{r}(t)$</span>
+            <div id="metric-pos" class="text-sm font-mono font-bold text-blue-400 mt-1">(0.0, 0.0) m</div>
+          </div>
+
+          <div class="bg-slate-900/60 p-3 rounded-lg border border-slate-800/80">
+            <span class="text-[10px] text-slate-400 font-medium uppercase tracking-wider block">Displacement $\Delta \vec{r}$</span>
+            <div id="metric-disp" class="text-sm font-mono font-bold text-fuchsia-400 mt-1">(0.0, 0.0) m</div>
+          </div>
+
+          <div class="bg-slate-900/60 p-3 rounded-lg border border-slate-800/80">
+            <span class="text-[10px] text-slate-400 font-medium uppercase tracking-wider block">Inst. Velocity $\vec{v}(t)$</span>
+            <div id="metric-vel" class="text-sm font-mono font-bold text-emerald-400 mt-1">(0.0, 0.0) m/s</div>
+          </div>
+
+          <div class="bg-slate-900/60 p-3 rounded-lg border border-slate-800/80">
+            <span class="text-[10px] text-slate-400 font-medium uppercase tracking-wider block">Speed & Angle ($\theta$)</span>
+            <div id="metric-speed-angle" class="text-xs font-mono font-bold text-amber-400 mt-1">0.0 m/s @ 0.0°</div>
+          </div>
+
+        </div>
+      </div>
+
+    </div>
+
+    <!-- Right Column: Visual Infographic & Core Formulas (5 cols) -->
+    <div class="lg:col-span-5 flex flex-col gap-6">
+      
+      <!-- Core Theory & Formula Reference Card -->
+      <div class="bg-slate-950/50 rounded-2xl border border-slate-800 p-5 md:p-6 flex flex-col gap-4">
+        <div class="flex items-center gap-2">
+          <i data-lucide="book-open" class="w-5 h-5 text-amber-400"></i>
+          <h2 class="text-lg font-semibold text-white">Mathematical Principles</h2>
+        </div>
+        
+        <div class="space-y-4 text-xs text-slate-300">
+          <div class="border-l-2 border-blue-500 pl-3">
+            <h4 class="font-bold text-slate-200">1. Position Vector in 2D</h4>
+            <p class="mt-1">Locates the object relative to the origin.</p>
+            <div class="bg-slate-900/80 p-2 rounded my-1 text-center font-mono">
+              $$\vec{r}(t) = x(t)\hat{i} + y(t)\hat{j}$$
+            </div>
+          </div>
+
+          <div class="border-l-2 border-fuchsia-500 pl-3">
+            <h4 class="font-bold text-slate-200">2. Vector Displacement</h4>
+            <p class="mt-1">The difference between positions over a finite interval $\Delta t$:</p>
+            <div class="bg-slate-900/80 p-2 rounded my-1 text-center font-mono">
+              $$\Delta\vec{r} = \vec{r}(t+\Delta t) - \vec{r}(t) = \Delta x\hat{i} + \Delta y\hat{j}$$
+            </div>
+          </div>
+
+          <div class="border-l-2 border-emerald-500 pl-3">
+            <h4 class="font-bold text-slate-200">3. Tangent Velocity as $\Delta t \to 0$</h4>
+            <p class="mt-1">Taking the limit yields the derivative vector (instantaneous velocity):</p>
+            <div class="bg-slate-900/80 p-2 rounded my-1 text-center font-mono">
+              $$\vec{v}(t) = \lim_{\Delta t \to 0} \frac{\Delta\vec{r}}{\Delta t} = \frac{d\vec{r}}{dt} = v_x\hat{i} + v_y\hat{j}$$
+            </div>
+          </div>
+
+          <div class="border-l-2 border-amber-500 pl-3">
+            <h4 class="font-bold text-slate-200">4. Speed and Angular Direction</h4>
+            <p class="mt-1">Breaking down magnitude and direction of the tangent vector:</p>
+            <div class="bg-slate-900/80 p-2 rounded my-1 text-center font-mono">
+              $$|\vec{v}| = \sqrt{v_x^2 + v_y^2} \quad \text{and} \quad \theta = \arctan\left(\frac{v_y}{v_x}\right)$$
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Computational Algorithm Flow -->
+      <div class="bg-slate-950/50 rounded-2xl border border-slate-800 p-5 md:p-6 flex flex-col gap-4">
+        <div class="flex items-center gap-2">
+          <i data-lucide="git-commit" class="w-5 h-5 text-indigo-400"></i>
+          <h2 class="text-lg font-semibold text-white">Algorithm & Computation Steps</h2>
+        </div>
+
+        <div class="relative pl-6 border-l border-slate-800 space-y-4 text-xs text-slate-300">
+          
+          <!-- Step 1 -->
+          <div class="relative">
+            <div class="absolute -left-[31px] top-0 bg-indigo-600 text-white rounded-full w-4.5 h-4.5 flex items-center justify-center text-[9px] font-bold">1</div>
+            <h4 class="font-semibold text-slate-200">Parse Parameteric Functions</h4>
+            <p class="text-slate-400 mt-0.5">Define coordinates dynamically as functions of time. Example for Projectile Motion: $x(t) = v_{0x}t$ and $y(t) = v_{0y}t - \frac{1}{2}gt^2$.</p>
+          </div>
+
+          <!-- Step 2 -->
+          <div class="relative">
+            <div class="absolute -left-[31px] top-0 bg-indigo-600 text-white rounded-full w-4.5 h-4.5 flex items-center justify-center text-[9px] font-bold">2</div>
+            <h4 class="font-semibold text-slate-200">Evaluate Finite Interval State</h4>
+            <p class="text-slate-400 mt-0.5">Calculate positions at times $t$ and $t + \Delta t$, then subtract to find the actual chord displacement vector $\Delta\vec{r}$.</p>
+          </div>
+
+          <!-- Step 3 -->
+          <div class="relative">
+            <div class="absolute -left-[31px] top-0 bg-indigo-600 text-white rounded-full w-4.5 h-4.5 flex items-center justify-center text-[9px] font-bold">3</div>
+            <h4 class="font-semibold text-slate-200">Take Derivatives (The Tangent)</h4>
+            <p class="text-slate-400 mt-0.5">Analytically calculate derivatives $v_x = \frac{dx}{dt}$ and $v_y = \frac{dy}{dt}$ to establish the instant velocity vector, establishing the tangent line.</p>
+          </div>
+
+          <!-- Step 4 -->
+          <div class="relative">
+            <div class="absolute -left-[31px] top-0 bg-indigo-600 text-white rounded-full w-4.5 h-4.5 flex items-center justify-center text-[9px] font-bold">4</div>
+            <h4 class="font-semibold text-slate-200">Polar Synthesis</h4>
+            <p class="text-slate-400 mt-0.5">Apply Pythagorean Theorem to retrieve scalar speed $v$ and Trigonometric Inverse Tangent to formulate direction angle $\theta$.</p>
+          </div>
+
+        </div>
+      </div>
+
+    </div>
+
+  </main>
+
+  <!-- Full-Width Bottom Section: Quiz & interactive conceptual feedback -->
+  <section class="max-w-7xl w-full mx-auto p-4 md:p-6 mb-12">
+    <div class="bg-gradient-to-r from-slate-950/70 to-slate-900/70 rounded-2xl border border-slate-800 p-6">
+      
+      <div class="flex flex-col md:flex-row gap-8 items-start justify-between">
+        
+        <!-- Left: Conceptual Info/Summary -->
+        <div class="md:w-1/2 flex flex-col gap-4">
+          <h3 class="text-xl font-bold text-white flex items-center gap-2">
+            <i data-lucide="compass" class="w-6 h-6 text-indigo-400"></i>
+            Key Physical Takeaways
+          </h3>
+          <p class="text-sm text-slate-350 leading-relaxed">
+            As explained in the lecture transcript, the displacement vector $\Delta \vec{r}$ connects two spatial points separated by a temporal interval $\Delta t$. When we take the mathematical limit $\Delta t \to 0$, three extraordinary developments unfold:
+          </p>
+          <ul class="space-y-2.5 text-xs text-slate-400">
+            <li class="flex gap-2">
+              <span class="text-emerald-400">✔</span>
+              <span><strong>Directional Shift:</strong> The vector shifts from intersecting the path at two separate coordinates (secant) to skimming exactly past the target point (tangent).</span>
+            </li>
+            <li class="flex gap-2">
+              <span class="text-emerald-400">✔</span>
+              <span><strong>Decoupling Dimension:</strong> The vector analysis reveals that 2D movements are simply the sum of individual coordinate adjustments in orthogonal $x$ and $y$ axes.</span>
+            </li>
+            <li class="flex gap-2">
+              <span class="text-emerald-400">✔</span>
+              <span><strong>True Instaneity:</strong> Magnitude represents actual speed, while tracking components isolates spatial changes relative to $x$ and $y$ vectors respectively.</span>
+            </li>
+          </ul>
+        </div>
+
+        <!-- Right: Interactive Quiz Sandbox -->
+        <div class="md:w-1/2 w-full bg-slate-900/60 p-5 rounded-xl border border-slate-800/80">
+          <div class="flex items-center justify-between mb-3 border-b border-slate-800 pb-2">
+            <span class="text-xs font-bold text-slate-400 uppercase tracking-widest flex items-center gap-1">
+              <i data-lucide="award" class="w-4 h-4 text-amber-500"></i>
+              Concept Comprehension
+            </span>
+            <span id="quiz-progress" class="text-xs font-mono font-semibold text-slate-400">Question 1 of 3</span>
+          </div>
+
+          <!-- Question Content Area -->
+          <div id="quiz-container">
+            <h4 id="quiz-question" class="text-sm font-semibold text-white mb-4">Loading Question...</h4>
+            
+            <div class="flex flex-col gap-2" id="quiz-options">
+              <!-- Rendered dynamically -->
+            </div>
+
+            <!-- Quiz Controls & Validation Output -->
+            <div id="quiz-feedback" class="mt-4 hidden p-3 rounded-lg text-xs leading-relaxed"></div>
+            
+            <div class="flex justify-end gap-2 mt-4">
+              <button id="btn-quiz-next" class="hidden px-4 py-1.5 bg-blue-600 hover:bg-blue-500 text-white rounded text-xs font-medium transition" onclick="nextQuestion()">Next Question</button>
+            </div>
+          </div>
+
+          <!-- Quiz Completion Board -->
+          <div id="quiz-complete" class="hidden text-center py-6 flex flex-col items-center gap-3">
+            <i data-lucide="check-circle" class="w-12 h-12 text-emerald-400 animate-bounce"></i>
+            <h4 class="text-lg font-bold text-white">Quiz Completed!</h4>
+            <p id="quiz-score-text" class="text-sm text-slate-350">You scored 3/3.</p>
+            <button class="mt-2 px-4 py-1.5 bg-slate-800 hover:bg-slate-700 text-slate-200 border border-slate-700 rounded text-xs transition" onclick="restartQuiz()">Try Again</button>
+          </div>
+
+        </div>
+
+      </div>
+
+    </div>
+  </section>
+
+  <!-- Footer Section -->
+  <footer class="border-t border-slate-850 bg-slate-950 py-6 text-center text-xs text-slate-500 mt-auto">
+    <p>© 2026 2D Kinematics Laboratory. Created for deep conceptual exploration of vector calculus in physics.</p>
+  </footer>
+
+  <script>
+    // --- SIMULATION PHYSICS ENGINE ---
+    const canvas = document.getElementById('sim-canvas');
+    const ctx = canvas.getContext('2d');
+
+    // State Variables
+    let currentPreset = 'circular';
+    let isPlaying = true;
+    let time = 1.5;
+    let deltaT = 1.2;
+    let lastTimestamp = 0;
+
+    // Dom Elements
+    const deltaTSlider = document.getElementById('delta-t');
+    const deltaTVal = document.getElementById('delta-t-val');
+    const currentTimeSlider = document.getElementById('current-time');
+    const currentTimeVal = document.getElementById('current-time-val');
+    const btnPlayPause = document.getElementById('btn-play-pause');
+
+    // UI Updates on Sliders
+    deltaTSlider.addEventListener('input', (e) => {
+      deltaT = parseFloat(e.target.value);
+      deltaTVal.textContent = deltaT.toFixed(2) + ' s';
+      updateMetrics();
+      draw();
+    });
+
+    currentTimeSlider.addEventListener('input', (e) => {
+      time = parseFloat(e.target.value);
+      currentTimeVal.textContent = time.toFixed(2) + ' s';
+      updateMetrics();
+      draw();
+    });
+
+    // Preset Functions
+    // Scaling and Coordinates Translation setup
+    const getCoordinates = (t, type) => {
+      const centerX = canvas.width / 2;
+      const centerY = canvas.height / 2;
+      let x = 0;
+      let y = 0;
+      let vx = 0;
+      let vy = 0;
+
+      if (type === 'circular') {
+        const radius = 100;
+        const omega = 1.2; // angular velocity
+        x = centerX + radius * Math.cos(omega * t);
+        y = centerY - radius * Math.sin(omega * t); // SVG coordinates inverted
+        vx = -radius * omega * Math.sin(omega * t);
+        vy = -radius * omega * Math.cos(omega * t); // Derivative of inverted y
+      } else if (type === 'projectile') {
+        // Parametric Parabolic Projectile flight path
+        const originX = 50;
+        const originY = canvas.height - 50;
+        const v0x = 60;
+        const v0y = 120;
+        const g = 25; // Simulated gravity acceleration
+        x = originX + v0x * t;
+        y = originY - (v0y * t - 0.5 * g * t * t);
+        vx = v0x;
+        vy = -(v0y - g * t);
+      } else if (type === 'lissajous') {
+        // Classic compound harmony curves (Lissajous figure)
+        const radiusX = 140;
+        const radiusY = 100;
+        const freqX = 1.5;
+        const freqY = 2.0;
+        const phase = Math.PI / 4;
+        x = centerX + radiusX * Math.sin(freqX * t + phase);
+        y = centerY - radiusY * Math.sin(freqY * t);
+        vx = radiusX * freqX * Math.cos(freqX * t + phase);
+        vy = -radiusY * freqY * Math.cos(freqY * t);
+      }
+
+      return { x, y, vx, vy };
+    };
+
+    function setPreset(type) {
+      currentPreset = type;
+      // Reset Highlight Classes
+      ['preset-circular', 'preset-projectile', 'preset-lissajous'].forEach(id => {
+        document.getElementById(id).classList.remove('vector-btn-active', 'bg-blue-600', 'text-white');
+        document.getElementById(id).classList.add('bg-slate-800', 'text-slate-300');
+      });
+      // Highlight Selected
+      document.getElementById('preset-' + type).classList.add('vector-btn-active', 'bg-blue-600', 'text-white');
+      
+      // Reset sliders configuration for presets
+      if (type === 'projectile') {
+        currentTimeSlider.max = 8.5;
+        time = 0.5;
+      } else {
+        currentTimeSlider.max = 10;
+        time = 1.5;
+      }
+      currentTimeSlider.value = time;
+      currentTimeVal.textContent = time.toFixed(2) + ' s';
+
+      updateMetrics();
+      draw();
+    }
+
+    // Calculation Calculations & Visuals Draw
+    function drawArrow(ctx, fromX, fromY, toX, toY, color, width = 2, isDashed = false) {
+      const headLength = 10; // length of head in pixels
+      const dx = toX - fromX;
+      const dy = toY - fromY;
+      const angle = Math.atan2(dy, dx);
+      
+      ctx.save();
+      ctx.strokeStyle = color;
+      ctx.fillStyle = color;
+      ctx.lineWidth = width;
+      if (isDashed) {
+        ctx.setLineDash([5, 5]);
+      } else {
+        ctx.setLineDash([]);
+      }
+      
+      // Draw Line
+      ctx.beginPath();
+      ctx.moveTo(fromX, fromY);
+      ctx.lineTo(toX, toY);
+      ctx.stroke();
+
+      // Draw Arrow Head
+      ctx.setLineDash([]);
+      ctx.beginPath();
+      ctx.moveTo(toX, toY);
+      ctx.lineTo(toX - headLength * Math.cos(angle - Math.PI / 6), toY - headLength * Math.sin(angle - Math.PI / 6));
+      ctx.lineTo(toX - headLength * Math.cos(angle + Math.PI / 6), toY - headLength * Math.sin(angle + Math.PI / 6));
+      ctx.closePath();
+      ctx.fill();
+      ctx.restore();
+    }
+
+    function draw() {
+      // Clear Canvas
+      ctx.fillStyle = '#020617'; // slate-950
+      ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+      // Draw Coordinate Grid Lines
+      ctx.strokeStyle = '#1e293b'; // slate-800
+      ctx.lineWidth = 1;
+      const step = 40;
+      for (let i = step; i < canvas.width; i += step) {
+        ctx.beginPath();
+        ctx.moveTo(i, 0);
+        ctx.lineTo(i, canvas.height);
+        ctx.stroke();
+      }
+      for (let j = step; j < canvas.height; j += step) {
+        ctx.beginPath();
+        ctx.moveTo(0, j);
+        ctx.lineTo(canvas.width, j);
+        ctx.stroke();
+      }
+
+      // Draw Coordinates Origin Axis
+      ctx.strokeStyle = '#334155'; // slate-700
+      ctx.lineWidth = 1.5;
+      // Y-axis (mid) or shifted based on preset
+      const origX = currentPreset === 'projectile' ? 50 : canvas.width / 2;
+      const origY = currentPreset === 'projectile' ? canvas.height - 50 : canvas.height / 2;
+      
+      ctx.beginPath();
+      ctx.moveTo(origX, 0);
+      ctx.lineTo(origX, canvas.height);
+      ctx.stroke();
+
+      ctx.beginPath();
+      ctx.moveTo(0, origY);
+      ctx.lineTo(canvas.width, origY);
+      ctx.stroke();
+
+      // Label Axes
+      ctx.fillStyle = '#94a3b8'; // slate-400
+      ctx.font = '10px monospace';
+      ctx.fillText('+Y axis', origX + 8, 15);
+      ctx.fillText('+X axis', canvas.width - 55, origY - 8);
+
+      // Draw Trajectory curve
+      ctx.strokeStyle = '#334155'; // slate-700
+      ctx.lineWidth = 2;
+      ctx.beginPath();
+      const maxT = parseFloat(currentTimeSlider.max);
+      for (let tStep = 0; tStep <= maxT; tStep += 0.05) {
+        const p = getCoordinates(tStep, currentPreset);
+        if (tStep === 0) {
+          ctx.moveTo(p.x, p.y);
+        } else {
+          ctx.lineTo(p.x, p.y);
+        }
+      }
+      ctx.stroke();
+
+      // State Position coordinates
+      const p1 = getCoordinates(time, currentPreset);
+      const p2 = getCoordinates(time + deltaT, currentPreset);
+
+      // 1. Draw Position Vector r(t)
+      drawArrow(ctx, origX, origY, p1.x, p1.y, '#3b82f6', 2.5); // Blue
+      ctx.fillStyle = '#3b82f6';
+      ctx.fillText('r(t)', (origX + p1.x)/2 + 8, (origY + p1.y)/2 - 8);
+
+      // 2. Draw Position Vector r(t + delta T)
+      drawArrow(ctx, origX, origY, p2.x, p2.y, '#818cf8', 1.5); // Indigo
+      ctx.fillStyle = '#818cf8';
+      ctx.fillText('r(t + Δt)', (origX + p2.x)/2 + 8, (origY + p2.y)/2 + 12);
+
+      // 3. Draw Displacement Vector Δr
+      drawArrow(ctx, p1.x, p1.y, p2.x, p2.y, '#d946ef', 2.5); // Fuchsia
+      ctx.fillStyle = '#d946ef';
+      ctx.fillText('Δr', (p1.x + p2.x)/2 - 15, (p1.y + p2.y)/2 - 10);
+
+      // 4. Draw Average Velocity Vector (Secant scaled for visualization: Δr / Δt)
+      const avgVx = (p2.x - p1.x) / deltaT;
+      const avgVy = (p2.y - p1.y) / deltaT;
+      // We scale vectors visually so they fit nicely on screen
+      const scaleVis = 0.5;
+      drawArrow(ctx, p1.x, p1.y, p1.x + avgVx * scaleVis, p1.y + avgVy * scaleVis, '#f87171', 1.5, true); // Red dashed
+      ctx.fillStyle = '#f87171';
+      ctx.fillText('v_avg = Δr/Δt', p1.x + avgVx * scaleVis + 5, p1.y + avgVy * scaleVis - 5);
+
+      // 5. Draw Tangent Instantaneous Velocity v(t)
+      drawArrow(ctx, p1.x, p1.y, p1.x + p1.vx * scaleVis, p1.y + p1.vy * scaleVis, '#34d399', 2.5); // Emerald
+      ctx.fillStyle = '#34d399';
+      ctx.fillText('v(t)', p1.x + p1.vx * scaleVis + 8, p1.y + p1.vy * scaleVis + 10);
+
+      // Draw Orbit Point Anchor Points
+      ctx.fillStyle = '#ef4444'; // Red point t
+      ctx.beginPath();
+      ctx.arc(p1.x, p1.y, 6, 0, 2 * Math.PI);
+      ctx.fill();
+      ctx.strokeStyle = '#ffffff';
+      ctx.lineWidth = 1.5;
+      ctx.stroke();
+
+      ctx.fillStyle = '#c084fc'; // Purple point t + dt
+      ctx.beginPath();
+      ctx.arc(p2.x, p2.y, 5, 0, 2 * Math.PI);
+      ctx.fill();
+      ctx.stroke();
+
+      // Labels on Points
+      ctx.fillStyle = '#ffffff';
+      ctx.font = 'bold 9px sans-serif';
+      ctx.fillText('t', p1.x - 3, p1.y - 10);
+      ctx.fillText('t+Δt', p2.x - 10, p2.y - 10);
+    }
+
+    function updateMetrics() {
+      const origX = currentPreset === 'projectile' ? 50 : canvas.width / 2;
+      const origY = currentPreset === 'projectile' ? canvas.height - 50 : canvas.height / 2;
+      
+      const p1 = getCoordinates(time, currentPreset);
+      const p2 = getCoordinates(time + deltaT, currentPreset);
+
+      // Translate canvas pixels coordinates back to simulated physical values
+      // 1 meter = 10 pixels (scaled reference)
+      const scaleVal = 10.0;
+      
+      const rx = ((p1.x - origX) / scaleVal).toFixed(1);
+      const ry = (-(p1.y - origY) / scaleVal).toFixed(1); // physical upward coordinate y positive
+      document.getElementById('metric-pos').textContent = `(${rx}, ${ry}) m`;
+
+      const dx = ((p2.x - p1.x) / scaleVal).toFixed(1);
+      const dy = (-(p2.y - p1.y) / scaleVal).toFixed(1);
+      document.getElementById('metric-disp').textContent = `(${dx}, ${dy}) m`;
+
+      // True Derivatives
+      const vx_phys = (p1.vx / scaleVal).toFixed(1);
+      const vy_phys = (-p1.vy / scaleVal).toFixed(1);
+      document.getElementById('metric-vel').textContent = `(${vx_phys}, ${vy_phys}) m/s`;
+
+      // Absolute Speed and Theta Direction
+      const vx_val = parseFloat(vx_phys);
+      const vy_val = parseFloat(vy_phys);
+      const speed = Math.sqrt(vx_val * vx_val + vy_val * vy_val).toFixed(1);
+      let angle = (Math.atan2(vy_val, vx_val) * 180 / Math.PI).toFixed(1);
+      if (angle < 0) angle = (parseFloat(angle) + 360).toFixed(1);
+      document.getElementById('metric-speed-angle').textContent = `${speed} m/s @ ${angle}°`;
+    }
+
+    // Animation Timing Loop
+    function animate(timestamp) {
+      if (isPlaying) {
+        if (!lastTimestamp) lastTimestamp = timestamp;
+        const dt = (timestamp - lastTimestamp) / 1000;
+        lastTimestamp = timestamp;
+
+        time += dt * 0.5; // slow down factor
+        const maxTime = parseFloat(currentTimeSlider.max);
+        if (time > maxTime) {
+          time = 0;
+        }
+        
+        currentTimeSlider.value = time;
+        currentTimeVal.textContent = time.toFixed(2) + ' s';
+        updateMetrics();
+        draw();
+      }
+      requestAnimationFrame(animate);
+    }
+
+    function togglePlay() {
+      isPlaying = !isPlaying;
+      if (isPlaying) {
+        lastTimestamp = 0; // reset
+        document.getElementById('btn-icon').setAttribute('data-lucide', 'pause');
+        document.getElementById('btn-text').textContent = 'Pause';
+      } else {
+        document.getElementById('btn-icon').setAttribute('data-lucide', 'play');
+        document.getElementById('btn-text').textContent = 'Play';
+      }
+      lucide.createIcons();
+    }
+
+    function resetSim() {
+      time = currentPreset === 'projectile' ? 0.5 : 0;
+      currentTimeSlider.value = time;
+      currentTimeVal.textContent = time.toFixed(2) + ' s';
+      updateMetrics();
+      draw();
+    }
+
+    // Canvas Size Setup on Load
+    function resizeCanvas() {
+      const container = canvas.parentElement;
+      canvas.width = container.clientWidth * window.devicePixelRatio;
+      canvas.height = container.clientHeight * window.devicePixelRatio;
+      ctx.scale(window.devicePixelRatio, window.devicePixelRatio);
+      draw();
+    }
+
+    window.addEventListener('resize', resizeCanvas);
+
+
+    // --- INTERACTIVE CONCEPT QUIZ SYSTEM ---
+    const quizData = [
+      {
+        question: "1. As the temporal interval $\\Delta t$ approaches 0, what path trajectory physical transformation happens to the average velocity vector?",
+        options: [
+          "It matches the direction of the radial displacement to the curve's center.",
+          "It approaches alignment with the tangent curve line at time $t$.",
+          "It turns parallel to the radial vector of the initial coordinate.",
+          "It shrinks to exact zero length and points backwards."
+        ],
+        answer: 1,
+        explanation: "Correct! As $\\Delta t \\to 0$, the secant lines connecting $\\vec{r}(t)$ and $\\vec{r}(t+\\Delta t)$ rotate until they become tangent to the orbital path at point $t$."
+      },
+      {
+        question: "2. If position coordinates are defined as $x(t) = 3t^2$ and $y(t) = 4t$, what is the speed ($|\\vec{v}|$) of the particle at time $t = 1\\text{ s}$?",
+        options: [
+          "5.0 m/s",
+          "10.0 m/s",
+          "7.2 m/s",
+          "25.0 m/s"
+        ],
+        answer: 2,
+        explanation: "Correct! First compute the velocity components: $v_x = \\frac{dx}{dt} = 6t \\to 6\\text{ m/s}$ and $v_y = \\frac{dy}{dt} = 4\\text{ m/s}$. Speed at $t=1$: $|\\vec{v}| = \\sqrt{6^2 + 4^2} = \\sqrt{52} \\approx 7.21\\text{ m/s}$."
+      },
+      {
+        question: "3. If the horizontal velocity component $v_x$ is negative ($v_x < 0$) and the vertical component $v_y$ is positive ($v_y > 0$), in which trigonometric quadrant does the velocity vector point?",
+        options: [
+          "Quadrant I ($0^\\circ \\text{ to } 90^\\circ$)",
+          "Quadrant II ($90^\\circ \\text{ to } 180^\\circ$)",
+          "Quadrant III ($180^\\circ \\text{ to } 270^\\circ$)",
+          "Quadrant IV ($270^\\circ \\text{ to } 360^\\circ$)"
+        ],
+        answer: 1,
+        explanation: "Correct! In the Cartesians layout, the combination of a negative x-component and positive y-component targets Quadrant II, yielding angles between $90^\\circ$ and $180^\\circ$."
+      }
+    ];
+
+    let currentQuestionIdx = 0;
+    let score = 0;
+
+    function renderQuestion() {
+      const q = quizData[currentQuestionIdx];
+      document.getElementById('quiz-progress').textContent = `Question ${currentQuestionIdx + 1} of ${quizData.length}`;
+      document.getElementById('quiz-question').innerHTML = q.question;
+      
+      const optionsContainer = document.getElementById('quiz-options');
+      optionsContainer.innerHTML = '';
+      
+      q.options.forEach((opt, idx) => {
+        const btn = document.createElement('button');
+        btn.className = "w-full text-left p-3 rounded-lg border border-slate-800 bg-slate-900/40 hover:bg-slate-800 text-xs text-slate-300 transition duration-150 flex items-start gap-2.5";
+        btn.innerHTML = `<span class="bg-slate-800 text-slate-400 font-bold px-1.5 py-0.5 rounded text-[10px] uppercase font-mono">${String.fromCharCode(65 + idx)}</span> <span class="flex-grow">${opt}</span>`;
+        btn.onclick = () => selectOption(idx);
+        optionsContainer.appendChild(btn);
+      });
+
+      document.getElementById('quiz-feedback').className = "hidden mt-4 p-3 rounded-lg text-xs leading-relaxed";
+      document.getElementById('btn-quiz-next').classList.add('hidden');
+      
+      // Request MathJax update to process dynamically loaded mathematical quiz formulas
+      if (window.MathJax) {
+        MathJax.typesetPromise();
+      }
+    }
+
+    function selectOption(idx) {
+      const q = quizData[currentQuestionIdx];
+      const feedback = document.getElementById('quiz-feedback');
+      const options = document.getElementById('quiz-options').children;
+
+      // Disable all buttons once an option is selected
+      for (let btn of options) {
+        btn.disabled = true;
+      }
+
+      if (idx === q.answer) {
+        score++;
+        feedback.className = "mt-4 p-3 rounded-lg text-xs leading-relaxed bg-emerald-950/40 border border-emerald-800/80 text-emerald-400";
+        feedback.innerHTML = `<strong>Correct!</strong> ${q.explanation}`;
+        options[idx].classList.add('border-emerald-600', 'bg-emerald-950/20');
+      } else {
+        feedback.className = "mt-4 p-3 rounded-lg text-xs leading-relaxed bg-red-950/40 border border-red-800/80 text-red-400";
+        feedback.innerHTML = `<strong>Incorrect.</strong> ${q.explanation}`;
+        options[idx].classList.add('border-red-600', 'bg-red-950/20');
+        options[q.answer].classList.add('border-emerald-600', 'bg-emerald-950/20');
+      }
+
+      feedback.classList.remove('hidden');
+      document.getElementById('btn-quiz-next').classList.remove('hidden');
+    }
+
+    function nextQuestion() {
+      currentQuestionIdx++;
+      if (currentQuestionIdx < quizData.length) {
+        renderQuestion();
+      } else {
+        // Show completion board
+        document.getElementById('quiz-container').classList.add('hidden');
+        document.getElementById('quiz-complete').classList.remove('hidden');
+        document.getElementById('quiz-score-text').textContent = `You scored ${score} out of ${quizData.length}.`;
+      }
+    }
+
+    function restartQuiz() {
+      currentQuestionIdx = 0;
+      score = 0;
+      document.getElementById('quiz-container').classList.remove('hidden');
+      document.getElementById('quiz-complete').classList.add('hidden');
+      renderQuestion();
+    }
+
+
+    // --- STARTUP LOGIC ---
+    window.addEventListener('load', () => {
+      lucide.createIcons();
+      resizeCanvas();
+      setPreset('circular');
+      restartQuiz();
+      requestAnimationFrame(animate);
+    });
+  </script>
+</body>
+</html>

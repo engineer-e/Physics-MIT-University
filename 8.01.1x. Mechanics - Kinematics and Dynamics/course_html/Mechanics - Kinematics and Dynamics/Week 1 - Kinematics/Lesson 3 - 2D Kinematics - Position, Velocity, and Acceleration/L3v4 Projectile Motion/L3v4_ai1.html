@@ -1,0 +1,1275 @@
+<!DOCTYPE html>
+<html lang="en" class="dark">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Projectile Motion: Kinematics & Computation Simulator</title>
+    <!-- Tailwind CSS for rich, modern styling -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Font Awesome for sleek icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <!-- Google Fonts Inter -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;500;700&display=swap" rel="stylesheet">
+    
+    <script>
+        // Set up Tailwind configuration
+        tailwind.config = {
+            darkMode: 'class',
+            theme: {
+                extend: {
+                    fontFamily: {
+                        sans: ['Inter', 'sans-serif'],
+                        mono: ['JetBrains Mono', 'monospace'],
+                    }
+                }
+            }
+        }
+
+        // Global KaTeX renderer function - robust to render targets before DOM is fully parsed
+        function renderMath() {
+            if (typeof renderMathInElement === 'function') {
+                // Fall back to documentElement if body is not yet initialized during early onload execution
+                const target = document.body || document.documentElement;
+                if (target) {
+                    try {
+                        renderMathInElement(target, {
+                            delimiters: [
+                                {left: '$$', right: '$$', display: true},
+                                {left: '$', right: '$', display: false}
+                            ],
+                            throwOnError: false
+                        });
+                    } catch (e) {
+                        console.warn("KaTeX render deferred until DOMContentLoaded.", e);
+                    }
+                }
+            }
+        }
+
+        // Guarantee a full-page render pass once the document has completely finished parsing
+        document.addEventListener('DOMContentLoaded', renderMath);
+    </script>
+
+    <!-- KaTeX for gorgeous, fast math rendering -->
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.8/dist/katex.min.css">
+    <script src="https://cdn.jsdelivr.net/npm/katex@0.16.8/dist/katex.min.js"></script>
+    <!-- The auto-render extension can now safely invoke renderMath on load -->
+    <script src="https://cdn.jsdelivr.net/npm/katex@0.16.8/dist/contrib/auto-render.min.js" onload="renderMath()"></script>
+    
+    <style>
+        body {
+            font-family: 'Inter', sans-serif;
+            scrollbar-width: thin;
+            scrollbar-color: #475569 #0f172a;
+        }
+        /* Custom scrollbar styles */
+        ::-webkit-scrollbar {
+            width: 8px;
+            height: 8px;
+        }
+        ::-webkit-scrollbar-track {
+            background: #0f172a;
+        }
+        ::-webkit-scrollbar-thumb {
+            background: #475569;
+            border-radius: 4px;
+        }
+        ::-webkit-scrollbar-thumb:hover {
+            background: #64748b;
+        }
+        /* Formula bubble styling */
+        .formula-card {
+            background: rgba(30, 41, 59, 0.7);
+            backdrop-filter: blur(8px);
+            border: 1px solid rgba(255, 255, 255, 0.08);
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+        .formula-card:hover {
+            transform: translateY(-2px);
+            border-color: rgba(59, 130, 246, 0.4);
+            box-shadow: 0 10px 25px -5px rgba(59, 130, 246, 0.1), 0 8px 10px -6px rgba(59, 130, 246, 0.1);
+        }
+    </style>
+</head>
+<body class="bg-slate-950 text-slate-100 min-h-screen antialiased selection:bg-blue-600 selection:text-white">
+
+    <header class="border-b border-slate-800 bg-slate-900/80 backdrop-blur sticky top-0 z-50 px-4 lg:px-8 py-4">
+        <div class="max-w-7xl mx-auto flex flex-col md:flex-row items-center justify-between gap-4">
+            <div class="flex items-center gap-3">
+                <div class="h-10 w-10 rounded-xl bg-gradient-to-tr from-blue-600 to-indigo-500 flex items-center justify-center shadow-lg shadow-blue-500/20">
+                    <i class="fa-solid fa-rocket text-white text-lg animate-pulse"></i>
+                </div>
+                <div>
+                    <h1 class="font-extrabold text-xl tracking-tight bg-gradient-to-r from-blue-400 via-indigo-200 to-emerald-400 bg-clip-text text-transparent">
+                        Projectile Motion
+                    </h1>
+                    <p class="text-xs text-slate-400">Kinematics & Computational Physics Interactive Studio</p>
+                </div>
+            </div>
+            <nav class="flex flex-wrap items-center gap-2">
+                <a href="#simulator" class="px-3 py-1.5 rounded-lg text-sm font-medium bg-slate-800 hover:bg-slate-700 transition text-slate-200 flex items-center gap-2">
+                    <i class="fa-solid fa-gamepad text-blue-400"></i> Simulator
+                </a>
+                <a href="#analytics" class="px-3 py-1.5 rounded-lg text-sm font-medium bg-slate-800 hover:bg-slate-700 transition text-slate-200 flex items-center gap-2">
+                    <i class="fa-solid fa-chart-line text-amber-400"></i> Trajectory Graphs
+                </a>
+                <a href="#algorithm" class="px-3 py-1.5 rounded-lg text-sm font-medium bg-slate-800 hover:bg-slate-700 transition text-slate-200 flex items-center gap-2">
+                    <i class="fa-solid fa-gears text-emerald-400"></i> Algorithm & Derivations
+                </a>
+                <a href="#quiz" class="px-3 py-1.5 rounded-lg text-sm font-medium bg-slate-800 hover:bg-slate-700 transition text-slate-200 flex items-center gap-2">
+                    <i class="fa-solid fa-graduation-cap text-indigo-400"></i> Quiz Checkpoint
+                </a>
+            </nav>
+        </div>
+    </header>
+
+    <main class="max-w-7xl mx-auto px-4 lg:px-8 py-8 space-y-12">
+        
+        <section class="grid grid-cols-1 md:grid-cols-3 gap-6">
+            <div class="formula-card p-6 rounded-2xl relative overflow-hidden group">
+                <div class="absolute -right-8 -bottom-8 text-8xl text-slate-800/20 font-black font-mono group-hover:scale-110 transition-transform duration-500">x(t)</div>
+                <div class="flex items-center gap-2 mb-3 text-blue-400 font-semibold tracking-wide text-xs uppercase">
+                    <span class="h-2 w-2 rounded-full bg-blue-500"></span> Horizontal Position (No Forces)
+                </div>
+                <div class="font-mono text-xl font-bold tracking-tight mb-2 text-slate-100 flex items-center justify-center h-12">
+                    $$x(t) = x_0 + v_{x0}t$$
+                </div>
+                <p class="text-xs text-slate-400 leading-relaxed mt-2">
+                    Since $a_x = 0$, velocity remains constant. The horizontal path increases linearly over time.
+                </p>
+            </div>
+            
+            <div class="formula-card p-6 rounded-2xl relative overflow-hidden group">
+                <div class="absolute -right-8 -bottom-8 text-8xl text-slate-800/20 font-black font-mono group-hover:scale-110 transition-transform duration-500">y(t)</div>
+                <div class="flex items-center gap-2 mb-3 text-amber-400 font-semibold tracking-wide text-xs uppercase">
+                    <span class="h-2 w-2 rounded-full bg-amber-500"></span> Vertical Position (Gravity Constant)
+                </div>
+                <div class="font-mono text-xl font-bold tracking-tight mb-2 text-slate-100 flex items-center justify-center h-12">
+                    $$y(t) = y_0 + v_{y0}t - \frac{1}{2}gt^2$$
+                </div>
+                <p class="text-xs text-slate-400 leading-relaxed mt-2">
+                    Downward acceleration $a_y = -g$ shapes the curve. Position behaves quadratically over time.
+                </p>
+            </div>
+
+            <div class="formula-card p-6 rounded-2xl relative overflow-hidden group">
+                <div class="absolute -right-8 -bottom-8 text-8xl text-slate-800/20 font-black font-mono group-hover:scale-110 transition-transform duration-500">y(x)</div>
+                <div class="flex items-center gap-2 mb-3 text-emerald-400 font-semibold tracking-wide text-xs uppercase">
+                    <span class="h-2 w-2 rounded-full bg-emerald-500"></span> Path Equation (Time Independent)
+                </div>
+                <div class="font-mono text-md font-bold tracking-tight mb-2 text-slate-100 flex items-center justify-center h-12">
+                    $$y(x) = y_0 + \frac{v_{y0}}{v_{x0}}x - \frac{g}{2v_{x0}^2}x^2$$
+                </div>
+                <p class="text-xs text-slate-400 leading-relaxed mt-2">
+                    Formed by substituting $t = x / v_{x0}$. Mathematically proves the trajectory is a clean parabola!
+                </p>
+            </div>
+        </section>
+
+        <section id="simulator" class="scroll-mt-24">
+            <div class="bg-slate-900 rounded-3xl border border-slate-800 shadow-2xl overflow-hidden">
+                <div class="border-b border-slate-800 p-5 bg-slate-900/60 flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
+                    <div>
+                        <h2 class="text-lg font-bold flex items-center gap-2">
+                            <span class="flex h-3 w-3 relative">
+                                <span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-blue-400 opacity-75"></span>
+                                <span class="relative inline-flex rounded-full h-3 w-3 bg-blue-500"></span>
+                            </span>
+                            Live Motion Simulation
+                        </h2>
+                        <p class="text-xs text-slate-400 mt-1">Simulate projectile kinematics. Toggle forces, drag, and speed below.</p>
+                    </div>
+                    <div class="flex flex-wrap gap-2">
+                        <button id="btnPlayPause" class="bg-blue-600 hover:bg-blue-500 active:translate-y-0.5 text-white font-semibold text-xs py-2 px-4 rounded-xl shadow-lg shadow-blue-500/10 transition duration-150 flex items-center gap-2">
+                            <i class="fa-solid fa-play"></i> <span>Launch</span>
+                        </button>
+                        <button id="btnReset" class="bg-slate-800 hover:bg-slate-700 active:translate-y-0.5 text-slate-300 font-semibold text-xs py-2 px-4 rounded-xl transition duration-150 flex items-center gap-2">
+                            <i class="fa-solid fa-arrow-rotate-left"></i> Reset
+                        </button>
+                        <button id="btnStep" class="bg-slate-800 hover:bg-slate-700 active:translate-y-0.5 text-slate-300 font-semibold text-xs py-2 px-4 rounded-xl transition duration-150 flex items-center gap-2">
+                            <i class="fa-solid fa-forward-step"></i> Step
+                        </button>
+                    </div>
+                </div>
+
+                <div class="grid grid-cols-1 lg:grid-cols-12">
+                    <!-- Simulation Display Canvas Container (7 Columns) -->
+                    <div class="lg:col-span-8 p-6 bg-slate-950 flex flex-col justify-between border-r border-slate-800 relative min-h-[420px]">
+                        <!-- Quick Stats Panel -->
+                        <div class="grid grid-cols-2 md:grid-cols-4 gap-3 z-10 mb-4">
+                            <div class="bg-slate-900/80 backdrop-blur border border-slate-800/80 p-3 rounded-xl">
+                                <div class="text-[10px] text-slate-400 font-medium uppercase tracking-wider">Flight Time</div>
+                                <div class="text-lg font-mono font-bold text-slate-100"><span id="statTime">0.00</span>s</div>
+                            </div>
+                            <div class="bg-slate-900/80 backdrop-blur border border-slate-800/80 p-3 rounded-xl">
+                                <div class="text-[10px] text-slate-400 font-medium uppercase tracking-wider">Max Altitude ($y_{\text{max}}$)</div>
+                                <div class="text-lg font-mono font-bold text-amber-400"><span id="statMaxHeight">0.00</span>m</div>
+                            </div>
+                            <div class="bg-slate-900/80 backdrop-blur border border-slate-800/80 p-3 rounded-xl">
+                                <div class="text-[10px] text-slate-400 font-medium uppercase tracking-wider">Downrange Distance</div>
+                                <div class="text-lg font-mono font-bold text-violet-400"><span id="statDistance">0.00</span>m</div>
+                            </div>
+                            <div class="bg-slate-900/80 backdrop-blur border border-slate-800/80 p-3 rounded-xl">
+                                <div class="text-[10px] text-slate-400 font-medium uppercase tracking-wider">Total Speed ($v_t$)</div>
+                                <div class="text-lg font-mono font-bold text-emerald-400"><span id="statVelocity">0.00</span>m/s</div>
+                            </div>
+                        </div>
+
+                        <!-- The Physical Canvas -->
+                        <div class="relative flex-grow w-full bg-slate-950/60 rounded-2xl overflow-hidden border border-slate-900/80">
+                            <canvas id="simulationCanvas" class="w-full h-full block cursor-crosshair"></canvas>
+                            <!-- Vector HUD Toggle Panel -->
+                            <div class="absolute right-3 top-3 bg-slate-900/90 border border-slate-800/80 p-3 rounded-xl text-[11px] space-y-2 max-w-[200px] z-20">
+                                <p class="font-semibold text-slate-300 mb-1 flex items-center gap-1">
+                                    <i class="fa-solid fa-arrows-up-down-left-right text-indigo-400"></i> Vector Visualizer
+                                </p>
+                                <label class="flex items-center gap-2 cursor-pointer text-slate-300">
+                                    <input type="checkbox" id="chkShowVelocityVector" checked class="rounded border-slate-700 text-blue-500 focus:ring-blue-500 bg-slate-800">
+                                    <span>Velocity vector ($v$)</span>
+                                </label>
+                                <label class="flex items-center gap-2 cursor-pointer text-slate-300">
+                                    <input type="checkbox" id="chkShowComponents" checked class="rounded border-slate-700 text-blue-500 focus:ring-blue-500 bg-slate-800">
+                                    <span>Components ($v_x, v_y$)</span>
+                                </label>
+                                <label class="flex items-center gap-2 cursor-pointer text-slate-300">
+                                    <input type="checkbox" id="chkShowGravity" checked class="rounded border-slate-700 text-blue-500 focus:ring-blue-500 bg-slate-800">
+                                    <span>Gravity Force ($mg$)</span>
+                                </label>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Interactive Sliders Sidebar (4 Columns) -->
+                    <div class="lg:col-span-4 p-6 space-y-6 bg-slate-900">
+                        <h3 class="font-bold text-sm uppercase tracking-wider text-slate-300 flex items-center gap-2">
+                            <i class="fa-solid fa-sliders text-blue-500"></i> Parameter Controller
+                        </h3>
+
+                        <!-- Initial Speed Slider -->
+                        <div class="space-y-2">
+                            <div class="flex justify-between text-xs font-semibold">
+                                <span class="text-slate-300 font-medium">Initial Speed ($v_0$)</span>
+                                <span class="text-blue-400 font-mono"><span id="valVelocity">25</span> m/s</span>
+                            </div>
+                            <input type="range" id="slideVelocity" min="5" max="50" step="1" value="25" class="w-full h-1.5 bg-slate-800 rounded-lg appearance-none cursor-pointer accent-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500">
+                            <div class="flex justify-between text-[10px] text-slate-500 font-mono">
+                                <span>5 m/s</span>
+                                <span>50 m/s</span>
+                            </div>
+                        </div>
+
+                        <!-- Launch Angle Slider -->
+                        <div class="space-y-2">
+                            <div class="flex justify-between text-xs font-semibold">
+                                <span class="text-slate-300 font-medium">Launch Angle ($\theta$)</span>
+                                <span class="text-blue-400 font-mono"><span id="valAngle">45</span>°</span>
+                            </div>
+                            <input type="range" id="slideAngle" min="0" max="90" step="1" value="45" class="w-full h-1.5 bg-slate-800 rounded-lg appearance-none cursor-pointer accent-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500">
+                            <div class="flex justify-between text-[10px] text-slate-500 font-mono">
+                                <span>0° (Horizontal)</span>
+                                <span>90° (Vertical)</span>
+                            </div>
+                        </div>
+
+                        <!-- Initial Height Slider -->
+                        <div class="space-y-2">
+                            <div class="flex justify-between text-xs font-semibold">
+                                <span class="text-slate-300 font-medium">Initial Height ($y_0$)</span>
+                                <span class="text-blue-400 font-mono"><span id="valHeight">10</span> m</span>
+                            </div>
+                            <input type="range" id="slideHeight" min="0" max="100" step="5" value="10" class="w-full h-1.5 bg-slate-800 rounded-lg appearance-none cursor-pointer accent-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500">
+                            <div class="flex justify-between text-[10px] text-slate-500 font-mono">
+                                <span>0 m (Ground)</span>
+                                <span>100 m</span>
+                            </div>
+                        </div>
+
+                        <!-- Gravity Environment Selection -->
+                        <div class="space-y-2">
+                            <div class="flex justify-between text-xs font-semibold">
+                                <span class="text-slate-300 font-medium">Environmental Gravity ($g$)</span>
+                                <span class="text-emerald-400 font-mono"><span id="valGravity">9.8</span> m/s²</span>
+                            </div>
+                            <input type="range" id="slideGravity" min="1.6" max="25" step="0.1" value="9.8" class="w-full h-1.5 bg-slate-800 rounded-lg appearance-none cursor-pointer accent-emerald-500 focus:outline-none focus:ring-1 focus:ring-emerald-500">
+                            
+                            <div class="grid grid-cols-4 gap-1 mt-2">
+                                <button type="button" class="btnPresetGravity px-2 py-1 bg-slate-800 hover:bg-slate-700 text-[10px] rounded text-slate-300" data-val="1.62">Moon</button>
+                                <button type="button" class="btnPresetGravity px-2 py-1 bg-slate-800 hover:bg-slate-700 text-[10px] rounded text-slate-300" data-val="3.71">Mars</button>
+                                <button type="button" class="btnPresetGravity px-2 py-1 bg-blue-900/30 text-blue-400 hover:bg-blue-900/50 text-[10px] rounded border border-blue-500/20" data-val="9.81">Earth</button>
+                                <button type="button" class="btnPresetGravity px-2 py-1 bg-slate-800 hover:bg-slate-700 text-[10px] rounded text-slate-300" data-val="24.79">Jupiter</button>
+                            </div>
+                        </div>
+
+                        <!-- Computational Time-Step (dt) -->
+                        <div class="space-y-2 pt-2 border-t border-slate-800">
+                            <div class="flex justify-between text-xs font-semibold">
+                                <span class="text-slate-400 font-medium">Solver Time-Step ($\Delta t$)</span>
+                                <span class="text-indigo-400 font-mono"><span id="valDt">0.010</span> s</span>
+                            </div>
+                            <input type="range" id="slideDt" min="0.001" max="0.05" step="0.001" value="0.010" class="w-full h-1.5 bg-slate-800 rounded-lg appearance-none cursor-pointer accent-indigo-500 focus:outline-none focus:ring-1 focus:ring-indigo-500">
+                        </div>
+
+                        <!-- Live Vector Components Details -->
+                        <div class="bg-slate-950/60 p-4 rounded-2xl border border-slate-800/80 space-y-3 font-mono text-xs">
+                            <p class="font-bold text-slate-400 border-b border-slate-800/80 pb-1.5 text-[10px] uppercase tracking-wider">Initial Components</p>
+                            <div class="flex justify-between">
+                                <span class="text-slate-500">v₀x (v₀ cosθ) :</span>
+                                <span class="text-slate-200 font-bold"><span id="lblV0x">0.0</span> m/s</span>
+                            </div>
+                            <div class="flex justify-between">
+                                <span class="text-slate-500">v₀y (v₀ sinθ) :</span>
+                                <span class="text-slate-200 font-bold"><span id="lblV0y">0.0</span> m/s</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Three separate plots representing y(x), y(t) and x(t) to perfectly match the transcript's 3 graphs -->
+        <section id="analytics" class="scroll-mt-24 space-y-6">
+            <div class="flex flex-col md:flex-row justify-between items-start md:items-end gap-2">
+                <div>
+                    <h2 class="text-2xl font-black tracking-tight text-white flex items-center gap-2">
+                        <i class="fa-solid fa-chart-line text-amber-500"></i> The Three Representations of Motion
+                    </h2>
+                    <p class="text-sm text-slate-400">Witness the horizontal and vertical motions decouple and plot on separate domains simultaneously.</p>
+                </div>
+                <div class="text-xs text-indigo-400 font-medium bg-indigo-950/30 border border-indigo-900/50 py-1.5 px-3 rounded-xl">
+                    <i class="fa-solid fa-sync text-[10px] animate-spin"></i> Graphs Update Live on Slider Changes
+                </div>
+            </div>
+
+            <!-- Plot Grid -->
+            <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+                <!-- Graph 1: y vs x (Trajectory Space) -->
+                <div class="bg-slate-900 p-5 rounded-2xl border border-slate-800 flex flex-col justify-between">
+                    <div>
+                        <span class="text-[10px] uppercase tracking-wider font-bold text-blue-400 bg-blue-950/40 border border-blue-900/50 px-2.5 py-1 rounded-full">Trajectory Space</span>
+                        <h3 class="text-md font-bold text-slate-100 mt-2.5">Vertical Position vs Horizontal Position ($y$ vs $x$)</h3>
+                        <p class="text-xs text-slate-400 mt-1 leading-relaxed">The actual path of travel showing the classic downward opening parabolic flight. Time is hidden.</p>
+                    </div>
+                    <div class="relative w-full h-[220px] mt-4 bg-slate-950 rounded-xl overflow-hidden border border-slate-800">
+                        <canvas id="graphYxCanvas" class="w-full h-full block"></canvas>
+                    </div>
+                </div>
+
+                <!-- Graph 2: y vs t (Vertical Domain) -->
+                <div class="bg-slate-900 p-5 rounded-2xl border border-slate-800 flex flex-col justify-between">
+                    <div>
+                        <span class="text-[10px] uppercase tracking-wider font-bold text-amber-400 bg-amber-950/40 border border-amber-900/50 px-2.5 py-1 rounded-full">Vertical Domain</span>
+                        <h3 class="text-md font-bold text-slate-100 mt-2.5">Vertical Position vs Flight Time ($y$ vs $t$)</h3>
+                        <p class="text-xs text-slate-400 mt-1 leading-relaxed">A parabola displaying vertical height. Velocity is zero at peak amplitude and negative upon fall.</p>
+                    </div>
+                    <div class="relative w-full h-[220px] mt-4 bg-slate-950 rounded-xl overflow-hidden border border-slate-800">
+                        <canvas id="graphYtCanvas" class="w-full h-full block"></canvas>
+                    </div>
+                </div>
+
+                <!-- Graph 3: x vs t (Horizontal Domain) -->
+                <div class="bg-slate-900 p-5 rounded-2xl border border-slate-800 flex flex-col justify-between">
+                    <div>
+                        <span class="text-[10px] uppercase tracking-wider font-bold text-emerald-400 bg-emerald-950/40 border border-emerald-900/50 px-2.5 py-1 rounded-full">Horizontal Domain</span>
+                        <h3 class="text-md font-bold text-slate-100 mt-2.5">Horizontal Position vs Flight Time ($x$ vs $t$)</h3>
+                        <p class="text-xs text-slate-400 mt-1 leading-relaxed">A strictly linear equation of time. Demonstrates constant horizontal velocity ($v_{x} = \text{const}$).</p>
+                    </div>
+                    <div class="relative w-full h-[220px] mt-4 bg-slate-950 rounded-xl overflow-hidden border border-slate-800">
+                        <canvas id="graphXtCanvas" class="w-full h-full block"></canvas>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Visually gorgeous Infographic that breaks down equations and algorithm logic step-by-step -->
+        <section id="algorithm" class="scroll-mt-24 space-y-6">
+            <div>
+                <h2 class="text-2xl font-black tracking-tight text-white flex items-center gap-2">
+                    <i class="fa-solid fa-gears text-emerald-500"></i> Interactive Infographic & Computational Steps
+                </h2>
+                <p class="text-sm text-slate-400">Discover how mathematical continuous equations are computed incrementally in our simulations.</p>
+            </div>
+
+            <!-- Mathematical Derivation Map -->
+            <div class="grid grid-cols-1 lg:grid-cols-12 gap-6">
+                
+                <!-- Continuous Physics Derivation (7 cols) -->
+                <div class="lg:col-span-7 bg-slate-900 p-6 rounded-3xl border border-slate-800 space-y-6">
+                    <h3 class="font-bold text-lg text-slate-100 flex items-center gap-2 border-b border-slate-800 pb-3">
+                        <i class="fa-solid fa-bezier-curve text-indigo-400"></i> Mathematical Continuum Model
+                    </h3>
+                    
+                    <div class="space-y-6 text-sm text-slate-300 leading-relaxed">
+                        <!-- Step 1 -->
+                        <div class="relative pl-6 border-l-2 border-indigo-500/30">
+                            <span class="absolute -left-[9px] top-1 h-4.5 w-4.5 rounded-full bg-slate-900 border-2 border-indigo-500 flex items-center justify-center text-[9px] font-bold text-indigo-400">1</span>
+                            <h4 class="font-bold text-slate-100 text-sm">Newton's 2nd Law Application ($\Sigma \vec{F} = m \vec{a}$)</h4>
+                            <p class="text-xs text-slate-400 mt-1">Applying vectors on coordinate system unit vectors $\hat{i}$ (horizontal) and $\hat{j}$ (vertical):</p>
+                            <div class="bg-slate-950/80 p-4 rounded-xl border border-slate-800/80 mt-2 space-y-4">
+                                <div>
+                                    <span class="text-amber-400 text-xs font-semibold uppercase tracking-wider block mb-1">Horizontal direction ($\hat{i}$):</span>
+                                    $$\Sigma F_x = 0 \implies m a_x = 0 \implies a_x = 0$$
+                                </div>
+                                <div class="border-t border-slate-800/60 pt-3">
+                                    <span class="text-blue-400 text-xs font-semibold uppercase tracking-wider block mb-1">Vertical direction ($\hat{j}$):</span>
+                                    $$\Sigma F_y = -mg \implies m a_y = -mg \implies a_y = -g$$
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Step 2 -->
+                        <div class="relative pl-6 border-l-2 border-indigo-500/30">
+                            <span class="absolute -left-[9px] top-1 h-4.5 w-4.5 rounded-full bg-slate-900 border-2 border-indigo-500 flex items-center justify-center text-[9px] font-bold text-indigo-400">2</span>
+                            <h4 class="font-bold text-slate-100 text-sm">Integration for Kinematics Equations</h4>
+                            <p class="text-xs text-slate-400 mt-1">Integrating acceleration with respect to flight time ($t$):</p>
+                            <div class="bg-slate-950/80 p-4 rounded-xl border border-slate-800/80 mt-2 space-y-4">
+                                <div>
+                                    <span class="text-slate-400 text-xs font-semibold uppercase tracking-wider block mb-1">Velocity Vector Components:</span>
+                                    $$v_x(t) = v_{x0}$$
+                                    $$v_y(t) = v_{y0} - gt$$
+                                </div>
+                                <div class="border-t border-slate-800/60 pt-3">
+                                    <span class="text-slate-400 text-xs font-semibold uppercase tracking-wider block mb-1">Position Vector Components:</span>
+                                    $$x(t) = x_0 + v_{x0}t$$
+                                    $$y(t) = y_0 + v_{y0}t - \frac{1}{2}gt^2$$
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Step 3 -->
+                        <div class="relative pl-6">
+                            <span class="absolute -left-[9px] top-1 h-4.5 w-4.5 rounded-full bg-slate-900 border-2 border-indigo-500 flex items-center justify-center text-[9px] font-bold text-indigo-400">3</span>
+                            <h4 class="font-bold text-slate-100 text-sm">Derivation of Trajectory Equation (Eliminating Time)</h4>
+                            <p class="text-xs text-slate-400 mt-1">By isolating $t$ from the horizontal position formula, we substitute it into the vertical motion component:</p>
+                            <div class="bg-slate-950/80 p-4 rounded-xl border border-slate-800/80 mt-2 space-y-3">
+                                $$t = \frac{x}{v_{x0}}$$
+                                <div class="text-slate-400 text-xs text-center">Substituting $t$ into the $y(t)$ quadratic formula:</div>
+                                $$y(x) = y_0 + v_{y0}\left(\frac{x}{v_{x0}}\right) - \frac{1}{2}g\left(\frac{x}{v_{x0}}\right)^2$$
+                                <div class="border-t border-slate-800/60 pt-3">
+                                    <span class="text-emerald-400 text-xs font-semibold uppercase tracking-wider block mb-1 text-center">Final Parabolic Trajectory Formula:</span>
+                                    $$y(x) = y_0 + \frac{v_{y0}}{v_{x0}}x - \frac{g}{2v_{x0}^2}x^2$$
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Numerical Algorithm Explanation (5 cols) -->
+                <div class="lg:col-span-5 bg-slate-900 p-6 rounded-3xl border border-slate-800 flex flex-col justify-between">
+                    <div>
+                        <h3 class="font-bold text-lg text-slate-100 flex items-center gap-2 border-b border-slate-800 pb-3">
+                            <i class="fa-solid fa-terminal text-emerald-400"></i> Numerical Computational Steps
+                        </h3>
+                        <p class="text-xs text-slate-400 mt-3 leading-relaxed">
+                            Simulators cannot calculate with continuous infinity. Instead, they slice time into microscopic intervals ($\Delta t$) using <strong>Euler's integration technique</strong>.
+                        </p>
+
+                        <!-- Algorithm Pseudocode UI -->
+                        <div class="mt-4 rounded-2xl overflow-hidden border border-slate-800 font-mono text-xs bg-slate-950">
+                            <div class="bg-slate-900 px-4 py-2 text-slate-400 flex justify-between items-center border-b border-slate-800 text-[10px]">
+                                <span>NUMERICAL_SOLVER.PY</span>
+                                <span class="h-2 w-2 rounded-full bg-emerald-500"></span>
+                            </div>
+                            <pre class="p-4 text-slate-300 overflow-x-auto text-[11px] leading-relaxed"><code><span class="text-slate-500"># 1. Initialize simulation parameters</span>
+g  = <span class="text-emerald-400">9.81</span>    <span class="text-slate-500"># m/s^2</span>
+dt = <span class="text-blue-400">0.010</span>   <span class="text-slate-500"># Time-step (seconds)</span>
+
+x, y   = <span class="text-violet-400">0.0</span>, <span class="text-violet-400">y0</span>
+vx, vy = <span class="text-violet-400">v0x</span>, <span class="text-violet-400">v0y</span>
+t      = <span class="text-violet-400">0.0</span>
+
+<span class="text-slate-500"># 2. Main execution/simulation loop</span>
+<span class="text-amber-400">while</span> y &gt;= <span class="text-emerald-400">0.0</span>:
+    <span class="text-slate-500"># Calculate updates</span>
+    x  += vx * dt
+    vy -= g * dt
+    y  += vy * dt
+    t  += dt
+    
+    <span class="text-slate-500"># Save telemetry for visual plot trails</span>
+    record_telemetry(t, x, y, vx, vy)</code></pre>
+                        </div>
+                    </div>
+
+                    <div class="mt-4 bg-slate-950/80 p-4 rounded-2xl border border-slate-800/80">
+                        <div class="flex items-start gap-3">
+                            <div class="bg-blue-950/50 p-2 rounded-lg text-blue-400 border border-blue-900/50">
+                                <i class="fa-solid fa-circle-info text-sm"></i>
+                            </div>
+                            <div class="text-xs text-slate-400 leading-relaxed">
+                                <strong class="text-slate-200">Continuous vs Numerical:</strong> 
+                                As $\Delta t \to 0$, numerical values converge to exact algebraic trajectories. Try adjusting $\Delta t$ above to notice its sensitivity on calculations.
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Responsive concept check quiz for quick diagnostic feedback on learning material -->
+        <section id="quiz" class="scroll-mt-24 space-y-6">
+            <div class="flex flex-col md:flex-row justify-between items-start md:items-end gap-2">
+                <div>
+                    <h2 class="text-2xl font-black tracking-tight text-white flex items-center gap-2">
+                        <i class="fa-solid fa-graduation-cap text-indigo-500"></i> Conceptual Quiz Checkpoint
+                    </h2>
+                    <p class="text-sm text-slate-400">Check your understanding of coordinates, gravity, and decoupled motion equations.</p>
+                </div>
+                <div class="text-xs bg-slate-900 border border-slate-800 py-1 px-3 rounded-lg text-slate-400 font-mono">
+                    Score: <span id="quizScore" class="font-bold text-emerald-400">0</span> / 4
+                </div>
+            </div>
+
+            <div class="grid grid-cols-1 lg:grid-cols-12 gap-6">
+                <!-- Main Quiz Component (8 cols) -->
+                <div class="lg:col-span-8 bg-slate-900 p-6 rounded-3xl border border-slate-800 flex flex-col justify-between min-h-[380px]">
+                    <div id="quizContainer">
+                        <!-- Progress indicator -->
+                        <div class="flex items-center gap-2 mb-4">
+                            <div class="text-[11px] font-bold text-slate-400 font-mono uppercase">Question <span id="currIdx">1</span> of 4</div>
+                            <div class="h-1 bg-slate-800 flex-grow rounded-full overflow-hidden">
+                                <div id="progressBar" class="h-full bg-blue-500 w-1/4 transition-all duration-300"></div>
+                            </div>
+                        </div>
+
+                        <!-- Live Question Header -->
+                        <h3 id="quizQuestion" class="text-lg font-bold text-slate-100 mb-6 leading-relaxed">Loading...</h3>
+                        
+                        <!-- Answers Stack -->
+                        <div id="answersContainer" class="space-y-3">
+                            <!-- Answer buttons will dynamically generate here -->
+                        </div>
+                    </div>
+
+                    <!-- Bottom Navigation bar inside Quiz component -->
+                    <div class="border-t border-slate-800 pt-5 mt-6 flex justify-between items-center">
+                        <div id="feedbackText" class="text-xs font-semibold leading-relaxed flex-grow pr-4"></div>
+                        <button id="btnNextQuestion" class="hidden bg-slate-800 hover:bg-slate-700 active:translate-y-0.5 text-slate-200 py-2 px-4 rounded-xl font-bold text-xs transition flex items-center gap-1">
+                            Next Question <i class="fa-solid fa-arrow-right"></i>
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Dynamic Cheat Reference Card (4 cols) -->
+                <div class="lg:col-span-4 bg-slate-900 p-6 rounded-3xl border border-slate-800 flex flex-col justify-between">
+                    <div class="space-y-4">
+                        <h3 class="font-bold text-sm uppercase tracking-wider text-indigo-400 flex items-center gap-2">
+                            <i class="fa-solid fa-lightbulb"></i> Lecture Reference Guide
+                        </h3>
+                        <p class="text-xs text-slate-400 leading-relaxed">
+                            Need a reminder? According to Newton's Second law, there is <strong>no acceleration horizontally</strong> ($a_x = 0$) because we assume zero air drag.
+                        </p>
+                        <p class="text-xs text-slate-400 leading-relaxed">
+                            Vertical acceleration is constant and downward due to gravitational pull ($a_y = -g = -9.8\text{ m/s}^2$).
+                        </p>
+                        <p class="text-xs text-slate-400 leading-relaxed">
+                            At the highest vertex of the parabola, vertical velocity is exactly $0$, but the horizontal velocity components remain unchanged.
+                        </p>
+                    </div>
+
+                    <div class="pt-4 border-t border-slate-800 mt-4">
+                        <div class="flex gap-2 text-slate-300 text-xs">
+                            <i class="fa-solid fa-quote-left text-slate-600"></i>
+                            <span class="italic text-slate-400">"This type of motion has a very famous name called projectile motion."</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+    </main>
+
+    <footer class="border-t border-slate-800 bg-slate-950 py-12 text-center text-xs text-slate-500 mt-16 px-4">
+        <div class="max-w-2xl mx-auto space-y-3">
+            <p>Designed as an interactive digital companion matching the mechanics curriculum lecture.</p>
+            <p>© 2026 Educational Interactive Systems. Open-source under academic framework licensing.</p>
+        </div>
+    </footer>
+
+    <script>
+        const canvas = document.getElementById('simulationCanvas');
+        const ctx = canvas.getContext('2d');
+
+        // Physics State Variables
+        let state = {
+            v0: 25,             // Initial velocity magnitude m/s
+            angle: 45,          // Angle in degrees
+            y0: 10,             // Initial height meters
+            g: 9.8,             // Gravity magnitude m/s^2
+            dt: 0.010,          // Time-step duration
+
+            // Simulation tracker
+            t: 0,               // Current simulated time
+            isPlaying: false,
+            trail: [],          // Trajectory breadcrumbs
+            
+            // Scaler properties for visual canvas dimensions
+            scaleX: 1,
+            scaleY: 1,
+            padding: 40,
+
+            // Active physical position
+            x: 0,
+            y: 0,
+            vx: 0,
+            vy: 0,
+            v0x: 0,
+            v0y: 0,
+            
+            // Peak/Range Analytics
+            maxHeightCalculated: 0,
+            maxDistanceCalculated: 0,
+            totalFlightTime: 0
+        };
+
+        const graphYx = document.getElementById('graphYxCanvas');
+        const graphYt = document.getElementById('graphYtCanvas');
+        const graphXt = document.getElementById('graphXtCanvas');
+        
+        const ctxYx = graphYx.getContext('2d');
+        const ctxYt = graphYt.getContext('2d');
+        const ctxXt = graphXt.getContext('2d');
+
+        const btnPlayPause = document.getElementById('btnPlayPause');
+        const btnReset = document.getElementById('btnReset');
+        const btnStep = document.getElementById('btnStep');
+
+        const slideVelocity = document.getElementById('slideVelocity');
+        const slideAngle = document.getElementById('slideAngle');
+        const slideHeight = document.getElementById('slideHeight');
+        const slideGravity = document.getElementById('slideGravity');
+        const slideDt = document.getElementById('slideDt');
+
+        const valVelocity = document.getElementById('valVelocity');
+        const valAngle = document.getElementById('valAngle');
+        const valHeight = document.getElementById('valHeight');
+        const valGravity = document.getElementById('valGravity');
+        const valDt = document.getElementById('valDt');
+
+        const lblV0x = document.getElementById('lblV0x');
+        const lblV0y = document.getElementById('lblV0y');
+
+        const chkShowVelocityVector = document.getElementById('chkShowVelocityVector');
+        const chkShowComponents = document.getElementById('chkShowComponents');
+        const chkShowGravity = document.getElementById('chkShowGravity');
+
+        slideVelocity.addEventListener('input', (e) => { state.v0 = parseFloat(e.target.value); valVelocity.textContent = e.target.value; calculatePhysics(); resetSimulation(); });
+        slideAngle.addEventListener('input', (e) => { state.angle = parseFloat(e.target.value); valAngle.textContent = e.target.value; calculatePhysics(); resetSimulation(); });
+        slideHeight.addEventListener('input', (e) => { state.y0 = parseFloat(e.target.value); valHeight.textContent = e.target.value; calculatePhysics(); resetSimulation(); });
+        slideGravity.addEventListener('input', (e) => { state.g = parseFloat(e.target.value); valGravity.textContent = e.target.value; calculatePhysics(); resetSimulation(); });
+        slideDt.addEventListener('input', (e) => { state.dt = parseFloat(e.target.value); valDt.textContent = e.target.value; resetSimulation(); });
+
+        document.querySelectorAll('.btnPresetGravity').forEach(btn => {
+            btn.addEventListener('click', () => {
+                const gravityVal = parseFloat(btn.getAttribute('data-val'));
+                slideGravity.value = gravityVal;
+                state.g = gravityVal;
+                valGravity.textContent = gravityVal;
+                
+                // Toggle simple styling
+                document.querySelectorAll('.btnPresetGravity').forEach(b => {
+                    b.className = "btnPresetGravity px-2 py-1 bg-slate-800 hover:bg-slate-700 text-[10px] rounded text-slate-300";
+                });
+                btn.className = "btnPresetGravity px-2 py-1 bg-blue-900/30 text-blue-400 hover:bg-blue-900/50 text-[10px] rounded border border-blue-500/20";
+                
+                calculatePhysics();
+                resetSimulation();
+            });
+        });
+
+        btnPlayPause.addEventListener('click', togglePlayPause);
+        btnReset.addEventListener('click', () => { resetSimulation(); });
+        btnStep.addEventListener('click', () => { if(!state.isPlaying) stepSimulation(); });
+
+        function calculatePhysics() {
+            // Conversions & initial velocity breakdown
+            const angleRad = (state.angle * Math.PI) / 180;
+            state.v0x = state.v0 * Math.cos(angleRad);
+            state.v0y = state.v0 * Math.sin(angleRad);
+
+            lblV0x.textContent = state.v0x.toFixed(1);
+            lblV0y.textContent = state.v0y.toFixed(1);
+
+            // Time of flight: y0 + v0y*t - 0.5*g*t^2 = 0
+            // Formula: t = [v0y + sqrt(v0y^2 + 2*g*y0)] / g
+            const underRadical = (state.v0y * state.v0y) + (2 * state.g * state.y0);
+            state.totalFlightTime = (state.v0y + Math.sqrt(underRadical)) / state.g;
+
+            // Horizontal range (max horizontal distance)
+            state.maxDistanceCalculated = state.v0x * state.totalFlightTime;
+
+            // Maximum peak height (y_max)
+            // Happens when vy(t) = 0 -> t_peak = v0y / g
+            const timeToPeak = state.v0y / state.g;
+            if (timeToPeak > 0) {
+                state.maxHeightCalculated = state.y0 + (state.v0y * timeToPeak) - (0.5 * state.g * timeToPeak * timeToPeak);
+            } else {
+                state.maxHeightCalculated = state.y0;
+            }
+
+            // Sync visual UI indicators
+            document.getElementById('statMaxHeight').textContent = state.maxHeightCalculated.toFixed(2);
+            document.getElementById('statDistance').textContent = state.maxDistanceCalculated.toFixed(2);
+        }
+
+        function resetSimulation() {
+            state.t = 0;
+            state.isPlaying = false;
+            btnPlayPause.innerHTML = '<i class="fa-solid fa-play"></i> <span>Launch</span>';
+            btnPlayPause.className = "bg-blue-600 hover:bg-blue-500 active:translate-y-0.5 text-white font-semibold text-xs py-2 px-4 rounded-xl shadow-lg shadow-blue-500/10 transition duration-150 flex items-center gap-2";
+            
+            state.x = 0;
+            state.y = state.y0;
+            state.vx = state.v0x;
+            state.vy = state.v0y;
+            state.trail = [];
+            
+            updateHUD(state.t, state.x, state.y, state.vx, state.vy);
+            resizeCanvases();
+            drawAll();
+        }
+
+        function togglePlayPause() {
+            state.isPlaying = !state.isPlaying;
+            if (state.isPlaying) {
+                // If projectile landed, restart
+                if (state.t >= state.totalFlightTime) {
+                    resetSimulation();
+                    state.isPlaying = true;
+                }
+                btnPlayPause.innerHTML = '<i class="fa-solid fa-pause"></i> <span>Pause</span>';
+                btnPlayPause.className = "bg-amber-600 hover:bg-amber-500 active:translate-y-0.5 text-white font-semibold text-xs py-2 px-4 rounded-xl shadow-lg shadow-amber-500/10 transition duration-150 flex items-center gap-2";
+                animate();
+            } else {
+                btnPlayPause.innerHTML = '<i class="fa-solid fa-play"></i> <span>Resume</span>';
+                btnPlayPause.className = "bg-blue-600 hover:bg-blue-500 active:translate-y-0.5 text-white font-semibold text-xs py-2 px-4 rounded-xl shadow-lg shadow-blue-500/10 transition duration-150 flex items-center gap-2";
+            }
+        }
+
+        function stepSimulation() {
+            if (state.t >= state.totalFlightTime) {
+                state.t = state.totalFlightTime;
+                state.x = state.maxDistanceCalculated;
+                state.y = 0;
+                state.vy = state.v0y - (state.g * state.t);
+                state.isPlaying = false;
+                btnPlayPause.innerHTML = '<i class="fa-solid fa-play"></i> <span>Launch</span>';
+                updateHUD(state.t, state.x, state.y, state.vx, state.vy);
+                drawAll();
+                return;
+            }
+
+            // Numerical Integration Step (Euler's Method)
+            state.trail.push({x: state.x, y: state.y, t: state.t});
+            
+            state.x += state.vx * state.dt;
+            state.vy -= state.g * state.dt;
+            state.y += state.vy * state.dt;
+            state.t += state.dt;
+
+            // Boundary collision clamp
+            if (state.y < 0) {
+                state.y = 0;
+                state.t = state.totalFlightTime;
+                state.x = state.maxDistanceCalculated;
+                state.vy = state.v0y - (state.g * state.t);
+                state.isPlaying = false;
+                btnPlayPause.innerHTML = '<i class="fa-solid fa-play"></i> <span>Launch</span>';
+            }
+
+            updateHUD(state.t, state.x, state.y, state.vx, state.vy);
+            drawAll();
+        }
+
+        function updateHUD(time, posX, posY, velX, velY) {
+            document.getElementById('statTime').textContent = time.toFixed(2);
+            document.getElementById('statVelocity').textContent = Math.sqrt(velX*velX + velY*velY).toFixed(1);
+        }
+
+        let lastFrameTime = 0;
+        function animate(timestamp) {
+            if (!state.isPlaying) return;
+            
+            stepSimulation();
+            requestAnimationFrame(animate);
+        }
+
+        function resizeCanvases() {
+            // Main simulation dimensions
+            const p = canvas.parentElement;
+            canvas.width = p.clientWidth;
+            canvas.height = p.clientHeight;
+
+            // Setup appropriate scales
+            // Fit vertical and horizontal trajectories inside the padded display canvas
+            const scaleMarginX = state.maxDistanceCalculated > 0 ? state.maxDistanceCalculated : 10;
+            const scaleMarginY = state.maxHeightCalculated > 0 ? state.maxHeightCalculated : 10;
+
+            state.scaleX = (canvas.width - (state.padding * 2)) / scaleMarginX;
+            state.scaleY = (canvas.height - (state.padding * 2)) / scaleMarginY;
+            
+            // Re-scale sub-plots
+            const gp1 = graphYx.parentElement;
+            graphYx.width = gp1.clientWidth;
+            graphYx.height = gp1.clientHeight;
+
+            const gp2 = graphYt.parentElement;
+            graphYt.width = gp2.clientWidth;
+            graphYt.height = gp2.clientHeight;
+
+            const gp3 = graphXt.parentElement;
+            graphXt.width = gp3.clientWidth;
+            graphXt.height = gp3.clientHeight;
+        }
+
+        window.addEventListener('resize', () => {
+            resizeCanvases();
+            drawAll();
+        });
+
+        function toCanvasCoords(physX, physY) {
+            // Convert physical (x, y) coordinates to pixel grid space
+            // y goes up in physics, but down on browser screens
+            const cx = state.padding + (physX * state.scaleX);
+            const cy = canvas.height - state.padding - (physY * state.scaleY);
+            return {x: cx, y: cy};
+        }
+
+        function drawAll() {
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+            
+            // Draw Coordinate Axis Guides
+            ctx.strokeStyle = '#1e293b';
+            ctx.lineWidth = 1;
+            ctx.setLineDash([5, 5]);
+            
+            // Horizontal reference lines (Y Gridlines)
+            const yTicks = 4;
+            for (let i = 0; i <= yTicks; i++) {
+                const physicalY = (state.maxHeightCalculated / yTicks) * i;
+                const canvasY = toCanvasCoords(0, physicalY).y;
+                
+                ctx.beginPath();
+                ctx.moveTo(state.padding, canvasY);
+                ctx.lineTo(canvas.width - state.padding, canvasY);
+                ctx.stroke();
+
+                ctx.fillStyle = '#64748b';
+                ctx.font = '10px JetBrains Mono';
+                ctx.fillText(`${physicalY.toFixed(0)}m`, state.padding - 30, canvasY + 4);
+            }
+
+            // Vertical reference lines (X Gridlines)
+            const xTicks = 5;
+            for (let i = 0; i <= xTicks; i++) {
+                const physicalX = (state.maxDistanceCalculated / xTicks) * i;
+                const canvasX = toCanvasCoords(physicalX, 0).x;
+                
+                ctx.beginPath();
+                ctx.moveTo(canvasX, state.padding);
+                ctx.lineTo(canvasX, canvas.height - state.padding);
+                ctx.stroke();
+
+                ctx.fillStyle = '#64748b';
+                ctx.font = '10px JetBrains Mono';
+                ctx.fillText(`${physicalX.toFixed(0)}m`, canvasX - 10, canvas.height - state.padding + 20);
+            }
+
+            // Draw ground line
+            ctx.setLineDash([]);
+            ctx.strokeStyle = '#334155';
+            ctx.lineWidth = 2;
+            ctx.beginPath();
+            ctx.moveTo(state.padding, canvas.height - state.padding);
+            ctx.lineTo(canvas.width - state.padding, canvas.height - state.padding);
+            ctx.stroke();
+
+            // Render ideal target analytical parabola curve (faint underlying curve)
+            ctx.strokeStyle = 'rgba(148, 163, 184, 0.15)';
+            ctx.lineWidth = 3;
+            ctx.beginPath();
+            for (let px = 0; px <= state.maxDistanceCalculated; px += state.maxDistanceCalculated / 100) {
+                // Analytical continuous formula: y(x) = y0 + (v0y/v0x)*x - 0.5 * g * x^2 / (v0x^2)
+                const py = state.y0 + (state.v0y / state.v0x) * px - (0.5 * state.g * px * px) / (state.v0x * state.v0x);
+                const coords = toCanvasCoords(px, py);
+                if (px === 0) ctx.moveTo(coords.x, coords.y);
+                else ctx.lineTo(coords.x, coords.y);
+            }
+            ctx.stroke();
+
+            // Draw visual trail breadcrumbs
+            if (state.trail.length > 1) {
+                ctx.strokeStyle = 'rgba(59, 130, 246, 0.4)';
+                ctx.lineWidth = 2;
+                ctx.beginPath();
+                for (let i = 0; i < state.trail.length; i++) {
+                    const coords = toCanvasCoords(state.trail[i].x, state.trail[i].y);
+                    if (i === 0) ctx.moveTo(coords.x, coords.y);
+                    else ctx.lineTo(coords.x, coords.y);
+                }
+                ctx.stroke();
+            }
+
+            // Current state position mapping
+            const projectileCoord = toCanvasCoords(state.x, state.y);
+
+            // Draw Vectors (Gravity & Velocity)
+            if (state.x < state.maxDistanceCalculated) {
+                const scaleFactor = 1.8; // Scaling vector lines for canvas visibility
+
+                // Gravity vector
+                if (chkShowGravity.checked) {
+                    drawArrow(projectileCoord.x, projectileCoord.y, projectileCoord.x, projectileCoord.y + (state.g * 4), '#ef4444', 2, 'mg');
+                }
+
+                // Total Velocity vector
+                if (chkShowVelocityVector.checked) {
+                    const vxPixels = state.vx * scaleFactor;
+                    const vyPixels = -state.vy * scaleFactor; // negative sign because of flipped coordinate systems
+                    drawArrow(projectileCoord.x, projectileCoord.y, projectileCoord.x + vxPixels, projectileCoord.y + vyPixels, '#06b6d4', 2.5, 'v');
+                }
+
+                // Split components
+                if (chkShowComponents.checked) {
+                    // Vx
+                    drawArrow(projectileCoord.x, projectileCoord.y, projectileCoord.x + (state.vx * scaleFactor), projectileCoord.y, '#c084fc', 1.5, 'vx');
+                    // Vy
+                    drawArrow(projectileCoord.x, projectileCoord.y, projectileCoord.x, projectileCoord.y + (-state.vy * scaleFactor), '#f59e0b', 1.5, 'vy');
+                }
+            }
+
+            // Render simulated Projectile body
+            ctx.fillStyle = '#3b82f6';
+            ctx.shadowColor = 'rgba(59, 130, 246, 0.5)';
+            ctx.shadowBlur = 10;
+            ctx.beginPath();
+            ctx.arc(projectileCoord.x, projectileCoord.y, 8, 0, Math.PI * 2);
+            ctx.fill();
+            ctx.shadowBlur = 0; // reset blur
+
+            // Trigger updates for auxiliary analytical plots
+            drawPlots();
+        }
+
+        function drawArrow(fromX, fromY, toX, toY, color, width, label) {
+            const headLength = 8; // length of head in pixels
+            const dx = toX - fromX;
+            const dy = toY - fromY;
+            const angle = Math.atan2(dy, dx);
+            
+            ctx.strokeStyle = color;
+            ctx.fillStyle = color;
+            ctx.lineWidth = width;
+            
+            ctx.beginPath();
+            ctx.moveTo(fromX, fromY);
+            ctx.lineTo(toX, toY);
+            ctx.stroke();
+            
+            ctx.beginPath();
+            ctx.moveTo(toX, toY);
+            ctx.lineTo(toX - headLength * Math.cos(angle - Math.PI / 6), toY - headLength * Math.sin(angle - Math.PI / 6));
+            ctx.lineTo(toX - headLength * Math.cos(angle + Math.PI / 6), toY - headLength * Math.sin(angle + Math.PI / 6));
+            ctx.fill();
+
+            if (label) {
+                ctx.fillStyle = color;
+                ctx.font = 'bold 9px Inter';
+                ctx.fillText(label, toX + 5 * Math.cos(angle), toY + 5 * Math.sin(angle));
+            }
+        }
+
+        function drawPlots() {
+            // Plot 1: y vs x
+            drawSinglePlot(ctxYx, graphYx, "X (Range - m)", "Y (Height - m)", '#3b82f6', (valX) => {
+                // y as a function of x
+                return state.y0 + (state.v0y / state.v0x) * valX - (0.5 * state.g * valX * valX) / (state.v0x * state.v0x);
+            }, state.maxDistanceCalculated, state.maxHeightCalculated, state.x, state.y);
+
+            // Plot 2: y vs t
+            drawSinglePlot(ctxYt, graphYt, "t (Time - s)", "Y (Height - m)", '#f59e0b', (valT) => {
+                // y as a function of t
+                return state.y0 + (state.v0y * valT) - (0.5 * state.g * valT * valT);
+            }, state.totalFlightTime, state.maxHeightCalculated, state.t, state.y);
+
+            // Plot 3: x vs t
+            drawSinglePlot(ctxXt, graphXt, "t (Time - s)", "X (Range - m)", '#10b981', (valT) => {
+                // x as a function of t
+                return state.v0x * valT;
+            }, state.totalFlightTime, state.maxDistanceCalculated, state.t, state.x);
+        }
+
+        function drawSinglePlot(pCtx, pCanvas, labelX, labelY, color, formulaFunc, maxDomain, maxRange, currentX, currentY) {
+            pCtx.clearRect(0, 0, pCanvas.width, pCanvas.height);
+            
+            const padLeft = 35;
+            const padBottom = 25;
+            const padRight = 15;
+            const padTop = 15;
+
+            const graphW = pCanvas.width - padLeft - padRight;
+            const graphH = pCanvas.height - padBottom - padTop;
+
+            // Draw axis borders
+            pCtx.strokeStyle = '#334155';
+            pCtx.lineWidth = 1;
+            pCtx.beginPath();
+            pCtx.moveTo(padLeft, padTop);
+            pCtx.lineTo(padLeft, pCanvas.height - padBottom);
+            pCtx.lineTo(pCanvas.width - padRight, pCanvas.height - padBottom);
+            pCtx.stroke();
+
+            // Label axes
+            pCtx.fillStyle = '#64748b';
+            pCtx.font = '8px Inter';
+            pCtx.fillText(labelX, pCanvas.width - padRight - 55, pCanvas.height - 5);
+            
+            pCtx.save();
+            pCtx.translate(10, padTop + 45);
+            pCtx.rotate(-Math.PI / 2);
+            pCtx.fillText(labelY, 0, 0);
+            pCtx.restore();
+
+            // Draw ideal curve
+            pCtx.strokeStyle = 'rgba(255, 255, 255, 0.1)';
+            pCtx.lineWidth = 1.5;
+            pCtx.beginPath();
+            
+            const steps = 60;
+            for (let i = 0; i <= steps; i++) {
+                const domainVal = (maxDomain / steps) * i;
+                const rangeVal = formulaFunc(domainVal);
+                
+                const px = padLeft + (domainVal / maxDomain) * graphW;
+                const py = pCanvas.height - padBottom - (rangeVal / maxRange) * graphH;
+
+                if (i === 0) pCtx.moveTo(px, py);
+                else pCtx.lineTo(px, py);
+            }
+            pCtx.stroke();
+
+            // Highlight progress up to current position
+            pCtx.strokeStyle = color;
+            pCtx.lineWidth = 2;
+            pCtx.beginPath();
+            
+            const activeSteps = Math.min(steps, Math.ceil((currentX / maxDomain) * steps));
+            for (let i = 0; i <= activeSteps; i++) {
+                const domainVal = (currentX / activeSteps) * i;
+                if (isNaN(domainVal)) continue;
+                const rangeVal = formulaFunc(domainVal);
+                
+                const px = padLeft + (domainVal / maxDomain) * graphW;
+                const py = pCanvas.height - padBottom - (rangeVal / maxRange) * graphH;
+
+                if (i === 0) pCtx.moveTo(px, py);
+                else pCtx.lineTo(px, py);
+            }
+            pCtx.stroke();
+
+            // Dynamic tracking pinhead dot
+            const pinX = padLeft + (currentX / maxDomain) * graphW;
+            const pinY = pCanvas.height - padBottom - (currentY / maxRange) * graphH;
+            
+            if (pinX >= padLeft && pinX <= pCanvas.width - padRight && pinY <= pCanvas.height - padBottom && pinY >= padTop) {
+                pCtx.fillStyle = color;
+                pCtx.beginPath();
+                pCtx.arc(pinX, pinY, 4, 0, Math.PI * 2);
+                pCtx.fill();
+            }
+        }
+
+
+        const quizData = [
+            {
+                q: "Why is the horizontal acceleration ($a_x$) assumed to be exactly zero in standard projectile kinematics?",
+                answers: [
+                    "Gravity only pulls sideways on massive bodies.",
+                    "We assume zero horizontal forces, neglecting atmospheric air resistance.",
+                    "The object's kinetic energy overrides horizontal gravitational pulls.",
+                    "Newton's Second Law does not apply to horizontal motion vectors."
+                ],
+                correct: 1,
+                explain: "In our simplified model, we assume no air resistance. Since there are no horizontal forces acting on the projectile, Newton's second law ($F_x = m a_x$) resolves to $0 = m a_x$, yielding $a_x = 0$."
+            },
+            {
+                q: "Which mathematical function represents the spatial flight path of the projectile ($y$ as a function of $x$)?",
+                answers: [
+                    "A linear curve scaling upwards to infinity.",
+                    "An exponential decay sequence.",
+                    "A downward-opening parabola.",
+                    "A sinusoidal mechanical vibration cycle."
+                ],
+                correct: 2,
+                explain: "Substituting $t = x / v_{x0}$ into the quadratic equation of vertical motion yields a quadratic relation: $y(x) = y_0 + (v_{y0}/v_{x0})x - [g / (2v_{x0}^2)]x^2$. Because the coefficient of the $x^2$ term is negative, it forms a downward-opening parabola."
+            },
+            {
+                q: "At the peak apex of a projectile's flight, which of these statements correctly describes its velocity components?",
+                answers: [
+                    "Both vertical and horizontal velocities are exactly zero.",
+                    "Vertical velocity is zero, while horizontal velocity remains equal to its initial value.",
+                    "Vertical velocity is at its maximum absolute magnitude.",
+                    "Horizontal velocity reverses to negative values."
+                ],
+                correct: 1,
+                explain: "At the maximum height, vertical velocity ($v_y$) is momentarily zero as it transition from going up to falling down. However, because horizontal acceleration is zero, $v_x$ remains completely unchanged throughout the entire flight."
+            },
+            {
+                q: "If you simulate the exact same launch parameters on Mars ($g = 3.7\\text{ m/s}^2$) instead of Earth, what happens?",
+                answers: [
+                    "The projectile range and maximum flight height will increase.",
+                    "The projectile will fall significantly faster, decreasing flight time.",
+                    "The path will become a perfectly straight linear line.",
+                    "The horizontal velocity will drop to zero immediately."
+                ],
+                correct: 0,
+                explain: "A weaker gravity ($g$) means downward vertical acceleration is reduced. The projectile is pulled back to the ground much more slowly, resulting in a longer flight duration, greater altitude, and longer overall downrange travel."
+            }
+        ];
+
+        let quizState = {
+            currIdx: 0,
+            score: 0,
+            hasAnswered: false
+        };
+
+        let quizContainer = document.getElementById('quizContainer');
+        let quizQuestion = document.getElementById('quizQuestion');
+        let answersContainer = document.getElementById('answersContainer');
+        const feedbackText = document.getElementById('feedbackText');
+        const btnNextQuestion = document.getElementById('btnNextQuestion');
+        const quizScore = document.getElementById('quizScore');
+        let progressBar = document.getElementById('progressBar');
+        let currIdxSpan = document.getElementById('currIdx');
+
+        function loadQuestion() {
+            quizState.hasAnswered = false;
+            feedbackText.innerHTML = "";
+            btnNextQuestion.classList.add('hidden');
+            
+            const data = quizData[quizState.currIdx];
+            quizQuestion.textContent = data.q;
+            currIdxSpan.textContent = quizState.currIdx + 1;
+            progressBar.style.width = `${((quizState.currIdx + 1) / quizData.length) * 100}%`;
+
+            answersContainer.innerHTML = "";
+            data.answers.forEach((ans, i) => {
+                const btn = document.createElement('button');
+                btn.className = "w-full text-left p-4 rounded-xl bg-slate-800 border border-slate-700/80 hover:bg-slate-700/60 hover:border-slate-600 transition duration-150 text-xs text-slate-200 flex items-start gap-3";
+                btn.innerHTML = `
+                    <span class="h-5 w-5 rounded-full bg-slate-950 border border-slate-700 flex items-center justify-center font-bold text-[10px] text-slate-400 shrink-0">${String.fromCharCode(65 + i)}</span>
+                    <span class="pt-0.5">${ans}</span>
+                `;
+                btn.addEventListener('click', () => handleAnswerSelect(i, btn));
+                answersContainer.appendChild(btn);
+            });
+
+            // Re-render LaTeX math whenever new quiz components load
+            renderMath();
+        }
+
+        function handleAnswerSelect(idx, btn) {
+            if (quizState.hasAnswered) return;
+            quizState.hasAnswered = true;
+
+            const data = quizData[quizState.currIdx];
+            const children = answersContainer.children;
+
+            if (idx === data.correct) {
+                // Correct answer selected
+                btn.className = "w-full text-left p-4 rounded-xl bg-emerald-950/40 border border-emerald-500/50 text-xs text-emerald-200 flex items-start gap-3";
+                btn.querySelector('span').className = "h-5 w-5 rounded-full bg-emerald-500 border border-emerald-400 flex items-center justify-center font-bold text-[10px] text-white shrink-0";
+                
+                feedbackText.innerHTML = `<span class="text-emerald-400 font-bold"><i class="fa-solid fa-circle-check"></i> Correct!</span> <span class="text-slate-400">${data.explain}</span>`;
+                quizState.score++;
+                quizScore.textContent = quizState.score;
+            } else {
+                // Wrong answer selected
+                btn.className = "w-full text-left p-4 rounded-xl bg-rose-950/40 border border-rose-500/50 text-xs text-rose-200 flex items-start gap-3";
+                btn.querySelector('span').className = "h-5 w-5 rounded-full bg-rose-500 border border-rose-400 flex items-center justify-center font-bold text-[10px] text-white shrink-0";
+                
+                // Highlight correct answer
+                const correctBtn = children[data.correct];
+                correctBtn.className = "w-full text-left p-4 rounded-xl bg-emerald-950/20 border border-emerald-500/30 text-xs text-emerald-300 flex items-start gap-3";
+
+                feedbackText.innerHTML = `<span class="text-rose-400 font-bold"><i class="fa-solid fa-circle-xmark"></i> Incorrect.</span> <span class="text-slate-400">${data.explain}</span>`;
+            }
+
+            // Disable other buttons visual hover
+            for (let i = 0; i < children.length; i++) {
+                if (i !== idx && i !== data.correct) {
+                    children[i].className = "w-full text-left p-4 rounded-xl bg-slate-800/40 border border-slate-800/80 text-xs text-slate-500 flex items-start gap-3 cursor-not-allowed";
+                }
+            }
+
+            btnNextQuestion.classList.remove('hidden');
+            if (quizState.currIdx === quizData.length - 1) {
+                btnNextQuestion.innerHTML = `Finish Quiz <i class="fa-solid fa-flag-checkered"></i>`;
+            }
+
+            // Re-render LaTeX math inside feedback
+            renderMath();
+        }
+
+        btnNextQuestion.addEventListener('click', () => {
+            if (quizState.currIdx < quizData.length - 1) {
+                quizState.currIdx++;
+                loadQuestion();
+            } else {
+                // End of quiz
+                quizContainer.innerHTML = `
+                    <div class="text-center py-8 space-y-4">
+                        <div class="h-16 w-16 bg-gradient-to-tr from-indigo-600 to-blue-500 rounded-2xl flex items-center justify-center mx-auto shadow-lg shadow-indigo-500/20">
+                            <i class="fa-solid fa-award text-white text-3xl"></i>
+                        </div>
+                        <div>
+                            <h3 class="text-xl font-bold text-slate-100">Checkpoint Completed!</h3>
+                            <p class="text-xs text-slate-400 mt-1">You scored a total of ${quizState.score} out of ${quizData.length} correct answers.</p>
+                        </div>
+                        <div class="pt-4">
+                            <button id="btnRestartQuiz" class="bg-indigo-600 hover:bg-indigo-500 text-white font-bold text-xs py-2.5 px-6 rounded-xl transition">
+                                Restart Quiz Challenge
+                            </button>
+                        </div>
+                    </div>
+                `;
+                btnNextQuestion.classList.add('hidden');
+                feedbackText.innerHTML = "";
+                
+                document.getElementById('btnRestartQuiz').addEventListener('click', () => {
+                    quizState.currIdx = 0;
+                    quizState.score = 0;
+                    quizScore.textContent = "0";
+                    quizContainer.innerHTML = `
+                        <div class="flex items-center gap-2 mb-4">
+                            <div class="text-[11px] font-bold text-slate-400 font-mono uppercase">Question <span id="currIdx">1</span> of 4</div>
+                            <div class="h-1 bg-slate-800 flex-grow rounded-full overflow-hidden">
+                                <div id="progressBar" class="h-full bg-blue-500 w-1/4 transition-all duration-300"></div>
+                            </div>
+                        </div>
+                        <h3 id="quizQuestion" class="text-lg font-bold text-slate-100 mb-6 leading-relaxed">Loading...</h3>
+                        <div id="answersContainer" class="space-y-3"></div>
+                    `;
+                    // Re-bind variables
+                    currIdxSpan = document.getElementById('currIdx');
+                    progressBar = document.getElementById('progressBar');
+                    quizQuestion = document.getElementById('quizQuestion');
+                    answersContainer = document.getElementById('answersContainer');
+                    loadQuestion();
+                });
+            }
+        });
+
+
+        window.onload = function() {
+            calculatePhysics();
+            resetSimulation();
+            loadQuestion();
+            
+            // Initial render call with short timeout in case libraries defer-loaded late
+            setTimeout(renderMath, 150);
+        }
+    </script>
+</body>
+</html>
