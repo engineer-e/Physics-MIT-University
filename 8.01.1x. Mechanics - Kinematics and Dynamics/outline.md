@@ -70,13 +70,13 @@
 
     4. Lesson 3 - 2D Kinematics - Position, Velocity, and Acceleration
         1. Topics and Reading List
-        2. L3v1: Coordinate System and Position Vector in 2D
+        2. [L3v1](https://engineer-e.github.io/Physics-MIT-University/8.01.1x.%20Mechanics%20-%20Kinematics%20and%20Dynamics/course_html/Mechanics%20-%20Kinematics%20and%20Dynamics/Week%201%20-%20Kinematics/Lesson%203%20-%202D%20Kinematics%20-%20Position,%20Velocity,%20and%20Acceleration/L3v1%20Coordinate%20System%20and%20Position%20Vector%20in%202D/L3v1_ai1.html): Coordinate System and Position Vector in 2D
         3. L3Q1: Position, Displacement and Distance in 2D
-        4. L3v2: Instantaneous Velocity in 2D
+        4. [L3v2](https://engineer-e.github.io/Physics-MIT-University/8.01.1x.%20Mechanics%20-%20Kinematics%20and%20Dynamics/course_html/Mechanics%20-%20Kinematics%20and%20Dynamics/Week%201%20-%20Kinematics/Lesson%203%20-%202D%20Kinematics%20-%20Position,%20Velocity,%20and%20Acceleration/L3v2%20Instantaneous%20Velocity%20in%202D/l3v2_ai1.html): Instantaneous Velocity in 2D
         5. L3Q2: Average velocity vs. Average Speed in 2D
-        6. L3v3: Instantaneous Acceleration in 2D
+        6. [L3v3](https://engineer-e.github.io/Physics-MIT-University/8.01.1x.%20Mechanics%20-%20Kinematics%20and%20Dynamics/course_html/Mechanics%20-%20Kinematics%20and%20Dynamics/Week%201%20-%20Kinematics/Lesson%203%20-%202D%20Kinematics%20-%20Position,%20Velocity,%20and%20Acceleration/L3v3%20Instantaneous%20Acceleration%20in%202D/L3v3_ai1.html): Instantaneous Acceleration in 2D
         7. L3Q3: Position, velocity and acceleration in 2D
-        8. L3v4: Projectile Motion
+        8. [L3v4](https://engineer-e.github.io/Physics-MIT-University/8.01.1x.%20Mechanics%20-%20Kinematics%20and%20Dynamics/course_html/Mechanics%20-%20Kinematics%20and%20Dynamics/Week%201%20-%20Kinematics/Lesson%203%20-%202D%20Kinematics%20-%20Position,%20Velocity,%20and%20Acceleration/L3v4%20Projectile%20Motion/L3v4_ai1.html): Projectile Motion
         9. Demos for Projectile Motion
         10. L3WE1: Throwing a projectile (Worked Example)
 
