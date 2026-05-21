@@ -1,0 +1,1157 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Newton's Law of Gravitation Simulator & Learning Guide</title>
+  
+  <!-- Tailwind CSS -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  
+  <!-- Font Awesome Icons -->
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  
+  <!-- MathJax for rendering gorgeous LaTeX mathematical formulas -->
+  <script>
+    window.MathJax = {
+      tex: {
+        inlineMath: [['$', '$'], ['\\(', '\\)']],
+        displayMath: [['$$', '$$'], ['\\[', '\\]']],
+        processEscapes: true
+      },
+      options: {
+        skipHtmlTags: ['script', 'noscript', 'style', 'textarea', 'pre']
+      }
+    };
+  </script>
+  <script id="MathJax-script" async src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
+
+  <style>
+    /* Custom scrollbar */
+    ::-webkit-scrollbar {
+      width: 8px;
+      height: 8px;
+    }
+    ::-webkit-scrollbar-track {
+      background: #1e1e2e;
+    }
+    ::-webkit-scrollbar-thumb {
+      background: #45475a;
+      border-radius: 4px;
+    }
+    ::-webkit-scrollbar-thumb:hover {
+      background: #585b70;
+    }
+    
+    /* Grid background effect for the canvas container */
+    .grid-bg {
+      background-size: 40px 40px;
+      background-image: 
+        linear-gradient(to right, rgba(255, 255, 255, 0.03) 1px, transparent 1px),
+        linear-gradient(to bottom, rgba(255, 255, 255, 0.03) 1px, transparent 1px);
+    }
+    
+    /* Active tab style */
+    .tab-active {
+      border-color: #f38ba8;
+      color: #f38ba8;
+      background-color: rgba(243, 139, 168, 0.1);
+    }
+  </style>
+</head>
+<body class="bg-[#11111b] text-[#cdd6f4] min-h-screen font-sans">
+
+  <!-- Header Banner -->
+  <header class="bg-[#181825] border-b border-[#313244] py-6 px-4 sm:px-8">
+    <div class="max-w-7xl mx-auto flex flex-col md:flex-row items-center justify-between gap-4">
+      <div class="flex items-center gap-4">
+        <div class="p-3 bg-red-500/10 rounded-xl text-red-400 text-3xl">
+          <i class="fa-solid fa-shuttle-space"></i>
+        </div>
+        <div>
+          <h1 class="text-2xl sm:text-3xl font-extrabold tracking-tight bg-gradient-to-r from-red-400 via-pink-400 to-purple-400 bg-clip-text text-transparent">
+            Newtonian Gravitation Guide
+          </h1>
+          <p class="text-sm text-[#a6adc8] mt-1">Interactive Vector Simulator, Mathematical Derivation & Interactive Quiz</p>
+        </div>
+      </div>
+      <div class="flex gap-2">
+        <span class="px-3 py-1 bg-[#313244] rounded-full text-xs text-[#a6adc8] flex items-center gap-1.5 border border-[#45475a]">
+          <span class="w-2 h-2 rounded-full bg-green-400 animate-pulse"></span>
+          Vector Math Engine Active
+        </span>
+      </div>
+    </div>
+  </header>
+
+  <!-- Navigation Tabs -->
+  <div class="max-w-7xl mx-auto px-4 mt-6">
+    <div class="flex flex-wrap gap-2 border-b border-[#313244] pb-px">
+      <button onclick="switchTab('sim-tab')" id="sim-tab-btn" class="px-5 py-3 font-semibold text-sm border-b-2 border-transparent hover:text-white transition duration-200 flex items-center gap-2 tab-active">
+        <i class="fa-solid fa-compass-drafting text-rose-400"></i> Vector Simulator
+      </button>
+      <button onclick="switchTab('infographic-tab')" id="infographic-tab-btn" class="px-5 py-3 font-semibold text-sm border-b-2 border-transparent hover:text-white transition duration-200 flex items-center gap-2">
+        <i class="fa-solid fa-circle-info text-blue-400"></i> Core Formulas & Infographic
+      </button>
+      <button onclick="switchTab('algorithms-tab')" id="algorithms-tab-btn" class="px-5 py-3 font-semibold text-sm border-b-2 border-transparent hover:text-white transition duration-200 flex items-center gap-2">
+        <i class="fa-solid fa-gears text-emerald-400"></i> Step-by-Step Algorithm
+      </button>
+      <button onclick="switchTab('quiz-tab')" id="quiz-tab-btn" class="px-5 py-3 font-semibold text-sm border-b-2 border-transparent hover:text-white transition duration-200 flex items-center gap-2">
+        <i class="fa-solid fa-clipboard-question text-yellow-400"></i> Concept Check Quiz
+      </button>
+    </div>
+  </div>
+
+  <!-- Main Content Layout -->
+  <main class="max-w-7xl mx-auto px-4 py-8">
+    
+    <!-- ==================== TAB 1: VECTOR SIMULATOR ==================== -->
+    <div id="sim-tab" class="space-y-6">
+      <div class="grid grid-cols-1 lg:grid-cols-12 gap-6">
+        
+        <!-- Canvas Visualizer Section (8 columns) -->
+        <div class="lg:col-span-8 flex flex-col bg-[#1e1e2e] border border-[#313244] rounded-2xl overflow-hidden shadow-2xl relative">
+          <!-- Canvas Top Bar Controls -->
+          <div class="p-4 bg-[#181825] border-b border-[#313244] flex flex-wrap items-center justify-between gap-3">
+            <div class="flex items-center gap-2">
+              <span class="w-3.5 h-3.5 rounded-full bg-red-500"></span>
+              <span class="w-3.5 h-3.5 rounded-full bg-yellow-500"></span>
+              <span class="w-3.5 h-3.5 rounded-full bg-green-500"></span>
+              <h3 class="font-bold text-sm text-[#cdd6f4] ml-2">Gravitational Vector Sandbox</h3>
+            </div>
+            <!-- Simulation Controls -->
+            <div class="flex items-center gap-3">
+              <button onclick="resetSimPositions()" class="px-3 py-1.5 bg-[#313244] hover:bg-[#45475a] text-[#cdd6f4] rounded-lg text-xs font-semibold transition flex items-center gap-1.5 border border-[#45475a]">
+                <i class="fa-solid fa-arrow-rotate-left"></i> Reset Positions
+              </button>
+              <button id="toggleGridBtn" onclick="toggleGrid()" class="px-3 py-1.5 bg-[#313244] hover:bg-[#45475a] text-[#cdd6f4] rounded-lg text-xs font-semibold transition flex items-center gap-1.5 border border-[#45475a]">
+                <i class="fa-solid fa-border-all"></i> Toggle Grid
+              </button>
+            </div>
+          </div>
+
+          <!-- Canvas Workspace -->
+          <div class="relative w-full aspect-[4/3] min-h-[400px] bg-[#0c0c12] grid-bg flex-grow cursor-crosshair overflow-hidden" id="canvas-container">
+            <!-- Labels & Vectors drawn via JS Canvas -->
+            <canvas id="physics-canvas" class="absolute top-0 left-0 w-full h-full block"></canvas>
+            
+            <!-- Origin Marker -->
+            <div id="origin-marker" class="absolute pointer-events-none flex flex-col items-center justify-center">
+              <div class="w-3 h-3 bg-fuchsia-500 rounded-full border-2 border-white animate-pulse"></div>
+              <span class="text-xs font-bold text-fuchsia-400 mt-1 bg-[#1e1e2e]/90 px-1.5 py-0.5 rounded border border-[#313244]">Origin (0,0)</span>
+            </div>
+
+            <!-- Interaction Notice Overlay -->
+            <div class="absolute bottom-4 left-4 pointer-events-none bg-black/75 border border-white/10 px-3 py-2 rounded-lg text-xs text-[#a6adc8] max-w-sm">
+              <span class="text-white font-semibold flex items-center gap-1 mb-1">
+                <i class="fa-solid fa-hand-pointer text-rose-400"></i> Interactive Interaction
+              </span>
+              Drag either <span class="text-yellow-400 font-bold">m₁ (Sun)</span> or <span class="text-emerald-400 font-bold">m₂ (Earth)</span> to recalculate positions, angles, distances, unit vectors, and force balances dynamically.
+            </div>
+          </div>
+          
+          <!-- Visual Legend Bar -->
+          <div class="p-4 bg-[#181825] border-t border-[#313244] grid grid-cols-2 md:grid-cols-4 gap-3 text-xs">
+            <div class="flex items-center gap-2">
+              <span class="w-4 h-0.5 bg-fuchsia-500 block relative"><span class="absolute right-0 -top-1 border-t-4 border-b-4 border-l-4 border-transparent border-l-fuchsia-500"></span></span>
+              <span>Position Vectors ($\vec{r}_1, \vec{r}_2$)</span>
+            </div>
+            <div class="flex items-center gap-2">
+              <span class="w-4 h-0.5 bg-sky-400 block relative"><span class="absolute right-0 -top-1 border-t-4 border-b-4 border-l-4 border-transparent border-l-sky-400"></span></span>
+              <span>Displacement ($\vec{r}_{12}$)</span>
+            </div>
+            <div class="flex items-center gap-2">
+              <span class="w-4 h-0.5 bg-rose-500 block relative"><span class="absolute right-0 -top-1 border-t-4 border-b-4 border-l-4 border-transparent border-l-rose-500"></span></span>
+              <span>Gravitational Forces ($\vec{F}$)</span>
+            </div>
+            <div class="flex items-center gap-2">
+              <span class="w-4 h-0.5 bg-[#a6adc8] border-dashed border-t block relative"><span class="absolute right-0 -top-1 border-t-4 border-b-4 border-l-4 border-transparent border-l-[#a6adc8]"></span></span>
+              <span>Radial Unit Vectors ($\hat{r}$)</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- Simulation Control Panel (4 columns) -->
+        <div class="lg:col-span-4 flex flex-col gap-6">
+          
+          <!-- Mass Sliders & G Controls -->
+          <div class="bg-[#1e1e2e] border border-[#313244] rounded-2xl p-6 shadow-xl space-y-5">
+            <h4 class="font-bold text-lg text-[#cdd6f4] flex items-center gap-2 border-b border-[#313244] pb-3">
+              <i class="fa-solid fa-sliders text-pink-400"></i> Simulation Parameters
+            </h4>
+            
+            <!-- Mass 1 Control (Sun) -->
+            <div class="space-y-2">
+              <div class="flex justify-between items-center text-sm">
+                <span class="text-[#a6adc8] flex items-center gap-1.5">
+                  <span class="w-2.5 h-2.5 rounded-full bg-yellow-400"></span>
+                  Mass 1 ($m_1$) - Sun:
+                </span>
+                <span class="font-bold text-yellow-400" id="m1-val">100 × 10¹⁰ kg</span>
+              </div>
+              <input type="range" id="m1-slider" min="10" max="1000" value="100" class="w-full h-1.5 bg-[#313244] rounded-lg appearance-none cursor-pointer accent-yellow-400" oninput="updateSimulationValues()">
+            </div>
+            
+            <!-- Mass 2 Control (Earth) -->
+            <div class="space-y-2">
+              <div class="flex justify-between items-center text-sm">
+                <span class="text-[#a6adc8] flex items-center gap-1.5">
+                  <span class="w-2.5 h-2.5 rounded-full bg-emerald-400"></span>
+                  Mass 2 ($m_2$) - Earth:
+                </span>
+                <span class="font-bold text-emerald-400" id="m2-val">50 × 10¹⁰ kg</span>
+              </div>
+              <input type="range" id="m2-slider" min="5" max="500" value="50" class="w-full h-1.5 bg-[#313244] rounded-lg appearance-none cursor-pointer accent-emerald-400" oninput="updateSimulationValues()">
+            </div>
+            
+            <!-- Gravitational Constant G Slider -->
+            <div class="space-y-2">
+              <div class="flex justify-between items-center text-sm">
+                <span class="text-[#a6adc8] flex items-center gap-1.5">
+                  <i class="fa-solid fa-g text-rose-400"></i>
+                  Scaling Constant ($G$):
+                </span>
+                <span class="font-bold text-rose-400" id="G-val">1.0</span>
+              </div>
+              <input type="range" id="G-slider" min="0.1" max="5.0" step="0.1" value="1.0" class="w-full h-1.5 bg-[#313244] rounded-lg appearance-none cursor-pointer accent-rose-500" oninput="updateSimulationValues()">
+            </div>
+          </div>
+
+          <!-- Dynamic Realtime Calculations & Vectors -->
+          <div class="bg-[#1e1e2e] border border-[#313244] rounded-2xl p-6 shadow-xl space-y-4 flex-grow">
+            <h4 class="font-bold text-lg text-[#cdd6f4] flex items-center gap-2 border-b border-[#313244] pb-3">
+              <i class="fa-solid fa-square-poll-vertical text-sky-400"></i> Real-time Vectors
+            </h4>
+            
+            <!-- Coordinates and distances -->
+            <div class="space-y-3 text-xs">
+              <!-- Coordinates Grid -->
+              <div class="grid grid-cols-2 gap-3">
+                <div class="bg-[#181825] p-2.5 rounded-lg border border-[#313244]">
+                  <p class="text-[#a6adc8] font-semibold mb-0.5">Position $\vec{r}_1$ (Sun)</p>
+                  <p id="r1-coord" class="font-mono text-yellow-400 font-bold text-sm">x: 0.0, y: 0.0</p>
+                </div>
+                <div class="bg-[#181825] p-2.5 rounded-lg border border-[#313244]">
+                  <p class="text-[#a6adc8] font-semibold mb-0.5">Position $\vec{r}_2$ (Earth)</p>
+                  <p id="r2-coord" class="font-mono text-emerald-400 font-bold text-sm">x: 0.0, y: 0.0</p>
+                </div>
+              </div>
+
+              <!-- Distance display -->
+              <div class="bg-[#181825] p-3 rounded-lg border border-[#313244]">
+                <div class="flex justify-between items-center">
+                  <p class="text-[#a6adc8] font-semibold">Distance $|\vec{r}_{12}|$ (meters):</p>
+                  <span id="distance-val" class="font-mono font-bold text-sky-400 text-base">0.00 m</span>
+                </div>
+                <div class="flex justify-between items-center mt-1 pt-1 border-t border-[#313244]">
+                  <p class="text-[#a6adc8]">Square Distance $r_{12}^2$:</p>
+                  <span id="distance-sq-val" class="font-mono text-sky-300">0.00 m²</span>
+                </div>
+              </div>
+
+              <!-- Normalized Unit Vectors info -->
+              <div class="bg-[#181825] p-3 rounded-lg border border-[#313244] space-y-1.5">
+                <p class="text-[#a6adc8] font-semibold">Radial Unit Vectors</p>
+                <div class="flex justify-between items-center font-mono">
+                  <span>$\hat{r}_{12}$ (Sun to Earth):</span>
+                  <span id="r12-hat-val" class="text-[#f5e0dc] font-semibold">x: 0.0, y: 0.0</span>
+                </div>
+                <div class="flex justify-between items-center font-mono">
+                  <span>$\hat{r}_{21}$ (Earth to Sun):</span>
+                  <span id="r21-hat-val" class="text-[#f2cdcd] font-semibold">x: 0.0, y: 0.0</span>
+                </div>
+                <p class="text-[10px] text-pink-400 text-center italic mt-1 pt-1 border-t border-[#313244]/60">
+                  Observe that: $\hat{r}_{12} = -\hat{r}_{21}$
+                </p>
+              </div>
+
+              <!-- Computed Forces -->
+              <div class="bg-[#181825] p-3 rounded-lg border border-rose-500/30 space-y-2 bg-gradient-to-br from-[#181825] to-rose-950/20">
+                <p class="text-rose-400 font-bold text-xs uppercase tracking-wider flex items-center gap-1.5">
+                  <i class="fa-solid fa-gauge-high"></i> Gravitational Action-Reaction Force
+                </p>
+                
+                <div class="flex justify-between items-center font-mono text-sm">
+                  <span class="text-yellow-400 font-semibold">$\vec{F}_{21}$ (on Sun):</span>
+                  <span id="f21-force" class="text-white font-bold">x: 0.0, y: 0.0</span>
+                </div>
+                <div class="flex justify-between items-center font-mono text-sm">
+                  <span class="text-emerald-400 font-semibold">$\vec{F}_{12}$ (on Earth):</span>
+                  <span id="f12-force" class="text-white font-bold">x: 0.0, y: 0.0</span>
+                </div>
+
+                <div class="flex justify-between items-center pt-2 mt-2 border-t border-[#313244] text-xs font-semibold">
+                  <span class="text-[#a6adc8]">Force Magnitude:</span>
+                  <span id="force-magnitude" class="text-rose-400 font-extrabold text-base">0.00 N</span>
+                </div>
+                
+                <!-- Proof Output -->
+                <div class="p-1.5 bg-[#11111b] rounded border border-rose-500/20 text-center text-[11px] font-bold text-rose-300">
+                  Verification: $\vec{F}_{12} + \vec{F}_{21} = \vec{0}$ &nbsp;&nbsp;&nbsp; (<span class="text-green-400">Verified</span>)
+                </div>
+              </div>
+            </div>
+          </div>
+
+        </div>
+      </div>
+    </div>
+
+    <!-- ==================== TAB 2: CORE FORMULAS & INFOGRAPHIC ==================== -->
+    <div id="infographic-tab" class="hidden space-y-6">
+      <!-- Theoretical Infographic Panels -->
+      <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+        
+        <!-- Vector Definition Card -->
+        <div class="bg-[#1e1e2e] border border-[#313244] rounded-2xl p-6 shadow-lg flex flex-col justify-between hover:border-pink-500/40 transition duration-300">
+          <div>
+            <div class="w-12 h-12 rounded-xl bg-pink-500/10 text-pink-400 flex items-center justify-center text-xl mb-4">
+              <i class="fa-solid fa-location-crosshairs"></i>
+            </div>
+            <h3 class="font-bold text-xl text-white mb-2">1. The Coordinate & Position System</h3>
+            <p class="text-sm text-[#a6adc8] mb-4 leading-relaxed">
+              To describe locations unambiguously, we place an <strong>arbitrary origin</strong> point $\vec{O}$.
+              The coordinates of the interacting bodies are defined with reference to this origin as:
+            </p>
+            <div class="bg-[#181825] p-3 rounded-lg border border-[#313244] font-mono text-xs space-y-2 text-rose-300 mb-4">
+              <p>• Sun (Mass $m_1$): Position Vector $\vec{r}_1$</p>
+              <p>• Earth (Mass $m_2$): Position Vector $\vec{r}_2$</p>
+              <p>• Displacement Vector: $\vec{r}_{12} = \vec{r}_2 - \vec{r}_1$</p>
+            </div>
+            <p class="text-xs text-[#a6adc8] leading-relaxed">
+              This displacement vector points <strong>from $m_1$ towards $m_2$</strong>. Its length is defined as the magnitude $|\vec{r}_{12}|$.
+            </p>
+          </div>
+        </div>
+
+        <!-- Unit Vector Card -->
+        <div class="bg-[#1e1e2e] border border-[#313244] rounded-2xl p-6 shadow-lg flex flex-col justify-between hover:border-blue-500/40 transition duration-300">
+          <div>
+            <div class="w-12 h-12 rounded-xl bg-blue-500/10 text-blue-400 flex items-center justify-center text-xl mb-4">
+              <i class="fa-solid fa-expand-arrows-alt"></i>
+            </div>
+            <h3 class="font-bold text-xl text-white mb-2">2. Unit Vectors & Directional Math</h3>
+            <p class="text-sm text-[#a6adc8] mb-4 leading-relaxed">
+              A <strong>unit vector</strong> designates direction alone without changing magnitude. 
+              Its length is exactly 1 unit, computed by dividing the vector by its scalar magnitude:
+            </p>
+            <div class="bg-[#181825] p-3 rounded-lg border border-[#313244] text-center font-mono text-sm text-blue-300 mb-4">
+              $$\hat{r}_{12} = \frac{\vec{r}_{12}}{|\vec{r}_{12}|}$$
+            </div>
+            <p class="text-sm text-[#a6adc8] mb-4 leading-relaxed">
+              Because of their geometry, the unit vector pointing from 2 to 1 is the exact inverse of 1 to 2:
+            </p>
+            <div class="bg-[#181825] p-3 rounded-lg border border-[#313244] text-center font-mono text-sm text-blue-300">
+              $$\hat{r}_{12} = -\hat{r}_{21}$$
+            </div>
+          </div>
+        </div>
+
+        <!-- Force Balance Card -->
+        <div class="bg-[#1e1e2e] border border-[#313244] rounded-2xl p-6 shadow-lg flex flex-col justify-between hover:border-emerald-500/40 transition duration-300">
+          <div>
+            <div class="w-12 h-12 rounded-xl bg-emerald-500/10 text-emerald-400 flex items-center justify-center text-xl mb-4">
+              <i class="fa-solid fa-equals"></i>
+            </div>
+            <h3 class="font-bold text-xl text-white mb-2">3. Force Vector Formulation</h3>
+            <p class="text-sm text-[#a6adc8] mb-4 leading-relaxed">
+              Gravity is <strong>always attractive</strong>. Thus, the force vector acts in the opposite direction of the outward radial unit vectors:
+            </p>
+            <div class="bg-[#181825] p-3.5 rounded-lg border border-[#313244] text-xs font-mono space-y-3 text-emerald-300 mb-4">
+              <div>
+                <span class="text-white font-bold">Force on 2 due to 1:</span>
+                $$\vec{F}_{12} = - \frac{G \cdot m_1 \cdot m_2}{r_{12}^2} \hat{r}_{12}$$
+              </div>
+              <div>
+                <span class="text-white font-bold">Force on 1 due to 2:</span>
+                $$\vec{F}_{21} = - \frac{G \cdot m_1 \cdot m_2}{r_{12}^2} \hat{r}_{21}$$
+              </div>
+            </div>
+            <p class="text-xs text-[#a6adc8] leading-relaxed">
+              Because $\hat{r}_{12} = -\hat{r}_{21}$, substituting gives the foundational truth of <strong>Newton's Third Law</strong>:
+              $$\vec{F}_{12} = -\vec{F}_{21}$$
+            </p>
+          </div>
+        </div>
+
+      </div>
+
+      <!-- Core Formulas Equation Card -->
+      <div class="bg-[#1e1e2e] border border-[#313244] rounded-2xl p-8 shadow-xl">
+        <h3 class="font-bold text-2xl text-white mb-6 flex items-center gap-2 border-b border-[#313244] pb-4">
+          <i class="fa-solid fa-calculator text-rose-400"></i> Mathematical Summary of Gravitational Vector Theory
+        </h3>
+        <div class="grid grid-cols-1 lg:grid-cols-12 gap-8 items-center">
+          <!-- Equations Column -->
+          <div class="lg:col-span-7 space-y-6">
+            <div class="space-y-4">
+              <div class="flex items-start gap-4">
+                <span class="bg-rose-500/10 text-rose-400 text-xs font-bold px-2 py-1 rounded border border-rose-500/20 mt-1">Law</span>
+                <div>
+                  <h4 class="text-white font-semibold">Universal Law of Gravitation (Vector Form)</h4>
+                  <p class="text-sm text-[#a6adc8] mt-1">
+                    $$\vec{F}_{12} = -G \frac{m_1 m_2}{r_{12}^2} \hat{r}_{12}$$
+                    Where $G \approx 6.67430 \times 10^{-11} \text{ m}^3\text{kg}^{-1}\text{s}^{-2}$, $m_1$ and $m_2$ are masses, $r_{12}$ is the distance between them, and $\hat{r}_{12}$ is the radial unit vector.
+                  </p>
+                </div>
+              </div>
+
+              <div class="flex items-start gap-4 pt-4 border-t border-[#313244]">
+                <span class="bg-blue-500/10 text-blue-400 text-xs font-bold px-2 py-1 rounded border border-blue-500/20 mt-1">Direction</span>
+                <div>
+                  <h4 class="text-white font-semibold">Significance of the Negative Sign (-)</h4>
+                  <p class="text-sm text-[#a6adc8] mt-1">
+                    The displacement vector $\vec{r}_{12}$ and its unit vector $\hat{r}_{12}$ point outward (from the source body $m_1$ to the affected body $m_2$). Because gravity is an <strong>attractive force</strong> pulling $m_2$ back toward $m_1$, the force vector $\vec{F}_{12}$ must point in the exact opposite direction. This is mathematically dictated by the negative sign.
+                  </p>
+                </div>
+              </div>
+
+              <div class="flex items-start gap-4 pt-4 border-t border-[#313244]">
+                <span class="bg-emerald-500/10 text-emerald-400 text-xs font-bold px-2 py-1 rounded border border-emerald-500/20 mt-1">Equality</span>
+                <div>
+                  <h4 class="text-white font-semibold">Newton's Third Law (Action-Reaction)</h4>
+                  <p class="text-sm text-[#a6adc8] mt-1">
+                    $$\vec{F}_{12} = - \vec{F}_{21}$$
+                    The force exerted by the Sun on the Earth ($\vec{F}_{12}$) is equal in magnitude and opposite in direction to the force exerted by the Earth on the Sun ($\vec{F}_{21}$). There is no asymmetry; both bodies pull on each other with the exact same amount of force.
+                  </p>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Quick Fact Sheet Panel -->
+          <div class="lg:col-span-5 bg-[#181825] border border-[#313244] rounded-xl p-6 space-y-4">
+            <h4 class="font-bold text-sm text-white uppercase tracking-wider border-b border-[#313244] pb-2">Physics Fact Sheet</h4>
+            <ul class="space-y-3 text-xs text-[#a6adc8]">
+              <li class="flex items-start gap-2">
+                <i class="fa-solid fa-circle-check text-green-400 mt-0.5"></i>
+                <span><strong>Central Force:</strong> Gravitational force acts directly along the line of centers connecting the two interacting masses.</span>
+              </li>
+              <li class="flex items-start gap-2">
+                <i class="fa-solid fa-circle-check text-green-400 mt-0.5"></i>
+                <span><strong>Inverse Square Nature:</strong> Double the distance between objects, and the gravitational pull is divided by exactly 4 ($2^2$).</span>
+              </li>
+              <li class="flex items-start gap-2">
+                <i class="fa-solid fa-circle-check text-green-400 mt-0.5"></i>
+                <span><strong>Polar Coordinates Preference:</strong> Planetary and orbital trajectories are far easier to model using polar vectors ($r, \theta$) instead of standard $(x, y)$ coordinate grids.</span>
+              </li>
+              <li class="flex items-start gap-2">
+                <i class="fa-solid fa-circle-check text-green-400 mt-0.5"></i>
+                <span><strong>Infinite Range:</strong> Gravity reaches across the entire universe. While the force becomes infinitesimal over massive distances, it never technically falls to zero.</span>
+              </li>
+            </ul>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ==================== TAB 3: STEP-BY-STEP ALGORITHM ==================== -->
+    <div id="algorithms-tab" class="hidden space-y-6">
+      <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+        
+        <!-- Computation Sequence Block -->
+        <div class="bg-[#1e1e2e] border border-[#313244] rounded-2xl p-6 shadow-xl">
+          <h3 class="font-bold text-xl text-white mb-4 flex items-center gap-2 border-b border-[#313244] pb-3">
+            <i class="fa-solid fa-terminal text-emerald-400"></i> Vector Calculation Sequence
+          </h3>
+          <p class="text-sm text-[#a6adc8] mb-4">
+            Below is the precise mathematical sequence used by our simulation engine to dynamically compute vector lengths, directions, and force properties:
+          </p>
+          
+          <div class="space-y-4 font-sans">
+            <!-- Step 1 -->
+            <div class="bg-[#181825] p-3.5 rounded-lg border border-[#313244] flex items-start gap-3">
+              <span class="w-6 h-6 rounded-full bg-emerald-500/10 text-emerald-400 font-bold text-xs flex items-center justify-center border border-emerald-500/20 shrink-0 mt-0.5">1</span>
+              <div>
+                <p class="text-sm text-white font-semibold">Extract Position Coordinates</p>
+                <p class="text-xs text-[#a6adc8] mt-1 font-mono">
+                  Read positions from origin: $\vec{r}_1 = [x_1, y_1]$ and $\vec{r}_2 = [x_2, y_2]$.
+                </p>
+              </div>
+            </div>
+
+            <!-- Step 2 -->
+            <div class="bg-[#181825] p-3.5 rounded-lg border border-[#313244] flex items-start gap-3">
+              <span class="w-6 h-6 rounded-full bg-emerald-500/10 text-emerald-400 font-bold text-xs flex items-center justify-center border border-emerald-500/20 shrink-0 mt-0.5">2</span>
+              <div>
+                <p class="text-sm text-white font-semibold">Compute Displacement Vector ($\vec{r}_{12}$)</p>
+                <p class="text-xs text-[#a6adc8] mt-1 font-mono">
+                  $\vec{r}_{12} = \vec{r}_2 - \vec{r}_1 = [x_2 - x_1, y_2 - y_1]$
+                </p>
+              </div>
+            </div>
+
+            <!-- Step 3 -->
+            <div class="bg-[#181825] p-3.5 rounded-lg border border-[#313244] flex items-start gap-3">
+              <span class="w-6 h-6 rounded-full bg-emerald-500/10 text-emerald-400 font-bold text-xs flex items-center justify-center border border-emerald-500/20 shrink-0 mt-0.5">3</span>
+              <div>
+                <p class="text-sm text-white font-semibold">Calculate Absolute Distance ($r_{12}$)</p>
+                <p class="text-xs text-[#a6adc8] mt-1 font-mono">
+                  $r_{12} = |\vec{r}_{12}| = \sqrt{(x_2 - x_1)^2 + (y_2 - y_1)^2}$
+                </p>
+              </div>
+            </div>
+
+            <!-- Step 4 -->
+            <div class="bg-[#181825] p-3.5 rounded-lg border border-[#313244] flex items-start gap-3">
+              <span class="w-6 h-6 rounded-full bg-emerald-500/10 text-emerald-400 font-bold text-xs flex items-center justify-center border border-emerald-500/20 shrink-0 mt-0.5">4</span>
+              <div>
+                <p class="text-sm text-white font-semibold">Derive Normalized Unit Vectors ($\hat{r}_{12}, \hat{r}_{21}$)</p>
+                <p class="text-xs text-[#a6adc8] mt-1 font-mono">
+                  $\hat{r}_{12} = \left[ \frac{x_2-x_1}{r_{12}}, \frac{y_2-y_1}{r_{12}} \right]$, &nbsp;&nbsp; $\hat{r}_{21} = -\hat{r}_{12}$
+                </p>
+              </div>
+            </div>
+
+            <!-- Step 5 -->
+            <div class="bg-[#181825] p-3.5 rounded-lg border border-[#313244] flex items-start gap-3">
+              <span class="w-6 h-6 rounded-full bg-emerald-500/10 text-emerald-400 font-bold text-xs flex items-center justify-center border border-emerald-500/20 shrink-0 mt-0.5">5</span>
+              <div>
+                <p class="text-sm text-white font-semibold">Resolve Force Magnitudes and Vectors</p>
+                <p class="text-xs text-[#a6adc8] mt-1 font-mono">
+                  Scalar magnitude $F = G \frac{m_1 m_2}{r_{12}^2}$<br>
+                  Vector representation: $\vec{F}_{12} = -F \cdot \hat{r}_{12}$ &nbsp;and&nbsp; $\vec{F}_{21} = -F \cdot \hat{r}_{21}$
+                </p>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Simulation Physics Engine Pseudo-Code -->
+        <div class="bg-[#1e1e2e] border border-[#313244] rounded-2xl p-6 shadow-xl flex flex-col justify-between">
+          <div>
+            <h3 class="font-bold text-xl text-white mb-4 flex items-center gap-2 border-b border-[#313244] pb-3">
+              <i class="fa-solid fa-code text-sky-400"></i> Simulation Engine Code Logic
+            </h3>
+            <p class="text-sm text-[#a6adc8] mb-4">
+              Here is the JavaScript implementation used to keep state and calculate physical force vectors dynamically under the hood inside our rendering loop:
+            </p>
+            
+            <pre class="bg-[#181825] text-xs text-sky-300 p-4 rounded-xl border border-[#313244] font-mono overflow-x-auto whitespace-pre leading-relaxed">
+<span class="text-gray-500">// 1. Read coordinates and system parameters</span>
+<span class="text-pink-400">const</span> dx = earth.x - sun.x;
+<span class="text-pink-400">const</span> dy = earth.y - sun.y;
+
+<span class="text-gray-500">// 2. Compute distance</span>
+<span class="text-pink-400">const</span> dist = Math.sqrt(dx * dx + dy * dy);
+<span class="text-pink-400">const</span> distSq = dist * dist;
+
+<span class="text-gray-500">// 3. Compute Unit Vectors</span>
+<span class="text-pink-400">const</span> r12_hat_x = dx / dist;
+<span class="text-pink-400">const</span> r12_hat_y = dy / dist;
+
+<span class="text-pink-400">const</span> r21_hat_x = -r12_hat_x;
+<span class="text-pink-400">const</span> r21_hat_y = -r12_hat_y;
+
+<span class="text-gray-500">// 4. Calculate Force Magnitudes (scaled)</span>
+<span class="text-pink-400">const</span> forceMag = (G * m1 * m2) / distSq;
+
+<span class="text-gray-500">// 5. Map force direction against unit vectors</span>
+<span class="text-pink-400">const</span> F12_x = -forceMag * r12_hat_x;
+<span class="text-pink-400">const</span> F12_y = -forceMag * r12_hat_y;
+
+<span class="text-pink-400">const</span> F21_x = -forceMag * r21_hat_x;
+<span class="text-pink-400">const</span> F21_y = -forceMag * r21_hat_y;</pre>
+          </div>
+          
+          <div class="mt-4 p-4 bg-emerald-500/10 border border-emerald-500/20 rounded-xl text-xs text-[#a6adc8]">
+            <strong class="text-emerald-400 block mb-1">Scale Translation:</strong>
+            In computer simulation grids, raw astronomical variables ($6.6743 \times 10^{-11}$) are converted into custom scale factors. This bridges the physical world and visual rendering coordinates cleanly!
+          </div>
+        </div>
+
+      </div>
+    </div>
+
+    <!-- ==================== TAB 4: CONCEPT CHECK QUIZ ==================== -->
+    <div id="quiz-tab" class="hidden space-y-6">
+      <div class="max-w-3xl mx-auto bg-[#1e1e2e] border border-[#313244] rounded-2xl overflow-hidden shadow-2xl">
+        
+        <!-- Quiz Header -->
+        <div class="p-6 bg-[#181825] border-b border-[#313244] flex justify-between items-center">
+          <div class="flex items-center gap-3">
+            <div class="p-2 bg-yellow-500/10 rounded-lg text-yellow-400 text-xl">
+              <i class="fa-solid fa-graduation-cap"></i>
+            </div>
+            <div>
+              <h3 class="font-bold text-lg text-white">Gravitational Vectors Challenge</h3>
+              <p class="text-xs text-[#a6adc8]">Verify your grasp of Newtonian Vector Mechanics</p>
+            </div>
+          </div>
+          <!-- Score Badge -->
+          <div class="bg-[#11111b] px-4 py-2 rounded-xl border border-[#313244] text-center">
+            <p class="text-[10px] text-[#a6adc8] uppercase tracking-wider font-bold">Your Score</p>
+            <p id="score-text" class="text-lg font-black text-yellow-400">0 / 4</p>
+          </div>
+        </div>
+
+        <!-- Quiz Panel/Container -->
+        <div class="p-6 space-y-6">
+          <div id="quiz-container" class="space-y-6">
+            <!-- Question 1 -->
+            <div class="space-y-3 pb-6 border-b border-[#313244]">
+              <div class="flex gap-2">
+                <span class="font-mono text-rose-400 font-bold">Q1.</span>
+                <p class="text-sm font-semibold text-white">In the equation $\vec{F}_{12} = - \frac{G \cdot m_1 \cdot m_2}{r_{12}^2} \hat{r}_{12}$, why is there a negative sign?</p>
+              </div>
+              <div class="grid grid-cols-1 gap-2.5 pl-6">
+                <label class="flex items-start gap-3 p-3 bg-[#181825] hover:bg-[#313244] rounded-xl cursor-pointer border border-[#313244] transition">
+                  <input type="radio" name="q1" value="A" class="mt-1 accent-rose-400" onchange="checkAnswer(1)">
+                  <span class="text-xs text-[#cdd6f4]">Because gravity is a repulsive force and pushes the bodies away.</span>
+                </label>
+                <label class="flex items-start gap-3 p-3 bg-[#181825] hover:bg-[#313244] rounded-xl cursor-pointer border border-[#313244] transition">
+                  <input type="radio" name="q1" value="B" class="mt-1 accent-rose-400" onchange="checkAnswer(1)">
+                  <span class="text-xs text-[#cdd6f4]">To represent that the gravitational field intensity is decreasing over time.</span>
+                </label>
+                <label id="q1-correct-option" class="flex items-start gap-3 p-3 bg-[#181825] hover:bg-[#313244] rounded-xl cursor-pointer border border-[#313244] transition">
+                  <input type="radio" name="q1" value="C" class="mt-1 accent-rose-400" onchange="checkAnswer(1)">
+                  <span class="text-xs text-[#cdd6f4]">Because gravity is attractive: the force pulls $m_2$ back toward $m_1$, opposite to the outward direction of $\hat{r}_{12}$.</span>
+                </label>
+                <label class="flex items-start gap-3 p-3 bg-[#181825] hover:bg-[#313244] rounded-xl cursor-pointer border border-[#313244] transition">
+                  <input type="radio" name="q1" value="D" class="mt-1 accent-rose-400" onchange="checkAnswer(1)">
+                  <span class="text-xs text-[#cdd6f4]">Because vector arithmetic requires physical magnitudes to always yield a negative coefficient.</span>
+                </label>
+              </div>
+              <div id="q1-feedback" class="hidden pl-6 text-xs mt-2"></div>
+            </div>
+
+            <!-- Question 2 -->
+            <div class="space-y-3 pb-6 border-b border-[#313244]">
+              <div class="flex gap-2">
+                <span class="font-mono text-rose-400 font-bold">Q2.</span>
+                <p class="text-sm font-semibold text-white">If the Sun has $330,000$ times the mass of the Earth, which celestial body exerts a larger gravitational force on the other?</p>
+              </div>
+              <div class="grid grid-cols-1 gap-2.5 pl-6">
+                <label class="flex items-start gap-3 p-3 bg-[#181825] hover:bg-[#313244] rounded-xl cursor-pointer border border-[#313244] transition">
+                  <input type="radio" name="q2" value="A" class="mt-1 accent-rose-400" onchange="checkAnswer(2)">
+                  <span class="text-xs text-[#cdd6f4]">The Sun, because its colossal mass dwarfs Earth's mass.</span>
+                </label>
+                <label id="q2-correct-option" class="flex items-start gap-3 p-3 bg-[#181825] hover:bg-[#313244] rounded-xl cursor-pointer border border-[#313244] transition">
+                  <input type="radio" name="q2" value="B" class="mt-1 accent-rose-400" onchange="checkAnswer(2)">
+                  <span class="text-xs text-[#cdd6f4]">They both exert the exact same force on each other, because of Newton's Third Law ($\vec{F}_{12} = -\vec{F}_{21}$).</span>
+                </label>
+                <label class="flex items-start gap-3 p-3 bg-[#181825] hover:bg-[#313244] rounded-xl cursor-pointer border border-[#313244] transition">
+                  <input type="radio" name="q2" value="C" class="mt-1 accent-rose-400" onchange="checkAnswer(2)">
+                  <span class="text-xs text-[#cdd6f4]">The Earth, because its speed offsets its lack of sheer physical mass.</span>
+                </label>
+                <label class="flex items-start gap-3 p-3 bg-[#181825] hover:bg-[#313244] rounded-xl cursor-pointer border border-[#313244] transition">
+                  <input type="radio" name="q2" value="D" class="mt-1 accent-rose-400" onchange="checkAnswer(2)">
+                  <span class="text-xs text-[#cdd6f4]">The force ratio varies dynamically, depending strictly on current velocity.</span>
+                </label>
+              </div>
+              <div id="q2-feedback" class="hidden pl-6 text-xs mt-2"></div>
+            </div>
+
+            <!-- Question 3 -->
+            <div class="space-y-3 pb-6 border-b border-[#313244]">
+              <div class="flex gap-2">
+                <span class="font-mono text-rose-400 font-bold">Q3.</span>
+                <p class="text-sm font-semibold text-white">How do polar coordinates lend themselves better to gravitational orbits than Cartesian coordinates?</p>
+              </div>
+              <div class="grid grid-cols-1 gap-2.5 pl-6">
+                <label class="flex items-start gap-3 p-3 bg-[#181825] hover:bg-[#313244] rounded-xl cursor-pointer border border-[#313244] transition">
+                  <input type="radio" name="q3" value="A" class="mt-1 accent-rose-400" onchange="checkAnswer(3)">
+                  <span class="text-xs text-[#cdd6f4]">Because orbits can only occur inside circular planetary structures.</span>
+                </label>
+                <label class="flex items-start gap-3 p-3 bg-[#181825] hover:bg-[#313244] rounded-xl cursor-pointer border border-[#313244] transition">
+                  <input type="radio" name="q3" value="B" class="mt-1 accent-rose-400" onchange="checkAnswer(3)">
+                  <span class="text-xs text-[#cdd6f4]">Polar coordinates avoid the need to calculate division operations.</span>
+                </label>
+                <label id="q3-correct-option" class="flex items-start gap-3 p-3 bg-[#181825] hover:bg-[#313244] rounded-xl cursor-pointer border border-[#313244] transition">
+                  <input type="radio" name="q3" value="C" class="mt-1 accent-rose-400" onchange="checkAnswer(3)">
+                  <span class="text-xs text-[#cdd6f4]">Gravity points radially inward; using radial unit vector $\hat{r}$ allows 1D simplification of the force vector.</span>
+                </label>
+                <label class="flex items-start gap-3 p-3 bg-[#181825] hover:bg-[#313244] rounded-xl cursor-pointer border border-[#313244] transition">
+                  <input type="radio" name="q3" value="D" class="mt-1 accent-rose-400" onchange="checkAnswer(3)">
+                  <span class="text-xs text-[#cdd6f4]">Because Cartesian grids break down whenever coordinates drop below zero.</span>
+                </label>
+              </div>
+              <div id="q3-feedback" class="hidden pl-6 text-xs mt-2"></div>
+            </div>
+
+            <!-- Question 4 -->
+            <div class="space-y-3">
+              <div class="flex gap-2">
+                <span class="font-mono text-rose-400 font-bold">Q4.</span>
+                <p class="text-sm font-semibold text-white">If the distance between two objects is doubled, what happens to the gravitational force?</p>
+              </div>
+              <div class="grid grid-cols-1 gap-2.5 pl-6">
+                <label class="flex items-start gap-3 p-3 bg-[#181825] hover:bg-[#313244] rounded-xl cursor-pointer border border-[#313244] transition">
+                  <input type="radio" name="q4" value="A" class="mt-1 accent-rose-400" onchange="checkAnswer(4)">
+                  <span class="text-xs text-[#cdd6f4]">The force is halved ($F / 2$).</span>
+                </label>
+                <label id="q4-correct-option" class="flex items-start gap-3 p-3 bg-[#181825] hover:bg-[#313244] rounded-xl cursor-pointer border border-[#313244] transition">
+                  <input type="radio" name="q4" value="B" class="mt-1 accent-rose-400" onchange="checkAnswer(4)">
+                  <span class="text-xs text-[#cdd6f4]">The force decreases by a factor of four ($F / 4$).</span>
+                </label>
+                <label class="flex items-start gap-3 p-3 bg-[#181825] hover:bg-[#313244] rounded-xl cursor-pointer border border-[#313244] transition">
+                  <input type="radio" name="q4" value="C" class="mt-1 accent-rose-400" onchange="checkAnswer(4)">
+                  <span class="text-xs text-[#cdd6f4]">The force doubles ($2F$).</span>
+                </label>
+                <label class="flex items-start gap-3 p-3 bg-[#181825] hover:bg-[#313244] rounded-xl cursor-pointer border border-[#313244] transition">
+                  <input type="radio" name="q4" value="D" class="mt-1 accent-rose-400" onchange="checkAnswer(4)">
+                  <span class="text-xs text-[#cdd6f4]">The force drops to absolute zero.</span>
+                </label>
+              </div>
+              <div id="q4-feedback" class="hidden pl-6 text-xs mt-2"></div>
+            </div>
+          </div>
+          
+          <!-- Restart Quiz Btn -->
+          <div class="pt-4 border-t border-[#313244] flex justify-end">
+            <button onclick="resetQuiz()" class="px-4 py-2 bg-[#313244] hover:bg-[#45475a] text-[#cdd6f4] font-semibold text-sm rounded-lg transition">
+              Reset Quiz
+            </button>
+          </div>
+        </div>
+
+      </div>
+    </div>
+
+  </main>
+
+  <!-- Physics Engine Script & Canvas Handler -->
+  <script>
+    // App Configurations & Global State
+    let isGridVisible = true;
+    let canvas, ctx;
+    let origin = { x: 0, y: 0 };
+    
+    // Physical Bodies state
+    let sun = { x: 0, y: 0, radius: 42, mass: 100, label: "Sun", isDragging: false };
+    let earth = { x: 0, y: 0, radius: 24, mass: 50, label: "Earth", isDragging: false };
+    let G_constant = 1.0;
+    
+    // Global interaction tracks
+    let activeDragObject = null;
+    let offset = { x: 0, y: 0 };
+
+    // Set Initial Positions and Dimensions
+    window.onload = function() {
+      canvas = document.getElementById("physics-canvas");
+      ctx = canvas.getContext("2d");
+      
+      // Initialize layout heights/widths
+      resizeCanvas();
+      
+      // Setup relative starting positions
+      sun.x = canvas.width * 0.4;
+      sun.y = canvas.height * 0.35;
+      
+      earth.x = canvas.width * 0.75;
+      earth.y = canvas.height * 0.7;
+      
+      // Bind Resize Events
+      window.addEventListener('resize', () => {
+        resizeCanvas();
+        drawAll();
+      });
+      
+      // Setup Interaction Listeners
+      setupCanvasInput();
+      
+      // Sync numerical elements
+      updateSimulationValues();
+      
+      // Start Render & Interaction Engine
+      drawAll();
+    };
+
+    function resizeCanvas() {
+      const container = document.getElementById("canvas-container");
+      canvas.width = container.clientWidth;
+      canvas.height = container.clientHeight;
+      
+      // Anchor origin in the center-left grid point
+      origin.x = canvas.width * 0.2;
+      origin.y = canvas.height * 0.75;
+      
+      // Place HTML overlay absolute indicator directly on origin coordinates
+      const originMarker = document.getElementById("origin-marker");
+      originMarker.style.left = `${origin.x - 6}px`;
+      originMarker.style.top = `${origin.y - 6}px`;
+    }
+
+    // Toggle grid visual background
+    function toggleGrid() {
+      const container = document.getElementById("canvas-container");
+      isGridVisible = !isGridVisible;
+      if (isGridVisible) {
+        container.classList.add("grid-bg");
+      } else {
+        container.classList.remove("grid-bg");
+      }
+    }
+
+    // Reset simulator positions
+    function resetSimPositions() {
+      sun.x = canvas.width * 0.4;
+      sun.y = canvas.height * 0.35;
+      earth.x = canvas.width * 0.75;
+      earth.y = canvas.height * 0.7;
+      updateSimulationValues();
+    }
+
+    // Capture Slider Changes and Compute Scalars/Vectors
+    function updateSimulationValues() {
+      // 1. Sync controls
+      const m1Slider = document.getElementById("m1-slider");
+      const m2Slider = document.getElementById("m2-slider");
+      const GSlider = document.getElementById("G-slider");
+      
+      sun.mass = parseFloat(m1Slider.value);
+      earth.mass = parseFloat(m2Slider.value);
+      G_constant = parseFloat(GSlider.value);
+      
+      document.getElementById("m1-val").innerText = `${sun.mass} × 10¹⁰ kg`;
+      document.getElementById("m2-val").innerText = `${earth.mass} × 10¹⁰ kg`;
+      document.getElementById("G-val").innerText = G_constant.toFixed(1);
+
+      // Scaling factor adjustments for visually responsive values
+      sun.radius = 25 + (sun.mass / 20);
+      earth.radius = 15 + (earth.mass / 15);
+      
+      // Compute mathematical vectors relative to origin coordinates
+      // We scale dimensions so that computations feel intuitive (e.g. pixels represented as scaled meters)
+      const scaleFactor = 0.5; // pixel to virtual coordinate conversion ratio
+      
+      const r1_x = (sun.x - origin.x) * scaleFactor;
+      const r1_y = -(sun.y - origin.y) * scaleFactor; // inverted Y axis for classical coordinate representation
+      const r2_x = (earth.x - origin.x) * scaleFactor;
+      const r2_y = -(earth.y - origin.y) * scaleFactor;
+
+      // Update real-time position UI labels
+      document.getElementById("r1-coord").innerHTML = `x: ${r1_x.toFixed(1)}, y: ${r1_y.toFixed(1)}`;
+      document.getElementById("r2-coord").innerHTML = `x: ${r2_x.toFixed(1)}, y: ${r2_y.toFixed(1)}`;
+
+      // Compute displacement vector
+      const dx = (earth.x - sun.x) * scaleFactor;
+      const dy = -(earth.y - sun.y) * scaleFactor;
+      const dist = Math.sqrt(dx*dx + dy*dy);
+      
+      document.getElementById("distance-val").innerText = `${dist.toFixed(2)} m`;
+      document.getElementById("distance-sq-val").innerText = `${(dist*dist).toFixed(1)} m²`;
+
+      // Prevent division by absolute zero errors
+      if (dist > 0.01) {
+        // Compute unit vectors
+        const ux = dx / dist;
+        const uy = dy / dist;
+        document.getElementById("r12-hat-val").innerHTML = `x: ${ux.toFixed(3)}, y: ${uy.toFixed(3)}`;
+        document.getElementById("r21-hat-val").innerHTML = `x: ${(-ux).toFixed(3)}, y: ${(-uy).toFixed(3)}`;
+
+        // Force calculations
+        // F = G * m1 * m2 / r^2
+        const rawForce = (G_constant * sun.mass * earth.mass) / (dist * dist);
+        const forceMagnitude = rawForce * 1000; // visual amplification multiplier
+        
+        document.getElementById("force-magnitude").innerText = `${forceMagnitude.toLocaleString(undefined, {minimumFractionDigits: 1, maximumFractionDigits: 1})} N`;
+        
+        // Force on Earth (m2) due to Sun (m1): F12 points from Earth back to Sun (against ux, uy)
+        const F12_x = -forceMagnitude * ux;
+        const F12_y = -forceMagnitude * uy;
+        
+        // Force on Sun (m1) due to Earth (m2): F21 points from Sun to Earth (against -ux, -uy -> along ux, uy)
+        const F21_x = forceMagnitude * ux;
+        const F21_y = forceMagnitude * uy;
+
+        document.getElementById("f12-force").innerText = `x: ${F12_x.toFixed(1)}, y: ${F12_y.toFixed(1)}`;
+        document.getElementById("f21-force").innerText = `x: ${F21_x.toFixed(1)}, y: ${F21_y.toFixed(1)}`;
+      }
+
+      drawAll();
+    }
+
+    // Interactive Drag and Drop Setup
+    function setupCanvasInput() {
+      // Event Handlers for both Mouse and Touch Support
+      canvas.addEventListener('mousedown', startDrag);
+      canvas.addEventListener('mousemove', drag);
+      canvas.addEventListener('mouseup', endDrag);
+      canvas.addEventListener('mouseleave', endDrag);
+
+      canvas.addEventListener('touchstart', (e) => {
+        const touch = e.touches[0];
+        const mouseEvent = new MouseEvent('mousedown', {
+          clientX: touch.clientX,
+          clientY: touch.clientY
+        });
+        canvas.dispatchEvent(mouseEvent);
+      }, { passive: true });
+
+      canvas.addEventListener('touchmove', (e) => {
+        const touch = e.touches[0];
+        const mouseEvent = new MouseEvent('mousemove', {
+          clientX: touch.clientX,
+          clientY: touch.clientY
+        });
+        canvas.dispatchEvent(mouseEvent);
+      }, { passive: true });
+
+      canvas.addEventListener('touchend', () => {
+        const mouseEvent = new MouseEvent('mouseup', {});
+        canvas.dispatchEvent(mouseEvent);
+      }, { passive: true });
+    }
+
+    function startDrag(e) {
+      const rect = canvas.getBoundingClientRect();
+      const clickX = e.clientX - rect.left;
+      const clickY = e.clientY - rect.top;
+
+      // Check collision with Earth
+      const distToEarth = Math.sqrt((clickX - earth.x) ** 2 + (clickY - earth.y) ** 2);
+      if (distToEarth < earth.radius + 10) {
+        activeDragObject = earth;
+        offset.x = clickX - earth.x;
+        offset.y = clickY - earth.y;
+        return;
+      }
+
+      // Check collision with Sun
+      const distToSun = Math.sqrt((clickX - sun.x) ** 2 + (clickY - sun.y) ** 2);
+      if (distToSun < sun.radius + 10) {
+        activeDragObject = sun;
+        offset.x = clickX - sun.x;
+        offset.y = clickY - sun.y;
+        return;
+      }
+    }
+
+    function drag(e) {
+      if (!activeDragObject) return;
+      
+      const rect = canvas.getBoundingClientRect();
+      const currentX = e.clientX - rect.left;
+      const currentY = e.clientY - rect.top;
+
+      // Restrict boundaries so planetary bodies stay in workspace
+      activeDragObject.x = Math.max(30, Math.min(canvas.width - 30, currentX - offset.x));
+      activeDragObject.y = Math.max(30, Math.min(canvas.height - 30, currentY - offset.y));
+
+      updateSimulationValues();
+    }
+
+    function endDrag() {
+      activeDragObject = null;
+    }
+
+    // Rendering Engine Loop
+    function drawAll() {
+      if (!ctx) return;
+      ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+      // --- 1. Draw Position Vectors from Origin to Sun & Earth ---
+      drawArrow(origin.x, origin.y, sun.x, sun.y, "#d20f39", 2, "r₁");
+      drawArrow(origin.x, origin.y, earth.x, earth.y, "#179299", 2, "r₂");
+
+      // --- 2. Draw Distance Line connecting bodies ---
+      ctx.beginPath();
+      ctx.setLineDash([5, 5]);
+      ctx.strokeStyle = "#04a5e5";
+      ctx.lineWidth = 1.5;
+      ctx.moveTo(sun.x, sun.y);
+      ctx.lineTo(earth.x, earth.y);
+      ctx.stroke();
+      ctx.setLineDash([]); // Reset dashed lines
+
+      // Distance label in center
+      const midX = (sun.x + earth.x) / 2;
+      const midY = (sun.y + earth.y) / 2;
+      ctx.fillStyle = "#04a5e5";
+      ctx.font = "bold 13px sans-serif";
+      ctx.fillText("r₁₂", midX + 12, midY - 8);
+
+      // --- 3. Compute Unit Vectors & Force Vector Lines ---
+      const dx = earth.x - sun.x;
+      const dy = earth.y - sun.y;
+      const dist = Math.sqrt(dx * dx + dy * dy);
+
+      if (dist > 10) {
+        const ux = dx / dist;
+        const uy = dy / dist;
+
+        // Dynamic Force Scale rendering
+        const forceMagnitude = (G_constant * sun.mass * earth.mass) / (dist * dist);
+        // Visual sizing mapping parameters
+        const displayForceLength = Math.min(180, Math.max(35, forceMagnitude * 1200));
+
+        // DRAW FORCE VECTORS (Points inward towards each other)
+        // Force on Earth pointing towards Sun (F12)
+        drawArrow(earth.x, earth.y, earth.x - ux * displayForceLength, earth.y - uy * displayForceLength, "#e64553", 4.5, "F₁₂");
+        
+        // Force on Sun pointing towards Earth (F21)
+        drawArrow(sun.x, sun.y, sun.x + ux * displayForceLength, sun.y + uy * displayForceLength, "#e64553", 4.5, "F₂₁");
+
+        // DRAW UNIT VECTORS (Points outward radially)
+        const unitVecLength = 45;
+        // r12_hat (Outward from Sun pointing to Earth)
+        drawArrow(sun.x, sun.y, sun.x + ux * unitVecLength, sun.y + uy * unitVecLength, "#a6adc8", 1.5, "r̂₁₂", true);
+        
+        // r21_hat (Outward from Earth pointing to Sun)
+        drawArrow(earth.x, earth.y, earth.x - ux * unitVecLength, earth.y - uy * unitVecLength, "#a6adc8", 1.5, "r̂₂₁", true);
+      }
+
+      // --- 4. Render Planetary Bodies (Sun / Earth) ---
+      // Sun
+      ctx.beginPath();
+      let sunGrad = ctx.createRadialGradient(sun.x, sun.y, sun.radius*0.2, sun.x, sun.y, sun.radius);
+      sunGrad.addColorStop(0, '#f9e2af');
+      sunGrad.addColorStop(0.8, '#df8e1d');
+      sunGrad.addColorStop(1, '#fe640b');
+      ctx.fillStyle = sunGrad;
+      ctx.arc(sun.x, sun.y, sun.radius, 0, 2 * Math.PI);
+      ctx.fill();
+      ctx.strokeStyle = "rgba(254, 100, 11, 0.4)";
+      ctx.lineWidth = 6;
+      ctx.stroke();
+
+      // Earth
+      ctx.beginPath();
+      let earthGrad = ctx.createRadialGradient(earth.x, earth.y, earth.radius*0.1, earth.x, earth.y, earth.radius);
+      earthGrad.addColorStop(0, '#99d1db');
+      earthGrad.addColorStop(0.7, '#04a5e5');
+      earthGrad.addColorStop(1, '#1e66f5');
+      ctx.fillStyle = earthGrad;
+      ctx.arc(earth.x, earth.y, earth.radius, 0, 2 * Math.PI);
+      ctx.fill();
+      ctx.strokeStyle = "rgba(30, 102, 245, 0.4)";
+      ctx.lineWidth = 4;
+      ctx.stroke();
+
+      // Text Labels
+      ctx.fillStyle = "#ffffff";
+      ctx.font = "bold 13px sans-serif";
+      ctx.shadowColor = "black";
+      ctx.shadowBlur = 4;
+      
+      ctx.fillText("Sun (m₁)", sun.x - 26, sun.y + 4);
+      ctx.fillText("Earth (m₂)", earth.x - 30, earth.y + 4);
+      
+      // Reset Shadow
+      ctx.shadowBlur = 0;
+    }
+
+    // Robust Vector Arrow Renderer helper
+    function drawArrow(fromX, fromY, toX, toY, color, width, label, isDashed = false) {
+      ctx.beginPath();
+      if (isDashed) {
+        ctx.setLineDash([3, 3]);
+      }
+      ctx.strokeStyle = color;
+      ctx.lineWidth = width;
+      ctx.moveTo(fromX, fromY);
+      ctx.lineTo(toX, toY);
+      ctx.stroke();
+      ctx.setLineDash([]); // Reset line dash
+
+      // Arrow head calculation
+      const angle = Math.atan2(toY - fromY, toX - fromX);
+      const headLength = width * 2.5 + 4; // Responsive arrow head size
+      
+      ctx.beginPath();
+      ctx.fillStyle = color;
+      ctx.moveTo(toX, toY);
+      ctx.lineTo(toX - headLength * Math.cos(angle - Math.PI / 6), toY - headLength * Math.sin(angle - Math.PI / 6));
+      ctx.lineTo(toX - headLength * Math.cos(angle + Math.PI / 6), toY - headLength * Math.sin(angle + Math.PI / 6));
+      ctx.fill();
+
+      // Optional text labels placement alongside arrows
+      if (label) {
+        ctx.fillStyle = color;
+        ctx.font = "italic bold 12px sans-serif";
+        const textOffsetX = Math.cos(angle + Math.PI/2) * 12;
+        const textOffsetY = Math.sin(angle + Math.PI/2) * 12;
+        ctx.fillText(label, toX + textOffsetX - 4, toY + textOffsetY + 4);
+      }
+    }
+
+    // Custom Switch Tab Routine
+    function switchTab(tabId) {
+      // Hide all tabs
+      document.getElementById('sim-tab').classList.add('hidden');
+      document.getElementById('infographic-tab').classList.add('hidden');
+      document.getElementById('algorithms-tab').classList.add('hidden');
+      document.getElementById('quiz-tab').classList.add('hidden');
+
+      // Remove active button class styles
+      document.getElementById('sim-tab-btn').classList.remove('tab-active');
+      document.getElementById('infographic-tab-btn').classList.remove('tab-active');
+      document.getElementById('algorithms-tab-btn').classList.remove('tab-active');
+      document.getElementById('quiz-tab-btn').classList.remove('tab-active');
+
+      // Show requested tab
+      document.getElementById(tabId).classList.remove('hidden');
+      document.getElementById(`${tabId}-btn`).classList.add('tab-active');
+
+      // Trigger structural resize if canvas becomes active
+      if (tabId === 'sim-tab') {
+        setTimeout(() => {
+          resizeCanvas();
+          updateSimulationValues();
+        }, 80);
+      }
+    }
+
+    // --- QUIZ GAME ENGINE STATE ---
+    let userAnswers = { q1: null, q2: null, q3: null, q4: null };
+    const correctAnswers = { q1: "C", q2: "B", q3: "C", q4: "B" };
+
+    function checkAnswer(questionNum) {
+      const selected = document.querySelector(`input[name="q${questionNum}"]:checked`);
+      if (!selected) return;
+
+      const answer = selected.value;
+      userAnswers[`q${questionNum}`] = answer;
+
+      const feedbackDiv = document.getElementById(`q${questionNum}-feedback`);
+      const isCorrect = answer === correctAnswers[`q${questionNum}`];
+
+      feedbackDiv.classList.remove('hidden');
+      
+      if (isCorrect) {
+        feedbackDiv.innerHTML = `<span class="text-green-400 font-bold"><i class="fa-solid fa-circle-check"></i> Correct!</span> <span class="text-[#a6adc8]">Perfect understanding of vector kinematics.</span>`;
+        selected.closest('label').classList.add('border-green-500/50', 'bg-green-500/5');
+      } else {
+        feedbackDiv.innerHTML = `<span class="text-rose-400 font-bold"><i class="fa-solid fa-circle-xmark"></i> Incorrect.</span> <span class="text-[#a6adc8]">Review the Core Formula formulas to see why.</span>`;
+        selected.closest('label').classList.add('border-rose-500/50', 'bg-rose-500/5');
+      }
+
+      // Highlight the correct option
+      const correctOptionLabel = document.getElementById(`q${questionNum}-correct-option`);
+      correctOptionLabel.classList.add('border-green-500/50', 'bg-green-500/5');
+
+      // Calculate score
+      let score = 0;
+      for (let key in correctAnswers) {
+        if (userAnswers[key] === correctAnswers[key]) {
+          score++;
+        }
+      }
+      document.getElementById("score-text").innerText = `${score} / 4`;
+    }
+
+    function resetQuiz() {
+      // Uncheck all radios
+      const radios = document.querySelectorAll('input[type="radio"]');
+      radios.forEach(radio => {
+        radio.checked = false;
+        // Reset label background borders
+        const label = radio.closest('label');
+        label.className = "flex items-start gap-3 p-3 bg-[#181825] hover:bg-[#313244] rounded-xl cursor-pointer border border-[#313244] transition";
+      });
+
+      // Clear feedback boxes
+      for (let i = 1; i <= 4; i++) {
+        const fb = document.getElementById(`q${i}-feedback`);
+        fb.classList.add('hidden');
+        fb.innerHTML = '';
+      }
+
+      // Clear global scores state
+      userAnswers = { q1: null, q2: null, q3: null, q4: null };
+      document.getElementById("score-text").innerText = "0 / 4";
+    }
+  </script>
+</body>
+</html>

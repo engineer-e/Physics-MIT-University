@@ -1,0 +1,845 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Gravitational Acceleration: Interactive Exploration</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script>
+    window.MathJax = {
+      tex: {
+        inlineMath: [['$', '$'], ['\\(', '\\)']],
+        displayMath: [['$$', '$$'], ['\\[', '\\]']],
+        processEscapes: true
+      },
+      options: {
+        skipHtmlTags: ['script', 'noscript', 'style', 'textarea', 'pre']
+      }
+    };
+  </script>
+  <script id="MathJax-script" async src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
+
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Lora:ital,wght=0,400;0,600;1,400&family=Nunito+Sans:wght@300;400;600;700&display=swap');
+
+        body {
+            font-family: 'Nunito Sans', sans-serif;
+            background-color: #fdfcf8;
+            color: #3e3c38;
+        }
+
+        h1, h2, h3, .serif {
+            font-family: 'Lora', serif;
+        }
+
+        .chart-container {
+            position: relative;
+            width: 100%;
+            max-width: 800px;
+            margin-left: auto;
+            margin-right: auto;
+            height: 45vh;
+            max-height: 400px;
+        }
+
+        @media (min-width: 768px) {
+            .chart-container {
+                height: 350px;
+            }
+        }
+
+        .math-block {
+            font-family: 'Courier New', Courier, monospace;
+            background-color: #f4eee6;
+            padding: 1rem;
+            border-radius: 0.5rem;
+            text-align: center;
+            font-size: 1.25rem;
+            font-weight: bold;
+            color: #5c4b3a;
+            letter-spacing: 0.05em;
+        }
+
+        .hidden-step {
+            display: none;
+            opacity: 0;
+            transition: opacity 0.5s ease-in-out;
+        }
+
+        .visible-step {
+            display: block;
+            opacity: 1;
+            transition: opacity 0.5s ease-in-out;
+            animation: fadeIn 0.5s ease-in-out;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        input[type=range] {
+            accent-color: #b36b47;
+        }
+    </style>
+</head>
+<body class="antialiased selection:bg-amber-200 selection:text-amber-900">
+
+    <!-- Chosen Palette: Warm Neutrals with Terracotta Accents (Background: #fdfcf8, Cards: #ffffff, Accents: #b36b47 / #d99c7a, Text: #3e3c38 / #5c4b3a) -->
+    <!-- Application Structure Plan: The SPA is structured sequentially to guide the user from foundational theory to practical application, ending with an assessment. 
+         Section 1 introduces the core formulas in clear, distinct cards. 
+         Section 2 transforms the static mathematical derivation into an interactive stepper, encouraging users to progress logically through the algebraic steps. 
+         Section 3 is the computational climax, featuring a dynamic interactive dashboard with sliders and a Chart.js visualization to demonstrate the inverse-square law practically. 
+         Section 4 closes with an interactive quiz for knowledge retention. This linear, narrative-driven structure maximizes comprehension over a standard document format. -->
+    <!-- Visualization & Content Choices: 
+         1. Core Formulas -> Goal: Inform -> Viz: Styled typography cards -> Justification: Cleans up mathematical notation for readability without complex graphics.
+         2. Derivation -> Goal: Organize/Inform -> Viz: Interactive timeline/stepper -> Justification: Breaks down complex algebra into digestible, user-controlled pieces to prevent cognitive overload.
+         3. Computation Algorithm -> Goal: Relationships/Change -> Viz: Chart.js Line Chart & Sliders -> Justification: A line chart perfectly illustrates the non-linear ($1/r^2$) drop in gravity as altitude increases. Canvas-based Chart.js is used to satisfy constraints.
+         4. Quiz -> Goal: Assess -> Viz: Interactive HTML form with instant JS feedback -> Justification: Active recall improves learning retention. 
+         Confirming NO SVG or Mermaid JS used. All visual elements are HTML/CSS or Canvas. -->
+    <!-- CONFIRMATION: NO SVG graphics used. NO Mermaid JS used. -->
+
+    <header class="bg-[#f4eee6] border-b border-[#e5d9c5] py-12 px-4 sm:px-6 lg:px-8">
+        <div class="max-w-5xl mx-auto text-center">
+            <span class="text-sm font-bold text-[#b36b47] uppercase tracking-widest bg-white py-1 px-3 rounded-full border border-[#e5d9c5]">Physics Sandbox</span>
+            <h1 class="text-4xl md:text-5xl font-bold text-[#4a3b2c] mt-4 mb-4">Gravitational Acceleration Lab</h1>
+            <p class="text-xl text-[#6b5b4a] max-w-2xl mx-auto">An interactive exploration of the physics principles, equations, vector diagrams, and computations behind local gravity.</p>
+        </div>
+    </header>
+
+    <main class="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 py-12 space-y-20">
+
+        <section id="two-body-forces" class="scroll-mt-8 bg-white p-8 rounded-2xl shadow-sm border border-[#e5d9c5]">
+            <div class="mb-8">
+                <span class="text-xs font-bold text-[#b36b47] uppercase tracking-wider block mb-1">Vector Diagram & Coordinates</span>
+                <h2 class="text-3xl font-semibold text-[#4a3b2c] mb-4 border-b-2 border-[#b36b47] pb-2 inline-block">1. Vector Interactions & Attraction</h2>
+                <p class="text-lg leading-relaxed">
+                    Before calculating the gravity on a planet's surface, the lecture models the orbital force system of two celestial bodies (like the Sun and Earth). 
+                    Use the sandbox below to adjust the distance $r_{12}$ and witness how the gravitational force vector $\vec{F}_{12}$ and unit radial vector $\hat{r}_{12}$ interact. Notice the negative sign in the universal gravitation formula: it indicates that force is attractive, acting opposite to the positive radial direction.
+                </p>
+            </div>
+
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-8 items-center">
+                <div class="md:col-span-1 space-y-6">
+                    <div class="bg-[#faf8f5] p-4 rounded-xl border border-[#e5d9c5]">
+                        <h4 class="font-bold text-[#4a3b2c] mb-2">Distance Control</h4>
+                        <label class="block text-xs font-semibold text-[#6b5b4a] mb-1">Orbital Radius (r₁₂)</label>
+                        <input type="range" id="vector-dist-slider" min="150" max="380" value="260" class="w-full">
+                        <div class="flex justify-between text-xs text-[#8c8273] mt-1">
+                            <span>Close</span>
+                            <span>Distant</span>
+                        </div>
+                    </div>
+                    <div class="bg-[#fffaf5] p-4 rounded-xl border border-[#b36b47]">
+                        <h4 class="font-bold text-[#8c5230] mb-2 text-sm uppercase">Vector Readout</h4>
+                        <div class="space-y-2 text-xs font-mono">
+                            <div class="flex justify-between border-b pb-1">
+                                <span>Unit Vector (r̂₁₂):</span>
+                                <span class="text-emerald-600 font-bold">Right (+Direction)</span>
+                            </div>
+                            <div class="flex justify-between border-b pb-1">
+                                <span>Force Vector (F₁₂):</span>
+                                <span class="text-red-600 font-bold">Left (-Direction)</span>
+                            </div>
+                            <div class="p-2 bg-white rounded border text-center text-xs mt-2">
+                                F₁₂ = -G(m₁m₂/r₁₂²) r̂₁₂
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="md:col-span-2 bg-[#12141c] p-4 rounded-xl relative">
+                    <canvas id="vectorCanvas" class="w-full h-64 block bg-[#12141c] rounded-lg"></canvas>
+                </div>
+            </div>
+        </section>
+
+        <section id="core-formulas" class="scroll-mt-8">
+            <div class="mb-8">
+                <span class="text-xs font-bold text-[#b36b47] uppercase tracking-wider block mb-1">Foundational Physics Equations</span>
+                <h2 class="text-3xl font-semibold text-[#4a3b2c] mb-4 border-b-2 border-[#b36b47] pb-2 inline-block">2. Core Formulas</h2>
+                <p class="text-lg leading-relaxed mb-4">This section establishes the three foundational mathematical frameworks used in classical mechanics to calculate gravity. Understanding how these variables link together is critical for the subsequent algebraic derivation and computation stages.</p>
+            </div>
+
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+                <div class="bg-white p-6 rounded-xl shadow-sm border border-[#e5d9c5] hover:shadow-md transition-shadow">
+                    <h3 class="text-xl font-semibold mb-2 text-[#8c5230]">Universal Gravitation</h3>
+                    <p class="text-sm text-[#6b5b4a] mb-4 h-12">The attractive force between any two masses in the universe.</p>
+                    <div class="math-block">F = G(m₁m₂)/r²</div>
+                    <ul class="text-sm mt-4 space-y-1 text-[#6b5b4a]">
+                        <li><strong>G:</strong> Gravitational Constant</li>
+                        <li><strong>m₁, m₂:</strong> The two masses</li>
+                        <li><strong>r:</strong> Distance between centers</li>
+                    </ul>
+                </div>
+                <div class="bg-white p-6 rounded-xl shadow-sm border border-[#e5d9c5] hover:shadow-md transition-shadow">
+                    <h3 class="text-xl font-semibold mb-2 text-[#8c5230]">Local Weight</h3>
+                    <p class="text-sm text-[#6b5b4a] mb-4 h-12">The downward force experienced by an object near a planetary surface.</p>
+                    <div class="math-block">F = mg</div>
+                    <ul class="text-sm mt-4 space-y-1 text-[#6b5b4a]">
+                        <li><strong>m:</strong> Mass of the object</li>
+                        <li><strong>g:</strong> Local gravitational acceleration</li>
+                    </ul>
+                </div>
+                <div class="bg-white p-6 rounded-xl shadow-sm border border-[#b36b47] ring-1 ring-[#b36b47] hover:shadow-md transition-shadow bg-[#fffaf5]">
+                    <h3 class="text-xl font-semibold mb-2 text-[#8c5230]">Derived Gravity (g)</h3>
+                    <p class="text-sm text-[#6b5b4a] mb-4 h-12">The resulting acceleration field generated by a celestial body.</p>
+                    <div class="math-block">g = G(M)/r²</div>
+                    <ul class="text-sm mt-4 space-y-1 text-[#6b5b4a]">
+                        <li><strong>M:</strong> Mass of the planet</li>
+                        <li><strong>r:</strong> Distance from planet center</li>
+                    </ul>
+                </div>
+            </div>
+        </section>
+
+        <section id="derivation-algorithm" class="scroll-mt-8 bg-white p-8 rounded-2xl shadow-sm border border-[#e5d9c5]">
+            <div class="mb-8">
+                <span class="text-xs font-bold text-[#b36b47] uppercase tracking-wider block mb-1">Algebraic Breakdown</span>
+                <h2 class="text-3xl font-semibold text-[#4a3b2c] mb-4 border-b-2 border-[#b36b47] pb-2 inline-block">3. Interactive Algebra Derivation</h2>
+                <p class="text-lg leading-relaxed">How do we arrive at the formula for $g$? This section breaks down the algebraic logic steps taken on the chalkboard to derive the local gravity formula from universal principles. Click through the steps to see how the mathematical properties resolve, demonstrating why objects of different masses fall at the same rate.</p>
+            </div>
+
+            <div class="relative pl-6 border-l-2 border-[#d99c7a] space-y-8" id="derivation-container">
+                <div class="visible-step relative" id="step-1">
+                    <div class="absolute -left-[35px] top-1 h-6 w-6 rounded-full bg-[#b36b47] flex items-center justify-center text-white text-xs font-bold ring-4 ring-white">1</div>
+                    <h3 class="text-xl font-semibold text-[#5c4b3a]">Define the Universal Force</h3>
+                    <p class="mt-2 mb-3 text-[#3e3c38]">Identify the gravitational force between the Earth (M_E) and a test mass (m) located near its surface. The distance between their centers is approximately the radius of the Earth (R_E).</p>
+                    <div class="inline-block math-block text-lg px-6 py-2">F_gravity = G(m * M_E) / R_E²</div>
+                </div>
+
+                <div class="hidden-step relative" id="step-2">
+                    <div class="absolute -left-[35px] top-1 h-6 w-6 rounded-full bg-[#b36b47] flex items-center justify-center text-white text-xs font-bold ring-4 ring-white">2</div>
+                    <h3 class="text-xl font-semibold text-[#5c4b3a]">Define the Local Force (Weight)</h3>
+                    <p class="mt-2 mb-3 text-[#3e3c38]">Identify the standard physics equation for the weight of an object falling near the surface.</p>
+                    <div class="inline-block math-block text-lg px-6 py-2">F_weight = m * g_earth</div>
+                </div>
+
+                <div class="hidden-step relative" id="step-3">
+                    <div class="absolute -left-[35px] top-1 h-6 w-6 rounded-full bg-[#b36b47] flex items-center justify-center text-white text-xs font-bold ring-4 ring-white">3</div>
+                    <h3 class="text-xl font-semibold text-[#5c4b3a]">Equate the Forces</h3>
+                    <p class="mt-2 mb-3 text-[#3e3c38]">Since both formulas describe the exact same physical force acting on the test mass, set them equal to each other.</p>
+                    <div class="inline-block math-block text-lg px-6 py-2 bg-[#f4eee6]">m * g_earth = G(m * M_E) / R_E²</div>
+                </div>
+
+                <div class="hidden-step relative" id="step-4">
+                    <div class="absolute -left-[35px] top-1 h-6 w-6 rounded-full bg-[#b36b47] flex items-center justify-center text-white text-xs font-bold ring-4 ring-white">4</div>
+                    <h3 class="text-xl font-semibold text-[#5c4b3a]">Cancel the Test Mass</h3>
+                    <p class="mt-2 mb-3 text-[#3e3c38]">Notice that the mass of the test object (m) appears on both sides of the equation. Divide both sides by m to cancel it out.</p>
+                    <div class="inline-block math-block text-lg px-6 py-2 relative">
+                        <span class="text-red-500 line-through mr-1">m</span> * g_earth = G(<span class="text-red-500 line-through mr-1">m</span> * M_E) / R_E²
+                        <div class="text-center mt-2 text-[#b36b47]">↓</div>
+                        g_earth = G(M_E) / R_E²
+                    </div>
+                </div>
+
+                <div class="hidden-step relative" id="step-5">
+                    <div class="absolute -left-[35px] top-1 h-6 w-6 rounded-full bg-[#8c5230] flex items-center justify-center text-white text-xs font-bold ring-4 ring-white">5</div>
+                    <h3 class="text-xl font-semibold text-[#5c4b3a]">Conclude</h3>
+                    <p class="mt-2 text-[#3e3c38] font-semibold bg-[#fffaf5] p-4 border border-[#e5d9c5] rounded-lg">The gravitational acceleration g is independent of the falling object's mass. It depends <em>only</em> on the mass of the planet, the radius of the planet, and the universal gravitational constant G.</p>
+                </div>
+            </div>
+
+            <div class="mt-8">
+                <button id="next-step-btn" class="bg-[#b36b47] hover:bg-[#8c5230] text-white font-semibold py-2 px-6 rounded shadow transition-colors">Reveal Next Step</button>
+                <button id="reset-step-btn" class="ml-4 text-[#8c5230] hover:text-[#5c4b3a] font-semibold hidden underline">Reset</button>
+            </div>
+        </section>
+
+        <section id="computation-flow" class="scroll-mt-8 bg-white p-8 rounded-2xl shadow-sm border border-[#e5d9c5]">
+            <div class="mb-8">
+                <span class="text-xs font-bold text-[#b36b47] uppercase tracking-wider block mb-1">Computational Algorithm</span>
+                <h2 class="text-3xl font-semibold text-[#4a3b2c] mb-4 border-b-2 border-[#b36b47] pb-2 inline-block">4. Computation Pipeline Steps</h2>
+                <p class="text-lg leading-relaxed">
+                    This step-by-step pipeline displays the precise algorithmic flow executed by computer modules to evaluate gravitational acceleration. Watch the numbers update dynamically as you change values in the sandbox below!
+                </p>
+            </div>
+
+            <div class="grid grid-cols-1 md:grid-cols-4 gap-4 text-center">
+                <div class="p-4 bg-[#faf8f5] rounded-xl border border-[#e5d9c5]">
+                    <div class="text-xs font-bold text-slate-400 mb-1">STEP 1: Inputs</div>
+                    <div class="text-sm font-semibold text-[#4a3b2c]">Initialize Constants & Inputs</div>
+                    <div class="text-xs font-mono mt-2 text-left bg-white p-2 rounded border space-y-1">
+                        <div>G = 6.674e-11</div>
+                        <div>M = <span id="flow-m" class="text-amber-800">5.97</span>e24 kg</div>
+                        <div>R = <span id="flow-r" class="text-amber-800">6371</span> km</div>
+                        <div>h = <span id="flow-h" class="text-amber-800">0</span> km</div>
+                    </div>
+                </div>
+                <div class="p-4 bg-[#faf8f5] rounded-xl border border-[#e5d9c5] flex flex-col justify-between">
+                    <div>
+                        <div class="text-xs font-bold text-slate-400 mb-1">STEP 2: Distance</div>
+                        <div class="text-sm font-semibold text-[#4a3b2c]">Calculate Radial Distance</div>
+                        <p class="text-xs mt-1 text-[#6b5b4a]">Sum of planet radius and altitude.</p>
+                    </div>
+                    <div class="text-xs font-mono mt-2 bg-white p-2 rounded border">
+                        r = R + h <br>
+                        r = <span id="flow-calc-r" class="text-blue-800 font-bold">6,371,000</span> m
+                    </div>
+                </div>
+                <div class="p-4 bg-[#faf8f5] rounded-xl border border-[#e5d9c5] flex flex-col justify-between">
+                    <div>
+                        <div class="text-xs font-bold text-slate-400 mb-1">STEP 3: Inverse-Square</div>
+                        <div class="text-sm font-semibold text-[#4a3b2c]">Formulate G·M / r²</div>
+                        <p class="text-xs mt-1 text-[#6b5b4a]">Evaluate proportional gravity drop.</p>
+                    </div>
+                    <div class="text-xs font-mono mt-2 bg-white p-2 rounded border">
+                        g = G·M / r² <br>
+                        g = <span id="flow-calc-g-step" class="text-amber-800 font-bold">9.81</span>
+                    </div>
+                </div>
+                <div class="p-4 bg-[#fffaf5] rounded-xl border-2 border-[#b36b47] flex flex-col justify-between">
+                    <div>
+                        <div class="text-xs font-bold text-[#b36b47] mb-1">STEP 4: Output</div>
+                        <div class="text-sm font-semibold text-[#4a3b2c]">Final Value</div>
+                        <p class="text-xs mt-1 text-[#6b5b4a]">Local acceleration rate.</p>
+                    </div>
+                    <div class="bg-white p-2 rounded border font-mono font-bold text-lg text-emerald-800">
+                        <span id="flow-final-g">9.81</span> m/s²
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <section id="computation-simulator" class="scroll-mt-8">
+            <div class="mb-8">
+                <span class="text-xs font-bold text-[#b36b47] uppercase tracking-wider block mb-1">Dynamic Playground</span>
+                <h2 class="text-3xl font-semibold text-[#4a3b2c] mb-4 border-b-2 border-[#b36b47] pb-2 inline-block">5. Computation & Physical Drop Simulator</h2>
+                <p class="text-lg leading-relaxed">This interactive tool applies the derived formula to calculate gravity dynamically. You can simulate different planetary environments or altitudes. Click "Drop Pen" to visualize the object falling to the surface with your calculated gravitational acceleration!</p>
+            </div>
+
+            <div class="bg-white rounded-2xl shadow-sm border border-[#e5d9c5] overflow-hidden">
+                <div class="grid grid-cols-1 lg:grid-cols-3">
+                    
+                    <div class="p-6 bg-[#faf8f5] border-r border-[#e5d9c5] lg:col-span-1 flex flex-col justify-between">
+                        <div>
+                            <h3 class="text-xl font-semibold text-[#4a3b2c] mb-6">Simulation Parameters</h3>
+                            
+                            <div class="mb-6">
+                                <label class="block text-sm font-semibold text-[#6b5b4a] mb-2 flex justify-between">
+                                    Planet Mass (M)
+                                    <span id="mass-val" class="font-mono text-[#b36b47]">5.97</span>
+                                </label>
+                                <input type="range" id="mass-slider" min="0.05" max="2000" step="0.01" value="5.97" class="w-full">
+                                <p class="text-xs text-[#8c8273] mt-1 text-right">× 10²⁴ kg</p>
+                            </div>
+
+                            <div class="mb-6">
+                                <label class="block text-sm font-semibold text-[#6b5b4a] mb-2 flex justify-between">
+                                    Planet Radius (R)
+                                    <span id="radius-val" class="font-mono text-[#b36b47]">6371</span>
+                                </label>
+                                <input type="range" id="radius-slider" min="1000" max="75000" step="10" value="6371" class="w-full">
+                                <p class="text-xs text-[#8c8273] mt-1 text-right">km</p>
+                            </div>
+
+                            <div class="mb-6">
+                                <label class="block text-sm font-semibold text-[#6b5b4a] mb-2 flex justify-between">
+                                    Target Altitude (h)
+                                    <span id="alt-val" class="font-mono text-[#b36b47]">0</span>
+                                </label>
+                                <input type="range" id="alt-slider" min="0" max="40000" step="0.1" value="0" class="w-full">
+                                <p class="text-xs text-[#8c8273] mt-1 text-right">km above surface</p>
+                            </div>
+
+                            <div class="mb-4">
+                                <span class="block text-xs font-bold text-[#8c5230] uppercase mb-2">Presets</span>
+                                <div class="flex flex-wrap gap-2">
+                                    <button class="preset-btn px-3 py-1 bg-white border border-[#d99c7a] rounded text-sm hover:bg-[#f4eee6]" data-m="5.97" data-r="6371" data-a="0">Earth</button>
+                                    <button class="preset-btn px-3 py-1 bg-white border border-[#d99c7a] rounded text-sm hover:bg-[#f4eee6]" data-m="0.073" data-r="1737" data-a="0">Moon</button>
+                                    <button class="preset-btn px-3 py-1 bg-white border border-[#d99c7a] rounded text-sm hover:bg-[#f4eee6]" data-m="5.97" data-r="6371" data-a="4.2">Mauna Kea</button>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="mt-8 p-4 bg-white border-2 border-[#b36b47] rounded-xl text-center shadow-inner">
+                            <span class="block text-sm font-bold text-[#8c8273] uppercase tracking-wider mb-1">Local Gravity (g)</span>
+                            <div class="text-4xl font-mono font-bold text-[#4a3b2c]">
+                                <span id="calculated-g">9.81</span> <span class="text-lg text-[#6b5b4a]">m/s²</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="p-6 lg:col-span-2 flex flex-col space-y-6">
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                            <div>
+                                <h3 class="text-xl font-semibold text-[#4a3b2c] mb-2 text-center md:text-left">Gravity vs. Altitude Profile</h3>
+                                <p class="text-sm text-[#6b5b4a] mb-4">Showing the proportional inverse-square drop in acceleration up to 40,000 km.</p>
+                                <div class="chart-container">
+                                    <canvas id="gravityChart"></canvas>
+                                </div>
+                            </div>
+                            <div class="flex flex-col">
+                                <h3 class="text-xl font-semibold text-[#4a3b2c] mb-2 text-center md:text-left">Drop Sandbox</h3>
+                                <p class="text-sm text-[#6b5b4a] mb-4">Click below to drop the object under current gravitational acceleration.</p>
+                                <div class="bg-slate-900 rounded-xl p-4 flex-grow relative flex flex-col justify-between h-[300px]">
+                                    <div class="text-right text-xs text-slate-400 font-mono">
+                                        Altitude: <span id="sim-alt-disp">0</span> km
+                                    </div>
+                                    <div class="absolute inset-x-4 top-12 bottom-16 border-l border-dashed border-slate-700 flex justify-center">
+                                        <div id="drop-pen" class="w-3 h-8 bg-[#d99c7a] rounded-lg border border-white/50 shadow-lg absolute" style="top: 0%"></div>
+                                    </div>
+                                    <div class="h-8 bg-slate-800 rounded-b border-t border-slate-600 flex items-center justify-center text-xs font-mono text-slate-300">
+                                        PLANET SURFACE
+                                    </div>
+                                    <div class="flex justify-between items-center mt-2 z-10">
+                                        <button id="drop-btn" class="bg-[#b36b47] text-white px-3 py-1.5 rounded hover:bg-[#8c5230] text-xs font-semibold">Drop Pen</button>
+                                        <span id="drop-timer" class="text-xs text-slate-300 font-mono">Time: 0.00s</span>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <section id="concept-quiz" class="scroll-mt-8 mb-24">
+            <div class="mb-8">
+                <span class="text-xs font-bold text-[#b36b47] uppercase tracking-wider block mb-1">Knowledge Retention</span>
+                <h2 class="text-3xl font-semibold text-[#4a3b2c] mb-4 border-b-2 border-[#b36b47] pb-2 inline-block">6. Concept Knowledge Check</h2>
+                <p class="text-lg leading-relaxed">Test your comprehension of the concepts presented in the report. This interactive quiz evaluates your understanding of universal gravitation, the formula derivation, and real-world planetary scenarios.</p>
+            </div>
+
+            <form id="quiz-form" class="space-y-6">
+                
+                <div class="bg-white p-6 rounded-xl shadow-sm border border-[#e5d9c5]">
+                    <p class="font-semibold text-lg text-[#4a3b2c] mb-4">Q1: Why does a heavy bowling ball and a light feather accelerate at the same rate in a vacuum near Earth's surface?</p>
+                    <div class="space-y-2">
+                        <label class="flex items-start gap-3 p-3 rounded hover:bg-[#f4eee6] cursor-pointer transition-colors border border-transparent has-[:checked]:border-[#b36b47] has-[:checked]:bg-[#fffaf5]">
+                            <input type="radio" name="q1" value="A" class="mt-1">
+                            <span>A) Because heavier objects fall slower, balancing the gravity out.</span>
+                        </label>
+                        <label class="flex items-start gap-3 p-3 rounded hover:bg-[#f4eee6] cursor-pointer transition-colors border border-transparent has-[:checked]:border-[#b36b47] has-[:checked]:bg-[#fffaf5]">
+                            <input type="radio" name="q1" value="B" class="mt-1">
+                            <span>B) Because the mass of the test object (m) cancels out in the derivation equation.</span>
+                        </label>
+                        <label class="flex items-start gap-3 p-3 rounded hover:bg-[#f4eee6] cursor-pointer transition-colors border border-transparent has-[:checked]:border-[#b36b47] has-[:checked]:bg-[#fffaf5]">
+                            <input type="radio" name="q1" value="C" class="mt-1">
+                            <span>C) Because the universal gravitational constant G changes based on the object.</span>
+                        </label>
+                        <label class="flex items-start gap-3 p-3 rounded hover:bg-[#f4eee6] cursor-pointer transition-colors border border-transparent has-[:checked]:border-[#b36b47] has-[:checked]:bg-[#fffaf5]">
+                            <input type="radio" name="q1" value="D" class="mt-1">
+                            <span>D) Because Earth's radius increases as objects fall.</span>
+                        </label>
+                    </div>
+                </div>
+
+                <div class="bg-white p-6 rounded-xl shadow-sm border border-[#e5d9c5]">
+                    <p class="font-semibold text-lg text-[#4a3b2c] mb-4">Q2: According to the lecture, what is the gravitational acceleration on the Moon compared to Earth?</p>
+                    <div class="space-y-2">
+                        <label class="flex items-start gap-3 p-3 rounded hover:bg-[#f4eee6] cursor-pointer transition-colors border border-transparent has-[:checked]:border-[#b36b47] has-[:checked]:bg-[#fffaf5]">
+                            <input type="radio" name="q2" value="A" class="mt-1">
+                            <span>A) Exactly the same.</span>
+                        </label>
+                        <label class="flex items-start gap-3 p-3 rounded hover:bg-[#f4eee6] cursor-pointer transition-colors border border-transparent has-[:checked]:border-[#b36b47] has-[:checked]:bg-[#fffaf5]">
+                            <input type="radio" name="q2" value="B" class="mt-1">
+                            <span>B) About 50% of Earth's.</span>
+                        </label>
+                        <label class="flex items-start gap-3 p-3 rounded hover:bg-[#f4eee6] cursor-pointer transition-colors border border-transparent has-[:checked]:border-[#b36b47] has-[:checked]:bg-[#fffaf5]">
+                            <input type="radio" name="q2" value="C" class="mt-1">
+                            <span>C) About 16% of Earth's.</span>
+                        </label>
+                        <label class="flex items-start gap-3 p-3 rounded hover:bg-[#f4eee6] cursor-pointer transition-colors border border-transparent has-[:checked]:border-[#b36b47] has-[:checked]:bg-[#fffaf5]">
+                            <input type="radio" name="q2" value="D" class="mt-1">
+                            <span>D) Twice as much as Earth's.</span>
+                        </label>
+                    </div>
+                </div>
+
+                <div class="bg-white p-6 rounded-xl shadow-sm border border-[#e5d9c5]">
+                    <p class="font-semibold text-lg text-[#4a3b2c] mb-4">Q3: If you move from sea level to the top of a 10,000 ft mountain (like Mauna Kea), what happens to the value of local g?</p>
+                    <div class="space-y-2">
+                        <label class="flex items-start gap-3 p-3 rounded hover:bg-[#f4eee6] cursor-pointer transition-colors border border-transparent has-[:checked]:border-[#b36b47] has-[:checked]:bg-[#fffaf5]">
+                            <input type="radio" name="q3" value="A" class="mt-1">
+                            <span>A) It remains exactly 9.81 m/s².</span>
+                        </label>
+                        <label class="flex items-start gap-3 p-3 rounded hover:bg-[#f4eee6] cursor-pointer transition-colors border border-transparent has-[:checked]:border-[#b36b47] has-[:checked]:bg-[#fffaf5]">
+                            <input type="radio" name="q3" value="B" class="mt-1">
+                            <span>B) It increases because you are closer to space.</span>
+                        </label>
+                        <label class="flex items-start gap-3 p-3 rounded hover:bg-[#f4eee6] cursor-pointer transition-colors border border-transparent has-[:checked]:border-[#b36b47] has-[:checked]:bg-[#fffaf5]">
+                            <input type="radio" name="q3" value="C" class="mt-1">
+                            <span>C) It decreases slightly because your distance from the Earth's center (r) has increased.</span>
+                        </label>
+                        <label class="flex items-start gap-3 p-3 rounded hover:bg-[#f4eee6] cursor-pointer transition-colors border border-transparent has-[:checked]:border-[#b36b47] has-[:checked]:bg-[#fffaf5]">
+                            <input type="radio" name="q3" value="D" class="mt-1">
+                            <span>D) It drops to zero.</span>
+                        </label>
+                    </div>
+                </div>
+
+                <div class="bg-white p-6 rounded-xl shadow-sm border border-[#e5d9c5]">
+                    <p class="font-semibold text-lg text-[#4a3b2c] mb-4">Q4: In the formula F = -G(m₁m₂)/r² · r̂, what does the minus sign indicate?</p>
+                    <div class="space-y-2">
+                        <label class="flex items-start gap-3 p-3 rounded hover:bg-[#f4eee6] cursor-pointer transition-colors border border-transparent has-[:checked]:border-[#b36b47] has-[:checked]:bg-[#fffaf5]">
+                            <input type="radio" name="q4" value="A" class="mt-1">
+                            <span>A) Gravity is a repulsive force.</span>
+                        </label>
+                        <label class="flex items-start gap-3 p-3 rounded hover:bg-[#f4eee6] cursor-pointer transition-colors border border-transparent has-[:checked]:border-[#b36b47] has-[:checked]:bg-[#fffaf5]">
+                            <input type="radio" name="q4" value="B" class="mt-1">
+                            <span>B) The force points in the opposite direction of the radial unit vector (it is an attractive force pulling inward).</span>
+                        </label>
+                        <label class="flex items-start gap-3 p-3 rounded hover:bg-[#f4eee6] cursor-pointer transition-colors border border-transparent has-[:checked]:border-[#b36b47] has-[:checked]:bg-[#fffaf5]">
+                            <input type="radio" name="q4" value="C" class="mt-1">
+                            <span>C) The mass of the objects is negative.</span>
+                        </label>
+                        <label class="flex items-start gap-3 p-3 rounded hover:bg-[#f4eee6] cursor-pointer transition-colors border border-transparent has-[:checked]:border-[#b36b47] has-[:checked]:bg-[#fffaf5]">
+                            <input type="radio" name="q4" value="D" class="mt-1">
+                            <span>D) It is an error in the equation.</span>
+                        </label>
+                    </div>
+                </div>
+
+                <div class="bg-white p-6 rounded-xl shadow-sm border border-[#e5d9c5]">
+                    <p class="font-semibold text-lg text-[#4a3b2c] mb-4">Q5: Which three specific values do you need to calculate the standard 9.81 m/s² acceleration of Earth?</p>
+                    <div class="space-y-2">
+                        <label class="flex items-start gap-3 p-3 rounded hover:bg-[#f4eee6] cursor-pointer transition-colors border border-transparent has-[:checked]:border-[#b36b47] has-[:checked]:bg-[#fffaf5]">
+                            <input type="radio" name="q5" value="A" class="mt-1">
+                            <span>A) Universal Gravitational Constant (G), Earth's Mass (M_E), and Earth's Radius (R_E).</span>
+                        </label>
+                        <label class="flex items-start gap-3 p-3 rounded hover:bg-[#f4eee6] cursor-pointer transition-colors border border-transparent has-[:checked]:border-[#b36b47] has-[:checked]:bg-[#fffaf5]">
+                            <input type="radio" name="q5" value="B" class="mt-1">
+                            <span>B) Your body mass (m), Earth's Mass (M_E), and Distance to the Sun.</span>
+                        </label>
+                        <label class="flex items-start gap-3 p-3 rounded hover:bg-[#f4eee6] cursor-pointer transition-colors border border-transparent has-[:checked]:border-[#b36b47] has-[:checked]:bg-[#fffaf5]">
+                            <input type="radio" name="q5" value="C" class="mt-1">
+                            <span>C) Universal Gravitational Constant (G), Mass of the Sun, and Earth's Radius.</span>
+                        </label>
+                        <label class="flex items-start gap-3 p-3 rounded hover:bg-[#f4eee6] cursor-pointer transition-colors border border-transparent has-[:checked]:border-[#b36b47] has-[:checked]:bg-[#fffaf5]">
+                            <input type="radio" name="q5" value="D" class="mt-1">
+                            <span>D) Earth's Radius (R_E), Atmospheric pressure, and Earth's Mass (M_E).</span>
+                        </label>
+                    </div>
+                </div>
+
+                <div class="flex items-center gap-6 mt-8">
+                    <button type="button" id="submit-quiz" class="bg-[#4a3b2c] hover:bg-[#2c221a] text-white font-bold py-3 px-8 rounded-lg shadow-md transition-colors text-lg">Submit Answers</button>
+                    <div id="quiz-results" class="hidden text-xl font-bold text-[#b36b47]"></div>
+                </div>
+            </form>
+        </section>
+
+    </main>
+
+    <footer class="bg-[#4a3b2c] text-[#e5d9c5] py-8 text-center text-sm">
+        <p>Interactive Exploration derived from Lecture Report</p>
+    </footer>
+
+    <script>
+        let currentStep = 1;
+        const maxSteps = 5;
+        const nextBtn = document.getElementById('next-step-btn');
+        const resetBtn = document.getElementById('reset-step-btn');
+
+        nextBtn.addEventListener('click', () => {
+            if (currentStep < maxSteps) {
+                currentStep++;
+                const stepEl = document.getElementById(`step-${currentStep}`);
+                stepEl.classList.remove('hidden-step');
+                stepEl.classList.add('visible-step');
+                
+                if (currentStep === maxSteps) {
+                    nextBtn.textContent = "Derivation Complete";
+                    nextBtn.disabled = true;
+                    nextBtn.classList.replace('bg-[#b36b47]', 'bg-[#d99c7a]');
+                    nextBtn.classList.remove('hover:bg-[#8c5230]');
+                    nextBtn.classList.add('cursor-not-allowed');
+                    resetBtn.classList.remove('hidden');
+                }
+            }
+        });
+
+        resetBtn.addEventListener('click', () => {
+            currentStep = 1;
+            for(let i=2; i<=maxSteps; i++) {
+                const stepEl = document.getElementById(`step-${i}`);
+                stepEl.classList.remove('visible-step');
+                stepEl.classList.add('hidden-step');
+            }
+            nextBtn.textContent = "Reveal Next Step";
+            nextBtn.disabled = false;
+            nextBtn.classList.replace('bg-[#d99c7a]', 'bg-[#b36b47]');
+            nextBtn.classList.add('hover:bg-[#8c5230]');
+            nextBtn.classList.remove('cursor-not-allowed');
+            resetBtn.classList.add('hidden');
+        });
+
+        const vectorCanvas = document.getElementById('vectorCanvas');
+        const vectorCtx = vectorCanvas.getContext('2d');
+        const vectorSlider = document.getElementById('vector-dist-slider');
+
+        function resizeVectorCanvas() {
+            vectorCanvas.width = vectorCanvas.parentElement.clientWidth;
+            vectorCanvas.height = 256;
+            drawVectors();
+        }
+
+        function drawArrow(ctx, fromx, fromy, tox, toy, color, label) {
+            const headlen = 10;
+            const dx = tox - fromx;
+            const dy = toy - fromy;
+            const angle = Math.atan2(dy, dx);
+            ctx.strokeStyle = color;
+            ctx.fillStyle = color;
+            ctx.lineWidth = 3;
+            ctx.beginPath();
+            ctx.moveTo(fromx, fromy);
+            ctx.lineTo(tox, toy);
+            ctx.stroke();
+            ctx.beginPath();
+            ctx.moveTo(tox, toy);
+            ctx.lineTo(tox - headlen * Math.cos(angle - Math.PI / 6), toy - headlen * Math.sin(angle - Math.PI / 6));
+            ctx.lineTo(tox - headlen * Math.cos(angle + Math.PI / 6), toy - headlen * Math.sin(angle + Math.PI / 6));
+            ctx.fill();
+            ctx.font = 'bold 12px sans-serif';
+            ctx.fillText(label, (fromx + tox) / 2, fromy - 12);
+        }
+
+        function drawVectors() {
+            vectorCtx.clearRect(0, 0, vectorCanvas.width, vectorCanvas.height);
+            const cy = vectorCanvas.height / 2;
+            const m1x = 100;
+            const m2x = parseFloat(vectorSlider.value);
+            vectorCtx.fillStyle = '#1e293b';
+            vectorCtx.beginPath();
+            vectorCtx.arc(m1x, cy, 35, 0, 2 * Math.PI);
+            vectorCtx.fill();
+            vectorCtx.fillStyle = '#fff';
+            vectorCtx.font = 'bold 14px serif';
+            vectorCtx.fillText('1 (Sun)', m1x - 22, cy + 5);
+            vectorCtx.fillStyle = '#475569';
+            vectorCtx.beginPath();
+            vectorCtx.arc(m2x, cy, 18, 0, 2 * Math.PI);
+            vectorCtx.fill();
+            vectorCtx.fillStyle = '#fff';
+            vectorCtx.font = 'bold 12px serif';
+            vectorCtx.fillText('2', m2x - 4, cy + 4);
+            vectorCtx.strokeStyle = 'rgba(255,255,255,0.15)';
+            vectorCtx.lineWidth = 1;
+            vectorCtx.beginPath();
+            vectorCtx.moveTo(m1x, cy + 45);
+            vectorCtx.lineTo(m2x, cy + 45);
+            vectorCtx.stroke();
+            vectorCtx.fillStyle = '#94a3b8';
+            vectorCtx.font = '12px Courier New';
+            vectorCtx.fillText(`Distance r₁₂`, (m1x + m2x) / 2 - 40, cy + 60);
+            const forceMag = Math.max(25, 40000 / Math.pow(m2x - m1x, 0.9));
+            drawArrow(vectorCtx, m2x, cy - 25, m2x - forceMag, cy - 25, '#ef4444', 'F₁₂ (Force)');
+            drawArrow(vectorCtx, m2x, cy + 25, m2x + 40, cy + 25, '#10b981', 'r̂₁₂ (Radial Unit)');
+        }
+
+        vectorSlider.addEventListener('input', drawVectors);
+        window.addEventListener('resize', resizeVectorCanvas);
+
+        const G = 6.6743e-11;
+        const massSlider = document.getElementById('mass-slider');
+        const radiusSlider = document.getElementById('radius-slider');
+        const altSlider = document.getElementById('alt-slider');
+        
+        const massVal = document.getElementById('mass-val');
+        const radiusVal = document.getElementById('radius-val');
+        const altVal = document.getElementById('alt-val');
+        const calculatedGDisplay = document.getElementById('calculated-g');
+
+        const flowM = document.getElementById('flow-m');
+        const flowR = document.getElementById('flow-r');
+        const flowH = document.getElementById('flow-h');
+        const flowCalcR = document.getElementById('flow-calc-r');
+        const flowCalcGStep = document.getElementById('flow-calc-g-step');
+        const flowFinalG = document.getElementById('flow-final-g');
+
+        const simAltDisp = document.getElementById('sim-alt-disp');
+        const dropPen = document.getElementById('drop-pen');
+        const dropBtn = document.getElementById('drop-btn');
+        const dropTimer = document.getElementById('drop-timer');
+
+        let gravityChartInstance = null;
+        let animationFrameId = null;
+
+        function calculateGravity(massInE24, radiusInKm, altitudeInKm) {
+            const massKg = massInE24 * Math.pow(10, 24);
+            const totalDistanceMeters = (radiusInKm + altitudeInKm) * 1000;
+            return (G * massKg) / Math.pow(totalDistanceMeters, 2);
+        }
+
+        function generateChartData(massInE24, radiusInKm) {
+            const dataPoints = [];
+            const labels = [];
+            for (let alt = 0; alt <= 40000; alt += 1000) {
+                labels.push(alt);
+                dataPoints.push(calculateGravity(massInE24, radiusInKm, alt));
+            }
+            return { labels, dataPoints };
+        }
+
+        function initChart(labels, dataPoints) {
+            const ctx = document.getElementById('gravityChart').getContext('2d');
+            gravityChartInstance = new Chart(ctx, {
+                type: 'line',
+                data: {
+                    labels: labels,
+                    datasets: [{
+                        label: 'Gravity (g) in m/s²',
+                        data: dataPoints,
+                        borderColor: '#b36b47',
+                        backgroundColor: 'rgba(179, 107, 71, 0.1)',
+                        borderWidth: 3,
+                        pointRadius: 0,
+                        pointHoverRadius: 6,
+                        fill: true,
+                        tension: 0.4
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    interaction: {
+                        mode: 'index',
+                        intersect: false,
+                    },
+                    plugins: {
+                        legend: { display: false },
+                        tooltip: {
+                            backgroundColor: 'rgba(74, 59, 44, 0.9)',
+                            titleFont: { family: 'Nunito Sans', size: 13 },
+                            bodyFont: { family: 'Nunito Sans', size: 14, weight: 'bold' },
+                            callbacks: {
+                                title: (context) => `Altitude: ${context[0].label} km`,
+                                label: (context) => `g = ${context.parsed.y.toFixed(3)} m/s²`
+                            }
+                        }
+                    },
+                    scales: {
+                        x: {
+                            title: { display: true, text: 'Altitude (km)', color: '#6b5b4a', font: { weight: 'bold' } },
+                            grid: { color: '#e5d9c5' },
+                            ticks: { color: '#8c8273', maxTicksLimit: 8 }
+                        },
+                        y: {
+                            title: { display: true, text: 'Gravity (m/s²)', color: '#6b5b4a', font: { weight: 'bold' } },
+                            grid: { color: '#e5d9c5' },
+                            ticks: { color: '#8c8273' },
+                            beginAtZero: true
+                        }
+                    }
+                }
+            });
+        }
+
+        function runDropSimulation() {
+            if (animationFrameId) {
+                cancelAnimationFrame(animationFrameId);
+            }
+            const currentG = parseFloat(calculatedGDisplay.textContent);
+            const scaleHeight = 100; 
+            const totalDuration = Math.sqrt((2 * scaleHeight) / currentG) * 0.5;
+            let startTime = null;
+
+            function animate(timestamp) {
+                if (!startTime) startTime = timestamp;
+                const elapsed = (timestamp - startTime) / 1000;
+                const progress = Math.min(elapsed / totalDuration, 1);
+                const currentPos = Math.pow(progress, 2) * 85; 
+
+                dropPen.style.top = `${currentPos}%`;
+                dropTimer.textContent = `Time: ${Math.min(elapsed, totalDuration).toFixed(2)}s`;
+
+                if (progress < 1) {
+                    animationFrameId = requestAnimationFrame(animate);
+                } else {
+                    animationFrameId = null;
+                }
+            }
+            animationFrameId = requestAnimationFrame(animate);
+        }
+
+        function updateSimulation() {
+            const m = parseFloat(massSlider.value);
+            const r = parseFloat(radiusSlider.value);
+            const a = parseFloat(altSlider.value);
+
+            massVal.textContent = m.toFixed(2);
+            radiusVal.textContent = Math.round(r).toLocaleString();
+            altVal.textContent = a.toFixed(1);
+
+            flowM.textContent = m.toFixed(2);
+            flowR.textContent = Math.round(r).toLocaleString();
+            flowH.textContent = a.toFixed(1);
+            flowCalcR.textContent = Math.round((r + a) * 1000).toLocaleString();
+
+            const g = calculateGravity(m, r, a);
+            calculatedGDisplay.textContent = g.toFixed(4);
+            flowCalcGStep.textContent = g.toFixed(2);
+            flowFinalG.textContent = g.toFixed(2);
+
+            simAltDisp.textContent = a.toFixed(1);
+
+            const { labels, dataPoints } = generateChartData(m, r);
+            if (gravityChartInstance) {
+                gravityChartInstance.data.labels = labels;
+                gravityChartInstance.data.datasets[0].data = dataPoints;
+                gravityChartInstance.update();
+            }
+        }
+
+        massSlider.addEventListener('input', updateSimulation);
+        radiusSlider.addEventListener('input', updateSimulation);
+        altSlider.addEventListener('input', updateSimulation);
+        dropBtn.addEventListener('click', runDropSimulation);
+
+        document.querySelectorAll('.preset-btn').forEach(btn => {
+            btn.addEventListener('click', (e) => {
+                massSlider.value = e.target.dataset.m;
+                radiusSlider.value = e.target.dataset.r;
+                altSlider.value = e.target.dataset.a;
+                updateSimulation();
+            });
+        });
+
+        const initialData = generateChartData(parseFloat(massSlider.value), parseFloat(radiusSlider.value));
+        initChart(initialData.labels, initialData.dataPoints);
+        updateSimulation();
+        resizeVectorCanvas();
+
+        const correctAnswers = { q1: 'B', q2: 'C', q3: 'C', q4: 'B', q5: 'A' };
+        
+        document.getElementById('submit-quiz').addEventListener('click', () => {
+            let score = 0;
+            let answered = 0;
+            const form = document.getElementById('quiz-form');
+            const data = new FormData(form);
+
+            for (const [q, answer] of Object.entries(correctAnswers)) {
+                const selected = data.get(q);
+                if (selected) answered++;
+                const inputs = form.querySelectorAll(`input[name="${q}"]`);
+                inputs.forEach(input => {
+                    const label = input.closest('label');
+                    label.classList.remove('bg-green-100', 'border-green-500', 'bg-red-100', 'border-red-500', 'text-green-800', 'text-red-800');
+                    if (input.value === answer) {
+                        label.classList.add('bg-green-50', 'border-green-400', 'text-green-900');
+                    }
+                    if (input.checked) {
+                        if (input.value === answer) {
+                            score++;
+                        } else {
+                            label.classList.add('bg-red-50', 'border-red-400', 'text-red-900');
+                        }
+                    }
+                });
+            }
+
+            const resultsDiv = document.getElementById('quiz-results');
+            resultsDiv.classList.remove('hidden');
+            if (answered < 5) {
+                resultsDiv.textContent = `Please answer all questions. (Current score: ${score}/5)`;
+                resultsDiv.className = "text-xl font-bold text-amber-600 mt-0";
+            } else {
+                resultsDiv.textContent = `Score: ${score}/5 (${(score/5)*100}%)`;
+                resultsDiv.className = score === 5 ? "text-xl font-bold text-green-600 mt-0" : "text-xl font-bold text-[#b36b47] mt-0";
+            }
+        });
+    </script>
+</body>
+</html>

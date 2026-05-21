@@ -1,0 +1,1282 @@
+<!DOCTYPE html>
+<html lang="en" class="dark">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Newton's Third Law Interactive Workspace</title>
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            darkMode: 'class',
+            theme: {
+                extend: {
+                    colors: {
+                        physicsBlue: '#3b82f6',
+                        physicsGreen: '#10b981',
+                        physicsRed: '#ef4444',
+                        physicsOrange: '#f59e0b',
+                    }
+                }
+            }
+        }
+    </script>
+    <!-- KaTeX for rendering mathematical notation -->
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.8/dist/katex.min.css">
+    <script src="https://cdn.jsdelivr.net/npm/katex@0.16.8/dist/katex.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/katex@0.16.8/dist/contrib/auto-render.min.js"></script>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;500&display=swap');
+        body {
+            font-family: 'Inter', sans-serif;
+        }
+        .mono-font {
+            font-family: 'JetBrains Mono', monospace;
+        }
+    </style>
+</head>
+<body class="bg-slate-950 text-slate-100 min-h-screen flex flex-col selection:bg-physicsBlue selection:text-white">
+
+    <!-- Header Section -->
+    <header class="border-b border-slate-800 bg-slate-900/50 backdrop-blur-md sticky top-0 z-50 px-4 py-4 sm:px-8">
+        <div class="max-w-7xl mx-auto flex flex-col md:flex-row md:items-center md:justify-between gap-4">
+            <div class="flex items-center space-x-3">
+                <div class="p-2.5 bg-physicsBlue/10 rounded-xl border border-physicsBlue/30 text-physicsBlue">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7h12m0 0l-4-4m4 4l-4 4m0 6H4m0 0l4 4m-4-4l4-4" />
+                    </svg>
+                </div>
+                <div>
+                    <h1 class="text-xl font-extrabold tracking-tight text-white flex items-center gap-2">
+                        Newton's Third Law <span class="text-xs bg-physicsBlue/20 text-physicsBlue border border-physicsBlue/30 px-2 py-0.5 rounded-full uppercase font-bold tracking-wider">Workspace</span>
+                    </h1>
+                    <p class="text-xs text-slate-400 mt-0.5">Interactive Mechanics, Infographics, & Diagnostic Assessments</p>
+                </div>
+            </div>
+            <!-- Navigation Tabs -->
+            <nav class="flex bg-slate-950 p-1 rounded-xl border border-slate-800 self-start md:self-center">
+                <button onclick="switchTab('simulators')" id="tab-btn-simulators" class="px-4 py-2 text-xs sm:text-sm font-medium rounded-lg transition-all duration-200 bg-physicsBlue text-white shadow-lg shadow-physicsBlue/20">
+                    Physics Simulators
+                </button>
+                <button onclick="switchTab('infographic')" id="tab-btn-infographic" class="px-4 py-2 text-xs sm:text-sm font-medium rounded-lg transition-all duration-200 text-slate-400 hover:text-white">
+                    Core Infographic
+                </button>
+                <button onclick="switchTab('quiz')" id="tab-btn-quiz" class="px-4 py-2 text-xs sm:text-sm font-medium rounded-lg transition-all duration-200 text-slate-400 hover:text-white">
+                    Diagnostic Quiz
+                </button>
+            </nav>
+        </div>
+    </header>
+
+    <!-- Main Container -->
+    <main class="flex-grow max-w-7xl w-full mx-auto p-4 sm:p-8">
+
+        <!-- TAB 1: SIMULATORS -->
+        <section id="tab-simulators" class="space-y-8">
+            <!-- Selector for Sub-Simulators -->
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <button onclick="switchSim('collision')" id="sim-btn-collision" class="group text-left p-5 rounded-2xl border bg-slate-900 border-physicsBlue/40 hover:border-physicsBlue transition-all duration-300 relative overflow-hidden">
+                    <div class="absolute -right-8 -bottom-8 opacity-10 group-hover:scale-110 transition-transform duration-500 text-physicsBlue">
+                        <svg class="w-32 h-32" fill="currentColor" viewBox="0 0 24 24"><path d="M19 15v3h3v2h-3v3h-2v-3h-3v-2h3v-3h2m-7-3v1h3v2h-3v3H9v-3H6v-2h3v-1H5a2 2 0 0 1-2-2V5c0-1.1.9-2 2-2h14a2 2 0 0 1 2 2v5c0 1.1-.9 2-2 2h-7z"/></svg>
+                    </div>
+                    <div class="flex items-start gap-4">
+                        <div class="p-3 rounded-lg bg-physicsBlue/10 text-physicsBlue border border-physicsBlue/20">
+                            <svg class="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z"/></svg>
+                        </div>
+                        <div>
+                            <h3 class="text-md font-bold text-white group-hover:text-physicsBlue transition-colors">1. Train vs. Marble Collision</h3>
+                            <p class="text-xs text-slate-400 mt-1 leading-relaxed">Simulate an extreme collision to see how equal force acting on vastly different masses results in astronomical differences in acceleration.</p>
+                        </div>
+                    </div>
+                </button>
+
+                <button onclick="switchSim('gravity')" id="sim-btn-gravity" class="group text-left p-5 rounded-2xl border bg-slate-900 border-slate-800 hover:border-physicsGreen/50 transition-all duration-300 relative overflow-hidden">
+                    <div class="absolute -right-8 -bottom-8 opacity-10 group-hover:scale-110 transition-transform duration-500 text-physicsGreen">
+                        <svg class="w-32 h-32" fill="currentColor" viewBox="0 0 24 24"><path d="M12 2A10 10 0 0 0 2 12a10 10 0 0 0 10 10 10 10 0 0 0 10-10A10 10 0 0 0 12 2m0 2c4.41 0 8 3.59 8 8a8 8 0 0 1-8 8A8 8 0 0 1 4 12c0-4.41 3.59-8 8-8m0 3a5 5 0 0 0-5 5h2a3 3 0 0 1 3-3V7z"/></svg>
+                    </div>
+                    <div class="flex items-start gap-4">
+                        <div class="p-3 rounded-lg bg-physicsGreen/10 text-physicsGreen border border-physicsGreen/20">
+                            <svg class="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3.055 11H5a2 2 0 012 2v1a2 2 0 002 2 2 2 0 012 2v2.945M8 3.935V5.5A2.5 2.5 0 0010.5 8h.5a2 2 0 012 2 2 2 0 002 2h2a2.5 2.5 0 002.5-2.5V10a2 2 0 00-2-2h-1a2 2 0 00-2-2V5a2 2 0 00-2-2H9a2 2 0 00-1 .935z"/></svg>
+                        </div>
+                        <div>
+                            <h3 class="text-md font-bold text-white group-hover:text-physicsGreen transition-colors">2. Person Standing on Earth</h3>
+                            <p class="text-xs text-slate-400 mt-1 leading-relaxed">Examine the vector systems of gravity and normal force. Learn to isolate individual interactions and understand why forces acting on the same object are never a Newton's Third Law pair.</p>
+                        </div>
+                    </div>
+                </button>
+            </div>
+
+            <!-- SIMULATOR A: TRAIN VS MARBLE COLLISION -->
+            <div id="sim-pane-collision" class="grid grid-cols-1 lg:grid-cols-12 gap-8">
+                <!-- Control Panel -->
+                <div class="lg:col-span-4 bg-slate-900 p-6 rounded-3xl border border-slate-800 flex flex-col justify-between space-y-6">
+                    <div>
+                        <h3 class="text-lg font-bold text-white mb-2 flex items-center gap-2">
+                            <span class="w-2 h-2 bg-physicsBlue rounded-full"></span> Simulation Parameters
+                        </h3>
+                        <p class="text-xs text-slate-400 mb-6 leading-relaxed">Adjust masses and speeds to investigate how the system handles momentum conservation and instantaneous impact vectors.</p>
+
+                        <!-- Train Mass Slider -->
+                        <div class="space-y-2 mb-6">
+                            <div class="flex justify-between items-center text-xs">
+                                <label class="text-slate-300 font-semibold flex items-center gap-2">
+                                    <span class="w-2 h-2 bg-physicsOrange rounded-full"></span> Train Mass (\(M_{\text{train}}\))
+                                </label>
+                                <span class="mono-font text-physicsOrange font-bold" id="val-mass-train">100,000 kg</span>
+                            </div>
+                            <input type="range" id="input-mass-train" min="5000" max="200000" step="5000" value="100000" class="w-full h-1 bg-slate-800 rounded-lg appearance-none cursor-pointer accent-physicsOrange">
+                        </div>
+
+                        <!-- Marble Mass Slider -->
+                        <div class="space-y-2 mb-6">
+                            <div class="flex justify-between items-center text-xs">
+                                <label class="text-slate-300 font-semibold flex items-center gap-2">
+                                    <span class="w-2 h-2 bg-physicsBlue rounded-full"></span> Marble Mass (\(M_{\text{marble}}\))
+                                </label>
+                                <span class="mono-font text-physicsBlue font-bold" id="val-mass-marble">0.05 kg (50g)</span>
+                            </div>
+                            <input type="range" id="input-mass-marble" min="0.01" max="10" step="0.01" value="0.05" class="w-full h-1 bg-slate-800 rounded-lg appearance-none cursor-pointer accent-physicsBlue">
+                        </div>
+
+                        <!-- Train Speed Slider -->
+                        <div class="space-y-2 mb-6">
+                            <div class="flex justify-between items-center text-xs">
+                                <label class="text-slate-300 font-semibold">Train Velocity (\(v_{\text{train}}\))</label>
+                                <span class="mono-font text-slate-300 font-bold" id="val-v-train">-15 m/s</span>
+                            </div>
+                            <input type="range" id="input-v-train" min="-40" max="0" step="1" value="-15" class="w-full h-1 bg-slate-800 rounded-lg appearance-none cursor-pointer accent-slate-400">
+                        </div>
+
+                        <!-- Marble Speed Slider -->
+                        <div class="space-y-2 mb-6">
+                            <div class="flex justify-between items-center text-xs">
+                                <label class="text-slate-300 font-semibold">Marble Velocity (\(v_{\text{marble}}\))</label>
+                                <span class="mono-font text-slate-300 font-bold" id="val-v-marble">20 m/s</span>
+                            </div>
+                            <input type="range" id="input-v-marble" min="0" max="50" step="1" value="20" class="w-full h-1 bg-slate-800 rounded-lg appearance-none cursor-pointer accent-slate-400">
+                        </div>
+                    </div>
+
+                    <div class="space-y-3">
+                        <button id="btn-fire-collision" onclick="fireCollision()" class="w-full py-4 bg-physicsBlue hover:bg-blue-600 active:scale-[0.98] transition-all text-white font-bold rounded-xl flex items-center justify-center gap-2 shadow-lg shadow-physicsBlue/20">
+                            <svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14.752 11.168l-3.197-2.132A1 1 0 0010 9.87v4.263a1 1 0 001.555.832l3.197-2.132a1 1 0 000-1.664z"/><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+                            Trigger Collision
+                        </button>
+                        <button onclick="resetCollision()" class="w-full py-2.5 bg-slate-800 hover:bg-slate-700 transition-colors text-slate-300 text-xs font-semibold rounded-xl">
+                            Reset Environment
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Simulation Canvas Workspace -->
+                <div class="lg:col-span-8 flex flex-col space-y-6">
+                    <div class="bg-slate-900 border border-slate-800 rounded-3xl overflow-hidden relative shadow-inner">
+                        <!-- Top status bar -->
+                        <div class="bg-slate-950/80 px-6 py-3 border-b border-slate-800 flex justify-between items-center text-xs">
+                            <span class="flex items-center gap-2 font-semibold">
+                                <span class="w-2.5 h-2.5 rounded-full bg-physicsGreen animate-pulse"></span>
+                                Live Simulation View
+                            </span>
+                            <span class="text-slate-400 font-mono" id="sim-state-text">Ready to Collide</span>
+                        </div>
+
+                        <!-- Canvas container -->
+                        <div class="relative h-[340px] bg-slate-950/60 flex items-center justify-center">
+                            <canvas id="collisionCanvas" class="absolute inset-0 w-full h-full"></canvas>
+                            
+                            <!-- Overlay vector labels inside canvas area for high visual impact -->
+                            <div id="vectorOverlay" class="absolute bottom-4 left-4 right-4 pointer-events-none flex justify-between text-xs font-mono bg-slate-900/95 border border-slate-800 p-4 rounded-xl opacity-0 transform translate-y-4 transition-all duration-300">
+                                <div class="text-physicsBlue">
+                                    <span class="block text-slate-400 font-bold text-[10px] uppercase">Force on Marble (\(\vec{F}_{\text{on marble}}\))</span>
+                                    <span id="force-val-marble" class="text-sm font-extrabold">-</span>
+                                </div>
+                                <div class="text-center text-slate-300 flex items-center justify-center px-4 border-l border-r border-slate-800">
+                                    <span class="text-sm font-semibold">Equal & Opposite!</span>
+                                </div>
+                                <div class="text-physicsOrange text-right">
+                                    <span class="block text-slate-400 font-bold text-[10px] uppercase">Force on Train (\(\vec{F}_{\text{on train}}\))</span>
+                                    <span id="force-val-train" class="text-sm font-extrabold">-</span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Post-Collision Telemetry -->
+                    <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+                        <div class="bg-slate-900 p-5 rounded-2xl border border-slate-850">
+                            <span class="text-[10px] uppercase font-bold tracking-wider text-slate-400">Interaction Force</span>
+                            <div class="text-xl font-bold mt-1 text-white flex items-baseline gap-1" id="telemetry-force">
+                                0.00 <span class="text-xs text-slate-500 font-normal">N</span>
+                            </div>
+                            <p class="text-[11px] text-slate-500 mt-2 leading-relaxed">Identical in magnitude for both bodies at the exact millisecond of contact.</p>
+                        </div>
+                        <div class="bg-slate-900 p-5 rounded-2xl border border-slate-850">
+                            <span class="text-[10px] uppercase font-bold tracking-wider text-physicsBlue">Marble Acceleration</span>
+                            <div class="text-xl font-bold mt-1 text-physicsBlue flex items-baseline gap-1" id="telemetry-acc-marble">
+                                0.00 <span class="text-xs text-physicsBlue/70 font-normal">m/s²</span>
+                            </div>
+                            <p class="text-[11px] text-slate-500 mt-2 leading-relaxed">Enormous value due to extremely small mass denominator.</p>
+                        </div>
+                        <div class="bg-slate-900 p-5 rounded-2xl border border-slate-850">
+                            <span class="text-[10px] uppercase font-bold tracking-wider text-physicsOrange">Train Acceleration</span>
+                            <div class="text-xl font-bold mt-1 text-physicsOrange flex items-baseline gap-1" id="telemetry-acc-train">
+                                0.00 <span class="text-xs text-physicsOrange/70 font-normal">m/s²</span>
+                            </div>
+                            <p class="text-[11px] text-slate-500 mt-2 leading-relaxed">Negligible value because of extremely large mass inertia.</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- SIMULATOR B: PERSON STANDING ON EARTH -->
+            <div id="sim-pane-gravity" class="grid grid-cols-1 lg:grid-cols-12 gap-8 hidden">
+                <!-- Interactive Controls/Legends -->
+                <div class="lg:col-span-5 bg-slate-900 p-6 rounded-3xl border border-slate-800 flex flex-col justify-between space-y-6">
+                    <div>
+                        <h3 class="text-lg font-bold text-white mb-2 flex items-center gap-2">
+                            <span class="w-2 h-2 bg-physicsGreen rounded-full"></span> Force Isolator
+                        </h3>
+                        <p class="text-xs text-slate-400 mb-6 leading-relaxed">Click options below to highlight different interaction systems. See how "balanced forces" on one person are made of two completely independent pairs.</p>
+
+                        <!-- Force Filter Toggles -->
+                        <div class="space-y-3">
+                            <button onclick="toggleEarthPair('all')" id="btn-pair-all" class="w-full text-left p-4 rounded-xl border bg-slate-950 border-physicsBlue text-slate-200 transition-all">
+                                <div class="flex items-center justify-between">
+                                    <span class="font-bold text-xs sm:text-sm">Show All Vectors</span>
+                                    <span class="text-[10px] uppercase px-2 py-0.5 rounded-full bg-physicsBlue/20 text-physicsBlue font-bold">Comprehensive</span>
+                                </div>
+                                <p class="text-[11px] text-slate-400 mt-2 leading-normal">Displays both gravitational pull and physical contact normal force vectors simultaneously.</p>
+                            </button>
+
+                            <button onclick="toggleEarthPair('gravity')" id="btn-pair-gravity" class="w-full text-left p-4 rounded-xl border bg-slate-950 border-slate-850 text-slate-400 hover:border-slate-700 transition-all">
+                                <div class="flex items-center justify-between">
+                                    <span class="font-bold text-xs sm:text-sm text-slate-200">1. Gravity Action-Reaction Pair</span>
+                                    <span class="text-[10px] uppercase px-2 py-0.5 rounded-full bg-emerald-500/10 text-emerald-400 font-bold">Non-Contact</span>
+                                </div>
+                                <p class="text-[11px] text-slate-400 mt-2 leading-normal">Forces between **Earth Center** and the **Person**. Both pull each other with an identical force magnitude of \(mg\).</p>
+                            </button>
+
+                            <button onclick="toggleEarthPair('normal')" id="btn-pair-normal" class="w-full text-left p-4 rounded-xl border bg-slate-950 border-slate-850 text-slate-400 hover:border-slate-700 transition-all">
+                                <div class="flex items-center justify-between">
+                                    <span class="font-bold text-xs sm:text-sm text-slate-200">2. Normal Force Action-Reaction Pair</span>
+                                    <span class="text-[10px] uppercase px-2 py-0.5 rounded-full bg-physicsOrange/10 text-physicsOrange font-bold">Contact</span>
+                                </div>
+                                <p class="text-[11px] text-slate-400 mt-2 leading-normal">Electromagnetic compression between **Person's Shoes** and **Earth Surface**. Upward push \(\vec{N}\) equals downward push \(-\vec{N}\).</p>
+                            </button>
+                        </div>
+                    </div>
+
+                    <!-- Explainer Box -->
+                    <div class="bg-slate-950 border border-slate-850 p-4 rounded-xl">
+                        <h4 class="text-xs font-bold text-physicsRed flex items-center gap-1.5 mb-1.5">
+                            <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"/></svg>
+                            The Golden Rule of Newton's 3rd Law
+                        </h4>
+                        <p class="text-[11px] text-slate-400 leading-relaxed">
+                            If you have two forces acting on **one single object** (like Gravity pulling a person down, and Normal Force pushing that same person up), they can **never** be a third law pair. A third law pair *must* always act on two different objects.
+                        </p>
+                    </div>
+                </div>
+
+                <!-- Simulation Canvas Workspace -->
+                <div class="lg:col-span-7 flex flex-col space-y-6">
+                    <div class="bg-slate-900 border border-slate-800 rounded-3xl overflow-hidden relative shadow-inner">
+                        <div class="bg-slate-950/80 px-6 py-3 border-b border-slate-800 flex justify-between items-center text-xs">
+                            <span class="flex items-center gap-2 font-semibold">
+                                <span class="w-2.5 h-2.5 rounded-full bg-physicsGreen"></span>
+                                Vector Diagram Isolation Room
+                            </span>
+                        </div>
+
+                        <!-- Canvas container -->
+                        <div class="relative h-[480px] bg-slate-950/60 flex items-center justify-center">
+                            <canvas id="gravityCanvas" class="absolute inset-0 w-full h-full"></canvas>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- TAB 2: INFOGRAPHIC -->
+        <section id="tab-infographic" class="space-y-8 hidden">
+            <!-- Header Card -->
+            <div class="bg-gradient-to-r from-slate-900 via-slate-900 to-indigo-950/40 p-6 sm:p-8 rounded-3xl border border-slate-850">
+                <div class="max-w-3xl">
+                    <span class="text-xs font-bold text-physicsBlue tracking-wider uppercase block mb-2">Visual Study Guide</span>
+                    <h2 class="text-2xl sm:text-3xl font-extrabold text-white tracking-tight">The Mechanics of Force Pairs</h2>
+                    <p class="text-xs sm:text-sm text-slate-400 mt-2 leading-relaxed">
+                        Forces do not exist in isolation. A force is not a properties of an object; it is an **interaction** between two objects. This visual guide breaks down how to computationally identify and analyze these pairs.
+                    </p>
+                </div>
+            </div>
+
+            <!-- Main Infographic Grid -->
+            <div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
+                <!-- Left: Mathematical Structure -->
+                <div class="bg-slate-900 p-6 rounded-3xl border border-slate-800 space-y-6">
+                    <h3 class="text-md font-bold text-white border-b border-slate-800 pb-3 flex items-center gap-2">
+                        <span class="w-1.5 h-1.5 bg-physicsBlue rounded-full"></span> Mathematical Architecture
+                    </h3>
+
+                    <!-- Core Formula Card -->
+                    <div class="bg-slate-950 p-5 rounded-2xl border border-slate-850">
+                        <div class="text-xs text-slate-400 mb-2 uppercase tracking-wide font-semibold">The Fundamental Statement</div>
+                        <div class="text-xl sm:text-2xl font-bold text-white py-2 select-all text-center tracking-wide font-mono">
+                            $$\vec{F}_{12} = -\vec{F}_{21}$$
+                        </div>
+                        <div class="text-[11px] text-slate-500 mt-2 leading-relaxed">
+                            Where \(\vec{F}_{12}\) is the force acting on Object 2 by Object 1, and \(\vec{F}_{21}\) is the equal and opposite force acting on Object 1 by Object 2.
+                        </div>
+                    </div>
+
+                    <!-- Acceleration Ratio -->
+                    <div class="bg-slate-950 p-5 rounded-2xl border border-slate-850">
+                        <div class="text-xs text-slate-400 mb-2 uppercase tracking-wide font-semibold">The Acceleration Ratio</div>
+                        <div class="text-lg sm:text-xl font-bold text-white py-2 text-center font-mono">
+                            $$\left| \frac{\vec{a}_1}{\vec{a}_2} \right| = \frac{m_2}{m_1}$$
+                        </div>
+                        <p class="text-[11px] text-slate-500 mt-2 leading-relaxed">
+                            Since force magnitude is invariant between both objects, the acceleration they undergo is purely inversely proportional to their respective inertias.
+                        </p>
+                    </div>
+                </div>
+
+                <!-- Middle: Step-by-Step Pair Verification -->
+                <div class="bg-slate-900 p-6 rounded-3xl border border-slate-800 space-y-6">
+                    <h3 class="text-md font-bold text-white border-b border-slate-800 pb-3 flex items-center gap-2">
+                        <span class="w-1.5 h-1.5 bg-physicsGreen rounded-full"></span> System Isolation Algorithm
+                    </h3>
+
+                    <div class="relative pl-6 space-y-5 border-l border-slate-800">
+                        <!-- Step 1 -->
+                        <div class="relative">
+                            <span class="absolute -left-10 top-0.5 w-8 h-8 rounded-full bg-slate-950 border border-slate-800 text-xs font-bold text-physicsBlue flex items-center justify-center">1</span>
+                            <h4 class="text-xs font-bold text-slate-200">State the Force Action Statement</h4>
+                            <p class="text-[11px] text-slate-400 mt-1 leading-relaxed">
+                                Formulate the force precisely as: <br>
+                                <span class="text-physicsBlue">"Object A exerts a force on Object B."</span>
+                            </p>
+                        </div>
+
+                        <!-- Step 2 -->
+                        <div class="relative">
+                            <span class="absolute -left-10 top-0.5 w-8 h-8 rounded-full bg-slate-950 border border-slate-800 text-xs font-bold text-physicsBlue flex items-center justify-center">2</span>
+                            <h4 class="text-xs font-bold text-slate-200">Perform the Linguistic Inversion</h4>
+                            <p class="text-[11px] text-slate-400 mt-1 leading-relaxed">
+                                Swap the actor and receiver directly: <br>
+                                <span class="text-physicsGreen">"Object B exerts an opposite force on Object A."</span>
+                            </p>
+                        </div>
+
+                        <!-- Step 3 -->
+                        <div class="relative">
+                            <span class="absolute -left-10 top-0.5 w-8 h-8 rounded-full bg-slate-950 border border-slate-800 text-xs font-bold text-physicsBlue flex items-center justify-center">3</span>
+                            <h4 class="text-xs font-bold text-slate-200">The Validation Guard</h4>
+                            <p class="text-[11px] text-slate-400 mt-1 leading-relaxed">
+                                Ensure that the inverted statement describes a real force of the exact same physical nature (e.g. gravitational force matches gravitational force, contact matches contact).
+                            </p>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Right: Common Mechanics Fallacies -->
+                <div class="bg-slate-900 p-6 rounded-3xl border border-slate-800 space-y-6">
+                    <h3 class="text-md font-bold text-white border-b border-slate-800 pb-3 flex items-center gap-2">
+                        <span class="w-1.5 h-1.5 bg-physicsRed rounded-full"></span> Common Misconceptions
+                    </h3>
+
+                    <div class="space-y-4">
+                        <div class="p-4 rounded-2xl bg-slate-950 border border-slate-850">
+                            <h4 class="text-xs font-bold text-physicsRed flex items-center gap-1.5">
+                                <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 14l2-2m0 0l2-2m-2 2l-2-2m2 2l2 2m7-2a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+                                Misconception: "Forces cancel out"
+                            </h4>
+                            <p class="text-[11px] text-slate-400 mt-1.5 leading-relaxed">
+                                If action-reaction forces are equal and opposite, why does anything move? <strong class="text-white">Because they act on different bodies!</strong> You only sum forces that act on the *same* body.
+                            </p>
+                        </div>
+
+                        <div class="p-4 rounded-2xl bg-slate-950 border border-slate-850">
+                            <h4 class="text-xs font-bold text-physicsRed flex items-center gap-1.5">
+                                <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 14l2-2m0 0l2-2m-2 2l-2-2m2 2l2 2m7-2a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+                                Misconception: "Heavy objects hit harder"
+                            </h4>
+                            <p class="text-[11px] text-slate-400 mt-1.5 leading-relaxed">
+                                Intuition says a train hits a fly harder than the fly hits the train. This is wrong. The impact force is identical; the difference is the spectacular damage caused by the fly's massive deceleration.
+                            </p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- TAB 3: DIAGNOSTIC QUIZ -->
+        <section id="tab-quiz" class="space-y-8 hidden">
+            <div class="bg-slate-900 border border-slate-800 rounded-3xl p-6 sm:p-8 max-w-3xl mx-auto">
+                <!-- Header -->
+                <div class="flex items-center justify-between mb-6 border-b border-slate-800 pb-4">
+                    <div>
+                        <h2 class="text-xl font-bold text-white">Diagnostic Understanding Test</h2>
+                        <p class="text-xs text-slate-400 mt-1">Verify your mental model of action-reaction systems.</p>
+                    </div>
+                    <div class="text-right">
+                        <span class="text-xs text-slate-400 font-semibold block">Completed</span>
+                        <span id="quiz-progress" class="font-mono text-sm font-bold text-physicsBlue">0%</span>
+                    </div>
+                </div>
+
+                <!-- Questions Container -->
+                <div id="quiz-workspace" class="space-y-6">
+                    <!-- Dynamic rendering happens here -->
+                </div>
+
+                <!-- Navigation Controls -->
+                <div class="flex justify-between items-center mt-8 pt-4 border-t border-slate-800">
+                    <button id="btn-quiz-prev" onclick="prevQuestion()" class="px-4 py-2 bg-slate-800 hover:bg-slate-700 text-slate-300 rounded-xl text-xs font-bold transition-all disabled:opacity-50 disabled:pointer-events-none">
+                        Previous Question
+                    </button>
+                    <button id="btn-quiz-next" onclick="nextQuestion()" class="px-5 py-2.5 bg-physicsBlue hover:bg-blue-600 text-white rounded-xl text-xs font-bold transition-all">
+                        Next Question
+                    </button>
+                </div>
+            </div>
+        </section>
+
+    </main>
+
+    <!-- Custom Modal System (Alert Alternative) -->
+    <div id="customModal" class="fixed inset-0 z-50 bg-slate-950/80 backdrop-blur-sm hidden flex items-center justify-center p-4">
+        <div class="bg-slate-900 border border-slate-800 max-w-md w-full rounded-3xl p-6 shadow-2xl relative animate-in fade-in zoom-in-95 duration-200">
+            <div class="text-center">
+                <div id="modalIconContainer" class="mx-auto w-12 h-12 rounded-full flex items-center justify-center mb-4">
+                    <!-- Rendered Dynamically -->
+                </div>
+                <h3 id="modalTitle" class="text-lg font-bold text-white mb-2">Notice</h3>
+                <p id="modalBody" class="text-xs text-slate-400 leading-relaxed mb-6"></p>
+                <button onclick="closeModal()" class="w-full py-3 bg-slate-850 hover:bg-slate-800 transition-colors rounded-xl text-xs font-bold text-white">
+                    Dismiss Notification
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Footer Section -->
+    <footer class="border-t border-slate-900 bg-slate-950/80 px-4 py-6 sm:px-8 text-center text-xs text-slate-500">
+        <div class="max-w-7xl mx-auto flex flex-col sm:flex-row sm:justify-between items-center gap-4">
+            <p>© 2026 Physics Workspace. Interactive simulation based on Newton's laws of motion.</p>
+            <p>Built with pure web technologies and styled dynamically.</p>
+        </div>
+    </footer>
+
+    <!-- MAIN PHYSICS LOGIC & CONTROLLER -->
+    <script>
+        // Tab switching controller
+        function switchTab(tabId) {
+            ['simulators', 'infographic', 'quiz'].forEach(tab => {
+                const el = document.getElementById(`tab-${tab}`);
+                const btn = document.getElementById(`tab-btn-${tab}`);
+                if (tab === tabId) {
+                    el.classList.remove('hidden');
+                    btn.classList.add('bg-physicsBlue', 'text-white', 'shadow-lg', 'shadow-physicsBlue/20');
+                    btn.classList.remove('text-slate-400', 'hover:text-white');
+                } else {
+                    el.classList.add('hidden');
+                    btn.classList.remove('bg-physicsBlue', 'text-white', 'shadow-lg', 'shadow-physicsBlue/20');
+                    btn.classList.add('text-slate-400', 'hover:text-white');
+                }
+            });
+
+            // Handle responsive canvas resize upon activation
+            if (tabId === 'simulators') {
+                resizeCanvas(collisionCanvas, ctxCollision);
+                resizeCanvas(gravityCanvas, ctxGravity);
+                drawCollisionFrame();
+                drawGravityFrame();
+            }
+        }
+
+        // Sub-Simulator Selector Switching
+        function switchSim(simId) {
+            const collisionPane = document.getElementById('sim-pane-collision');
+            const gravityPane = document.getElementById('sim-pane-gravity');
+            const collisionBtn = document.getElementById('sim-btn-collision');
+            const gravityBtn = document.getElementById('sim-btn-gravity');
+
+            if (simId === 'collision') {
+                collisionPane.classList.remove('hidden');
+                gravityPane.classList.add('hidden');
+                collisionBtn.classList.add('border-physicsBlue/40', 'bg-slate-900');
+                collisionBtn.classList.remove('border-slate-800');
+                gravityBtn.classList.add('border-slate-800');
+                gravityBtn.classList.remove('border-physicsGreen/50', 'bg-slate-900');
+                setTimeout(() => {
+                    resizeCanvas(collisionCanvas, ctxCollision);
+                    resetCollision();
+                }, 50);
+            } else {
+                gravityPane.classList.remove('hidden');
+                collisionPane.classList.add('hidden');
+                gravityBtn.classList.add('border-physicsGreen/50', 'bg-slate-900');
+                gravityBtn.classList.remove('border-slate-800');
+                collisionBtn.classList.add('border-slate-800');
+                collisionBtn.classList.remove('border-physicsBlue/40', 'bg-slate-900');
+                setTimeout(() => {
+                    resizeCanvas(gravityCanvas, ctxGravity);
+                    drawGravityFrame();
+                }, 50);
+            }
+        }
+
+        // Custom Notification Modal
+        function triggerModal(title, text, type = 'info') {
+            const modal = document.getElementById('customModal');
+            const iconContainer = document.getElementById('modalIconContainer');
+            const titleEl = document.getElementById('modalTitle');
+            const bodyEl = document.getElementById('modalBody');
+
+            titleEl.textContent = title;
+            bodyEl.textContent = text;
+
+            if (type === 'success') {
+                iconContainer.className = "mx-auto w-12 h-12 rounded-full flex items-center justify-center mb-4 bg-physicsGreen/10 text-physicsGreen border border-physicsGreen/30";
+                iconContainer.innerHTML = `<svg class="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>`;
+            } else if (type === 'error') {
+                iconContainer.className = "mx-auto w-12 h-12 rounded-full flex items-center justify-center mb-4 bg-physicsRed/10 text-physicsRed border border-physicsRed/30";
+                iconContainer.innerHTML = `<svg class="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" /></svg>`;
+            } else {
+                iconContainer.className = "mx-auto w-12 h-12 rounded-full flex items-center justify-center mb-4 bg-physicsBlue/10 text-physicsBlue border border-physicsBlue/30";
+                iconContainer.innerHTML = `<svg class="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>`;
+            }
+
+            modal.classList.remove('hidden');
+        }
+
+        function closeModal() {
+            document.getElementById('customModal').classList.add('hidden');
+        }
+
+        /* -----------------------------------------------------
+           SIMULATOR A: TRAIN VS MARBLE CANVAS SETUP & ANIMATION
+           ----------------------------------------------------- */
+        const collisionCanvas = document.getElementById('collisionCanvas');
+        const ctxCollision = collisionCanvas.getContext('2d');
+
+        function resizeCanvas(canvas, ctx) {
+            const rect = canvas.getBoundingClientRect();
+            canvas.width = rect.width * window.devicePixelRatio;
+            canvas.height = rect.height * window.devicePixelRatio;
+            ctx.scale(window.devicePixelRatio, window.devicePixelRatio);
+        }
+
+        // Global simulation params
+        let train = { x: 0, width: 140, height: 60, v: -15, mass: 100000 };
+        let marble = { x: 0, radius: 12, v: 20, mass: 0.05 };
+        let isSimulating = false;
+        let collisionProgress = 0; // contact intensity [0, 1]
+        let showVectors = false;
+        let calculatedForce = 0;
+        let marbleAcc = 0;
+        let trainAcc = 0;
+        let postCollisionState = false;
+
+        function updateInputsFromUI() {
+            const massTrainInput = document.getElementById('input-mass-train');
+            const massMarbleInput = document.getElementById('input-mass-marble');
+            const vTrainInput = document.getElementById('input-v-train');
+            const vMarbleInput = document.getElementById('input-v-marble');
+
+            train.mass = parseFloat(massTrainInput.value);
+            marble.mass = parseFloat(massMarbleInput.value);
+            train.v = parseFloat(vTrainInput.value);
+            marble.v = parseFloat(vMarbleInput.value);
+
+            // Display updates
+            document.getElementById('val-mass-train').textContent = train.mass.toLocaleString() + ' kg';
+            document.getElementById('val-mass-marble').textContent = marble.mass < 1 ? (marble.mass * 1000).toFixed(0) + ' g (' + marble.mass.toFixed(2) + ' kg)' : marble.mass.toFixed(2) + ' kg';
+            document.getElementById('val-v-train').textContent = train.v + ' m/s';
+            document.getElementById('val-v-marble').textContent = marble.v + ' m/s';
+        }
+
+        function resetCollision() {
+            updateInputsFromUI();
+            isSimulating = false;
+            collisionProgress = 0;
+            showVectors = false;
+            postCollisionState = false;
+
+            // Positioning calculations based on real size
+            const w = collisionCanvas.width / window.devicePixelRatio;
+            train.x = w - train.width - 40;
+            marble.x = 40;
+
+            document.getElementById('sim-state-text').textContent = "Ready to Collide";
+            document.getElementById('vectorOverlay').style.opacity = 0;
+            document.getElementById('vectorOverlay').style.transform = "translateY(16px)";
+
+            document.getElementById('telemetry-force').innerHTML = `0.00 <span class="text-xs text-slate-500 font-normal">N</span>`;
+            document.getElementById('telemetry-acc-marble').innerHTML = `0.00 <span class="text-xs text-physicsBlue/70 font-normal">m/s²</span>`;
+            document.getElementById('telemetry-acc-train').innerHTML = `0.00 <span class="text-xs text-physicsOrange/70 font-normal">m/s²</span>`;
+
+            drawCollisionFrame();
+        }
+
+        // Setup event listeners for sliders
+        ['input-mass-train', 'input-mass-marble', 'input-v-train', 'input-v-marble'].forEach(id => {
+            document.getElementById(id).addEventListener('input', () => {
+                if (!isSimulating) {
+                    resetCollision();
+                }
+            });
+        });
+
+        // Perfect physical collision animation logic
+        let lastTime = 0;
+        function runCollisionLoop(timestamp) {
+            if (!isSimulating) return;
+
+            const w = collisionCanvas.width / window.devicePixelRatio;
+            const dt = 0.016; // fixed timestep approx 60fps
+
+            // Move objects
+            if (!postCollisionState) {
+                // Pre-collision approach
+                train.x += train.v * dt * 4; // amplified scale for visually smooth motion
+                marble.x += marble.v * dt * 4;
+
+                // Check collision intersection (front bumper to front sphere edge)
+                const trainFront = train.x;
+                const marbleFront = marble.x + marble.radius;
+
+                if (marbleFront >= trainFront) {
+                    // Instantly trigger physical contact parameters
+                    postCollisionState = true;
+                    showVectors = true;
+                    collisionProgress = 1.0;
+
+                    // Compute dynamic interactive collision forces
+                    // Using conservation of momentum and rigid elastic contact duration estimate (0.01 seconds)
+                    const m1 = marble.mass;
+                    const m2 = train.mass;
+                    const u1 = marble.v;
+                    const u2 = train.v; // traveling opposite direction, negative
+
+                    // Final speeds via conservation of momentum formulas (elastic limit)
+                    const v1 = ((m1 - m2) * u1 + 2 * m2 * u2) / (m1 + m2);
+                    const v2 = ((m2 - m1) * u2 + 2 * m1 * u1) / (m1 + m2);
+
+                    // Force calculations: F = dp/dt
+                    const dt_contact = 0.002; // extremely sharp structural collision duration
+                    calculatedForce = Math.abs(m1 * (v1 - u1)) / dt_contact;
+
+                    // Accelerations
+                    marbleAcc = calculatedForce / m1;
+                    trainAcc = calculatedForce / m2;
+
+                    // Apply computed velocities immediately to simulation dynamics
+                    marble.v = v1;
+                    train.v = v2;
+
+                    // UI Updates
+                    document.getElementById('sim-state-text').textContent = "Collision Event Occurred!";
+                    document.getElementById('force-val-marble').textContent = `${calculatedForce.toLocaleString(undefined, {maximumFractionDigits: 1})} N (Right)`;
+                    document.getElementById('force-val-train').textContent = `${calculatedForce.toLocaleString(undefined, {maximumFractionDigits: 1})} N (Left)`;
+                    
+                    document.getElementById('vectorOverlay').style.opacity = 1;
+                    document.getElementById('vectorOverlay').style.transform = "translateY(0)";
+
+                    document.getElementById('telemetry-force').innerHTML = `${calculatedForce.toLocaleString(undefined, {maximumFractionDigits: 0})} <span class="text-xs text-slate-500 font-normal">N</span>`;
+                    document.getElementById('telemetry-acc-marble').innerHTML = `${marbleAcc.toLocaleString(undefined, {maximumFractionDigits: 0})} <span class="text-xs text-physicsBlue/70 font-normal">m/s²</span>`;
+                    document.getElementById('telemetry-acc-train').innerHTML = `${trainAcc.toLocaleString(undefined, {maximumFractionDigits: 4})} <span class="text-xs text-physicsOrange/70 font-normal">m/s²</span>`;
+                }
+            } else {
+                // Post-collision motion
+                train.x += train.v * dt * 4;
+                marble.x += marble.v * dt * 4;
+
+                // Slowly fade contact vectors out
+                if (collisionProgress > 0) {
+                    collisionProgress -= dt * 2.5;
+                } else {
+                    collisionProgress = 0;
+                    showVectors = false;
+                }
+            }
+
+            // Boundary cleanup - stop when objects leave arena
+            if (marble.x < -100 || marble.x > w + 100) {
+                isSimulating = false;
+                document.getElementById('sim-state-text').textContent = "Scenario Finished";
+            }
+
+            drawCollisionFrame();
+            requestAnimationFrame(runCollisionLoop);
+        }
+
+        function fireCollision() {
+            if (isSimulating) return;
+            resetCollision();
+            isSimulating = true;
+            document.getElementById('sim-state-text').textContent = "Simulating Collisions...";
+            requestAnimationFrame(runCollisionLoop);
+        }
+
+        function drawCollisionFrame() {
+            const w = collisionCanvas.width / window.devicePixelRatio;
+            const h = collisionCanvas.height / window.devicePixelRatio;
+            ctxCollision.clearRect(0, 0, w, h);
+
+            const floorY = h - 60;
+
+            // Draw track line
+            ctxCollision.beginPath();
+            ctxCollision.moveTo(0, floorY);
+            ctxCollision.lineTo(w, floorY);
+            ctxCollision.strokeStyle = '#334155';
+            ctxCollision.lineWidth = 4;
+            ctxCollision.stroke();
+
+            // Draw ties (rail road style lines)
+            for (let i = 0; i < w; i += 24) {
+                ctxCollision.beginPath();
+                ctxCollision.moveTo(i, floorY);
+                ctxCollision.lineTo(i - 8, floorY + 8);
+                ctxCollision.strokeStyle = '#1e293b';
+                ctxCollision.lineWidth = 2;
+                ctxCollision.stroke();
+            }
+
+            // Draw train cabin
+            const trainY = floorY - train.height;
+            ctxCollision.fillStyle = '#f59e0b'; // golden color
+            ctxCollision.beginPath();
+            ctxCollision.roundRect(train.x, trainY, train.width, train.height, [8, 0, 0, 8]);
+            ctxCollision.fill();
+
+            // Wheels of the train
+            ctxCollision.fillStyle = '#1e293b';
+            ctxCollision.strokeStyle = '#475569';
+            ctxCollision.lineWidth = 3;
+            const wheelsX = [train.x + 30, train.x + 70, train.x + 110];
+            wheelsX.forEach(wx => {
+                ctxCollision.beginPath();
+                ctxCollision.arc(wx, floorY, 14, 0, Math.PI * 2);
+                ctxCollision.fill();
+                ctxCollision.stroke();
+                // Hubcap
+                ctxCollision.beginPath();
+                ctxCollision.arc(wx, floorY, 4, 0, Math.PI * 2);
+                ctxCollision.fillStyle = '#94a3b8';
+                ctxCollision.fill();
+                ctxCollision.fillStyle = '#1e293b';
+            });
+
+            // Train details (windows, windshield)
+            ctxCollision.fillStyle = '#0f172a';
+            ctxCollision.fillRect(train.x + 10, trainY + 12, 28, 20);
+            ctxCollision.fillRect(train.x + 46, trainY + 12, 28, 20);
+            ctxCollision.fillRect(train.x + 82, trainY + 12, 28, 20);
+
+            // Marble drawing
+            const marbleY = floorY - marble.radius;
+            ctxCollision.beginPath();
+            ctxCollision.arc(marble.x, marbleY, marble.radius, 0, Math.PI * 2);
+            ctxCollision.fillStyle = '#3b82f6'; // Bright scientific blue
+            ctxCollision.fill();
+            ctxCollision.strokeStyle = '#93c5fd';
+            ctxCollision.lineWidth = 2;
+            ctxCollision.stroke();
+
+            // Internal marble shine/reflection
+            ctxCollision.beginPath();
+            ctxCollision.arc(marble.x - 3, marbleY - 3, 3, 0, Math.PI * 2);
+            ctxCollision.fillStyle = 'rgba(255, 255, 255, 0.6)';
+            ctxCollision.fill();
+
+            // Vector visualization at the contact surface point
+            if (showVectors && collisionProgress > 0) {
+                const contactPointX = train.x;
+                const contactPointY = floorY - 20;
+
+                // Draw vectors
+                const maxVectorLength = 100;
+                const activeLength = maxVectorLength * collisionProgress;
+
+                ctxCollision.shadowBlur = 8;
+                ctxCollision.shadowColor = 'rgba(239, 68, 68, 0.4)';
+
+                // Draw Force on Train Vector (Pointing Left)
+                drawArrow(ctxCollision, contactPointX, contactPointY, contactPointX - activeLength, contactPointY, '#ef4444', 6);
+                ctxCollision.fillStyle = '#ef4444';
+                ctxCollision.font = 'bold 11px monospace';
+                ctxCollision.fillText("-F (Force on Train)", contactPointX - activeLength - 10, contactPointY - 14);
+
+                // Draw Force on Marble Vector (Pointing Right)
+                drawArrow(ctxCollision, contactPointX, contactPointY, contactPointX + activeLength, contactPointY, '#3b82f6', 6);
+                ctxCollision.fillStyle = '#3b82f6';
+                ctxCollision.fillText("+F (Force on Marble)", contactPointX + 15, contactPointY - 14);
+
+                // Reset shadow values
+                ctxCollision.shadowBlur = 0;
+            }
+        }
+
+        // Helper arrow vector designer
+        function drawArrow(ctx, fromX, fromY, toX, toY, color, width) {
+            const headlen = 10; // length of head in pixels
+            const dx = toX - fromX;
+            const dy = toY - fromY;
+            const angle = Math.atan2(dy, dx);
+
+            ctx.strokeStyle = color;
+            ctx.lineWidth = width;
+            ctx.lineCap = 'round';
+
+            // Draw main shaft
+            ctx.beginPath();
+            ctx.moveTo(fromX, fromY);
+            ctx.lineTo(toX, toY);
+            ctx.stroke();
+
+            // Draw Arrow Head
+            ctx.fillStyle = color;
+            ctx.beginPath();
+            ctx.moveTo(toX, toY);
+            ctx.lineTo(toX - headlen * Math.cos(angle - Math.PI / 6), toY - headlen * Math.sin(angle - Math.PI / 6));
+            ctx.lineTo(toX - headlen * Math.cos(angle + Math.PI / 6), toY - headlen * Math.sin(angle + Math.PI / 6));
+            ctx.fill();
+        }
+
+
+        /* -----------------------------------------------------
+           SIMULATOR B: PERSON ON EARTH VISUAL DIAGRAM
+           ----------------------------------------------------- */
+        const gravityCanvas = document.getElementById('gravityCanvas');
+        const ctxGravity = gravityCanvas.getContext('2d');
+
+        let highlightedSystem = 'all'; // all, gravity, normal
+
+        function toggleEarthPair(systemMode) {
+            highlightedSystem = systemMode;
+            
+            // Adjust CSS active states on the control panel
+            ['all', 'gravity', 'normal'].forEach(mode => {
+                const btn = document.getElementById(`btn-pair-${mode}`);
+                if (mode === systemMode) {
+                    btn.className = "w-full text-left p-4 rounded-xl border bg-slate-950 border-physicsBlue text-slate-200 transition-all";
+                } else {
+                    btn.className = "w-full text-left p-4 rounded-xl border bg-slate-950 border-slate-850 text-slate-400 hover:border-slate-700 transition-all";
+                }
+            });
+
+            drawGravityFrame();
+        }
+
+        function drawGravityFrame() {
+            const w = gravityCanvas.width / window.devicePixelRatio;
+            const h = gravityCanvas.height / window.devicePixelRatio;
+            ctxGravity.clearRect(0, 0, w, h);
+
+            // Coordinates setup
+            const earthCenterY = h + 180;
+            const earthRadius = 340;
+            const personY = h / 2 - 40;
+            const personHeight = 70;
+            const surfaceY = personY + personHeight;
+
+            // 1. Draw Earth Sphere
+            ctxGravity.beginPath();
+            ctxGravity.arc(w / 2, earthCenterY, earthRadius, 0, Math.PI * 2);
+            // Dynamic styling of the Earth (looks premium)
+            const earthGrad = ctxGravity.createRadialGradient(w/2, personY + 200, 20, w/2, earthCenterY, earthRadius);
+            earthGrad.addColorStop(0, '#1e293b');
+            earthGrad.addColorStop(0.5, '#0f172a');
+            earthGrad.addColorStop(1, '#020617');
+            ctxGravity.fillStyle = earthGrad;
+            ctxGravity.fill();
+            ctxGravity.strokeStyle = '#334155';
+            ctxGravity.lineWidth = 3;
+            ctxGravity.stroke();
+
+            // Atmosphere aura
+            ctxGravity.beginPath();
+            ctxGravity.arc(w / 2, earthCenterY, earthRadius + 8, 0, Math.PI * 2);
+            ctxGravity.strokeStyle = 'rgba(59, 130, 246, 0.15)';
+            ctxGravity.lineWidth = 8;
+            ctxGravity.stroke();
+
+            // Draw continental land outline visually (North America outline style)
+            ctxGravity.beginPath();
+            ctxGravity.moveTo(w / 2 - 80, earthCenterY - 300);
+            ctxGravity.quadraticCurveTo(w / 2 - 20, earthCenterY - 260, w / 2 + 30, earthCenterY - 280);
+            ctxGravity.quadraticCurveTo(w / 2 + 100, earthCenterY - 230, w / 2 + 40, earthCenterY - 180);
+            ctxGravity.quadraticCurveTo(w / 2 - 40, earthCenterY - 140, w / 2 - 90, earthCenterY - 220);
+            ctxGravity.closePath();
+            ctxGravity.fillStyle = '#064e3b'; // dark green continents
+            ctxGravity.fill();
+
+            // Ground crust level line (Person standing on this)
+            ctxGravity.beginPath();
+            ctxGravity.moveTo(w / 2 - 120, surfaceY);
+            ctxGravity.lineTo(w / 2 + 120, surfaceY);
+            ctxGravity.strokeStyle = '#475569';
+            ctxGravity.lineWidth = 4;
+            ctxGravity.stroke();
+
+            // Hash marks under the grass surface block
+            for (let i = w / 2 - 110; i < w / 2 + 110; i += 16) {
+                ctxGravity.beginPath();
+                ctxGravity.moveTo(i, surfaceY);
+                ctxGravity.lineTo(i - 6, surfaceY + 6);
+                ctxGravity.strokeStyle = '#334155';
+                ctxGravity.lineWidth = 1.5;
+                ctxGravity.stroke();
+            }
+
+            // 2. Draw Person (Stick figure detail)
+            const headRadius = 9;
+            const headX = w / 2;
+            const headY = personY + headRadius;
+            
+            // Head
+            ctxGravity.beginPath();
+            ctxGravity.arc(headX, headY, headRadius, 0, Math.PI * 2);
+            ctxGravity.strokeStyle = '#e2e8f0';
+            ctxGravity.lineWidth = 2.5;
+            ctxGravity.stroke();
+            
+            // Torso
+            const torsoStartY = headY + headRadius;
+            const torsoEndY = torsoStartY + 24;
+            ctxGravity.beginPath();
+            ctxGravity.moveTo(headX, torsoStartY);
+            ctxGravity.lineTo(headX, torsoEndY);
+            ctxGravity.stroke();
+
+            // Arms
+            ctxGravity.beginPath();
+            ctxGravity.moveTo(headX - 18, torsoStartY + 8);
+            ctxGravity.lineTo(headX + 18, torsoStartY + 8);
+            ctxGravity.stroke();
+
+            // Legs
+            ctxGravity.beginPath();
+            ctxGravity.moveTo(headX, torsoEndY);
+            ctxGravity.lineTo(headX - 12, surfaceY);
+            ctxGravity.moveTo(headX, torsoEndY);
+            ctxGravity.lineTo(headX + 12, surfaceY);
+            ctxGravity.stroke();
+
+            // 3. VECTOR SYSTEMS (NEWTON'S THIRD LAW HIGHLIGHTS)
+            ctxGravity.save();
+
+            // Set styling for KaTeX overlay/Labels in Canvas context
+            ctxGravity.font = 'bold 12px monospace';
+
+            if (highlightedSystem === 'all' || highlightedSystem === 'gravity') {
+                const vectorOffset = 25; // displace vector line for clarity
+                const forceMagY = 110; // vector arrow length
+
+                // Force on Person (Gravitational, Pull Down towards center)
+                drawArrow(ctxGravity, headX - vectorOffset, personY + 20, headX - vectorOffset, personY + 20 + forceMagY, '#10b981', 4);
+                ctxGravity.fillStyle = '#10b981';
+                ctxGravity.fillText("F_g = mg (Down)", headX - vectorOffset - 110, personY + 20 + forceMagY / 2);
+                ctxGravity.font = '9px monospace';
+                ctxGravity.fillText("(Earth Pulls Person Down)", headX - vectorOffset - 145, personY + 20 + forceMagY / 2 + 12);
+                ctxGravity.font = 'bold 12px monospace';
+
+                // Force on Earth (Gravitational, Pull Up towards person)
+                const startPullY = earthCenterY - 260;
+                drawArrow(ctxGravity, headX - vectorOffset, startPullY, headX - vectorOffset, startPullY - forceMagY, '#10b981', 4);
+                ctxGravity.fillStyle = '#10b981';
+                ctxGravity.fillText("F_g = mg (Up)", headX - vectorOffset - 95, startPullY - forceMagY / 2);
+                ctxGravity.font = '9px monospace';
+                ctxGravity.fillText("(Person Pulls Earth Up)", headX - vectorOffset - 130, startPullY - forceMagY / 2 + 12);
+                ctxGravity.font = 'bold 12px monospace';
+            }
+
+            if (highlightedSystem === 'all' || highlightedSystem === 'normal') {
+                const vectorOffset = 25;
+                const forceMagY = 85;
+
+                // Normal Force on Person (Pushed UP by Ground Contact)
+                drawArrow(ctxGravity, headX + vectorOffset, surfaceY, headX + vectorOffset, surfaceY - forceMagY, '#f59e0b', 4);
+                ctxGravity.fillStyle = '#f59e0b';
+                ctxGravity.fillText("N (Upward)", headX + vectorOffset + 12, surfaceY - forceMagY / 2);
+                ctxGravity.font = '9px monospace';
+                ctxGravity.fillText("(Ground Pushes Feet Up)", headX + vectorOffset + 12, surfaceY - forceMagY / 2 + 12);
+                ctxGravity.font = 'bold 12px monospace';
+
+                // Contact force on Ground (Pushed DOWN by Person's Shoes)
+                drawArrow(ctxGravity, headX + vectorOffset, surfaceY, headX + vectorOffset, surfaceY + forceMagY, '#f59e0b', 4);
+                ctxGravity.fillStyle = '#f59e0b';
+                ctxGravity.fillText("-N (Downward)", headX + vectorOffset + 12, surfaceY + forceMagY / 2);
+                ctxGravity.font = '9px monospace';
+                ctxGravity.fillText("(Feet Push Ground Down)", headX + vectorOffset + 12, surfaceY + forceMagY / 2 + 12);
+                ctxGravity.font = 'bold 12px monospace';
+            }
+
+            // Left Free-Body Diagram Box on the Person directly (like Blackboard Slide 2)
+            if (highlightedSystem === 'all') {
+                ctxGravity.strokeStyle = '#475569';
+                ctxGravity.setLineDash([5, 5]);
+                ctxGravity.strokeRect(w / 2 - 190, 40, 140, 140);
+                ctxGravity.fillStyle = '#64748b';
+                ctxGravity.font = '9px monospace';
+                ctxGravity.fillText("Person Free Body Diagram", w / 2 - 180, 52);
+
+                // Represent Person as a Point
+                const fbdX = w / 2 - 120;
+                const fbdY = 110;
+                ctxGravity.beginPath();
+                ctxGravity.arc(fbdX, fbdY, 4, 0, Math.PI*2);
+                ctxGravity.fillStyle = '#ffffff';
+                ctxGravity.fill();
+
+                // N up, mg down
+                drawArrow(ctxGravity, fbdX, fbdY, fbdX, fbdY - 45, '#f59e0b', 2.5);
+                ctxGravity.fillStyle = '#f59e0b';
+                ctxGravity.font = 'bold 9px monospace';
+                ctxGravity.fillText("N", fbdX + 10, fbdY - 35);
+
+                drawArrow(ctxGravity, fbdX, fbdY, fbdX, fbdY + 45, '#10b981', 2.5);
+                ctxGravity.fillStyle = '#10b981';
+                ctxGravity.fillText("mg", fbdX + 10, fbdY + 40);
+
+                ctxGravity.fillStyle = '#ef4444';
+                ctxGravity.font = 'bold 9px monospace';
+                ctxGravity.fillText("NOT Third Law Pair!", w / 2 - 180, 168);
+            }
+
+            ctxGravity.restore();
+        }
+
+
+        /* -----------------------------------------------------
+           TAB 3: DIAGNOSTIC CONCEPT QUIZ LOGIC
+           ----------------------------------------------------- */
+        const quizQuestions = [
+            {
+                id: 1,
+                question: "An heavy, fast-moving diesel train slams into a small marble resting on the track. During the exact microsecond of contact, which object experiences the larger force magnitude?",
+                options: [
+                    "The marble experiences a substantially greater force because it is violently accelerated.",
+                    "The train experiences a greater force due to its immense momentum.",
+                    "Both objects experience the exact same impact force magnitude.",
+                    "Neither feels any real force; the kinetic energy is completely absorbed as thermal radiation."
+                ],
+                answer: 2,
+                explanation: "Newton's Third Law states that force is an invariant interaction pair: \\(\\vec{F}_{12} = -\\vec{F}_{21}\\). The forces are absolutely identical. The difference in aftermath is entirely due to how their different masses react to that identical force (\\(a = F/m\\))."
+            },
+            {
+                id: 2,
+                question: "You are standing completely still on flat solid ground. The gravity vector pulling you down is exactly balanced by the normal force pushing you up. Are these two forces a Newton's Third Law interaction pair?",
+                options: [
+                    "Yes, because they are equal in magnitude and opposite in direction.",
+                    "No, because both forces are acting on the exact same object (your body).",
+                    "Yes, because contact forces always pair up with field forces.",
+                    "No, because normal force is always larger than gravitational force."
+                ],
+                answer: 1,
+                explanation: "Newton's Third Law interaction pairs never act on the same object. The gravity on you is paired with *your gravitational pull pulling the entire Earth up*. The normal force pushing you up is paired with *your shoes pushing the ground down*."
+            },
+            {
+                id: 3,
+                question: "An apple breaks off a branch and falls toward the Earth. As the Earth's gravity pulls the apple downward, does the apple pull the Earth upward?",
+                options: [
+                    "No, because the Earth is too massive to be pulled by a tiny apple.",
+                    "Yes, but the apple pulls with a fraction of the force depending on its size ratio.",
+                    "Yes, the apple pulls the Earth upward with the exact same magnitude of force.",
+                    "No, field forces are unidirectional."
+                ],
+                answer: 2,
+                explanation: "The apple pulls the Earth upward with the exact same gravitational force magnitude (\\(mg\\)) that the Earth pulls the apple. Because the Earth's mass is roughly \\(5.97 \\times 10^{24}\\text{ kg}\\), its upward acceleration is completely undetectable, but the force is physically present!"
+            },
+            {
+                id: 4,
+                question: "If action and reaction forces are always equal and opposite, why don't they constantly cancel each other out, making all acceleration in the universe impossible?",
+                options: [
+                    "Because there is a slight time-delay before the reaction force appears.",
+                    "Because action forces are slightly larger than reaction forces in motion.",
+                    "Because the forces act on entirely different objects, meaning they cannot be summed to cancel each other.",
+                    "Because static friction prevents cancellation."
+                ],
+                answer: 2,
+                explanation: "To cancel out, forces must act on the *same physical body* (allowing \\(\\Sigma F = 0\\)). Since an action-reaction pair always consists of one force acting on Object A and the other force acting on Object B, they never cancel each other."
+            },
+            {
+                id: 5,
+                question: "A book sits quietly on a desk. The desk pushes up on the book with normal force \\(\\vec{N}\\). What is the specific Newton's Third Law reaction force to this upward normal force?",
+                options: [
+                    "The downward force of gravity pulling the book to Earth's core.",
+                    "The downward physical force of the book's bottom cover pushing onto the surface of the desk.",
+                    "The gravitational attraction of the book pulling up on the planet.",
+                    "The atmospheric pressure pushing down on the book's top cover."
+                ],
+                answer: 1,
+                explanation: "The action statement is: 'Desk surface pushes upward on the book.' By linguistic and physical inversion, the reaction force must be: 'The book pushes downward on the desk surface.' This is a structural contact pair."
+            }
+        ];
+
+        let currentQuestionIdx = 0;
+        let selectedAnswers = Array(quizQuestions.length).fill(null);
+        let answeredState = Array(quizQuestions.length).fill(false);
+
+        function renderQuestion() {
+            const container = document.getElementById('quiz-workspace');
+            const question = quizQuestions[currentQuestionIdx];
+            
+            // Build progress indicator
+            const answeredCount = answeredState.filter(v => v).length;
+            const percentage = Math.round((answeredCount / quizQuestions.length) * 100);
+            document.getElementById('quiz-progress').textContent = `${percentage}%`;
+
+            // Setup HTML structure
+            let html = `
+                <div class="space-y-4">
+                    <span class="text-xs font-bold text-physicsBlue uppercase tracking-widest font-mono">Question ${currentQuestionIdx + 1} of ${quizQuestions.length}</span>
+                    <h3 class="text-sm sm:text-base font-bold text-slate-100 leading-relaxed">${question.question}</h3>
+                    
+                    <div class="space-y-2.5 pt-2">
+            `;
+
+            question.options.forEach((opt, idx) => {
+                let btnStyle = "border-slate-800 bg-slate-950/60 hover:border-slate-700 text-slate-300";
+                let indicatorCircle = "border-slate-700";
+
+                if (selectedAnswers[currentQuestionIdx] === idx) {
+                    if (answeredState[currentQuestionIdx]) {
+                        if (idx === question.answer) {
+                            btnStyle = "border-physicsGreen bg-physicsGreen/10 text-physicsGreen";
+                            indicatorCircle = "bg-physicsGreen border-physicsGreen text-white";
+                        } else {
+                            btnStyle = "border-physicsRed bg-physicsRed/10 text-physicsRed";
+                            indicatorCircle = "bg-physicsRed border-physicsRed text-white";
+                        }
+                    } else {
+                        btnStyle = "border-physicsBlue bg-physicsBlue/10 text-physicsBlue";
+                        indicatorCircle = "bg-physicsBlue border-physicsBlue text-white";
+                    }
+                } else if (answeredState[currentQuestionIdx] && idx === question.answer) {
+                    // Show correct answer even if not selected
+                    btnStyle = "border-physicsGreen bg-physicsGreen/10 text-physicsGreen";
+                    indicatorCircle = "border-physicsGreen text-physicsGreen";
+                }
+
+                html += `
+                    <button onclick="selectOption(${idx})" ${answeredState[currentQuestionIdx] ? 'disabled' : ''} class="w-full text-left p-4 rounded-xl border text-xs sm:text-sm font-medium transition-all flex items-start gap-3 ${btnStyle}">
+                        <span class="w-5 h-5 rounded-full border flex items-center justify-center shrink-0 text-[10px] font-bold ${indicatorCircle}">
+                            ${idx + 1}
+                        </span>
+                        <span class="leading-relaxed">${opt}</span>
+                    </button>
+                `;
+            });
+
+            html += `</div>`;
+
+            // If answered, show detailed explanation block
+            if (answeredState[currentQuestionIdx]) {
+                const isCorrect = selectedAnswers[currentQuestionIdx] === question.answer;
+                html += `
+                    <div class="mt-6 p-5 rounded-2xl border ${isCorrect ? 'bg-physicsGreen/5 border-physicsGreen/20' : 'bg-physicsRed/5 border-physicsRed/20'}">
+                        <div class="flex items-center gap-2 mb-2">
+                            ${isCorrect ? 
+                                '<span class="text-xs font-bold text-physicsGreen uppercase tracking-wider flex items-center gap-1"><svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/></svg> Correct Assessment</span>' : 
+                                '<span class="text-xs font-bold text-physicsRed uppercase tracking-wider flex items-center gap-1"><svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 14l2-2m0 0l2-2m-2 2l-2-2m2 2l2 2m7-2a9 9 0 11-18 0 9 9 0 0118 0z"/></svg> Incorrect Assessment</span>'
+                            }
+                        </div>
+                        <p class="text-xs text-slate-400 leading-relaxed">${question.explanation}</p>
+                    </div>
+                `;
+            } else if (selectedAnswers[currentQuestionIdx] !== null) {
+                // Answer selected but not submitted
+                html += `
+                    <button onclick="submitAnswer()" class="w-full mt-4 py-3 bg-physicsBlue hover:bg-blue-600 text-white font-bold rounded-xl text-xs sm:text-sm transition-all shadow-lg shadow-physicsBlue/20">
+                        Submit Answer Verification
+                    </button>
+                `;
+            }
+
+            html += `</div>`;
+            container.innerHTML = html;
+
+            // Handle prev/next button disable state
+            document.getElementById('btn-quiz-prev').disabled = currentQuestionIdx === 0;
+            const nextBtn = document.getElementById('btn-quiz-next');
+            if (currentQuestionIdx === quizQuestions.length - 1) {
+                nextBtn.textContent = "Finish Assessment";
+            } else {
+                nextBtn.textContent = "Next Question";
+            }
+        }
+
+        function selectOption(optIdx) {
+            if (answeredState[currentQuestionIdx]) return;
+            selectedAnswers[currentQuestionIdx] = optIdx;
+            renderQuestion();
+        }
+
+        function submitAnswer() {
+            answeredState[currentQuestionIdx] = true;
+            renderQuestion();
+            
+            // Render Math inside dynamically generated explanation if KaTeX is present
+            if (typeof renderMathInElement === 'function') {
+                renderMathInElement(document.getElementById('quiz-workspace'));
+            }
+        }
+
+        function nextQuestion() {
+            if (currentQuestionIdx < quizQuestions.length - 1) {
+                currentQuestionIdx++;
+                renderQuestion();
+            } else {
+                // Finish sequence
+                const correctCount = selectedAnswers.reduce((acc, val, idx) => acc + (val === quizQuestions[idx].answer ? 1 : 0), 0);
+                triggerModal("Assessment Completed!", `You scored ${correctCount} out of ${quizQuestions.length} correct. Feel free to re-test your model of motion at any time.`, "success");
+            }
+        }
+
+        function prevQuestion() {
+            if (currentQuestionIdx > 0) {
+                currentQuestionIdx--;
+                renderQuestion();
+            }
+        }
+
+        // Initialize Workspace on Page Load
+        window.onload = function() {
+            // Render all KaTeX math equations once body is parsed and ready
+            if (typeof renderMathInElement === 'function') {
+                renderMathInElement(document.body, {
+                    delimiters: [
+                        {left: '$$', right: '$$', display: true},
+                        {left: '$', right: '$', display: false},
+                        {left: '\\(', right: '\\)', display: false},
+                        {left: '\\[', right: '\\]', display: true}
+                    ],
+                    throwOnError: false
+                });
+            }
+
+            // Resize and setup first elements
+            resizeCanvas(collisionCanvas, ctxCollision);
+            resizeCanvas(gravityCanvas, ctxGravity);
+            
+            resetCollision();
+            drawGravityFrame();
+            
+            // Build the first quiz card
+            renderQuestion();
+
+            // Setup dynamic canvas listeners for resizing events
+            window.addEventListener('resize', () => {
+                resizeCanvas(collisionCanvas, ctxCollision);
+                resizeCanvas(gravityCanvas, ctxGravity);
+                resetCollision();
+                drawGravityFrame();
+            });
+        };
+    </script>
+</body>
+</html>

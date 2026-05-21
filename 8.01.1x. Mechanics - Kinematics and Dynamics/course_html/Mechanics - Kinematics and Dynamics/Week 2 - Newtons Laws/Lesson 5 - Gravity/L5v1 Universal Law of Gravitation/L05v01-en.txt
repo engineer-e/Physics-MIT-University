@@ -1,0 +1,103 @@
+
+Let's talk about gravity.
+The universal law of gravitation governs
+everything in the universe.
+No matter how far or close two objects are,
+they are always mutually attracting each other.
+And that is described by that universal law.
+It was Newton who first discovered it.
+We're now going to check out how this works.
+So let's consider the sun here.
+
+And we have also another object.
+Let's say it's Earth.
+
+And we'll give this the mass m1 and this one m2.
+And so they will be attracting each other.
+And that force will be called f 1,2.
+So the force on object 2 due to the interaction
+between objects 1 and 2.
+And the same is happening for this object.
+So we have a force on one due to the interaction with objects 1
+and 2.
+There also a distance, r 1,2 apart.
+Well, we also need an origin to further describe
+the position of these objects.
+So we're going to take, let's say,
+this point here as our origin, which
+means the sun here is a distance r1 away from the origin
+and Earth is going to be a distance r2 away,
+which also means that we can describe this distance here
+in this way.
+And actually that one--
+and so this is going to be r 1,2 r 1,2 equals r2 minus r1.
+
+And the magnitude would be r1, which is actually just this.
+So there's one more thing that we need,
+and that is a coordinate system.
+That means we need to choose unit vectors.
+And so far, we've been using Cartesian coordinates
+with the i-hat and the j-hat unit factors.
+Here, we're going to choose polar coordinates,
+because that lends itself better to a system.
+That's pretty easy to understand,
+because if this is the sun here, and the Earth goes around it
+in a circle, gravity will point radially inward.
+And we're going to choose our unit vector
+in this direction here going radially outward, which also
+means this one is actually moving,
+because if the Earth is here, r-hat will be pointing here.
+And then if the Earth is here half a year later,
+r-hat is going to be there.
+And here, it's going to point down.
+r-hat actually goes together with two more unit vectors,
+the theta hat and the k hat unit vectors.
+And you'll learn about that in subsequent lectures.
+But for now, we're just going to use the r-hat direction here.
+And what you can remember for now or what we will use for now
+is that it just points radially outward.
+That's all we need here.
+So let's apply that to our system here.
+So we have r-hat 1,2 here, and we have r-hat 2,1 over there.
+So now, we're going to use this diagram
+to understand the universal law of gravitation.
+And for that, we are going to first start
+by looking at the force that's acting here on our object 2.
+So we have f 1,2.
+And we know that this is proportional to both masses, m1
+and m2.
+And it's proportional to the distance between the two
+objects squared, r 1,2 squared.
+Now, this is a proportionality law.
+And so that means we have to use--
+we are missing a proportionality constant.
+And that's our capital G here, the gravitational constant.
+And what's missing from this right now is in what direction
+is this force pointing?
+And we can see here that f 2,1 is pointing up in this way.
+But we have to describe it with this unit vector here.
+And that points in the opposite direction.
+So first, we're going to write down r 1,2 hat here.
+And then we're going to get a minus sign over there,
+because it goes in the opposite direction.
+In the same way, we can write down
+the force for the other object, f 2,1
+And again, we have G, m1, m2 over r 1,2 squared.
+Now this force we have to express in this unit vector.
+So we get r 2,1 hat here.
+And again, it points in the opposite direction
+than the force.
+So we're getting a minus sign here.
+From that, and of course also, just visually from the diagram,
+we will see that r-hat 1,2 equals minus r 2,1 hat.
+And I should mention here that, of course,
+the unit vectors, same as for all other unit vectors,
+is just the vector itself divided by its magnitude.
+So this is a normalization.
+And what follows from that is that we have f 1,2
+equals minus f 2,1.
+And that is Newton's third law.
+We have an equal and opposite reaction.
+But the forces themselves have the same magnitude.
+They just go in opposite directions,
+just as you can see right here.

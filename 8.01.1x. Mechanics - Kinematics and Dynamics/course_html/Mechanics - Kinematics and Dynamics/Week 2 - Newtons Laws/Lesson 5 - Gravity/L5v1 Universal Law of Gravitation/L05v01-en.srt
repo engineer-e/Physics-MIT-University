@@ -1,0 +1,416 @@
+0
+00:00:00,000 --> 00:00:04,160
+
+
+1
+00:00:04,160 --> 00:00:06,340
+Let's talk about gravity.
+
+2
+00:00:06,340 --> 00:00:08,660
+The universal law of gravitation governs
+
+3
+00:00:08,660 --> 00:00:10,550
+everything in the universe.
+
+4
+00:00:10,550 --> 00:00:13,810
+No matter how far or close two objects are,
+
+5
+00:00:13,810 --> 00:00:17,100
+they are always mutually attracting each other.
+
+6
+00:00:17,100 --> 00:00:20,270
+And that is described by that universal law.
+
+7
+00:00:20,270 --> 00:00:22,880
+It was Newton who first discovered it.
+
+8
+00:00:22,880 --> 00:00:27,540
+We're now going to check out how this works.
+
+9
+00:00:27,540 --> 00:00:30,350
+So let's consider the sun here.
+
+10
+00:00:30,350 --> 00:00:33,080
+
+
+11
+00:00:33,080 --> 00:00:35,660
+And we have also another object.
+
+12
+00:00:35,660 --> 00:00:36,620
+Let's say it's Earth.
+
+13
+00:00:36,620 --> 00:00:39,460
+
+
+14
+00:00:39,460 --> 00:00:45,380
+And we'll give this the mass m1 and this one m2.
+
+15
+00:00:45,380 --> 00:00:49,840
+And so they will be attracting each other.
+
+16
+00:00:49,840 --> 00:00:56,260
+And that force will be called f 1,2.
+
+17
+00:00:56,260 --> 00:01:00,490
+So the force on object 2 due to the interaction
+
+18
+00:01:00,490 --> 00:01:03,580
+between objects 1 and 2.
+
+19
+00:01:03,580 --> 00:01:07,310
+And the same is happening for this object.
+
+20
+00:01:07,310 --> 00:01:15,005
+So we have a force on one due to the interaction with objects 1
+
+21
+00:01:15,005 --> 00:01:16,920
+and 2.
+
+22
+00:01:16,920 --> 00:01:23,650
+There also a distance, r 1,2 apart.
+
+23
+00:01:23,650 --> 00:01:27,850
+Well, we also need an origin to further describe
+
+24
+00:01:27,850 --> 00:01:30,410
+the position of these objects.
+
+25
+00:01:30,410 --> 00:01:33,550
+So we're going to take, let's say,
+
+26
+00:01:33,550 --> 00:01:37,120
+this point here as our origin, which
+
+27
+00:01:37,120 --> 00:01:44,180
+means the sun here is a distance r1 away from the origin
+
+28
+00:01:44,180 --> 00:01:50,020
+and Earth is going to be a distance r2 away,
+
+29
+00:01:50,020 --> 00:01:57,450
+which also means that we can describe this distance here
+
+30
+00:01:57,450 --> 00:01:59,350
+in this way.
+
+31
+00:01:59,350 --> 00:02:01,030
+And actually that one--
+
+32
+00:02:01,030 --> 00:02:06,695
+and so this is going to be r 1,2 r 1,2 equals r2 minus r1.
+
+33
+00:02:06,695 --> 00:02:11,270
+
+
+34
+00:02:11,270 --> 00:02:18,670
+And the magnitude would be r1, which is actually just this.
+
+35
+00:02:18,670 --> 00:02:21,540
+So there's one more thing that we need,
+
+36
+00:02:21,540 --> 00:02:24,900
+and that is a coordinate system.
+
+37
+00:02:24,900 --> 00:02:26,740
+That means we need to choose unit vectors.
+
+38
+00:02:26,740 --> 00:02:29,730
+And so far, we've been using Cartesian coordinates
+
+39
+00:02:29,730 --> 00:02:33,090
+with the i-hat and the j-hat unit factors.
+
+40
+00:02:33,090 --> 00:02:35,940
+Here, we're going to choose polar coordinates,
+
+41
+00:02:35,940 --> 00:02:40,590
+because that lends itself better to a system.
+
+42
+00:02:40,590 --> 00:02:42,120
+That's pretty easy to understand,
+
+43
+00:02:42,120 --> 00:02:47,490
+because if this is the sun here, and the Earth goes around it
+
+44
+00:02:47,490 --> 00:02:53,130
+in a circle, gravity will point radially inward.
+
+45
+00:02:53,130 --> 00:02:57,510
+And we're going to choose our unit vector
+
+46
+00:02:57,510 --> 00:03:02,310
+in this direction here going radially outward, which also
+
+47
+00:03:02,310 --> 00:03:05,310
+means this one is actually moving,
+
+48
+00:03:05,310 --> 00:03:09,310
+because if the Earth is here, r-hat will be pointing here.
+
+49
+00:03:09,310 --> 00:03:12,480
+And then if the Earth is here half a year later,
+
+50
+00:03:12,480 --> 00:03:13,890
+r-hat is going to be there.
+
+51
+00:03:13,890 --> 00:03:17,760
+And here, it's going to point down.
+
+52
+00:03:17,760 --> 00:03:21,540
+r-hat actually goes together with two more unit vectors,
+
+53
+00:03:21,540 --> 00:03:24,480
+the theta hat and the k hat unit vectors.
+
+54
+00:03:24,480 --> 00:03:28,350
+And you'll learn about that in subsequent lectures.
+
+55
+00:03:28,350 --> 00:03:32,340
+But for now, we're just going to use the r-hat direction here.
+
+56
+00:03:32,340 --> 00:03:36,030
+And what you can remember for now or what we will use for now
+
+57
+00:03:36,030 --> 00:03:38,010
+is that it just points radially outward.
+
+58
+00:03:38,010 --> 00:03:40,210
+That's all we need here.
+
+59
+00:03:40,210 --> 00:03:43,960
+So let's apply that to our system here.
+
+60
+00:03:43,960 --> 00:03:57,160
+So we have r-hat 1,2 here, and we have r-hat 2,1 over there.
+
+61
+00:03:57,160 --> 00:03:59,640
+So now, we're going to use this diagram
+
+62
+00:03:59,640 --> 00:04:02,460
+to understand the universal law of gravitation.
+
+63
+00:04:02,460 --> 00:04:05,250
+And for that, we are going to first start
+
+64
+00:04:05,250 --> 00:04:09,540
+by looking at the force that's acting here on our object 2.
+
+65
+00:04:09,540 --> 00:04:13,260
+So we have f 1,2.
+
+66
+00:04:13,260 --> 00:04:16,649
+And we know that this is proportional to both masses, m1
+
+67
+00:04:16,649 --> 00:04:19,670
+and m2.
+
+68
+00:04:19,670 --> 00:04:23,030
+And it's proportional to the distance between the two
+
+69
+00:04:23,030 --> 00:04:26,930
+objects squared, r 1,2 squared.
+
+70
+00:04:26,930 --> 00:04:30,320
+Now, this is a proportionality law.
+
+71
+00:04:30,320 --> 00:04:33,200
+And so that means we have to use--
+
+72
+00:04:33,200 --> 00:04:36,650
+we are missing a proportionality constant.
+
+73
+00:04:36,650 --> 00:04:41,700
+And that's our capital G here, the gravitational constant.
+
+74
+00:04:41,700 --> 00:04:45,710
+And what's missing from this right now is in what direction
+
+75
+00:04:45,710 --> 00:04:48,110
+is this force pointing?
+
+76
+00:04:48,110 --> 00:04:54,110
+And we can see here that f 2,1 is pointing up in this way.
+
+77
+00:04:54,110 --> 00:04:57,320
+But we have to describe it with this unit vector here.
+
+78
+00:04:57,320 --> 00:05:00,170
+And that points in the opposite direction.
+
+79
+00:05:00,170 --> 00:05:04,010
+So first, we're going to write down r 1,2 hat here.
+
+80
+00:05:04,010 --> 00:05:06,440
+And then we're going to get a minus sign over there,
+
+81
+00:05:06,440 --> 00:05:09,290
+because it goes in the opposite direction.
+
+82
+00:05:09,290 --> 00:05:10,760
+In the same way, we can write down
+
+83
+00:05:10,760 --> 00:05:16,050
+the force for the other object, f 2,1
+
+84
+00:05:16,050 --> 00:05:23,510
+And again, we have G, m1, m2 over r 1,2 squared.
+
+85
+00:05:23,510 --> 00:05:28,380
+Now this force we have to express in this unit vector.
+
+86
+00:05:28,380 --> 00:05:30,410
+So we get r 2,1 hat here.
+
+87
+00:05:30,410 --> 00:05:32,860
+And again, it points in the opposite direction
+
+88
+00:05:32,860 --> 00:05:34,070
+than the force.
+
+89
+00:05:34,070 --> 00:05:36,860
+So we're getting a minus sign here.
+
+90
+00:05:36,860 --> 00:05:40,440
+From that, and of course also, just visually from the diagram,
+
+91
+00:05:40,440 --> 00:05:48,890
+we will see that r-hat 1,2 equals minus r 2,1 hat.
+
+92
+00:05:48,890 --> 00:05:51,800
+And I should mention here that, of course,
+
+93
+00:05:51,800 --> 00:05:56,510
+the unit vectors, same as for all other unit vectors,
+
+94
+00:05:56,510 --> 00:06:02,820
+is just the vector itself divided by its magnitude.
+
+95
+00:06:02,820 --> 00:06:05,750
+So this is a normalization.
+
+96
+00:06:05,750 --> 00:06:12,770
+And what follows from that is that we have f 1,2
+
+97
+00:06:12,770 --> 00:06:16,550
+equals minus f 2,1.
+
+98
+00:06:16,550 --> 00:06:20,430
+And that is Newton's third law.
+
+99
+00:06:20,430 --> 00:06:25,370
+We have an equal and opposite reaction.
+
+100
+00:06:25,370 --> 00:06:28,040
+But the forces themselves have the same magnitude.
+
+101
+00:06:28,040 --> 00:06:30,500
+They just go in opposite directions,
+
+102
+00:06:30,500 --> 00:06:33,698
+just as you can see right here.
+
+103
+00:06:33,698 --> 00:06:34,198
+
+

@@ -1,0 +1,1436 @@
+<!DOCTYPE html>
+<html lang="en" class="dark">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Non-Inertial Reference Frames & Fictitious Forces</title>
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            darkMode: 'class',
+            theme: {
+                extend: {
+                    colors: {
+                        physics: {
+                            slate: '#0f172a',
+                            dark: '#1e293b',
+                            accent: '#6366f1',
+                            accentHover: '#4f46e5',
+                            fictitious: '#ef4444',
+                            physical: '#10b981',
+                            tension: '#3b82f6'
+                        }
+                    }
+                }
+            }
+        }
+    </script>
+    <!-- Google Fonts: Inter & JetBrains Mono -->
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;500;700&display=swap" rel="stylesheet">
+    <!-- KaTeX for beautiful formulas -->
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.8/dist/katex.min.css">
+    <script src="https://cdn.jsdelivr.net/npm/katex@0.16.8/dist/katex.min.js"></script>
+    <!-- Lucide Icons -->
+    <script src="https://unpkg.com/lucide@latest"></script>
+    <style>
+        body {
+            font-family: 'Inter', sans-serif;
+        }
+        .mono {
+            font-family: 'JetBrains Mono', monospace;
+        }
+        /* Custom slider appearance */
+        input[type="range"] {
+            -webkit-appearance: none;
+            appearance: none;
+            background: #334155;
+            height: 6px;
+            border-radius: 9999px;
+        }
+        input[type="range"]::-webkit-slider-thumb {
+            -webkit-appearance: none;
+            appearance: none;
+            width: 18px;
+            height: 18px;
+            border-radius: 50%;
+            background: #6366f1;
+            cursor: pointer;
+            transition: transform 0.1s ease;
+        }
+        input[type="range"]::-webkit-slider-thumb:hover {
+            transform: scale(1.2);
+        }
+        /* Custom scrollbar */
+        ::-webkit-scrollbar {
+            width: 8px;
+            height: 8px;
+        }
+        ::-webkit-scrollbar-track {
+            background: #0f172a;
+        }
+        ::-webkit-scrollbar-thumb {
+            background: #334155;
+            border-radius: 4px;
+        }
+        ::-webkit-scrollbar-thumb:hover {
+            background: #475569;
+        }
+    </style>
+</head>
+<body class="bg-physics-slate text-slate-100 min-h-screen flex flex-col antialiased selection:bg-indigo-500/30 overflow-x-hidden">
+
+    <!-- Navigation Header -->
+    <header class="border-b border-slate-800 bg-physics-dark/80 backdrop-blur sticky top-0 z-50 px-6 py-4 flex flex-wrap justify-between items-center gap-4">
+        <div class="flex items-center space-x-3">
+            <div class="p-2.5 bg-indigo-500/10 rounded-xl text-indigo-400 border border-indigo-500/20 shadow-inner">
+                <i data-lucide="orbit" class="w-6 h-6 animate-spin-slow"></i>
+            </div>
+            <div>
+                <h1 class="text-xl font-bold tracking-tight text-white flex items-center gap-2">
+                    Reference Frame Sandbox
+                    <span class="text-xs bg-indigo-500/20 text-indigo-300 font-medium px-2 py-0.5 rounded-full border border-indigo-500/30">v1.2</span>
+                </h1>
+                <p class="text-xs text-slate-400">Visualizing Inertial (S) vs. Non-Inertial (S') Dynamics & Vectors</p>
+            </div>
+        </div>
+        <div class="flex items-center gap-3">
+            <button onclick="scrollToSection('sim-section')" class="px-3.5 py-1.5 bg-indigo-600/20 hover:bg-indigo-600/30 text-indigo-300 rounded-lg text-sm border border-indigo-500/30 transition flex items-center gap-1.5 font-medium">
+                <i data-lucide="play" class="w-4 h-4"></i> Sandbox
+            </button>
+            <button onclick="scrollToSection('theory-section')" class="px-3.5 py-1.5 bg-slate-800 hover:bg-slate-700 text-slate-300 rounded-lg text-sm border border-slate-700 transition flex items-center gap-1.5 font-medium">
+                <i data-lucide="book-open" class="w-4 h-4"></i> Equations
+            </button>
+            <button onclick="scrollToSection('quiz-section')" class="px-3.5 py-1.5 bg-slate-800 hover:bg-slate-700 text-slate-300 rounded-lg text-sm border border-slate-700 transition flex items-center gap-1.5 font-medium">
+                <i data-lucide="check-square" class="w-4 h-4"></i> Quiz
+            </button>
+        </div>
+    </header>
+
+    <!-- Main content container -->
+    <main class="flex-grow max-w-7xl mx-auto w-full p-4 lg:p-6 space-y-8">
+        
+        <!-- Quick Conceptual Overview Infographic -->
+        <section id="infographic-banner" class="grid grid-cols-1 md:grid-cols-3 gap-6">
+            <!-- Frame S Card -->
+            <div class="bg-physics-dark/40 rounded-2xl p-6 border border-slate-800 flex flex-col justify-between hover:border-slate-700 transition-all shadow-md group">
+                <div class="flex items-start justify-between">
+                    <span class="text-xs font-bold tracking-wider text-emerald-400 uppercase bg-emerald-400/10 px-2.5 py-1 rounded border border-emerald-400/20">Frame S (Inertial)</span>
+                    <i data-lucide="anchor" class="w-5 h-5 text-slate-500 group-hover:text-emerald-400 transition"></i>
+                </div>
+                <div class="mt-4">
+                    <h3 class="text-lg font-bold text-slate-200">The Ground Observer</h3>
+                    <p class="text-sm text-slate-400 mt-1">Velocity $V$ is constant or zero. Relative acceleration $A = 0$. Coordinates use absolute vectors $\vec{r}$. Newton's laws hold natively without correction factors.</p>
+                </div>
+                <div class="mt-4 pt-4 border-t border-slate-800/60 text-xs text-slate-500 mono flex justify-between">
+                    <span>Acceleration: a</span>
+                    <span class="text-emerald-400">F_net = m·a</span>
+                </div>
+            </div>
+
+            <!-- Frame S' Card -->
+            <div class="bg-physics-dark/40 rounded-2xl p-6 border border-slate-800 flex flex-col justify-between hover:border-slate-700 transition-all shadow-md group">
+                <div class="flex items-start justify-between">
+                    <span class="text-xs font-bold tracking-wider text-rose-400 uppercase bg-rose-400/10 px-2.5 py-1 rounded border border-rose-400/20">Frame S' (Non-Inertial)</span>
+                    <i data-lucide="gauge" class="w-5 h-5 text-slate-500 group-hover:text-rose-400 transition"></i>
+                </div>
+                <div class="mt-4">
+                    <h3 class="text-lg font-bold text-slate-200">The Moving Observer</h3>
+                    <p class="text-sm text-slate-400 mt-1">The frame has relative displacement $\vec{R}$ and acceleration $\vec{A}$. An observer inside registers relative coordinate vector $\vec{r}' = \vec{r} - \vec{R}$.</p>
+                </div>
+                <div class="mt-4 pt-4 border-t border-slate-800/60 text-xs text-slate-500 mono flex justify-between">
+                    <span>Acceleration: a' = a - A</span>
+                    <span class="text-rose-400">F' = m·a'</span>
+                </div>
+            </div>
+
+            <!-- Fictitious Force Card -->
+            <div class="bg-gradient-to-br from-indigo-950/20 to-physics-dark/60 rounded-2xl p-6 border border-indigo-500/20 flex flex-col justify-between hover:border-indigo-500/30 transition-all shadow-md group">
+                <div class="flex items-start justify-between">
+                    <span class="text-xs font-bold tracking-wider text-indigo-400 uppercase bg-indigo-500/10 px-2.5 py-1 rounded border border-indigo-500/20">Fictitious Force</span>
+                    <i data-lucide="help-circle" class="w-5 h-5 text-slate-400 group-hover:text-indigo-400 transition"></i>
+                </div>
+                <div class="mt-4">
+                    <h3 class="text-lg font-bold text-white">Apparent Forces</h3>
+                    <p class="text-sm text-slate-300 mt-1">An artifact of coordinate shifting. No physical agent is pushing. Quantified as $F_{\text{fict}} = -mA$ to correct frame acceleration.</p>
+                </div>
+                <div class="mt-4 pt-4 border-t border-indigo-500/10 text-xs text-slate-400 mono flex justify-between">
+                    <span>Correction Vector</span>
+                    <span class="text-indigo-400 font-bold">F_fictitious = -m·A</span>
+                </div>
+            </div>
+        </section>
+
+        <!-- Interactive Simulator Section -->
+        <section id="sim-section" class="bg-physics-dark/30 rounded-3xl border border-slate-800 p-4 lg:p-6 shadow-xl">
+            <div class="flex flex-col lg:flex-row justify-between items-start lg:items-center border-b border-slate-800 pb-5 mb-6 gap-4">
+                <div>
+                    <h2 class="text-2xl font-bold text-white flex items-center gap-2">
+                        <i data-lucide="compass" class="text-indigo-400 w-6 h-6"></i>
+                        The Accelerating Train Car Pendulum Sandbox
+                    </h2>
+                    <p class="text-sm text-slate-400">Adjust physical parameters and toggle modes to see forces or the blackboard's $\vec{r} = \vec{R} + \vec{r}'$ position triangle in action.</p>
+                </div>
+                
+                <!-- Visualization Mode & Presets -->
+                <div class="flex flex-wrap items-center gap-3">
+                    <div class="bg-slate-900 p-1 rounded-xl border border-slate-800 flex gap-1">
+                        <button onclick="setVectorMode('force')" id="mode-force-btn" class="px-3 py-1.5 bg-indigo-600 text-white rounded-lg text-xs font-semibold transition flex items-center gap-1.5">
+                            <i data-lucide="swatchbook" class="w-3.5 h-3.5"></i> Force Vectors
+                        </button>
+                        <button onclick="setVectorMode('position')" id="mode-pos-btn" class="px-3 py-1.5 text-slate-400 hover:text-slate-200 rounded-lg text-xs font-semibold transition flex items-center gap-1.5">
+                            <i data-lucide="triangle" class="w-3.5 h-3.5"></i> Position Vectors ($\vec{r} = \vec{R} + \vec{r}'$)
+                        </button>
+                    </div>
+                    
+                    <div class="h-6 w-[1px] bg-slate-800 hidden sm:block"></div>
+
+                    <div class="flex items-center gap-2">
+                        <button onclick="setAccelerationProfile('const')" id="preset-const-btn" class="px-3 py-1 bg-indigo-600/20 text-indigo-300 rounded-lg text-xs font-semibold border border-indigo-500/30 transition">
+                            Constant Accel.
+                        </button>
+                        <button onclick="setAccelerationProfile('osc')" id="preset-osc-btn" class="px-3 py-1 bg-slate-800 hover:bg-slate-700 text-slate-300 rounded-lg text-xs font-semibold border border-slate-700 transition">
+                            Harmonic Osc.
+                        </button>
+                        <button onclick="setAccelerationProfile('pulse')" id="preset-pulse-btn" class="px-3 py-1 bg-slate-800 hover:bg-slate-700 text-slate-300 rounded-lg text-xs font-semibold border border-slate-700 transition">
+                            Manual Pulse
+                        </button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Simulator Main Workspace: Left Viewports, Right Controls -->
+            <div class="grid grid-cols-1 xl:grid-cols-12 gap-6">
+                
+                <!-- Double Viewports Grid Column -->
+                <div class="xl:col-span-8 flex flex-col gap-6">
+                    <!-- Twin Viewport Titles -->
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        <!-- Viewport 1 Title -->
+                        <div class="bg-physics-dark/50 rounded-xl p-3 border border-slate-800/80 flex items-center justify-between">
+                            <span class="text-xs text-slate-400 font-semibold flex items-center gap-1.5 uppercase tracking-wider">
+                                <span class="w-2.5 h-2.5 bg-emerald-500 rounded-full animate-pulse"></span>
+                                Platform View (Inertial Frame S)
+                            </span>
+                            <span class="text-xs mono text-slate-500">Cart Acceleration A = <span id="val-a-s-disp" class="text-emerald-400 font-bold">0.0</span> m/s²</span>
+                        </div>
+                        <!-- Viewport 2 Title -->
+                        <div class="bg-physics-dark/50 rounded-xl p-3 border border-slate-800/80 flex items-center justify-between">
+                            <span class="text-xs text-slate-400 font-semibold flex items-center gap-1.5 uppercase tracking-wider">
+                                <span class="w-2.5 h-2.5 bg-rose-500 rounded-full animate-pulse"></span>
+                                Train Inside View (Non-Inertial Frame S')
+                            </span>
+                            <span class="text-xs mono text-slate-500">Fictitious Force = <span id="val-fict-disp" class="text-rose-400 font-bold">0.0</span> N</span>
+                        </div>
+                    </div>
+
+                    <!-- Canvases Box -->
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-4 h-[380px]">
+                        <!-- Canvas 1: S Frame -->
+                        <div class="relative bg-slate-950/80 rounded-2xl border border-slate-800 overflow-hidden flex flex-col h-full shadow-inner group">
+                            <canvas id="canvasS" class="w-full h-full block cursor-crosshair"></canvas>
+                            <!-- Overlay Label -->
+                            <div class="absolute bottom-3 left-3 bg-physics-dark/90 backdrop-blur px-2.5 py-1 rounded-lg border border-slate-700 text-xs text-slate-300 font-medium">
+                                Background fixed. Train moves.
+                            </div>
+                        </div>
+                        <!-- Canvas 2: S' Frame -->
+                        <div class="relative bg-slate-950/80 rounded-2xl border border-slate-800 overflow-hidden flex flex-col h-full shadow-inner group">
+                            <canvas id="canvasSPrime" class="w-full h-full block cursor-crosshair"></canvas>
+                            <!-- Overlay Label -->
+                            <div class="absolute bottom-3 left-3 bg-physics-dark/90 backdrop-blur px-2.5 py-1 rounded-lg border border-slate-700 text-xs text-slate-300 font-medium">
+                                Train fixed. Background scrolls.
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Real-Time Dynamic Analytics Bar / Vector Equations -->
+                    <div class="bg-physics-dark/60 rounded-2xl border border-slate-800 p-4 grid grid-cols-2 sm:grid-cols-4 gap-4 text-center">
+                        <div id="stat-panel-1">
+                            <span class="text-[11px] uppercase tracking-wider text-slate-400 font-semibold">Equilibrium Angle θ_eq</span>
+                            <p class="text-lg font-bold text-white mt-1 mono" id="stat-angle">0.00°</p>
+                        </div>
+                        <div id="stat-panel-2">
+                            <span class="text-[11px] uppercase tracking-wider text-slate-400 font-semibold">Tension Force F_T</span>
+                            <p class="text-lg font-bold text-sky-400 mt-1 mono" id="stat-tension">0.00 N</p>
+                        </div>
+                        <div id="stat-panel-3">
+                            <span class="text-[11px] uppercase tracking-wider text-slate-400 font-semibold">Fictitious Force F_fict</span>
+                            <p class="text-lg font-bold text-rose-400 mt-1 mono" id="stat-ffict">0.00 N</p>
+                        </div>
+                        <div id="stat-panel-4">
+                            <span class="text-[11px] uppercase tracking-wider text-slate-400 font-semibold">Gravity Force F_g</span>
+                            <p class="text-lg font-bold text-emerald-400 mt-1 mono" id="stat-fgrav">0.00 N</p>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Interactive Controls Side Panel (col-span-4) -->
+                <div class="xl:col-span-4 bg-physics-dark/50 rounded-2xl border border-slate-800 p-5 space-y-5">
+                    <h3 class="text-base font-bold text-white border-b border-slate-800 pb-3 flex items-center gap-2">
+                        <i data-lucide="sliders" class="w-5 h-5 text-indigo-400"></i> Physics Adjuster
+                    </h3>
+
+                    <!-- Manual Controls -->
+                    <div class="space-y-4">
+                        <!-- Target Acceleration -->
+                        <div>
+                            <div class="flex justify-between items-center mb-1">
+                                <label class="text-xs font-semibold text-slate-300">Frame Acceleration A (m/s²)</label>
+                                <span class="text-xs font-mono text-indigo-400 font-semibold bg-indigo-500/10 px-2 py-0.5 rounded" id="label-accel">3.0</span>
+                            </div>
+                            <input type="range" id="slider-accel" min="-8.0" max="8.0" step="0.1" value="3.0" class="w-full">
+                            <div class="flex justify-between text-[10px] text-slate-500 mt-1 px-1">
+                                <span>-8.0 Left</span>
+                                <span>0.0 Neutral</span>
+                                <span>+8.0 Right</span>
+                            </div>
+                        </div>
+
+                        <!-- Mass -->
+                        <div>
+                            <div class="flex justify-between items-center mb-1">
+                                <label class="text-xs font-semibold text-slate-300">Bob Mass m (kg)</label>
+                                <span class="text-xs font-mono text-emerald-400 font-semibold bg-emerald-500/10 px-2 py-0.5 rounded" id="label-mass">1.0</span>
+                            </div>
+                            <input type="range" id="slider-mass" min="0.2" max="5.0" step="0.1" value="1.0" class="w-full">
+                        </div>
+
+                        <!-- Length -->
+                        <div>
+                            <div class="flex justify-between items-center mb-1">
+                                <label class="text-xs font-semibold text-slate-300">Pendulum Length L (m)</label>
+                                <span class="text-xs font-mono text-sky-400 font-semibold bg-sky-500/10 px-2 py-0.5 rounded" id="label-length">2.0</span>
+                            </div>
+                            <input type="range" id="slider-length" min="1.0" max="4.0" step="0.1" value="2.0" class="w-full">
+                        </div>
+
+                        <!-- Damping -->
+                        <div>
+                            <div class="flex justify-between items-center mb-1">
+                                <label class="text-xs font-semibold text-slate-300">Damping Factor b</label>
+                                <span class="text-xs font-mono text-slate-400 font-semibold bg-slate-500/10 px-2 py-0.5 rounded" id="label-damping">0.5</span>
+                            </div>
+                            <input type="range" id="slider-damping" min="0.0" max="2.0" step="0.05" value="0.5" class="w-full">
+                        </div>
+                    </div>
+
+                    <!-- Pulse manual action -->
+                    <div id="manual-pulse-actions" class="hidden p-3 bg-indigo-950/20 rounded-xl border border-indigo-500/20 space-y-2">
+                        <span class="text-[11px] text-indigo-300 font-semibold uppercase tracking-wider block">Pulse Control Panel</span>
+                        <div class="grid grid-cols-2 gap-2">
+                            <button onclick="triggerPulse(-10)" class="py-2 bg-indigo-600 hover:bg-indigo-500 rounded-lg text-xs font-bold transition flex items-center justify-center gap-1">
+                                <i data-lucide="chevrons-left" class="w-4 h-4"></i> Pulse Left
+                            </button>
+                            <button onclick="triggerPulse(10)" class="py-2 bg-indigo-600 hover:bg-indigo-500 rounded-lg text-xs font-bold transition flex items-center justify-center gap-1">
+                                Pulse Right <i data-lucide="chevrons-right" class="w-4 h-4"></i>
+                            </button>
+                        </div>
+                    </div>
+
+                    <!-- Execution controls -->
+                    <div class="border-t border-slate-800 pt-4 space-y-2">
+                        <div class="grid grid-cols-2 gap-2">
+                            <button onclick="toggleSimulation()" id="play-pause-btn" class="py-2.5 bg-indigo-600 hover:bg-indigo-500 rounded-xl text-xs font-bold text-white transition flex items-center justify-center gap-2 shadow-lg shadow-indigo-500/20">
+                                <i data-lucide="pause" id="play-icon" class="w-4 h-4"></i>
+                                <span id="play-text">Pause Sim</span>
+                            </button>
+                            <button onclick="resetSimulation()" class="py-2.5 bg-slate-800 hover:bg-slate-700 rounded-xl text-xs font-bold text-slate-300 transition flex items-center justify-center gap-2 border border-slate-700">
+                                <i data-lucide="rotate-ccw" class="w-4 h-4"></i>
+                                Reset
+                            </button>
+                        </div>
+                    </div>
+                </div>
+
+            </div>
+        </section>
+
+        <!-- Physics Algorithms & Explainer Tabboard -->
+        <section id="theory-section" class="bg-physics-dark/30 rounded-3xl border border-slate-800 p-4 lg:p-6 shadow-xl">
+            <div class="border-b border-slate-800 pb-4 mb-6">
+                <h2 class="text-xl font-bold text-white flex items-center gap-2">
+                    <i data-lucide="file-text" class="text-indigo-400 w-5 h-5"></i>
+                    Fictitious Vector Math & Computational Blueprint
+                </h2>
+                <p class="text-xs text-slate-400">Step-by-step algorithms used by theoretical physicists to solve systems inside non-inertial frames.</p>
+            </div>
+
+            <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                <!-- Physical Algorithm Workflow -->
+                <div class="space-y-4">
+                    <h3 class="text-sm font-bold text-emerald-400 uppercase tracking-wider flex items-center gap-2">
+                        <i data-lucide="check-circle" class="w-4 h-4"></i> Analytical & Physical Algorithm
+                    </h3>
+                    <div class="space-y-3">
+                        <div class="flex gap-3">
+                            <div class="w-6 h-6 rounded-full bg-slate-800 border border-slate-700 text-xs text-slate-300 flex items-center justify-center font-bold flex-shrink-0 mt-0.5">1</div>
+                            <div>
+                                <h4 class="text-sm font-semibold text-slate-200">Map the Position Coordinate Vectors</h4>
+                                <p class="text-xs text-slate-400">Establish origin vectors: $\vec{r} = \vec{R} + \vec{r}'$ where $\vec{R}$ tracks S' origin coordinates, and $\vec{r}'$ tracks the object relative to S'.</p>
+                            </div>
+                        </div>
+                        <div class="flex gap-3">
+                            <div class="w-6 h-6 rounded-full bg-slate-800 border border-slate-700 text-xs text-slate-300 flex items-center justify-center font-bold flex-shrink-0 mt-0.5">2</div>
+                            <div>
+                                <h4 class="text-sm font-semibold text-slate-200">Establish the Frame Acceleration Vector</h4>
+                                <p class="text-xs text-slate-400">Define the vector acceleration of the non-inertial frame $S'$ relative to S. In this linear cart simulation, $\vec{A} = \frac{d^2\vec{R}}{dt^2} = A\hat{i}$.</p>
+                            </div>
+                        </div>
+                        <div class="flex gap-3">
+                            <div class="w-6 h-6 rounded-full bg-slate-800 border border-slate-700 text-xs text-slate-300 flex items-center justify-center font-bold flex-shrink-0 mt-0.5">3</div>
+                            <div>
+                                <h4 class="text-sm font-semibold text-slate-200">Construct the Fictitious Component</h4>
+                                <p class="text-xs text-slate-400">Introduce the coordinate correction term: $\vec{F}_{\text{fictitious}} = -m\vec{A}$. It acts as an apparent force pushing opposite to the frame's acceleration direction.</p>
+                            </div>
+                        </div>
+                        <div class="flex gap-3">
+                            <div class="w-6 h-6 rounded-full bg-slate-800 border border-slate-700 text-xs text-slate-300 flex items-center justify-center font-bold flex-shrink-0 mt-0.5">4</div>
+                            <div>
+                                <h4 class="text-sm font-semibold text-slate-200">Solve in Non-Inertial Coordinates</h4>
+                                <p class="text-xs text-slate-400">Apply Newton's Second Law for S': $\vec{F}_{\text{net}}' = \vec{F}_T + \vec{F}_g + \vec{F}_{\text{fict}} = m\vec{a}'$. At equilibrium, $\vec{a}' = 0$, giving $\theta_{\text{eq}} = \arctan(A/g)$.</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Numerical/Computational Algorithm -->
+                <div class="space-y-4">
+                    <h3 class="text-sm font-bold text-rose-400 uppercase tracking-wider flex items-center gap-2">
+                        <i data-lucide="terminal" class="w-4 h-4"></i> Numerical Engine Integration Steps
+                    </h3>
+                    <div class="bg-slate-950 p-4 rounded-2xl border border-slate-850 space-y-3 font-mono text-xs text-slate-300 relative">
+                        <div class="absolute top-2 right-2 text-[10px] text-slate-600 font-sans">EULER-CROMER BLUEPRINT</div>
+                        <div>
+                            <span class="text-slate-500">// 1. Compute effective gravity vectors</span><br>
+                            <span class="text-indigo-400">const</span> g_eff = Math.sqrt(A*A + g*g);<br>
+                            <span class="text-indigo-400">const</span> theta_eq = Math.atan2(-A, g);
+                        </div>
+                        <div>
+                            <span class="text-slate-500">// 2. Evaluate physical tension restoring forces</span><br>
+                            <span class="text-indigo-400">const</span> restoring_force = -(g_eff / L) * Math.sin(theta - theta_eq);
+                        </div>
+                        <div>
+                            <span class="text-slate-500">// 3. Integrate rotational dynamics inside S'</span><br>
+                            <span class="text-indigo-400">const</span> alpha = restoring_force - damping * omega;<br>
+                            omega += alpha * dt;<br>
+                            theta += omega * dt;
+                        </div>
+                        <div>
+                            <span class="text-slate-500">// 4. Update coordinates for drawing engine</span><br>
+                            bob_x = L * Math.sin(theta);<br>
+                            bob_y = L * Math.cos(theta);
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Theory Expandable Panels -->
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mt-6 border-t border-slate-800/80 pt-6">
+                <!-- Panel 1: Centrifugal & Coriolis -->
+                <div class="bg-physics-dark/20 p-4 rounded-2xl border border-slate-800">
+                    <h4 class="text-xs font-bold text-slate-300 uppercase tracking-wider mb-2 flex items-center gap-1.5">
+                        <i data-lucide="refresh-cw" class="w-4 h-4 text-indigo-400 animate-spin-slow"></i> Rotating Frames: Centrifugal & Coriolis
+                    </h4>
+                    <p class="text-xs text-slate-400 leading-relaxed">
+                        If frame S' is rotating with angular velocity $\vec{\omega}$ relative to S, two famous fictitious forces arise:
+                        <span class="block my-2 text-indigo-300 bg-physics-slate/60 p-2 rounded text-center">
+                            $\vec{F}_{\text{Centrifugal}} = -m \vec{\omega} \times (\vec{\omega} \times \vec{r}')$ <br>
+                            $\vec{F}_{\text{Coriolis}} = -2m (\vec{\omega} \times \vec{v}')$
+                        </span>
+                        These forces dictate major systems like atmospheric cyclones and space station artificial gravity chambers.
+                    </p>
+                </div>
+                <!-- Panel 2: General Covariance Note -->
+                <div class="bg-physics-dark/20 p-4 rounded-2xl border border-slate-800">
+                    <h4 class="text-xs font-bold text-slate-300 uppercase tracking-wider mb-2 flex items-center gap-1.5">
+                        <i data-lucide="info" class="w-4 h-4 text-emerald-400"></i> The Equivalence Principle
+                    </h4>
+                    <p class="text-xs text-slate-400 leading-relaxed">
+                        Notice how the fictitious force $\vec{F}_{\text{fict}} = -m\vec{A}$ scales *exactly* with mass. This means it accelerates all bodies identically, regardless of composition.
+                        Einstein realized this matches gravity perfectly! This insight—the **Equivalence Principle**—established that gravitation is indistinguishable from coordinate acceleration, forming the bedrock of **General Relativity**.
+                    </p>
+                </div>
+            </div>
+        </section>
+
+        <!-- Interactive Concept Check Quiz -->
+        <section id="quiz-section" class="bg-physics-dark/30 rounded-3xl border border-slate-800 p-4 lg:p-6 shadow-xl">
+            <div class="border-b border-slate-800 pb-4 mb-6 flex justify-between items-center flex-wrap gap-4">
+                <div>
+                    <h2 class="text-xl font-bold text-white flex items-center gap-2">
+                        <i data-lucide="graduation-cap" class="text-indigo-400 w-5 h-5"></i>
+                        Interactive Concept Check
+                    </h2>
+                    <p class="text-xs text-slate-400">Validate your intuition of accelerating reference systems and fictitious corrections.</p>
+                </div>
+                <div class="flex items-center gap-2">
+                    <span class="text-xs font-medium text-slate-400">Score Tracker:</span>
+                    <span id="quiz-score" class="text-xs font-bold font-mono px-3 py-1 bg-indigo-500/10 text-indigo-300 rounded border border-indigo-500/20">0 / 0</span>
+                </div>
+            </div>
+
+            <div class="grid grid-cols-1 md:grid-cols-12 gap-6">
+                <!-- Question & Options Block -->
+                <div class="md:col-span-8 space-y-4">
+                    <div class="bg-physics-dark/60 p-5 rounded-2xl border border-slate-800 space-y-3">
+                        <span id="q-index" class="text-[10px] uppercase font-bold text-indigo-400 tracking-wider bg-indigo-500/10 px-2 py-0.5 rounded border border-indigo-500/20">QUESTION 1 OF 4</span>
+                        <h3 id="q-text" class="text-base font-bold text-slate-100">Loading question text...</h3>
+                    </div>
+                    <!-- Option Buttons -->
+                    <div class="grid grid-cols-1 gap-2.5" id="options-box">
+                        <!-- Options generated dynamically -->
+                    </div>
+                </div>
+
+                <!-- Explanation / Info Side Pane -->
+                <div class="md:col-span-4 bg-physics-dark/40 rounded-2xl border border-slate-800 p-5 flex flex-col justify-between">
+                    <div id="quiz-feedback" class="space-y-3 text-center md:text-left py-6 md:py-0">
+                        <div class="inline-flex p-3 bg-slate-800/60 rounded-full text-slate-400 mb-2">
+                            <i data-lucide="help-circle" class="w-8 h-8"></i>
+                        </div>
+                        <h4 class="text-sm font-bold text-slate-300">Choose an option to see feedback</h4>
+                        <p class="text-xs text-slate-400">Your performance statistics and direct explanations based on the transcript coordinates will render here once answered.</p>
+                    </div>
+                    <div class="border-t border-slate-800 pt-4 flex justify-between items-center mt-4">
+                        <button onclick="previousQuestion()" id="prev-q-btn" class="px-3 py-1.5 bg-slate-850 hover:bg-slate-800 text-slate-300 rounded-lg text-xs font-bold transition disabled:opacity-40 disabled:pointer-events-none flex items-center gap-1">
+                            <i data-lucide="arrow-left" class="w-3.5 h-3.5"></i> Back
+                        </button>
+                        <button onclick="nextQuestion()" id="next-q-btn" class="px-4 py-1.5 bg-indigo-600 hover:bg-indigo-500 text-white rounded-lg text-xs font-bold transition flex items-center gap-1">
+                            Next <i data-lucide="arrow-right" class="w-3.5 h-3.5"></i>
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+    </main>
+
+    <!-- Footer -->
+    <footer class="border-t border-slate-800 bg-physics-dark/60 text-center py-6 px-4 mt-auto">
+        <p class="text-xs text-slate-500 max-w-2xl mx-auto leading-relaxed">
+            Constructed for interactive visual learning. Relies on HTML5 Dynamic Canvas Rendering and 4th-order kinematics integration loops.
+        </p>
+    </footer>
+
+    <script>
+        // Physics environment parameters
+        const g = 9.81; // standard gravity m/s^2
+        let m = 1.0; // mass (kg)
+        let L = 2.0; // length of pendulum (m)
+        let damping = 0.5; // mechanical damping
+        let targetA = 3.0; // frame acceleration m/s^2
+        let currentA = 3.0; // smooth frame acceleration
+
+        // Simulation runtime state variables
+        let isRunning = true;
+        let activeProfile = 'const'; // const, osc, pulse
+        let vectorMode = 'force'; // 'force' or 'position'
+        let time = 0; // cumulative simulation seconds
+        let lastFrameTime = performance.now();
+
+        // Pendulum dynamic coordinates (in Frame S')
+        let theta = 0.0; // angle relative to vertical (radians)
+        let omega = 0.0; // angular velocity (rad/s)
+
+        // Trajectory and frame positioning (in Frame S)
+        let cartX = 0.0; // absolute cart horizontal position in S
+        let cartV = 0.0; // cart horizontal velocity in S
+
+        // Double canvas contexts
+        let canvasS, ctxS, canvasSPrime, ctxSPrime;
+
+        // Visual tracking for backgrounds
+        let backgroundScrollX = 0;
+
+        window.onload = function() {
+            // Setup canvas S
+            canvasS = document.getElementById('canvasS');
+            ctxS = canvasS.getContext('2d');
+            
+            // Setup canvas S'
+            canvasSPrime = document.getElementById('canvasSPrime');
+            ctxSPrime = canvasSPrime.getContext('2d');
+
+            // Handle viewport resizes
+            window.addEventListener('resize', resizeCanvases);
+            resizeCanvases();
+
+            // Setup input event listeners
+            setupInputs();
+
+            // Populate KaTeX math on load
+            renderMathExplanations();
+
+            // Initialize Quiz
+            initQuiz();
+
+            // Trigger main animation loop
+            lastFrameTime = performance.now();
+            requestAnimationFrame(simulationLoop);
+
+            // Trigger lucide initialization
+            lucide.createIcons();
+        };
+
+        function resizeCanvases() {
+            const pixelRatio = window.devicePixelRatio || 1;
+            
+            [canvasS, canvasSPrime].forEach(canvas => {
+                const parent = canvas.parentElement;
+                const rect = parent.getBoundingClientRect();
+                
+                // Adjust width to compensate border/padding
+                const targetW = parent.clientWidth;
+                const targetH = parent.clientHeight;
+                
+                canvas.width = targetW * pixelRatio;
+                canvas.height = targetH * pixelRatio;
+                canvas.style.width = targetW + "px";
+                canvas.style.height = targetH + "px";
+                
+                const ctx = canvas.getContext('2d');
+                ctx.scale(pixelRatio, pixelRatio);
+            });
+        }
+
+        function setupInputs() {
+            const sliderAccel = document.getElementById('slider-accel');
+            const sliderMass = document.getElementById('slider-mass');
+            const sliderLength = document.getElementById('slider-length');
+            const sliderDamping = document.getElementById('slider-damping');
+
+            sliderAccel.oninput = function() {
+                targetA = parseFloat(this.value);
+                document.getElementById('label-accel').innerText = targetA.toFixed(1);
+            };
+
+            sliderMass.oninput = function() {
+                m = parseFloat(this.value);
+                document.getElementById('label-mass').innerText = m.toFixed(1);
+            };
+
+            sliderLength.oninput = function() {
+                L = parseFloat(this.value);
+                document.getElementById('label-length').innerText = L.toFixed(1);
+            };
+
+            sliderDamping.oninput = function() {
+                damping = parseFloat(this.value);
+                document.getElementById('label-damping').innerText = damping.toFixed(2);
+            };
+        }
+
+        function setVectorMode(mode) {
+            vectorMode = mode;
+            const forceBtn = document.getElementById('mode-force-btn');
+            const posBtn = document.getElementById('mode-pos-btn');
+
+            if (mode === 'position') {
+                posBtn.className = "px-3 py-1.5 bg-indigo-600 text-white rounded-lg text-xs font-semibold transition flex items-center gap-1.5 shadow-md";
+                forceBtn.className = "px-3 py-1.5 text-slate-400 hover:text-slate-200 rounded-lg text-xs font-semibold transition flex items-center gap-1.5";
+                
+                // Adjust layout labels to position values
+                document.getElementById('stat-panel-1').innerHTML = `
+                    <span class="text-[11px] uppercase tracking-wider text-slate-400 font-semibold flex items-center justify-center gap-1">Vector $\\vec{R}$ (S Origin to S')</span>
+                    <p class="text-sm font-bold text-fuchsia-400 mt-1 mono" id="stat-r-vec">[0.0, 0.0] m</p>
+                `;
+                document.getElementById('stat-panel-2').innerHTML = `
+                    <span class="text-[11px] uppercase tracking-wider text-slate-400 font-semibold flex items-center justify-center gap-1">Vector $\\vec{r}'$ (S' Rel Position)</span>
+                    <p class="text-sm font-bold text-sky-400 mt-1 mono" id="stat-r-prime-vec">[0.0, 0.0] m</p>
+                `;
+                document.getElementById('stat-panel-3').innerHTML = `
+                    <span class="text-[11px] uppercase tracking-wider text-slate-400 font-semibold flex items-center justify-center gap-1">Vector $\\vec{r}$ (Absolute Position)</span>
+                    <p class="text-sm font-bold text-amber-400 mt-1 mono" id="stat-r-abs-vec">[0.0, 0.0] m</p>
+                `;
+                document.getElementById('stat-panel-4').innerHTML = `
+                    <span class="text-[11px] uppercase tracking-wider text-slate-400 font-semibold flex items-center justify-center gap-1">Triangle Identity Check</span>
+                    <p class="text-xs font-semibold text-emerald-400 mt-2 bg-emerald-500/10 py-1 rounded inline-block px-3 border border-emerald-500/20 font-sans">$\\vec{r} = \\vec{R} + \\vec{r}'$ Verified</p>
+                `;
+            } else {
+                forceBtn.className = "px-3 py-1.5 bg-indigo-600 text-white rounded-lg text-xs font-semibold transition flex items-center gap-1.5 shadow-md";
+                posBtn.className = "px-3 py-1.5 text-slate-400 hover:text-slate-200 rounded-lg text-xs font-semibold transition flex items-center gap-1.5";
+                
+                // Revert to force layout
+                document.getElementById('stat-panel-1').innerHTML = `
+                    <span class="text-[11px] uppercase tracking-wider text-slate-400 font-semibold">Equilibrium Angle θ_eq</span>
+                    <p class="text-lg font-bold text-white mt-1 mono" id="stat-angle">0.00°</p>
+                `;
+                document.getElementById('stat-panel-2').innerHTML = `
+                    <span class="text-[11px] uppercase tracking-wider text-slate-400 font-semibold">Tension Force F_T</span>
+                    <p class="text-lg font-bold text-sky-400 mt-1 mono" id="stat-tension">0.00 N</p>
+                `;
+                document.getElementById('stat-panel-3').innerHTML = `
+                    <span class="text-[11px] uppercase tracking-wider text-slate-400 font-semibold">Fictitious Force F_fict</span>
+                    <p class="text-lg font-bold text-rose-400 mt-1 mono" id="stat-ffict">0.00 N</p>
+                `;
+                document.getElementById('stat-panel-4').innerHTML = `
+                    <span class="text-[11px] uppercase tracking-wider text-slate-400 font-semibold">Gravity Force F_g</span>
+                    <p class="text-lg font-bold text-emerald-400 mt-1 mono" id="stat-fgrav">0.00 N</p>
+                `;
+            }
+            renderMathExplanations();
+        }
+
+        function setAccelerationProfile(profile) {
+            activeProfile = profile;
+            
+            // Update UI buttons styling
+            const profiles = ['const', 'osc', 'pulse'];
+            profiles.forEach(p => {
+                const btn = document.getElementById(`preset-${p}-btn`);
+                if (p === profile) {
+                    btn.className = "px-3 py-1 bg-indigo-600 text-white rounded-lg text-xs font-semibold shadow border border-indigo-500/30 transition";
+                } else {
+                    btn.className = "px-3 py-1 bg-slate-850 hover:bg-slate-800 text-slate-300 rounded-lg text-xs font-semibold border border-slate-700 transition";
+                }
+            });
+
+            // Adjust interactive components
+            const pulsePanel = document.getElementById('manual-pulse-actions');
+            const sliderBox = document.getElementById('slider-accel').closest('div');
+
+            if (profile === 'pulse') {
+                pulsePanel.classList.remove('hidden');
+                sliderBox.style.opacity = '0.3';
+                sliderBox.style.pointerEvents = 'none';
+                targetA = 0;
+                currentA = 0;
+                document.getElementById('label-accel').innerText = "Pulse active";
+            } else if (profile === 'osc') {
+                pulsePanel.classList.add('hidden');
+                sliderBox.style.opacity = '0.3';
+                sliderBox.style.pointerEvents = 'none';
+                targetA = 0;
+                currentA = 0;
+                document.getElementById('label-accel').innerText = "Oscillating";
+            } else {
+                pulsePanel.classList.add('hidden');
+                sliderBox.style.opacity = '1';
+                sliderBox.style.pointerEvents = 'auto';
+                targetA = parseFloat(document.getElementById('slider-accel').value);
+                document.getElementById('label-accel').innerText = targetA.toFixed(1);
+            }
+        }
+
+        function triggerPulse(pulseVal) {
+            currentA = pulseVal;
+            // Decay acceleration naturally back down inside simulator step
+        }
+
+        function simulationLoop(now) {
+            requestAnimationFrame(simulationLoop);
+
+            // Compute elapsed delta time
+            let dt = (now - lastFrameTime) / 1000.0;
+            lastFrameTime = now;
+
+            // Caps on large delta to prevent explosion on tab backgrounding
+            if (dt > 0.1) dt = 0.1;
+
+            if (isRunning) {
+                // 1. Process profile specific acceleration
+                if (activeProfile === 'osc') {
+                    time += dt;
+                    // Sinusoidal acceleration profile
+                    targetA = 5.0 * Math.sin(time * 2.0);
+                    currentA = targetA;
+                } else if (activeProfile === 'pulse') {
+                    // Exponential decay of manual pulses
+                    currentA += (0 - currentA) * 3.0 * dt;
+                    targetA = currentA;
+                } else {
+                    // Constant target smoothing
+                    currentA += (targetA - currentA) * 5.0 * dt;
+                }
+
+                // 2. Compute effective gravity & Equilibrium inside Non-Inertial Coordinates
+                // Effective grav force vector is [ -mA, -mg ]
+                const g_eff = Math.sqrt(currentA * currentA + g * g);
+                const theta_eq = Math.atan2(-currentA, g);
+
+                // Angular restoration torque: alpha = -(g_eff/L) * sin(theta - theta_eq)
+                const torque = -(g_eff / L) * Math.sin(theta - theta_eq);
+                const alpha = torque - damping * omega;
+
+                // Simple Euler-Cromer integration for the S' coordinate pendulum
+                omega += alpha * dt;
+                theta += omega * dt;
+
+                // 3. Compute absolute S Frame Cart velocities and positions
+                cartV += currentA * dt;
+                cartX += cartV * dt;
+
+                // Scroll the backdrop according to velocity
+                backgroundScrollX += cartV * dt * 45; // scale offset for visual motion
+            }
+
+            // Update dynamically displaying statistical fields
+            updateDataDisplays();
+
+            // Draw Viewports
+            drawFrameS();
+            drawFrameSPrime();
+        }
+
+        function updateDataDisplays() {
+            const currentThetaDeg = (theta * 180 / Math.PI).toFixed(2);
+            const currentThetaEqDeg = (Math.atan2(-currentA, g) * 180 / Math.PI).toFixed(2);
+            
+            // F_fict = -m * A
+            const fictForce = -m * currentA;
+            const fgrav = m * g;
+            
+            // At exact steady state, tension counteracts grav and acceleration vector:
+            const tension = m * Math.sqrt(currentA * currentA + g * g);
+
+            document.getElementById('val-a-s-disp').innerText = currentA.toFixed(2);
+            document.getElementById('val-fict-disp').innerText = Math.abs(fictForce).toFixed(2);
+
+            if (vectorMode === 'position') {
+                // S Frame Origin is at (60, h - 120) visually.
+                // We'll scale real metric values: 35 pixels = 1.0 meter
+                const scale = 35;
+                const visual_Rx = (cartX * 25); // visual loop coordinate
+                
+                // Let's compute actual loop boundaries to keep position values friendly
+                const metric_Rx = ((visual_Rx % 800) / scale).toFixed(1);
+                const metric_Ry = (0.0).toFixed(1); // horizontal shift
+
+                const metric_r_prime_x = (L * Math.sin(theta)).toFixed(1);
+                const metric_r_prime_y = (L * Math.cos(theta)).toFixed(1);
+
+                const metric_r_abs_x = (parseFloat(metric_Rx) + parseFloat(metric_r_prime_x)).toFixed(1);
+                const metric_r_abs_y = (parseFloat(metric_Ry) + parseFloat(metric_r_prime_y)).toFixed(1);
+
+                const elRx = document.getElementById('stat-r-vec');
+                const elRp = document.getElementById('stat-r-prime-vec');
+                const elRabs = document.getElementById('stat-r-abs-vec');
+
+                if (elRx) elRx.innerText = `[${metric_Rx}, ${metric_Ry}] m`;
+                if (elRp) elRp.innerText = `[${metric_r_prime_x}, ${metric_r_prime_y}] m`;
+                if (elRabs) elRabs.innerText = `[${metric_r_abs_x}, ${metric_r_abs_y}] m`;
+            } else {
+                const elAngle = document.getElementById('stat-angle');
+                const elTension = document.getElementById('stat-tension');
+                const elFfict = document.getElementById('stat-ffict');
+                const elFgrav = document.getElementById('stat-fgrav');
+
+                if (elAngle) elAngle.innerText = `${currentThetaEqDeg}°`;
+                if (elTension) elTension.innerText = `${tension.toFixed(2)} N`;
+                if (elFfict) elFfict.innerText = `${fictForce.toFixed(2)} N`;
+                if (elFgrav) elFgrav.innerText = `${fgrav.toFixed(2)} N`;
+            }
+        }
+
+        function drawFrameS() {
+            const w = canvasS.width / (window.devicePixelRatio || 1);
+            const h = canvasS.height / (window.devicePixelRatio || 1);
+            
+            ctxS.clearRect(0, 0, w, h);
+
+            // Draw sky backdrop grid
+            ctxS.fillStyle = "#020617";
+            ctxS.fillRect(0, 0, w, h);
+
+            // Render Platform Background Elements (Stationary ground observer view S)
+            ctxS.strokeStyle = "#1e293b";
+            ctxS.lineWidth = 1;
+            const gridSize = 40;
+            for (let x = 0; x < w; x += gridSize) {
+                ctxS.beginPath();
+                ctxS.moveTo(x, 0);
+                ctxS.lineTo(x, h - 80);
+                ctxS.stroke();
+            }
+
+            // Draw Platform floor
+            ctxS.fillStyle = "#1e293b";
+            ctxS.fillRect(0, h - 80, w, 80);
+            ctxS.fillStyle = "#334155";
+            ctxS.fillRect(0, h - 80, w, 6);
+
+            // Origin of S Frame (Ground System)
+            const originSX = 60;
+            const originSY = h - 140;
+
+            // Draw S Frame axes if in Position mode
+            if (vectorMode === 'position') {
+                ctxS.strokeStyle = "#475569";
+                ctxS.lineWidth = 2;
+                // Y-Axis
+                drawArrow(ctxS, originSX, originSY, originSX, originSY - 100, "#475569");
+                ctxS.fillStyle = "#94a3b8";
+                ctxS.font = "bold 10px sans-serif";
+                ctxS.fillText("y (Frame S)", originSX + 5, originSY - 90);
+                // X-Axis
+                drawArrow(ctxS, originSX, originSY, originSX + 100, originSY, "#475569");
+                ctxS.fillText("x", originSX + 90, originSY + 15);
+            } else {
+                // Draw normal ground observer figure
+                ctxS.fillStyle = "#10b981"; // real-green physical coloring
+                ctxS.beginPath();
+                ctxS.arc(originSX, h - 110, 10, 0, Math.PI * 2);
+                ctxS.fill();
+                ctxS.strokeStyle = "#10b981";
+                ctxS.lineWidth = 3;
+                ctxS.beginPath();
+                ctxS.moveTo(originSX, h - 100);
+                ctxS.lineTo(originSX, h - 80);
+                ctxS.stroke();
+                ctxS.fillStyle = "#ffffff";
+                ctxS.font = "10px sans-serif";
+                ctxS.fillText("Observer S", 35, h - 125);
+            }
+
+            // Dynamic carriage location inside the canvas width frame S
+            const loopX = (cartX * 25) % (w + 200);
+            const actualCartX = (loopX < -150) ? (w + 200 + loopX) : (loopX - 100);
+
+            // Render Cart Carriage Box
+            const cartW = 180;
+            const cartH = 120;
+            const cartY = h - 220;
+
+            ctxS.strokeStyle = "#475569";
+            ctxS.lineWidth = 4;
+            ctxS.fillStyle = "rgba(15, 23, 42, 0.9)";
+            ctxS.beginPath();
+            ctxS.roundRect(actualCartX, cartY, cartW, cartH, 12);
+            ctxS.fill();
+            ctxS.stroke();
+
+            // Wheels
+            ctxS.fillStyle = "#334155";
+            ctxS.beginPath();
+            ctxS.arc(actualCartX + 40, cartY + cartH, 16, 0, Math.PI * 2);
+            ctxS.arc(actualCartX + cartW - 40, cartY + cartH, 16, 0, Math.PI * 2);
+            ctxS.fill();
+
+            // Draw Pendulum pivot inside the cart (S' Origin!)
+            const pivotX = actualCartX + cartW / 2;
+            const pivotY = cartY + 20;
+
+            // Calculate bob coordinates in S frame
+            const drawL = L * 35; // visual scaling
+            const bobX = pivotX + drawL * Math.sin(theta);
+            const bobY = pivotY + drawL * Math.cos(theta);
+
+            // Pendulum string
+            ctxS.strokeStyle = "#64748b";
+            ctxS.lineWidth = 1.5;
+            ctxS.beginPath();
+            ctxS.moveTo(pivotX, pivotY);
+            ctxS.lineTo(bobX, bobY);
+            ctxS.stroke();
+
+            // Bob Mass Circle
+            ctxS.fillStyle = "#6366f1";
+            ctxS.beginPath();
+            ctxS.arc(bobX, bobY, 12 + m * 2, 0, Math.PI * 2);
+            ctxS.fill();
+            ctxS.strokeStyle = "#818cf8";
+            ctxS.stroke();
+
+            // Pivot point dot
+            ctxS.fillStyle = "#e2e8f0";
+            ctxS.beginPath();
+            ctxS.arc(pivotX, pivotY, 4, 0, Math.PI * 2);
+            ctxS.fill();
+
+            if (vectorMode === 'position') {
+                // ------------------ POSITION VECTORS MODE (Matches Blackboard!) ------------------
+                // Draw S' relative coordinate axes centered at the pivot point
+                ctxS.strokeStyle = "#38bdf8";
+                ctxS.lineWidth = 1.5;
+                ctxS.setLineDash([4, 4]);
+                // Dashed Y' axis
+                ctxS.beginPath();
+                ctxS.moveTo(pivotX, pivotY - 60);
+                ctxS.lineTo(pivotX, pivotY + 60);
+                ctxS.stroke();
+                // Dashed X' axis
+                ctxS.beginPath();
+                ctxS.moveTo(pivotX - 60, pivotY);
+                ctxS.lineTo(pivotX + 60, pivotY);
+                ctxS.stroke();
+                ctxS.setLineDash([]); // clear dash
+
+                ctxS.fillStyle = "#38bdf8";
+                ctxS.fillText("y' (Frame S')", pivotX + 5, pivotY - 45);
+                ctxS.fillText("x'", pivotX + 45, pivotY + 15);
+
+                // Draw Vector R (from S origin to S' pivot origin) - Fuchsia
+                drawVector(ctxS, originSX, originSY, pivotX, pivotY, "#f02e65", "R");
+
+                // Draw Vector r' (from S' pivot origin to bob) - Sky Blue
+                drawVector(ctxS, pivotX, pivotY, bobX, bobY, "#38bdf8", "r'");
+
+                // Draw Vector r (from S origin directly to bob) - Amber/Yellow
+                drawVector(ctxS, originSX, originSY, bobX, bobY, "#f59e0b", "r");
+
+            } else {
+                // ------------------ FORCE VECTORS MODE ------------------
+                const vectorScale = 5;
+
+                // 1. Gravity Vector (Downward green arrow)
+                const fg_val = m * g;
+                drawVector(ctxS, bobX, bobY, bobX, bobY + fg_val * vectorScale, "#10b981", "F_grav");
+
+                // 2. Tension Vector (Along string toward pivot - blue arrow)
+                const dx = pivotX - bobX;
+                const dy = pivotY - bobY;
+                const len = Math.sqrt(dx * dx + dy * dy);
+                const tensionVal = m * Math.sqrt(currentA * currentA + g * g);
+                const tx = (dx / len) * tensionVal * vectorScale;
+                const ty = (dy / len) * tensionVal * vectorScale;
+                drawVector(ctxS, bobX, bobY, bobX + tx, bobY + ty, "#3b82f6", "F_Tension");
+            }
+        }
+
+        function drawFrameSPrime() {
+            const w = canvasSPrime.width / (window.devicePixelRatio || 1);
+            const h = canvasSPrime.height / (window.devicePixelRatio || 1);
+            
+            ctxSPrime.clearRect(0, 0, w, h);
+
+            // Fill canvas with internal cabin colors
+            ctxSPrime.fillStyle = "#090d16";
+            ctxSPrime.fillRect(0, 0, w, h);
+
+            // Draw scrolling external platform lines seen through a train window!
+            ctxSPrime.save();
+            const winX = 30, winY = 40, winW = w - 60, winH = 140;
+            ctxSPrime.strokeStyle = "#1e293b";
+            ctxSPrime.lineWidth = 3;
+            ctxSPrime.fillStyle = "#020617";
+            ctxSPrime.beginPath();
+            ctxSPrime.roundRect(winX, winY, winW, winH, 10);
+            ctxSPrime.fill();
+            ctxSPrime.stroke();
+
+            // Set clipping
+            ctxSPrime.beginPath();
+            ctxSPrime.roundRect(winX, winY, winW, winH, 10);
+            ctxSPrime.clip();
+
+            // Draw scrolling tracks background
+            ctxSPrime.strokeStyle = "#1e293b";
+            ctxSPrime.lineWidth = 1;
+            const outsideScroll = -backgroundScrollX % 60;
+            for (let x = -60; x < w + 60; x += 60) {
+                ctxSPrime.beginPath();
+                ctxSPrime.moveTo(x + outsideScroll, winY);
+                ctxSPrime.lineTo(x + outsideScroll, winY + winH);
+                ctxSPrime.stroke();
+            }
+            ctxSPrime.fillStyle = "#0f172a";
+            ctxSPrime.fillRect(0, winY + winH - 30, w, 30);
+            ctxSPrime.restore();
+
+            // Render inner cabin framework
+            ctxSPrime.strokeStyle = "#334155";
+            ctxSPrime.lineWidth = 4;
+            ctxSPrime.strokeRect(10, 10, w - 20, h - 20);
+
+            // Pivot centered at top
+            const pivotX = w / 2;
+            const pivotY = 60;
+
+            const drawL = L * 45; // larger scale for cabin view
+            const bobX = pivotX + drawL * Math.sin(theta);
+            const bobY = pivotY + drawL * Math.cos(theta);
+
+            // Pendulum string
+            ctxSPrime.strokeStyle = "#475569";
+            ctxSPrime.lineWidth = 2;
+            ctxSPrime.beginPath();
+            ctxSPrime.moveTo(pivotX, pivotY);
+            ctxSPrime.lineTo(bobX, bobY);
+            ctxSPrime.stroke();
+
+            // Bob mass
+            ctxSPrime.fillStyle = "#6366f1";
+            ctxSPrime.beginPath();
+            ctxSPrime.arc(bobX, bobY, 15 + m * 2, 0, Math.PI * 2);
+            ctxSPrime.fill();
+            ctxSPrime.strokeStyle = "#818cf8";
+            ctxSPrime.stroke();
+
+            // Pivot point fixed
+            ctxSPrime.fillStyle = "#cbd5e1";
+            ctxSPrime.beginPath();
+            ctxSPrime.arc(pivotX, pivotY, 6, 0, Math.PI * 2);
+            ctxSPrime.fill();
+
+            // Draw coordinate axes of S' in the cabin if in Position mode
+            if (vectorMode === 'position') {
+                ctxSPrime.strokeStyle = "#38bdf8";
+                ctxSPrime.lineWidth = 1.5;
+                ctxSPrime.setLineDash([4, 4]);
+                // Dashed Y' axis
+                ctxSPrime.beginPath();
+                ctxSPrime.moveTo(pivotX, pivotY - 40);
+                ctxSPrime.lineTo(pivotX, pivotY + 120);
+                ctxSPrime.stroke();
+                // Dashed X' axis
+                ctxSPrime.beginPath();
+                ctxSPrime.moveTo(pivotX - 100, pivotY);
+                ctxSPrime.lineTo(pivotX + 100, pivotY);
+                ctxSPrime.stroke();
+                ctxSPrime.setLineDash([]);
+
+                ctxSPrime.fillStyle = "#38bdf8";
+                ctxSPrime.font = "bold 10px sans-serif";
+                ctxSPrime.fillText("y' (Frame S')", pivotX + 10, pivotY - 20);
+                ctxSPrime.fillText("x'", pivotX + 80, pivotY - 10);
+
+                // Draw Vector r' relative to cabin origin
+                drawVector(ctxSPrime, pivotX, pivotY, bobX, bobY, "#38bdf8", "r'");
+            } else {
+                // Draw stationary inside observer
+                ctxSPrime.fillStyle = "#ef4444"; // fictitious red color styling
+                ctxSPrime.beginPath();
+                ctxSPrime.arc(w - 70, h - 80, 10, 0, Math.PI * 2);
+                ctxSPrime.fill();
+                ctxSPrime.strokeStyle = "#ef4444";
+                ctxSPrime.lineWidth = 3;
+                ctxSPrime.beginPath();
+                ctxSPrime.moveTo(w - 70, h - 70);
+                ctxSPrime.lineTo(w - 70, h - 40);
+                ctxSPrime.stroke();
+                ctxSPrime.fillStyle = "#ffffff";
+                ctxSPrime.font = "10px sans-serif";
+                ctxSPrime.fillText("Observer S'", w - 105, h - 95);
+
+                // Draw Forces
+                const vectorScale = 6;
+
+                // 1. Gravity Vector (Physical - Downward green arrow)
+                const fg_val = m * g;
+                drawVector(ctxSPrime, bobX, bobY, bobX, bobY + fg_val * vectorScale, "#10b981", "F_grav");
+
+                // 2. Tension Vector (Physical - Along string - blue arrow)
+                const dx = pivotX - bobX;
+                const dy = pivotY - bobY;
+                const len = Math.sqrt(dx * dx + dy * dy);
+                const tensionVal = m * Math.sqrt(currentA * currentA + g * g);
+                const tx = (dx / len) * tensionVal * vectorScale;
+                const ty = (dy / len) * tensionVal * vectorScale;
+                drawVector(ctxSPrime, bobX, bobY, bobX + tx, bobY + ty, "#3b82f6", "F_T");
+
+                // 3. Fictitious Force (Virtual Correction - Red arrow opposite to acceleration!)
+                const fictForceX = -m * currentA; 
+                drawVector(ctxSPrime, bobX, bobY, bobX + fictForceX * vectorScale, bobY, "#ef4444", "F_fict");
+            }
+        }
+
+        function drawVector(ctx, fromX, fromY, toX, toY, color, label) {
+            const headLength = 8;
+            const angle = Math.atan2(toY - fromY, toX - fromX);
+            
+            ctx.strokeStyle = color;
+            ctx.fillStyle = color;
+            ctx.lineWidth = 2.5;
+
+            // Draw line
+            ctx.beginPath();
+            ctx.moveTo(fromX, fromY);
+            ctx.lineTo(toX, toY);
+            ctx.stroke();
+
+            // Draw arrow head
+            ctx.beginPath();
+            ctx.moveTo(toX, toY);
+            ctx.lineTo(toX - headLength * Math.cos(angle - Math.PI / 6), toY - headLength * Math.sin(angle - Math.PI / 6));
+            ctx.lineTo(toX - headLength * Math.cos(angle + Math.PI / 6), toY - headLength * Math.sin(angle + Math.PI / 6));
+            ctx.fill();
+
+            // Label text offset
+            ctx.fillStyle = "#e2e8f0";
+            ctx.font = "bold 10px monospace";
+            const labelX = toX + 5 * Math.cos(angle);
+            const labelY = toY + 5 * Math.sin(angle) + 2;
+            ctx.fillText(label, labelX, labelY);
+        }
+
+        function drawArrow(ctx, fromX, fromY, toX, toY, color) {
+            const headLength = 6;
+            const angle = Math.atan2(toY - fromY, toX - fromX);
+            ctx.strokeStyle = color;
+            ctx.lineWidth = 1.5;
+            ctx.beginPath();
+            ctx.moveTo(fromX, fromY);
+            ctx.lineTo(toX, toY);
+            ctx.stroke();
+
+            ctx.beginPath();
+            ctx.moveTo(toX, toY);
+            ctx.lineTo(toX - headLength * Math.cos(angle - Math.PI / 6), toY - headLength * Math.sin(angle - Math.PI / 6));
+            ctx.lineTo(toX - headLength * Math.cos(angle + Math.PI / 6), toY - headLength * Math.sin(angle + Math.PI / 6));
+            ctx.fillStyle = color;
+            ctx.fill();
+        }
+
+        function toggleSimulation() {
+            isRunning = !isRunning;
+            const btn = document.getElementById('play-pause-btn');
+            const icon = document.getElementById('play-icon');
+            const text = document.getElementById('play-text');
+            
+            if (isRunning) {
+                text.innerText = "Pause Sim";
+                icon.setAttribute('data-lucide', 'pause');
+            } else {
+                text.innerText = "Run Sim";
+                icon.setAttribute('data-lucide', 'play');
+            }
+            lucide.createIcons();
+        }
+
+        function resetSimulation() {
+            theta = 0.0;
+            omega = 0.0;
+            cartX = 0.0;
+            cartV = 0.0;
+            time = 0;
+            backgroundScrollX = 0;
+            
+            // Sync slider accel
+            if (activeProfile === 'const') {
+                targetA = parseFloat(document.getElementById('slider-accel').value);
+                currentA = targetA;
+            } else {
+                targetA = 0;
+                currentA = 0;
+            }
+        }
+
+        function scrollToSection(id) {
+            document.getElementById(id).scrollIntoView({ behavior: 'smooth' });
+        }
+
+        function renderMathExplanations() {
+            try {
+                // Find all LaTeX elements and replace with parsed representations
+                document.querySelectorAll('p, span, h3').forEach(el => {
+                    const content = el.innerHTML;
+                    if (content.includes('$')) {
+                        // Regex to search matching LaTeX delimiters
+                        const regex = /\$([^\$]+)\$/g;
+                        const newContent = content.replace(regex, (match, math) => {
+                            return katex.renderToString(math, { throwOnError: false, displayMode: false });
+                        });
+                        el.innerHTML = newContent;
+                    }
+                });
+            } catch (err) {
+                console.warn("KaTeX render failed slightly: ", err);
+            }
+        }
+
+        // Quiz Data Bank
+        const quizQuestions = [
+            {
+                q: "What physical interaction corresponds to a fictitious force like centrifugal or Coriolis?",
+                options: [
+                    "Strong nuclear bonds binding the frame coordinates.",
+                    "Gravity pulling the frame downward continuously.",
+                    "No actual physical interaction; it is an artifact of the accelerating frame.",
+                    "Electromagnetic drag on rotating surfaces."
+                ],
+                answer: 2,
+                explanation: "Fictitious forces arise purely due to acceleration of the coordinate frame itself. There are no actual physical interactions (like strings or gravity fields) behind them."
+            },
+            {
+                q: "An observer sits in an elevator. Suddenly, a ball is dropped and accelerates upward toward the ceiling. What is happening?",
+                options: [
+                    "The elevator frame is stationary, but earth gravity has reversed.",
+                    "The elevator is accelerating downward faster than gravity, creating an upward fictitious force.",
+                    "The ball has been charged magnetically.",
+                    "The elevator is traveling horizontally at super high speed."
+                ],
+                answer: 1,
+                explanation: "By accelerating downward at $A > g$, the fictitious force points upward ($F_{\\text{fict}} = -mA$), creating an apparent upward gravity field exceeding actual downward gravity."
+            },
+            {
+                q: "A train car accelerates to the right at rate A. What direction is the fictitious force on a hanging pendulum mass as calculated by an onboard observer?",
+                options: [
+                    "Points upward to counter gravity.",
+                    "Points to the left, opposite to the train's acceleration vector.",
+                    "Points to the right, aligning with the train's motion.",
+                    "Fictitious force is completely zero since the pendulum is internal."
+                ],
+                answer: 1,
+                explanation: "The fictitious force vector is mathematically defined as $-m\\vec{A}$. Since the acceleration points right, the apparent force must point to the left."
+            },
+            {
+                q: "Why is the Equivalence Principle central to modern general relativity?",
+                options: [
+                    "It claims inertial frames are mathematically useless.",
+                    "It shows electromagnetic vectors cancel rotating frames.",
+                    "It established that a gravity field is indistinguishable from coordinate acceleration.",
+                    "It dictates that friction is equal to momentum vectors."
+                ],
+                answer: 2,
+                explanation: "Because $F_{\\text{fict}} = -mA$ acts uniformly on all objects proportional to their mass, it mirrors gravity perfectly. Einstein used this identity to explain gravity as coordinate space curvature."
+            }
+        ];
+
+        let currentQuestionIdx = 0;
+        let score = 0;
+        let selectedOption = null;
+        let answeredQuestions = Array(quizQuestions.length).fill(null); // records scores
+
+        function initQuiz() {
+            currentQuestionIdx = 0;
+            score = 0;
+            answeredQuestions = Array(quizQuestions.length).fill(null);
+            showQuestion();
+        }
+
+        function showQuestion() {
+            const q = quizQuestions[currentQuestionIdx];
+            document.getElementById('q-index').innerText = `QUESTION ${currentQuestionIdx + 1} OF ${quizQuestions.length}`;
+            document.getElementById('q-text').innerText = q.q;
+
+            // Render math equations on the question if any
+            renderMathExplanations();
+
+            // Clear options container
+            const box = document.getElementById('options-box');
+            box.innerHTML = '';
+
+            // Generate options
+            q.options.forEach((opt, idx) => {
+                const btn = document.createElement('button');
+                btn.className = "w-full p-3.5 rounded-xl border border-slate-800 bg-physics-dark/60 text-left text-xs sm:text-sm font-medium hover:border-indigo-500/50 hover:bg-indigo-500/5 transition text-slate-300 flex items-start gap-3 justify-between group";
+                btn.onclick = () => selectOption(idx);
+                btn.id = `opt-${idx}`;
+                
+                btn.innerHTML = `
+                    <div class="flex items-center gap-3">
+                        <span class="w-6 h-6 rounded-lg bg-slate-800 border border-slate-700 text-xs flex items-center justify-center font-bold text-slate-400 group-hover:text-indigo-400 group-hover:border-indigo-500/30">${String.fromCharCode(65 + idx)}</span>
+                        <span>${opt}</span>
+                    </div>
+                    <i data-lucide="circle" class="w-4 h-4 text-slate-600 group-hover:text-indigo-400 transition flex-shrink-0"></i>
+                `;
+                box.appendChild(btn);
+            });
+
+            // Update score counters
+            document.getElementById('quiz-score').innerText = `${score} / ${quizQuestions.length}`;
+
+            // Reset dynamic feed display if already answered
+            const feedbackBox = document.getElementById('quiz-feedback');
+            if (answeredQuestions[currentQuestionIdx] !== null) {
+                // Already answered before
+                const previousAnswer = answeredQuestions[currentQuestionIdx].answeredIdx;
+                highlightAnswers(previousAnswer);
+            } else {
+                feedbackBox.innerHTML = `
+                    <div class="inline-flex p-3 bg-slate-800/60 rounded-full text-slate-400 mb-2">
+                        <i data-lucide="help-circle" class="w-8 h-8"></i>
+                    </div>
+                    <h4 class="text-sm font-bold text-slate-300">Choose an option to see feedback</h4>
+                    <p class="text-xs text-slate-400">Your performance statistics and direct explanations based on the transcript coordinates will render here once answered.</p>
+                `;
+            }
+
+            // Sync navigation buttons
+            document.getElementById('prev-q-btn').disabled = (currentQuestionIdx === 0);
+            
+            if (currentQuestionIdx === quizQuestions.length - 1) {
+                document.getElementById('next-q-btn').innerHTML = `Restart <i data-lucide="rotate-ccw" class="w-3.5 h-3.5"></i>`;
+            } else {
+                document.getElementById('next-q-btn').innerHTML = `Next <i data-lucide="arrow-right" class="w-3.5 h-3.5"></i>`;
+            }
+            lucide.createIcons();
+        }
+
+        function selectOption(idx) {
+            // Guard to allow only single attempt
+            if (answeredQuestions[currentQuestionIdx] !== null) return;
+
+            const q = quizQuestions[currentQuestionIdx];
+            const isCorrect = (idx === q.answer);
+
+            if (isCorrect) score++;
+
+            // Record status
+            answeredQuestions[currentQuestionIdx] = {
+                answeredIdx: idx,
+                correct: isCorrect
+            };
+
+            highlightAnswers(idx);
+            document.getElementById('quiz-score').innerText = `${score} / ${quizQuestions.length}`;
+        }
+
+        function highlightAnswers(selectedIdx) {
+            const q = quizQuestions[currentQuestionIdx];
+            const options = q.options;
+
+            options.forEach((opt, idx) => {
+                const btn = document.getElementById(`opt-${idx}`);
+                btn.className = "w-full p-3.5 rounded-xl border text-left text-xs sm:text-sm font-medium transition flex items-start justify-between gap-3 pointer-events-none";
+                
+                let iconName = "circle";
+                let iconColor = "text-slate-600";
+
+                if (idx === q.answer) {
+                    // Correct answer block
+                    btn.classList.add('border-emerald-500/50', 'bg-emerald-500/10', 'text-emerald-300');
+                    iconName = "check-circle";
+                    iconColor = "text-emerald-400";
+                } else if (idx === selectedIdx) {
+                    // Incorrect selected answer block
+                    btn.classList.add('border-rose-500/50', 'bg-rose-500/10', 'text-rose-300');
+                    iconName = "x-circle";
+                    iconColor = "text-rose-400";
+                } else {
+                    btn.classList.add('border-slate-800', 'bg-physics-dark/40', 'text-slate-500');
+                }
+
+                btn.innerHTML = `
+                    <div class="flex items-center gap-3">
+                        <span class="w-6 h-6 rounded-lg bg-slate-800/50 border border-slate-700 text-xs flex items-center justify-center font-bold text-slate-400">${String.fromCharCode(65 + idx)}</span>
+                        <span>${opt}</span>
+                    </div>
+                    <i data-lucide="${iconName}" class="w-4 h-4 ${iconColor} flex-shrink-0"></i>
+                `;
+            });
+
+            // Update explanation block
+            const isCorrect = (selectedIdx === q.answer);
+            const feedbackBox = document.getElementById('quiz-feedback');
+            
+            feedbackBox.innerHTML = `
+                <div class="inline-flex p-3 rounded-full mb-2 ${isCorrect ? 'bg-emerald-500/10 text-emerald-400' : 'bg-rose-500/10 text-rose-400'}">
+                    <i data-lucide="${isCorrect ? 'check' : 'x'}" class="w-8 h-8"></i>
+                </div>
+                <h4 class="text-sm font-bold ${isCorrect ? 'text-emerald-400' : 'text-rose-400'}">${isCorrect ? 'Correct Intuition!' : 'Incorrect Approach'}</h4>
+                <p class="text-xs text-slate-300 leading-relaxed mt-1">${q.explanation}</p>
+            `;
+            lucide.createIcons();
+            renderMathExplanations();
+        }
+
+        function nextQuestion() {
+            if (currentQuestionIdx === quizQuestions.length - 1) {
+                initQuiz();
+            } else {
+                currentQuestionIdx++;
+                showQuestion();
+            }
+        }
+
+        function previousQuestion() {
+            if (currentQuestionIdx > 0) {
+                currentQuestionIdx--;
+                showQuestion();
+            }
+        }
+    </script>
+</body>
+</html>
