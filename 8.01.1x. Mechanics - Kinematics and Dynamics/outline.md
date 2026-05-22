@@ -153,26 +153,26 @@
 5. Week 3 - Circular Motion
 
     1. Introduction
-        1. W3intro: Introduction to Circular Motion
+        1. [W3intro](https://engineer-e.github.io/Physics-MIT-University/8.01.1x.%20Mechanics%20-%20Kinematics%20and%20Dynamics/course_html/Mechanics%20-%20Kinematics%20and%20Dynamics/Week%203%20-%20Circular%20Motion/Introduction/W3intro%20Introduction%20to%20Circular%20Motion/W3intro_ai1.html): Introduction to Circular Motion
 
     2. Lesson 8 - Circular Motion - Position and Velocity
         1. Intro to Circular Motion
-        2. L8v1: Polar Coordinates
-        3. L8v2: Position and Unit Vectors in Polar Coordinates
+        2. [L8v1](https://engineer-e.github.io/Physics-MIT-University/8.01.1x.%20Mechanics%20-%20Kinematics%20and%20Dynamics/course_html/Mechanics%20-%20Kinematics%20and%20Dynamics/Week%203%20-%20Circular%20Motion/Lesson%208%20-%20Circular%20Motion%20-%20Position%20and%20Velocity/L8v1%20Polar%20Coordinates/L8v1_ai1.html): Polar Coordinates
+        3. [L8v2](https://engineer-e.github.io/Physics-MIT-University/8.01.1x.%20Mechanics%20-%20Kinematics%20and%20Dynamics/course_html/Mechanics%20-%20Kinematics%20and%20Dynamics/Week%203%20-%20Circular%20Motion/Lesson%208%20-%20Circular%20Motion%20-%20Position%20and%20Velocity/L8v2%20Position%20and%20Unit%20Vectors%20in%20Polar%20Coordinates/L8v2_ai1.html): Position and Unit Vectors in Polar Coordinates
         4. L8Q1: Polar Coordinates
-        5. L8v3: Velocity in Polar Coordinates
+        5. [L8v3](https://engineer-e.github.io/Physics-MIT-University/8.01.1x.%20Mechanics%20-%20Kinematics%20and%20Dynamics/course_html/Mechanics%20-%20Kinematics%20and%20Dynamics/Week%203%20-%20Circular%20Motion/Lesson%208%20-%20Circular%20Motion%20-%20Position%20and%20Velocity/L8v3%20Velocity%20in%20Polar%20Coordinates/L8v3_ai1.html): Velocity in Polar Coordinates
         6. L8Q2: Position Vector for Circular Motion
         7. L8Q3: Derivative of a Rotating Vector
         8. L8Q4: Position and Velocity
         9. L8Q5: Choosing a Coordinate System
-        10. L8v4: Angular Velocity
+        10. [L8v4](https://engineer-e.github.io/Physics-MIT-University/8.01.1x.%20Mechanics%20-%20Kinematics%20and%20Dynamics/course_html/Mechanics%20-%20Kinematics%20and%20Dynamics/Week%203%20-%20Circular%20Motion/Lesson%208%20-%20Circular%20Motion%20-%20Position%20and%20Velocity/L8v4%20Angular%20Velocity/L8v4_ai1.html): Angular Velocity
         11. L8Q6: Magnitude of the Angular Velocity
         12. L8Q7: Velocity, Angular Velocity and Angular Speed
 
     3. Lesson 9 - Uniform Circular Motion
         1. Intro to Uniform Circular Motion
-        2. L9v1: Uniform Circular Motion
-        3. L9v2: Uniform Circular Motion - Direction of the Acceleration
+        2. [L9v1](https://engineer-e.github.io/Physics-MIT-University/8.01.1x.%20Mechanics%20-%20Kinematics%20and%20Dynamics/course_html/Mechanics%20-%20Kinematics%20and%20Dynamics/Week%203%20-%20Circular%20Motion/Lesson%209%20-%20Uniform%20Circular%20Motion/L9v1%20Uniform%20Circular%20Motion/L9v1_ai1.html): Uniform Circular Motion
+        3. [L9v2](https://engineer-e.github.io/Physics-MIT-University/8.01.1x.%20Mechanics%20-%20Kinematics%20and%20Dynamics/course_html/Mechanics%20-%20Kinematics%20and%20Dynamics/Week%203%20-%20Circular%20Motion/Lesson%209%20-%20Uniform%20Circular%20Motion/L9v2%20Uniform%20Circular%20Motion%20-%20Direction%20of%20the%20Acceleration/L9v2_ai1.html): Uniform Circular Motion - Direction of the Acceleration
         4. L9Q1: Uniform Circular Motion - Magnitude of the Acceleration
         5. L9Q2: Uniform Circular Motion - Magnitude and Direction of the Acceleration
         6. L9: Period and Frequency
@@ -180,22 +180,22 @@
 
     4. Lesson 10 - Circular Motion - Acceleration
         1. Intro to Circular Motion - Acceleration
-        2. L10v1: Circular Motion - Acceleration
+        2. [L10v1](https://engineer-e.github.io/Physics-MIT-University/8.01.1x.%20Mechanics%20-%20Kinematics%20and%20Dynamics/course_html/Mechanics%20-%20Kinematics%20and%20Dynamics/Week%203%20-%20Circular%20Motion/Lesson%2010%20-%20Circular%20Motion%20-%20Acceleration/L10v1%20Circular%20Motion%20-%20Acceleration/L10v1_ai.html): Circular Motion - Acceleration
         3. L10Q1: Direction of the Acceleration
         4. L10Q2: Radial and Tangential Components
-        5. L10v2: Angular Acceleration
+        5. [L10v2](https://engineer-e.github.io/Physics-MIT-University/8.01.1x.%20Mechanics%20-%20Kinematics%20and%20Dynamics/course_html/Mechanics%20-%20Kinematics%20and%20Dynamics/Week%203%20-%20Circular%20Motion/Lesson%2010%20-%20Circular%20Motion%20-%20Acceleration/L10v2%20Angular%20Acceleration/L10v2_ai.html): Angular Acceleration
         6. L10Q3: Angular Acceleration
-        7. L10WE1/L10v3: Worked Example - Angular Position from Angular Acceleration (Worked Example)
+        7. L10WE1/[L10v3](https://engineer-e.github.io/Physics-MIT-University/8.01.1x.%20Mechanics%20-%20Kinematics%20and%20Dynamics/course_html/Mechanics%20-%20Kinematics%20and%20Dynamics/Week%203%20-%20Circular%20Motion/Lesson%2010%20-%20Circular%20Motion%20-%20Acceleration/L10WE1L10v3%20Worked%20Example%20-%20Angular%20Position%20from%20Angular%20Acceleration%20(Worked%20Example)/L10v3_ai1.html): Worked Example - Angular Position from Angular Acceleration (Worked Example)
         8. L10Q4: Angular Position from Angular Acceleration
         9. L10Q5: Moving around a Circle
         10. L10: Review of Rotational Kinematics
 
     5. Lesson 11 - Newton's 2nd Law and Circular Motion
         1. Intro to Newton's 2nd Law and Circular Motion
-        2. L11v01: Newton's 2nd Law and Circular Motion
+        2. [L11v01](https://engineer-e.github.io/Physics-MIT-University/8.01.1x.%20Mechanics%20-%20Kinematics%20and%20Dynamics/course_html/Mechanics%20-%20Kinematics%20and%20Dynamics/Week%203%20-%20Circular%20Motion/Lesson%2011%20-%20Newtons%202nd%20Law%20and%20Circular%20Motion/L11v01%20Newtons%202nd%20Law%20and%20Circular%20Motion/L11v01_ai1.html): Newton's 2nd Law and Circular Motion
         3. L11Q1: Total Force
         4. L11Q2: Conical Pendulum
-        5. L11WE1/L11v2: Worked Example - Car on a Banked Turn
+        5. L11WE1/[L11v2](https://engineer-e.github.io/Physics-MIT-University/8.01.1x.%20Mechanics%20-%20Kinematics%20and%20Dynamics/course_html/Mechanics%20-%20Kinematics%20and%20Dynamics/Week%203%20-%20Circular%20Motion/Lesson%2011%20-%20Newtons%202nd%20Law%20and%20Circular%20Motion/L11WE1L11v2%20Worked%20Example%20-%20Car%20on%20a%20Banked%20Turn/L11v2_ai1.html): Worked Example - Car on a Banked Turn
         6. L11Q3: Moving on a Circle
         7. Demo: Rotating Bucket
 
