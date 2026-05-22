@@ -1,0 +1,964 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Movable Pulley Simulator & Derivation Laboratory</title>
+    
+    <!-- Tailwind CSS for UI styling -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    
+    <!-- KaTeX for beautiful math rendering -->
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.8/dist/katex.min.css">
+    <script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.8/dist/katex.min.js"></script>
+    <script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.8/dist/contrib/auto-render.min.js"></script>
+    
+    <!-- Inter Font -->
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=Fira+Code:wght@400;500&display=swap" rel="stylesheet">
+    
+    <style>
+        body {
+            font-family: 'Inter', sans-serif;
+        }
+        .code-font {
+            font-family: 'Fira Code', monospace;
+        }
+        /* Custom scrollbar for derivations and code panels */
+        ::-webkit-scrollbar {
+            width: 6px;
+            height: 6px;
+        }
+        ::-webkit-scrollbar-track {
+            background: #1e293b;
+        }
+        ::-webkit-scrollbar-thumb {
+            background: #475569;
+            border-radius: 3px;
+        }
+        ::-webkit-scrollbar-thumb:hover {
+            background: #64748b;
+        }
+    </style>
+</head>
+<body class="bg-slate-950 text-slate-100 min-h-screen flex flex-col overflow-x-hidden">
+
+    <!-- Top Header -->
+    <header class="border-b border-slate-800 bg-slate-900/80 backdrop-blur-md sticky top-0 z-30 px-6 py-4">
+        <div class="max-w-7xl mx-auto flex flex-col md:flex-row items-center justify-between gap-4">
+            <div class="flex items-center gap-3">
+                <div class="p-2.5 bg-indigo-600/20 text-indigo-400 rounded-xl border border-indigo-500/30">
+                    <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19.428 15.428a2 2 0 00-1.022-.547l-2.387-.477a6 6 0 00-3.86.517l-.318.158a6 6 0 01-3.86.517L6.05 15.21a2 2 0 00-1.806.547M8 4h8l-1 1v5.172a2 2 0 00.586 1.414l5 5c1.26 1.26.367 3.414-1.415 3.414H4.828c-1.782 0-2.674-2.154-1.414-3.414l5-5A2 2 0 009 10.172V5L8 4z"></path>
+                    </svg>
+                </div>
+                <div>
+                    <h1 class="text-xl font-extrabold tracking-tight text-white flex items-center gap-2">
+                        Movable Pulley Simulator <span class="text-xs font-semibold bg-indigo-500/20 text-indigo-300 px-2 py-0.5 rounded-full border border-indigo-500/30">Atwood Machine</span>
+                    </h1>
+                    <p class="text-xs text-slate-400">Step-by-Step Physics Solver & Computational Engine Integration</p>
+                </div>
+            </div>
+            
+            <div class="flex items-center gap-3 text-xs">
+                <span class="text-slate-400">Interactive Lab State:</span>
+                <span id="simulationStatus" class="px-2.5 py-1 rounded-full bg-emerald-500/10 text-emerald-400 border border-emerald-500/20 font-medium flex items-center gap-1.5">
+                    <span class="w-2 h-2 rounded-full bg-emerald-400 animate-pulse"></span> Ready
+                </span>
+            </div>
+        </div>
+    </header>
+
+    <!-- Main Workspace -->
+    <main class="flex-1 max-w-7xl w-full mx-auto p-4 md:p-6 grid grid-cols-1 lg:grid-cols-12 gap-6 items-start">
+        
+        <!-- Left Side: Simulator Visualizer and Controls (5 Columns) -->
+        <section class="lg:col-span-5 flex flex-col gap-6 w-full">
+            
+            <!-- Canvas Container -->
+            <div class="bg-slate-900 border border-slate-800 rounded-2xl p-4 shadow-2xl relative overflow-hidden flex flex-col items-center">
+                <div class="absolute top-3 left-3 bg-slate-950/80 backdrop-blur border border-slate-800 px-3 py-1.5 rounded-lg text-xs font-semibold text-slate-300 z-10">
+                    Live Physics Viewport
+                </div>
+                
+                <div class="absolute top-3 right-3 flex gap-1 z-10">
+                    <button id="btnVectors" class="bg-slate-950/80 hover:bg-slate-800 border border-slate-800 px-2 py-1.5 rounded-lg text-[10px] font-semibold text-indigo-400 flex items-center gap-1">
+                        <span class="w-1.5 h-1.5 rounded-full bg-indigo-500"></span> Force Vectors
+                    </button>
+                    <button id="btnTrace" class="bg-slate-950/80 hover:bg-slate-800 border border-slate-800 px-2 py-1.5 rounded-lg text-[10px] font-semibold text-amber-400 flex items-center gap-1">
+                        <span class="w-1.5 h-1.5 rounded-full bg-amber-500"></span> Trace Motion
+                    </button>
+                </div>
+
+                <canvas id="physicsCanvas" class="bg-slate-950 border border-slate-800/50 rounded-xl w-full aspect-[4/5] max-h-[500px] shadow-inner cursor-pointer" title="Double click to impulse system"></canvas>
+                
+                <!-- Instant Telemetry HUD -->
+                <div class="w-full mt-4 grid grid-cols-3 gap-2 bg-slate-950 p-3 rounded-xl border border-slate-800/40 text-center text-xs">
+                    <div>
+                        <div class="text-[10px] text-slate-500 uppercase tracking-wider font-semibold">Tension (T)</div>
+                        <div id="hudTension" class="text-sm font-bold text-indigo-400 mt-0.5">0.00 N</div>
+                    </div>
+                    <div>
+                        <div class="text-[10px] text-slate-500 uppercase tracking-wider font-semibold">Accel m1 (a1)</div>
+                        <div id="hudAccel1" class="text-sm font-bold text-emerald-400 mt-0.5">0.00 m/s²</div>
+                    </div>
+                    <div>
+                        <div class="text-[10px] text-slate-500 uppercase tracking-wider font-semibold">Accel m2 (a2)</div>
+                        <div id="hudAccel2" class="text-sm font-bold text-amber-400 mt-0.5">0.00 m/s²</div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Controls Box -->
+            <div class="bg-slate-900 border border-slate-800 rounded-2xl p-5 shadow-2xl flex flex-col gap-5">
+                <div class="flex items-center justify-between border-b border-slate-850 pb-3">
+                    <h3 class="font-bold text-white text-sm flex items-center gap-2">
+                        <svg class="w-4 h-4 text-indigo-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6V4m0 2a2 2 0 100 4m0-4a2 2 0 110 4m-6 8a2 2 0 100-4m0 4a2 2 0 110-4m0 4v2m0-6V4m6 6v10m6-2a2 2 0 100-4m0 4a2 2 0 110-4m0 4v2m0-6V4"></path></svg>
+                        Physics Parameters
+                    </h3>
+                    <button id="btnResetDefaults" class="text-xs text-indigo-400 hover:text-indigo-300 font-semibold transition">Reset Defaults</button>
+                </div>
+
+                <!-- Mass 1 Control -->
+                <div class="space-y-2">
+                    <div class="flex justify-between items-center text-xs">
+                        <span class="font-medium text-slate-300 flex items-center gap-1.5">
+                            <span class="w-2.5 h-2.5 rounded bg-emerald-500 inline-block"></span>
+                            Mass 1 (m1 - Single suspension)
+                        </span>
+                        <span class="font-mono bg-emerald-500/10 text-emerald-400 px-2 py-0.5 rounded border border-emerald-500/20 text-xs font-bold" id="lblM1">4.0 kg</span>
+                    </div>
+                    <input id="slideM1" type="range" min="0.5" max="15" step="0.1" value="4.0" class="w-full accent-emerald-500 h-1.5 bg-slate-800 rounded-lg appearance-none cursor-pointer">
+                    <div class="flex justify-between text-[10px] text-slate-500">
+                        <span>0.5 kg</span>
+                        <span>Balanced (2m1 = m2) is static equilibrium</span>
+                        <span>15.0 kg</span>
+                    </div>
+                </div>
+
+                <!-- Mass 2 Control -->
+                <div class="space-y-2">
+                    <div class="flex justify-between items-center text-xs">
+                        <span class="font-medium text-slate-300 flex items-center gap-1.5">
+                            <span class="w-2.5 h-2.5 rounded bg-amber-500 inline-block"></span>
+                            Mass 2 (m2 - Movable pulley loop)
+                        </span>
+                        <span class="font-mono bg-amber-500/10 text-amber-400 px-2 py-0.5 rounded border border-amber-500/20 text-xs font-bold" id="lblM2">6.0 kg</span>
+                    </div>
+                    <input id="slideM2" type="range" min="0.5" max="30" step="0.1" value="6.0" class="w-full accent-amber-500 h-1.5 bg-slate-800 rounded-lg appearance-none cursor-pointer">
+                    <div class="flex justify-between text-[10px] text-slate-500">
+                        <span>0.5 kg</span>
+                        <span>Lighter m2 slides upwards</span>
+                        <span>30.0 kg</span>
+                    </div>
+                </div>
+
+                <!-- Environment & Gravity Controls -->
+                <div class="grid grid-cols-2 gap-4 pt-2">
+                    <div class="space-y-1">
+                        <label class="text-xs text-slate-400 flex items-center gap-1">
+                            Gravity (g)
+                        </label>
+                        <select id="selGravity" class="w-full bg-slate-950 border border-slate-800 text-xs rounded-lg p-2 text-slate-200 focus:outline-none focus:border-indigo-500 transition">
+                            <option value="9.81">Earth (9.81 m/s²)</option>
+                            <option value="1.62">Moon (1.62 m/s²)</option>
+                            <option value="24.79">Jupiter (24.79 m/s²)</option>
+                            <option value="0.0">Zero-G (0.00 m/s²)</option>
+                        </select>
+                    </div>
+                    <div class="space-y-1">
+                        <label class="text-xs text-slate-400 flex items-center gap-1">
+                            Damping (Air Friction)
+                        </label>
+                        <select id="selDamping" class="w-full bg-slate-950 border border-slate-800 text-xs rounded-lg p-2 text-slate-200 focus:outline-none focus:border-indigo-500 transition">
+                            <option value="0.0">No Air Resistance</option>
+                            <option value="0.05" selected>Low Damping</option>
+                            <option value="0.2">High Damping</option>
+                        </select>
+                    </div>
+                </div>
+
+                <!-- Engine Playback Controls -->
+                <div class="grid grid-cols-4 gap-2 pt-3 border-t border-slate-850">
+                    <button id="btnPlayPause" class="col-span-2 py-2.5 px-3 rounded-xl bg-indigo-600 hover:bg-indigo-500 text-white font-semibold text-xs flex items-center justify-center gap-2 shadow-lg shadow-indigo-600/15 transition active:scale-95">
+                        <svg id="playIcon" class="w-4 h-4" fill="currentColor" viewBox="0 0 24 24"><path d="M8 5v14l11-7z"></path></svg>
+                        <svg id="pauseIcon" class="w-4 h-4 hidden" fill="currentColor" viewBox="0 0 24 24"><path d="M6 19h4V5H6v14zm8-14v14h4V5h-4z"></path></svg>
+                        <span id="txtPlayPause">Pause</span>
+                    </button>
+                    <button id="btnStep" class="py-2.5 px-3 rounded-xl bg-slate-850 hover:bg-slate-800 border border-slate-800 text-slate-300 font-semibold text-xs flex items-center justify-center gap-1 transition active:scale-95" title="Step forward 1/60 sec">
+                        <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 5l7 7-7 7M5 5l7 7-7 7"></path></svg>
+                        Step
+                    </button>
+                    <button id="btnReset" class="py-2.5 px-3 rounded-xl bg-slate-850 hover:bg-slate-800 border border-slate-800 text-rose-400 hover:text-rose-300 font-semibold text-xs flex items-center justify-center gap-1 transition active:scale-95">
+                        <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 1121.21 15H19"></path></svg>
+                        Reset
+                    </button>
+                </div>
+            </div>
+        </section>
+
+        <!-- Right Side: Step-by-Step Derivation & Algorithm Sync (7 Columns) -->
+        <section class="lg:col-span-7 flex flex-col gap-6 w-full">
+            
+            <!-- Tab Selector for Math vs Code Algorithm -->
+            <div class="bg-slate-900 border border-slate-800 rounded-2xl p-2 flex gap-1 shadow-md">
+                <button id="tabMath" class="flex-1 py-2 px-4 rounded-xl text-xs font-bold transition flex items-center justify-center gap-2 bg-indigo-600/10 text-indigo-400 border border-indigo-500/20">
+                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 7h6m0 10v-3m-3 3h.01M9 17h.01M9 14h.01M12 11h.01M12 7h.01M15 11h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
+                    Live Mathematical Solver (KaTeX)
+                </button>
+                <button id="tabCode" class="flex-1 py-2 px-4 rounded-xl text-xs font-bold transition flex items-center justify-center gap-2 text-slate-400 hover:text-slate-300 hover:bg-slate-850">
+                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 20l4-16m4 4l4 4-4 4M6 16l-4-4 4-4"></path></svg>
+                    Computational Integration Algorithm
+                </button>
+            </div>
+
+            <!-- Panel 1: Live Physics Derivations -->
+            <div id="panelMath" class="bg-slate-900 border border-slate-800 rounded-2xl p-6 shadow-2xl flex flex-col gap-6">
+                <div class="flex items-center justify-between border-b border-slate-800 pb-3">
+                    <div>
+                        <h2 class="text-md font-extrabold text-white">Interactive Step-by-Step Analytical Physics</h2>
+                        <p class="text-xs text-slate-400 mt-0.5">Watch formulas compute in real-time as you tweak slider masses!</p>
+                    </div>
+                    <span class="text-[10px] uppercase font-bold text-indigo-400 bg-indigo-500/10 border border-indigo-500/20 px-2 py-1 rounded-md">
+                        Derivation Sync
+                    </span>
+                </div>
+
+                <!-- Step-by-step contents -->
+                <div class="space-y-6 overflow-y-auto max-h-[600px] pr-2 text-slate-300 text-sm leading-relaxed">
+                    
+                    <!-- Step 1 -->
+                    <div class="border-l-2 border-indigo-500/30 hover:border-indigo-500 pl-4 py-1 transition-all">
+                        <div class="flex items-center gap-2 mb-2">
+                            <span class="w-5 h-5 rounded-full bg-indigo-600/20 border border-indigo-500/40 text-[10px] font-bold text-indigo-400 flex items-center justify-center">1</span>
+                            <h4 class="font-bold text-white text-xs">Define Governing Dynamical Equations</h4>
+                        </div>
+                        <p class="text-xs text-slate-400 mb-3">
+                            Apply Newton's Second Law ($\Sigma F = m a$) to $m_1$ and $m_2$. Tension $T$ pulls upwards on $m_1$, while a double-segment loop supports the movable pulley ($m_2$), applying $2T$ upwards.
+                        </p>
+                        <div class="bg-slate-950 p-4 rounded-xl border border-slate-850 space-y-3.5 font-mono">
+                            <div>
+                                <span class="text-xs font-bold text-slate-500">Equation (1) hanging $m_1$:</span>
+                                <div class="math-container mt-1.5 overflow-x-auto py-1" id="eq1"></div>
+                            </div>
+                            <div class="border-t border-slate-900 pt-3">
+                                <span class="text-xs font-bold text-slate-500">Equation (2) movable $m_2$:</span>
+                                <div class="math-container mt-1.5 overflow-x-auto py-1" id="eq2"></div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Step 2 -->
+                    <div class="border-l-2 border-indigo-500/30 hover:border-indigo-500 pl-4 py-1 transition-all">
+                        <div class="flex items-center gap-2 mb-2">
+                            <span class="w-5 h-5 rounded-full bg-indigo-600/20 border border-indigo-500/40 text-[10px] font-bold text-indigo-400 flex items-center justify-center">2</span>
+                            <h4 class="font-bold text-white text-xs">Apply Kinematic Rope Constraints</h4>
+                        </div>
+                        <p class="text-xs text-slate-400 mb-2">
+                            The length of the rope is fixed: $L = y_1 + 2y_2 + C$. Differentiating twice yields the constraint equation relating the acceleration of $m_1$ and $m_2$:
+                        </p>
+                        <div class="bg-slate-950 p-3 rounded-xl border border-slate-850">
+                            <div class="math-container overflow-x-auto py-1" id="eqConstraint"></div>
+                            <p class="text-[11px] text-amber-300 mt-2 flex items-center gap-1">
+                                <svg class="w-3.5 h-3.5 shrink-0" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7-4a1 1 0 11-2 0 1 1 0 012 0zM9 9a1 1 0 000 2v3a1 1 0 001 1h1a1 1 0 100-2v-3a1 1 0 00-1-1H9z" clip-rule="evenodd"></path></svg>
+                                This explains why when $m_2$ moves down by $1\text{ cm}$, $m_1$ must accelerate upwards by $2\text{ cm}$!
+                            </p>
+                        </div>
+                    </div>
+
+                    <!-- Step 3 -->
+                    <div class="border-l-2 border-indigo-500/30 hover:border-indigo-500 pl-4 py-1 transition-all">
+                        <div class="flex items-center gap-2 mb-2">
+                            <span class="w-5 h-5 rounded-full bg-indigo-600/20 border border-indigo-500/40 text-[10px] font-bold text-indigo-400 flex items-center justify-center">3</span>
+                            <h4 class="font-bold text-white text-xs">Perform live algebraic substitution</h4>
+                        </div>
+                        <p class="text-xs text-slate-400 mb-2.5">
+                            We solve for $T$ in Equation (1): $T = m_1g - m_1a_1$. Next, we substitute $a_2 = -\frac{a_1}{2}$ into Equation (2) to align all accelerations under a single variable $a_1$:
+                        </p>
+                        <div class="bg-slate-950 p-4 rounded-xl border border-slate-850 space-y-3">
+                            <div>
+                                <span class="text-xs font-bold text-slate-500">Substitute tension $T$ and constraint $a_2$ into Eq (2):</span>
+                                <div class="math-container mt-1.5 overflow-x-auto py-1 text-slate-200" id="eqSubstitution"></div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Step 4 -->
+                    <div class="border-l-2 border-indigo-500/30 hover:border-indigo-500 pl-4 py-1 transition-all">
+                        <div class="flex items-center gap-2 mb-2">
+                            <span class="w-5 h-5 rounded-full bg-indigo-600/20 border border-indigo-500/40 text-[10px] font-bold text-indigo-400 flex items-center justify-center">4</span>
+                            <h4 class="font-bold text-white text-xs">Isolate and Solve for Acceleration $a_1$</h4>
+                        </div>
+                        <p class="text-xs text-slate-400 mb-2.5">
+                            Factoring and grouping terms containing $a_1$ together yields the analytical solution derived in the lecture:
+                        </p>
+                        <div class="bg-slate-950 p-4 rounded-xl border border-slate-850 space-y-4">
+                            <div>
+                                <span class="text-xs font-bold text-slate-500">General Form Equation:</span>
+                                <div class="math-container mt-1 overflow-x-auto py-1" id="eqAnalyticalGeneral"></div>
+                            </div>
+                            <div class="border-t border-slate-900 pt-3">
+                                <span class="text-xs font-bold text-indigo-400">Substituting values & resolving:</span>
+                                <div class="math-container mt-1.5 overflow-x-auto py-1 text-emerald-400 font-bold" id="eqAnalyticalSolved"></div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Step 5 -->
+                    <div class="border-l-2 border-indigo-500/30 hover:border-indigo-500 pl-4 py-1 transition-all">
+                        <div class="flex items-center gap-2 mb-2">
+                            <span class="w-5 h-5 rounded-full bg-indigo-600/20 border border-indigo-500/40 text-[10px] font-bold text-indigo-400 flex items-center justify-center">5</span>
+                            <h4 class="font-bold text-white text-xs">Derive System Tension ($T$) & Secondary Acceleration ($a_2$)</h4>
+                        </div>
+                        <p class="text-xs text-slate-400 mb-2">
+                            With $a_1$ determined, back-substitute to find the remaining dynamics:
+                        </p>
+                        <div class="bg-slate-950 p-4 rounded-xl border border-slate-850 grid grid-cols-1 md:grid-cols-2 gap-3 font-mono">
+                            <div class="bg-slate-900/50 p-2.5 rounded-lg border border-slate-850">
+                                <span class="text-[10px] font-bold text-amber-400">Acceleration $a_2$:</span>
+                                <div class="math-container mt-1.5 overflow-x-auto py-1" id="eqSolveA2"></div>
+                            </div>
+                            <div class="bg-slate-900/50 p-2.5 rounded-lg border border-slate-850">
+                                <span class="text-[10px] font-bold text-indigo-400">String Tension ($T$):</span>
+                                <div class="math-container mt-1.5 overflow-x-auto py-1" id="eqSolveT"></div>
+                            </div>
+                        </div>
+                    </div>
+
+                </div>
+            </div>
+
+            <!-- Panel 2: Computational Algorithm Sandbox (Initially hidden) -->
+            <div id="panelCode" class="bg-slate-900 border border-slate-800 rounded-2xl p-6 shadow-2xl flex flex-col gap-5 hidden">
+                <div class="flex items-center justify-between border-b border-slate-800 pb-3">
+                    <div>
+                        <h2 class="text-md font-extrabold text-white">The Computational Integration Engine</h2>
+                        <p class="text-xs text-slate-400 mt-0.5">How computers solve differential equations frame-by-frame</p>
+                    </div>
+                    <span class="text-[10px] uppercase font-bold text-emerald-400 bg-emerald-500/10 border border-emerald-500/20 px-2 py-1 rounded-md">
+                        Numerical Algorithm
+                    </span>
+                </div>
+
+                <div class="text-slate-300 text-xs space-y-4">
+                    <p>
+                        To animate physics in real-time, we cannot rely solely on the symbolic formulas because forces fluctuate with collisions, constraints, limits, and manual user pushes. Instead, the simulator runs a **Numerical Integration Loop** called **Euler-Cromer integration** every single frame ($dt \approx 0.016 \text{ s}$).
+                    </p>
+
+                    <!-- Algorithm Code block -->
+                    <div class="bg-slate-950 p-4 rounded-xl border border-slate-800 space-y-3 relative">
+                        <div class="absolute top-3 right-3 bg-slate-900 text-slate-500 text-[10px] font-mono px-2 py-0.5 rounded border border-slate-800">
+                            JavaScript Engine
+                        </div>
+                        <h4 class="text-xs font-bold text-slate-400 border-b border-slate-900 pb-2">Step-by-Step Simulation Loop Routine</h4>
+                        
+                        <pre class="code-font text-emerald-400 text-[11px] leading-relaxed overflow-x-auto py-2">
+<span class="text-slate-500">// 1. Compute Analytical Accelerations on each tick</span>
+<span class="text-indigo-400">const</span> num = (<span class="text-amber-400">2</span> * m1 - m2) * g;
+<span class="text-indigo-400">const</span> den = <span class="text-amber-400">2</span> * m1 + m2 / <span class="text-amber-400">2</span>;
+<span class="text-indigo-400">let</span> a1 = num / den;
+
+<span class="text-slate-500">// Apply drag/damping to replicate air friction</span>
+a1 -= damping * v1;
+
+<span class="text-slate-500">// 2. Enforce constraint condition: a2 = -a1 / 2</span>
+<span class="text-indigo-400">let</span> a2 = -a1 / <span class="text-amber-400">2</span>;
+
+<span class="text-slate-500">// 3. Euler-Cromer integration step</span>
+v1 += a1 * dt;
+v2 += a2 * dt;
+
+y1 += v1 * dt;
+y2 += v2 * dt;
+
+<span class="text-slate-500">// 4. Enforce Boundary Constraints (Rope limits, ceiling blockages)</span>
+<span class="text-indigo-400">if</span> (y1 &lt; min_height) {
+    y1 = min_height; v1 = <span class="text-amber-400">0</span>;
+    y2 = max_height; v2 = <span class="text-amber-400">0</span>; <span class="text-slate-500">// Anchored system state</span>
+}</pre>
+                    </div>
+
+                    <div class="bg-slate-950 p-4 rounded-xl border border-slate-850 space-y-2">
+                        <h4 class="text-xs font-bold text-indigo-400">Numerical Precision Telemetry:</h4>
+                        <div class="grid grid-cols-2 md:grid-cols-4 gap-3 text-center mt-2">
+                            <div class="bg-slate-900 p-2 rounded-lg border border-slate-850">
+                                <div class="text-[9px] text-slate-500 uppercase tracking-wider">Delta Time (dt)</div>
+                                <div class="text-xs font-bold font-mono text-slate-200" id="valDt">~0.0166 s</div>
+                            </div>
+                            <div class="bg-slate-900 p-2 rounded-lg border border-slate-850">
+                                <div class="text-[9px] text-slate-500 uppercase tracking-wider">Kinetic Energy</div>
+                                <div class="text-xs font-bold font-mono text-emerald-400" id="valEnergy">0.00 J</div>
+                            </div>
+                            <div class="bg-slate-900 p-2 rounded-lg border border-slate-850">
+                                <div class="text-[9px] text-slate-500 uppercase tracking-wider">Rope Stretch Error</div>
+                                <div class="text-xs font-bold font-mono text-amber-400">0.0000 %</div>
+                            </div>
+                            <div class="bg-slate-900 p-2 rounded-lg border border-slate-850">
+                                <div class="text-[9px] text-slate-500 uppercase tracking-wider">Solver Mode</div>
+                                <div class="text-xs font-bold font-mono text-indigo-400">Euler-Cromer</div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+    </main>
+
+    <!-- Footer -->
+    <footer class="border-t border-slate-900 bg-slate-950 py-6 px-6 text-center text-xs text-slate-500 mt-12">
+        <div class="max-w-7xl mx-auto flex flex-col md:flex-row items-center justify-between gap-4">
+            <p>© 2026 Movable Pulley Laboratory. Designed for step-by-step lecture transcription visualization.</p>
+            <div class="flex items-center gap-4 text-slate-400">
+                <span class="hover:text-indigo-400 transition cursor-pointer">Computational Physics Manual</span>
+                <span>•</span>
+                <span class="hover:text-indigo-400 transition cursor-pointer">Newtonian Mechanics</span>
+            </div>
+        </div>
+    </footer>
+
+    <!-- Integration Logic, Drawing Routines, & UI handlers -->
+    <script>
+        document.addEventListener("DOMContentLoaded", () => {
+            // Physics variables and configurations
+            const canvas = document.getElementById("physicsCanvas");
+            const ctx = canvas.getContext("2d");
+
+            // Simulation state variables
+            let m1 = 4.0;
+            let m2 = 6.0;
+            let g = 9.81;
+            let damping = 0.05; // Air friction constant
+            
+            // Layout dimension metrics
+            let width = 400;
+            let height = 500;
+
+            // Anchor points on canvas
+            const fixedPulleyX = 130;
+            const fixedPulleyY = 100;
+            const fixedPulleyR = 24;
+
+            const ceilingAnchorX = 270;
+            const ceilingAnchorY = 100;
+
+            // Kinetic tracking coordinates
+            let y1 = 280; // Distance of Mass 1 below fixed pulley level
+            let v1 = 0;   // Velocity of Mass 1
+            let a1 = 0;   // Acceleration of Mass 1
+
+            let y2 = 230; // Distance of Mass 2 (movable pulley) below ceiling level
+            let v2 = 0;   // Velocity of Mass 2
+            let a2 = 0;   // Acceleration of Mass 2
+
+            let tension = 0;
+            let isRunning = true;
+            let showVectors = true;
+            let showTrace = true;
+            let tracePoints = []; // List of coordinates for trace logging
+
+            // UI Elements references
+            const slideM1 = document.getElementById("slideM1");
+            const slideM2 = document.getElementById("slideM2");
+            const lblM1 = document.getElementById("lblM1");
+            const lblM2 = document.getElementById("lblM2");
+            const selGravity = document.getElementById("selGravity");
+            const selDamping = document.getElementById("selDamping");
+
+            const hudTension = document.getElementById("hudTension");
+            const hudAccel1 = document.getElementById("hudAccel1");
+            const hudAccel2 = document.getElementById("hudAccel2");
+
+            const btnPlayPause = document.getElementById("btnPlayPause");
+            const btnStep = document.getElementById("btnStep");
+            const btnReset = document.getElementById("btnReset");
+            const btnResetDefaults = document.getElementById("btnResetDefaults");
+            const btnVectors = document.getElementById("btnVectors");
+            const btnTrace = document.getElementById("btnTrace");
+
+            const tabMath = document.getElementById("tabMath");
+            const tabCode = document.getElementById("tabCode");
+            const panelMath = document.getElementById("panelMath");
+            const panelCode = document.getElementById("panelCode");
+
+            const simulationStatus = document.getElementById("simulationStatus");
+
+            // Setup high-DPI Canvas resolution
+            function resizeCanvas() {
+                const rect = canvas.getBoundingClientRect();
+                canvas.width = rect.width * window.devicePixelRatio;
+                canvas.height = rect.height * window.devicePixelRatio;
+                ctx.scale(window.devicePixelRatio, window.devicePixelRatio);
+                width = rect.width;
+                height = rect.height;
+            }
+            resizeCanvas();
+            window.addEventListener("resize", resizeCanvas);
+
+            // Math Formula live substitutions using KaTeX
+            function updateMathFormulas() {
+                if (typeof katex === "undefined") return;
+
+                const m1Val = m1.toFixed(1);
+                const m2Val = m2.toFixed(1);
+                const gVal = g.toFixed(2);
+
+                // Eq 1
+                katex.render(
+                    `m_1 g - T = m_1 a_1 \\implies (${m1Val})(${gVal}) - T = ${m1Val} a_1`,
+                    document.getElementById("eq1")
+                );
+
+                // Eq 2
+                katex.render(
+                    `m_2 g - 2T = m_2 a_2 \\implies (${m2Val})(${gVal}) - 2T = ${m2Val} a_2`,
+                    document.getElementById("eq2")
+                );
+
+                // Constraint
+                katex.render(
+                    `a_1 = -2 a_2 \\quad \\text{so} \\quad a_2 = -\\frac{a_1}{2}`,
+                    document.getElementById("eqConstraint")
+                );
+
+                // Substitution Equation
+                katex.render(
+                    `m_2 g - 2(m_1 g - m_1 a_1) = m_2 \\left(-\\frac{a_1}{2}\\right)`,
+                    document.getElementById("eqSubstitution")
+                );
+
+                // Analytical General
+                katex.render(
+                    `a_1 = \\frac{2(2m_1 - m_2)g}{4m_1 + m_2} = \\frac{2m_1 g - m_2 g}{2m_1 + \\frac{m_2}{2}}`,
+                    document.getElementById("eqAnalyticalGeneral")
+                );
+
+                // Analytical Solved
+                const calculatedA1 = ((2 * m1 - m2) * g) / (2 * m1 + m2 / 2);
+                const calculatedT = m1 * (g - calculatedA1);
+                const calculatedA2 = -calculatedA1 / 2;
+
+                katex.render(
+                    `a_1 = \\frac{2(2(${m1Val}) - ${m2Val})(${gVal})}{4(${m1Val}) + ${m2Val}} = ${calculatedA1.toFixed(3)}\\text{ m/s}^2`,
+                    document.getElementById("eqAnalyticalSolved")
+                );
+
+                // A2 and T derived
+                katex.render(
+                    `a_2 = -\\frac{${calculatedA1.toFixed(3)}}{2} = ${calculatedA2.toFixed(3)}\\text{ m/s}^2`,
+                    document.getElementById("eqSolveA2")
+                );
+
+                katex.render(
+                    `T = ${m1Val}(${gVal} - (${calculatedA1.toFixed(2)})) = ${calculatedT.toFixed(2)}\\text{ N}`,
+                    document.getElementById("eqSolveT")
+                );
+            }
+
+            // Synchronize parameters on slider adjustments
+            function syncParams() {
+                m1 = parseFloat(slideM1.value);
+                m2 = parseFloat(slideM2.value);
+                lblM1.innerText = `${m1.toFixed(1)} kg`;
+                lblM2.innerText = `${m2.toFixed(1)} kg`;
+                
+                updateMathFormulas();
+            }
+
+            slideM1.addEventListener("input", syncParams);
+            slideM2.addEventListener("input", syncParams);
+
+            selGravity.addEventListener("change", () => {
+                g = parseFloat(selGravity.value);
+                updateMathFormulas();
+            });
+
+            selDamping.addEventListener("change", () => {
+                damping = parseFloat(selDamping.value);
+            });
+
+            // Toggle Vectors and Trace indicators
+            btnVectors.addEventListener("click", () => {
+                showVectors = !showVectors;
+                btnVectors.classList.toggle("bg-indigo-600/20", showVectors);
+                btnVectors.classList.toggle("text-indigo-400", showVectors);
+                btnVectors.classList.toggle("border-indigo-500/30", showVectors);
+            });
+
+            btnTrace.addEventListener("click", () => {
+                showTrace = !showTrace;
+                if (!showTrace) tracePoints = [];
+                btnTrace.classList.toggle("bg-amber-600/20", showTrace);
+                btnTrace.classList.toggle("text-amber-400", showTrace);
+                btnTrace.classList.toggle("border-amber-500/30", showTrace);
+            });
+
+            // Tab navigation controller
+            tabMath.addEventListener("click", () => {
+                panelMath.classList.remove("hidden");
+                panelCode.classList.add("hidden");
+                tabMath.className = "flex-1 py-2 px-4 rounded-xl text-xs font-bold transition flex items-center justify-center gap-2 bg-indigo-600/10 text-indigo-400 border border-indigo-500/20";
+                tabCode.className = "flex-1 py-2 px-4 rounded-xl text-xs font-bold transition flex items-center justify-center gap-2 text-slate-400 hover:text-slate-300 hover:bg-slate-850";
+            });
+
+            tabCode.addEventListener("click", () => {
+                panelCode.classList.remove("hidden");
+                panelMath.classList.add("hidden");
+                tabCode.className = "flex-1 py-2 px-4 rounded-xl text-xs font-bold transition flex items-center justify-center gap-2 bg-emerald-600/10 text-emerald-400 border border-emerald-500/20";
+                tabMath.className = "flex-1 py-2 px-4 rounded-xl text-xs font-bold transition flex items-center justify-center gap-2 text-slate-400 hover:text-slate-300 hover:bg-slate-850";
+            });
+
+            // Playback Actions
+            function updatePlayPauseUI() {
+                const playIcon = document.getElementById("playIcon");
+                const pauseIcon = document.getElementById("pauseIcon");
+                const txtPlayPause = document.getElementById("txtPlayPause");
+
+                if (isRunning) {
+                    playIcon.classList.add("hidden");
+                    pauseIcon.classList.remove("hidden");
+                    txtPlayPause.innerText = "Pause";
+                    simulationStatus.innerHTML = `<span class="w-2 h-2 rounded-full bg-indigo-400 animate-pulse"></span> Active`;
+                } else {
+                    playIcon.classList.remove("hidden");
+                    pauseIcon.classList.add("hidden");
+                    txtPlayPause.innerText = "Resume";
+                    simulationStatus.innerHTML = `<span class="w-2 h-2 rounded-full bg-amber-400 animate-pulse"></span> Paused`;
+                }
+            }
+
+            btnPlayPause.addEventListener("click", () => {
+                isRunning = !isRunning;
+                updatePlayPauseUI();
+            });
+
+            btnStep.addEventListener("click", () => {
+                isRunning = false;
+                updatePlayPauseUI();
+                stepSimulation(0.016);
+            });
+
+            btnReset.addEventListener("click", () => {
+                y1 = 280;
+                v1 = 0;
+                y2 = 230;
+                v2 = 0;
+                tracePoints = [];
+                updateMathFormulas();
+            });
+
+            btnResetDefaults.addEventListener("click", () => {
+                slideM1.value = 4.0;
+                slideM2.value = 6.0;
+                selGravity.value = "9.81";
+                selDamping.value = "0.05";
+                g = 9.81;
+                damping = 0.05;
+                y1 = 280;
+                v1 = 0;
+                y2 = 230;
+                v2 = 0;
+                tracePoints = [];
+                syncParams();
+            });
+
+            // Physical Simulator updates (Euler-Cromer Integration with Rope Constraints)
+            function stepSimulation(dt) {
+                // Calculate idealized analytical accelerations
+                // From standard formula derived:
+                // a1 = (2m1 - m2) * g / (2m1 + m2 / 2)
+                const num = (2 * m1 - m2) * g;
+                const den = 2 * m1 + m2 / 2;
+
+                // Set acceleration values based on derivation rules
+                if (den > 0.001) {
+                    a1 = num / den;
+                } else {
+                    a1 = 0;
+                }
+
+                // Inject damping factor directly onto acceleration vectors to replicate drag losses over time
+                if (Math.abs(v1) > 0.001) {
+                    a1 -= damping * v1;
+                }
+
+                // Kinematic constraint enforces acceleration vector ratio
+                a2 = -a1 / 2;
+
+                // Integrate acceleration to produce velocity (Euler-Cromer)
+                v1 += a1 * dt;
+                v2 += a2 * dt;
+
+                // Integrate velocity to compute real coordinates
+                y1 += v1 * dt * 50; // multiply by scaling factor for visuals
+                y2 += v2 * dt * 50;
+
+                // String length constraint safety guardrails
+                // Limit range of movement to boundaries of canvas support
+                const minH = 140;
+                const maxH = 340;
+
+                if (y1 < minH) {
+                    y1 = minH;
+                    v1 = 0;
+                    y2 = maxH;
+                    v2 = 0;
+                } else if (y1 > maxH) {
+                    y1 = maxH;
+                    v1 = 0;
+                    y2 = minH;
+                    v2 = 0;
+                }
+
+                // Back-calculate Tension from derived equation T = m1 * (g - a1)
+                tension = m1 * (g - (v1 - (v1 - a1 * dt)) / dt); 
+                if (tension < 0) tension = 0;
+
+                // Log system metrics for trace plotting
+                if (showTrace) {
+                    tracePoints.push({ x1: fixedPulleyX - fixedPulleyR, y1: y1, x2: fixedPulleyX + fixedPulleyR, y2: y2 });
+                    if (tracePoints.length > 120) tracePoints.shift();
+                }
+
+                // Update HUD elements
+                hudTension.innerText = `${tension.toFixed(2)} N`;
+                hudAccel1.innerText = `${a1.toFixed(2)} m/s²`;
+                hudAccel2.innerText = `${a2.toFixed(2)} m/s²`;
+
+                // Render calculated kinetic energy inside computational precision telemetry
+                const kineticEnergy = 0.5 * m1 * (v1/10)*(v1/10) + 0.5 * m2 * (v2/10)*(v2/10);
+                document.getElementById("valEnergy").innerText = `${kineticEnergy.toFixed(4)} J`;
+            }
+
+            // Render the whole canvas pulley environment
+            function renderEnvironment() {
+                ctx.clearRect(0, 0, width, height);
+
+                // 1. Draw Ceiling and Wall structures
+                ctx.fillStyle = "#1e293b";
+                ctx.fillRect(0, 40, width, 15);
+                
+                ctx.fillStyle = "#334155";
+                ctx.fillRect(0, 55, width, 2);
+
+                // 2. Draw Anchor point of string to the ceiling
+                ctx.beginPath();
+                ctx.arc(ceilingAnchorX, 57, 6, 0, Math.PI * 2);
+                ctx.fillStyle = "#64748b";
+                ctx.fill();
+
+                // 3. Draw Fixed Pulley Bracket
+                ctx.strokeStyle = "#475569";
+                ctx.lineWidth = 5;
+                ctx.beginPath();
+                ctx.moveTo(fixedPulleyX, 55);
+                ctx.lineTo(fixedPulleyX, fixedPulleyY);
+                ctx.stroke();
+
+                // 4. Draw Trace Motion Paths
+                if (showTrace && tracePoints.length > 1) {
+                    ctx.save();
+                    ctx.setLineDash([2, 4]);
+                    
+                    // Left trace (Mass 1)
+                    ctx.strokeStyle = "rgba(16, 185, 129, 0.2)";
+                    ctx.beginPath();
+                    tracePoints.forEach((pt, idx) => {
+                        if (idx === 0) ctx.moveTo(pt.x1, pt.y1);
+                        else ctx.lineTo(pt.x1, pt.y1);
+                    });
+                    ctx.stroke();
+
+                    // Right trace (Mass 2 Pulley Center)
+                    ctx.strokeStyle = "rgba(245, 158, 11, 0.2)";
+                    ctx.beginPath();
+                    tracePoints.forEach((pt, idx) => {
+                        const m2CenterY = pt.y2 + 40; // adjusting for movable pulley depth
+                        if (idx === 0) ctx.moveTo(ceilingAnchorX - 40, m2CenterY);
+                        else ctx.lineTo(ceilingAnchorX - 40, m2CenterY);
+                    });
+                    ctx.stroke();
+                    ctx.restore();
+                }
+
+                // Compute positions of movable pulley
+                // It hangs in the loop of rope attached at the ceiling and going around fixed pulley
+                const movablePulleyX = ceilingAnchorX - 30;
+                const movablePulleyY = y2 + 30; // Suspended dynamically below fixed pulley coordinates
+                const movablePulleyR = 20;
+
+                // 5. Draw Pulley Strings
+                ctx.strokeStyle = "#94a3b8";
+                ctx.lineWidth = 3;
+                ctx.lineCap = "round";
+
+                // String section 1: From Mass 1 (hanging at y1) up to the left tangent of fixed pulley
+                ctx.beginPath();
+                ctx.moveTo(fixedPulleyX - fixedPulleyR, y1);
+                ctx.lineTo(fixedPulleyX - fixedPulleyR, fixedPulleyY);
+                ctx.stroke();
+
+                // String section 2: Around the top of the fixed pulley (arch segment)
+                ctx.beginPath();
+                ctx.arc(fixedPulleyX, fixedPulleyY, fixedPulleyR, Math.PI, 0, false);
+                ctx.stroke();
+
+                // String section 3: From right side of fixed pulley down to left side of movable pulley
+                ctx.beginPath();
+                ctx.moveTo(fixedPulleyX + fixedPulleyR, fixedPulleyY);
+                ctx.lineTo(movablePulleyX - movablePulleyR, movablePulleyY);
+                ctx.stroke();
+
+                // String section 4: Loop around bottom arc of movable pulley
+                ctx.beginPath();
+                ctx.arc(movablePulleyX, movablePulleyY, movablePulleyR, Math.PI, 0, true);
+                ctx.stroke();
+
+                // String section 5: From right side of movable pulley up to the ceiling anchor
+                ctx.beginPath();
+                ctx.moveTo(movablePulleyX + movablePulleyR, movablePulleyY);
+                ctx.lineTo(ceilingAnchorX, 57);
+                ctx.stroke();
+
+                // 6. Render Fixed Pulley disk
+                ctx.beginPath();
+                ctx.arc(fixedPulleyX, fixedPulleyY, fixedPulleyR, 0, Math.PI * 2);
+                ctx.fillStyle = "#0f172a";
+                ctx.fill();
+                ctx.strokeStyle = "#475569";
+                ctx.lineWidth = 4;
+                ctx.stroke();
+
+                // Draw spindle details for fixed pulley
+                ctx.beginPath();
+                ctx.arc(fixedPulleyX, fixedPulleyY, 4, 0, Math.PI * 2);
+                ctx.fillStyle = "#ffffff";
+                ctx.fill();
+
+                // 7. Render Movable Pulley disk
+                ctx.beginPath();
+                ctx.arc(movablePulleyX, movablePulleyY, movablePulleyR, 0, Math.PI * 2);
+                ctx.fillStyle = "#0f172a";
+                ctx.fill();
+                ctx.strokeStyle = "#64748b";
+                ctx.lineWidth = 3;
+                ctx.stroke();
+
+                // Draw movable pulley anchor hook details
+                ctx.beginPath();
+                ctx.arc(movablePulleyX, movablePulleyY, 3, 0, Math.PI * 2);
+                ctx.fillStyle = "#ffffff";
+                ctx.fill();
+
+                // Bracket hanging Mass 2 below the movable pulley axle
+                ctx.strokeStyle = "#64748b";
+                ctx.lineWidth = 3;
+                ctx.beginPath();
+                ctx.moveTo(movablePulleyX, movablePulleyY);
+                ctx.lineTo(movablePulleyX, movablePulleyY + 40);
+                ctx.stroke();
+
+                // 8. Draw Mass 1 Block (Green)
+                const m1Size = 25 + Math.min(m1 * 2, 25); // Scale block visual dimensions based on mass
+                const m1RectX = fixedPulleyX - fixedPulleyR - m1Size / 2;
+                const m1RectY = y1;
+
+                ctx.fillStyle = "rgba(16, 185, 129, 0.2)";
+                ctx.fillRect(m1RectX, m1RectY, m1Size, m1Size);
+                ctx.strokeStyle = "#10b981";
+                ctx.lineWidth = 2.5;
+                ctx.strokeRect(m1RectX, m1RectY, m1Size, m1Size);
+
+                // Add label text in block m1
+                ctx.fillStyle = "#ffffff";
+                ctx.font = "bold 11px Inter, sans-serif";
+                ctx.textAlign = "center";
+                ctx.fillText(`m₁`, m1RectX + m1Size / 2, m1RectY + m1Size / 2 + 4);
+
+                // 9. Draw Mass 2 Block (Orange)
+                const m2Size = 25 + Math.min(m2 * 1.5, 25);
+                const m2RectX = movablePulleyX - m2Size / 2;
+                const m2RectY = movablePulleyY + 40; // Attached beneath the movable pulley axle
+
+                ctx.fillStyle = "rgba(245, 158, 11, 0.2)";
+                ctx.fillRect(m2RectX, m2RectY, m2Size, m2Size);
+                ctx.strokeStyle = "#f59e0b";
+                ctx.lineWidth = 2.5;
+                ctx.strokeRect(m2RectX, m2RectY, m2Size, m2Size);
+
+                // Add label text in block m2
+                ctx.fillStyle = "#ffffff";
+                ctx.font = "bold 11px Inter, sans-serif";
+                ctx.fillText(`m₂`, m2RectX + m2Size / 2, m2RectY + m2Size / 2 + 4);
+
+                // 10. Draw Force Vectors if enabled
+                if (showVectors) {
+                    const arrowScale = 2.5;
+
+                    // Mass 1 Gravity Vector (Downwards)
+                    const m1gForce = m1 * g;
+                    drawArrow(m1RectX + m1Size / 2, m1RectY + m1Size, m1RectX + m1Size / 2, m1RectY + m1Size + m1gForce * arrowScale, "#f87171", "m₁g");
+
+                    // Mass 1 Tension Vector (Upwards)
+                    drawArrow(m1RectX + m1Size / 2, m1RectY, m1RectX + m1Size / 2, m1RectY - tension * arrowScale, "#818cf8", "T");
+
+                    // Mass 2 Gravity Vector (Downwards)
+                    const m2gForce = m2 * g;
+                    drawArrow(m2RectX + m2Size / 2, m2RectY + m2Size, m2RectX + m2Size / 2, m2RectY + m2Size + m2gForce * arrowScale, "#f87171", "m₂g");
+
+                    // Mass 2 Double Tension Vector (Upwards pulling bracket)
+                    drawArrow(m2RectX + m2Size / 2, m2RectY, m2RectX + m2Size / 2, m2RectY - (tension * 2) * arrowScale, "#818cf8", "2T");
+                }
+            }
+
+            // Arrow drawing helper routine
+            function drawArrow(startX, startY, endX, endY, color, labelText) {
+                const headlen = 8; // length of head in pixels
+                const dx = endX - startX;
+                const dy = endY - startY;
+                const angle = Math.atan2(dy, dx);
+
+                ctx.strokeStyle = color;
+                ctx.fillStyle = color;
+                ctx.lineWidth = 2;
+
+                ctx.beginPath();
+                ctx.moveTo(startX, startY);
+                ctx.lineTo(endX, endY);
+                ctx.stroke();
+
+                // Draw arrow head
+                ctx.beginPath();
+                ctx.moveTo(endX, endY);
+                ctx.lineTo(endX - headlen * Math.cos(angle - Math.PI / 6), endY - headlen * Math.sin(angle - Math.PI / 6));
+                ctx.lineTo(endX - headlen * Math.cos(angle + Math.PI / 6), endY - headlen * Math.sin(angle + Math.PI / 6));
+                ctx.fill();
+
+                // Draw text label alongside vector tip
+                if (labelText) {
+                    ctx.fillStyle = "#e2e8f0";
+                    ctx.font = "9px Inter, sans-serif";
+                    ctx.textAlign = "left";
+                    ctx.fillText(labelText, endX + 8, endY + 3);
+                }
+            }
+
+            // Main Execution Loop
+            function mainLoop() {
+                if (isRunning) {
+                    stepSimulation(0.016); // 60 FPS delta step
+                }
+                renderEnvironment();
+                requestAnimationFrame(mainLoop);
+            }
+
+            // Start up process
+            syncParams();
+            updatePlayPauseUI();
+            
+            // Initiate loops on window load
+            window.onload = function() {
+                mainLoop();
+            }
+        });
+    </script>
+</body>
+</html>

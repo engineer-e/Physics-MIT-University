@@ -1,0 +1,1147 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Mass Distribution & Integration Simulator</title>
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Tailwind CSS Configuration for custom themes -->
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        brand: {
+                            50: '#eef2ff',
+                            100: '#e0e7ff',
+                            500: '#6366f1',
+                            600: '#4f46e5',
+                            700: '#4338ca',
+                            900: '#312e81',
+                        },
+                        darkBg: '#0f172a',
+                        cardBg: '#1e293b'
+                    }
+                }
+            }
+        }
+    </script>
+    <!-- Google Fonts: Inter & JetBrains Mono -->
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;500;700&display=swap" rel="stylesheet">
+    <!-- FontAwesome for Icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <!-- Three.js Library -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+    <!-- OrbitControls for camera rotation -->
+    <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/controls/OrbitControls.js"></script>
+    
+    <style>
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: #0f172a;
+            color: #f8fafc;
+            overflow-x: hidden;
+        }
+        .code-font {
+            font-family: 'JetBrains Mono', monospace;
+        }
+        /* Custom scrollbar */
+        ::-webkit-scrollbar {
+            width: 8px;
+            height: 8px;
+        }
+        ::-webkit-scrollbar-track {
+            background: #0f172a;
+        }
+        ::-webkit-scrollbar-thumb {
+            background: #334155;
+            border-radius: 4px;
+        }
+        ::-webkit-scrollbar-thumb:hover {
+            background: #475569;
+        }
+        /* Gradient borders */
+        .gradient-border {
+            position: relative;
+            border-radius: 0.75rem;
+            background: linear-gradient(135deg, #4f46e5, #06b6d4);
+            padding: 1px;
+        }
+        .gradient-border-content {
+            background: #1e293b;
+            border-radius: 11px;
+        }
+    </style>
+</head>
+<body class="min-h-screen flex flex-col">
+
+    <!-- Navigation / Header -->
+    <header class="border-b border-slate-800 bg-slate-900/80 backdrop-blur-md sticky top-0 z-50 px-6 py-4">
+        <div class="max-w-7xl mx-auto flex flex-col md:flex-row items-center justify-between gap-4">
+            <div class="flex items-center gap-3">
+                <div class="h-10 w-10 rounded-xl bg-gradient-to-tr from-indigo-500 to-cyan-400 flex items-center justify-center shadow-lg shadow-indigo-500/20">
+                    <i class="fa-solid fa-calculator text-white text-xl"></i>
+                </div>
+                <div>
+                    <h1 class="text-xl font-extrabold tracking-tight bg-gradient-to-r from-white via-slate-200 to-slate-400 bg-clip-text text-transparent">
+                        Mass Density & Integration
+                    </h1>
+                    <p class="text-xs text-slate-400 font-medium">Dynamic Simulator & Algorithmic Guide</p>
+                </div>
+            </div>
+            <div class="flex items-center gap-4 text-xs md:text-sm">
+                <span class="flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-slate-800 border border-slate-700 text-slate-300">
+                    <span class="h-2 w-2 rounded-full bg-emerald-500 animate-pulse"></span>
+                    Interactive Lab Active
+                </span>
+                <span class="text-slate-500 hidden md:inline">|</span>
+                <a href="#tutorial-section" class="text-indigo-400 hover:text-indigo-300 transition flex items-center gap-1">
+                    <i class="fa-solid fa-book-open"></i> Theory & Code
+                </a>
+            </div>
+        </div>
+    </header>
+
+    <!-- Main Workspace Container -->
+    <main class="flex-1 max-w-7xl w-full mx-auto px-4 py-6 grid grid-cols-1 lg:grid-cols-12 gap-6">
+        
+        <!-- Left Sidebar: Controls & Parameter Tuning -->
+        <section class="lg:col-span-4 flex flex-col gap-6">
+            
+            <!-- Dimension Selector Card -->
+            <div class="bg-slate-800/80 border border-slate-700/60 rounded-2xl p-5 shadow-xl">
+                <h2 class="text-sm font-bold uppercase tracking-wider text-slate-400 mb-3 flex items-center gap-2">
+                    <i class="fa-solid fa-sliders text-indigo-400"></i> Step 1: Select Dimension
+                </h2>
+                
+                <div class="grid grid-cols-3 gap-2 mb-4">
+                    <button id="btn-1d" class="py-2.5 px-2 rounded-xl border-2 border-indigo-500 bg-indigo-500/10 text-white font-semibold text-xs transition duration-200 flex flex-col items-center gap-1" onclick="selectDimension('1D')">
+                        <span class="text-lg">1D</span>
+                        <span class="text-[10px] text-slate-300">Rod / Arc</span>
+                    </button>
+                    <button id="btn-2d" class="py-2.5 px-2 rounded-xl border border-slate-700 bg-slate-900 text-slate-400 font-semibold text-xs transition duration-200 flex flex-col items-center gap-1 hover:bg-slate-800/50" onclick="selectDimension('2D')">
+                        <span class="text-lg">2D</span>
+                        <span class="text-[10px] text-slate-400">Plate / Disk</span>
+                    </button>
+                    <button id="btn-3d" class="py-2.5 px-2 rounded-xl border border-slate-700 bg-slate-900 text-slate-400 font-semibold text-xs transition duration-200 flex flex-col items-center gap-1 hover:bg-slate-800/50" onclick="selectDimension('3D')">
+                        <span class="text-lg">3D</span>
+                        <span class="text-[10px] text-slate-400">Block / Cyl</span>
+                    </button>
+                </div>
+
+                <!-- Shape Selector dropdown -->
+                <div class="mb-2">
+                    <label class="block text-xs font-semibold text-slate-400 mb-1.5">Geometry Model</label>
+                    <select id="shape-select" class="w-full bg-slate-900 border border-slate-700 rounded-lg py-2 px-3 text-sm text-slate-200 focus:outline-none focus:border-indigo-500" onchange="handleShapeChange()">
+                        <!-- Will be dynamically populated -->
+                    </select>
+                </div>
+            </div>
+
+            <!-- Density Function Tuning -->
+            <div class="bg-slate-800/80 border border-slate-700/60 rounded-2xl p-5 shadow-xl">
+                <h2 class="text-sm font-bold uppercase tracking-wider text-slate-400 mb-3 flex items-center gap-2">
+                    <i class="fa-solid fa-bezier-curve text-cyan-400"></i> Step 2: Mass Density $\rho(x)$
+                </h2>
+
+                <div class="space-y-4">
+                    <div>
+                        <label class="block text-xs font-semibold text-slate-400 mb-1.5">Density Distribution Profile</label>
+                        <select id="density-type" class="w-full bg-slate-900 border border-slate-700 rounded-lg py-2 px-3 text-sm text-slate-200 focus:outline-none focus:border-indigo-500" onchange="updateCalculations()">
+                            <option value="constant">Uniform Density (Constant)</option>
+                            <option value="linear">Linear Gradient (Increasing along axis)</option>
+                            <option value="quadratic">Quadratic Gradient (High at boundaries)</option>
+                            <option value="sinusoidal">Sinusoidal Fluctuation</option>
+                        </select>
+                    </div>
+
+                    <!-- Base Density Slider -->
+                    <div>
+                        <div class="flex justify-between text-xs mb-1">
+                            <span class="text-slate-400 font-medium">Base Density ($\rho_0$)</span>
+                            <span class="text-cyan-400 font-semibold" id="val-density">1.50 <span class="text-[10px] text-slate-500">kg/u</span></span>
+                        </div>
+                        <input type="range" id="slider-density" min="0.5" max="5.0" step="0.1" value="1.5" class="w-full accent-indigo-500" oninput="updateCalculations()">
+                    </div>
+                </div>
+            </div>
+
+            <!-- Step Size & Numerical Grid Controls -->
+            <div class="bg-slate-800/80 border border-slate-700/60 rounded-2xl p-5 shadow-xl">
+                <h2 class="text-sm font-bold uppercase tracking-wider text-slate-400 mb-3 flex items-center gap-2">
+                    <i class="fa-solid fa-cubes text-emerald-400"></i> Step 3: Elements & Step Size
+                </h2>
+
+                <div class="space-y-4">
+                    <div>
+                        <div class="flex justify-between text-xs mb-1">
+                            <span class="text-slate-400 font-medium">Number of Slices ($N$)</span>
+                            <span class="text-emerald-400 font-bold" id="val-slices">20</span>
+                        </div>
+                        <input type="range" id="slider-slices" min="4" max="100" step="1" value="20" class="w-full accent-emerald-500" oninput="updateCalculations()">
+                        <div class="flex justify-between text-[10px] text-slate-500 mt-1">
+                            <span>Coarse Elements (Large $\Delta x$)</span>
+                            <span>Fine Continuum ($dx$)</span>
+                        </div>
+                    </div>
+
+                    <div class="pt-3 border-t border-slate-700/50 flex flex-col gap-2">
+                        <button id="btn-animate" class="w-full py-2.5 px-4 rounded-xl bg-gradient-to-r from-emerald-500 to-teal-500 text-slate-950 font-bold text-xs tracking-wider uppercase transition duration-200 hover:shadow-lg hover:shadow-emerald-500/20 active:scale-95 flex items-center justify-center gap-2" onclick="animateIntegration()">
+                            <i class="fa-solid fa-play"></i> Animate Cumulative Sum
+                        </button>
+                        <button id="btn-reset-anim" class="w-full py-1.5 px-4 rounded-lg bg-slate-950 border border-slate-700 text-slate-400 font-medium text-[10px] hover:text-slate-200 transition" onclick="resetAnimation()">
+                            Reset Accumulation Loop
+                        </button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Dynamic Element Breakdown Tooltip Card -->
+            <div class="bg-slate-900 border border-slate-800 rounded-xl p-4">
+                <h3 class="text-xs font-semibold text-slate-400 uppercase tracking-wider mb-2 flex items-center gap-1.5">
+                    <span class="h-2 w-2 rounded-full bg-indigo-500"></span> Dynamic Selected Element Info
+                </h3>
+                <div class="text-xs space-y-2 text-slate-300">
+                    <div class="flex justify-between"><span class="text-slate-500">Selected Segment $i$:</span> <span id="info-seg-idx" class="font-mono text-indigo-300">-</span></div>
+                    <div class="flex justify-between"><span class="text-slate-500">Position coordinate ($x_i$):</span> <span id="info-seg-pos" class="font-mono text-cyan-300">-</span></div>
+                    <div class="flex justify-between"><span class="text-slate-500">Local density ($\rho(x_i)$):</span> <span id="info-seg-dens" class="font-mono text-amber-300">-</span></div>
+                    <div class="flex justify-between"><span class="text-slate-500">Differential element ($\Delta V_i$):</span> <span id="info-seg-vol" class="font-mono text-pink-300">-</span></div>
+                    <div class="flex justify-between font-semibold border-t border-slate-800 pt-1.5 text-slate-100">
+                        <span class="text-slate-400">Calculated Mass ($\Delta m_i$):</span>
+                        <span id="info-seg-mass" class="font-mono text-emerald-400">-</span>
+                    </div>
+                </div>
+            </div>
+
+        </section>
+
+        <!-- Right Column: Live Physics Simulator Viewport -->
+        <main class="lg:col-span-8 flex flex-col gap-6">
+            
+            <!-- Three.js Visual Viewport Container -->
+            <div class="relative bg-slate-950 rounded-2xl border border-slate-800 overflow-hidden shadow-2xl flex-1 flex flex-col min-h-[400px]">
+                
+                <!-- Toolbar overlay inside canvas -->
+                <div class="absolute top-4 left-4 right-4 z-10 flex flex-wrap gap-2 items-center justify-between pointer-events-none">
+                    <div class="bg-slate-900/95 backdrop-blur border border-slate-800 px-3 py-1.5 rounded-xl pointer-events-auto flex items-center gap-2 shadow-lg">
+                        <span class="text-xs font-bold text-slate-300 flex items-center gap-1.5">
+                            <span class="inline-block w-2 h-2 rounded-full bg-indigo-500"></span>
+                            Visualizing <span id="viz-label" class="text-indigo-400">1D Linear Rod</span>
+                        </span>
+                    </div>
+                    
+                    <div class="bg-slate-900/95 backdrop-blur border border-slate-800 px-3 py-1.5 rounded-xl pointer-events-auto flex items-center gap-4 shadow-lg text-xs text-slate-400">
+                        <span class="flex items-center gap-1.5">
+                            <i class="fa-solid fa-arrows-spin text-slate-500 animate-spin"></i>
+                            Drag to rotate
+                        </span>
+                        <span class="flex items-center gap-1.5">
+                            <i class="fa-solid fa-magnifying-glass text-slate-500"></i>
+                            Scroll to Zoom
+                        </span>
+                    </div>
+                </div>
+
+                <!-- Three.js Canvas mountpoint -->
+                <div id="canvas-container" class="w-full flex-1 relative cursor-grab active:cursor-grabbing bg-radial-gradient from-slate-900 to-slate-950">
+                    <!-- Three.js injects canvas here -->
+                </div>
+
+                <!-- Math Sync Real-time Banner -->
+                <div class="bg-slate-900/95 border-t border-slate-800 p-5 grid grid-cols-1 md:grid-cols-3 gap-4">
+                    <div class="bg-slate-950/50 p-3 rounded-xl border border-slate-800/60">
+                        <div class="text-[11px] uppercase tracking-wider text-slate-500 font-bold mb-1">Discrete Numerical Mass</div>
+                        <div class="text-xl font-black text-amber-400 code-font flex items-baseline gap-1">
+                            <span id="numerical-sum">0.000</span>
+                            <span class="text-xs text-slate-500 font-normal">kg</span>
+                        </div>
+                        <div class="text-[10px] text-slate-400 mt-1">
+                            $\Sigma \, \Delta m_i = \Sigma \, \rho(x_i) \Delta V_i$
+                        </div>
+                    </div>
+
+                    <div class="bg-slate-950/50 p-3 rounded-xl border border-slate-800/60">
+                        <div class="text-[11px] uppercase tracking-wider text-slate-500 font-bold mb-1">Analytical Continuous Mass</div>
+                        <div class="text-xl font-black text-cyan-400 code-font flex items-baseline gap-1">
+                            <span id="analytical-integral">0.000</span>
+                            <span class="text-xs text-slate-500 font-normal">kg</span>
+                        </div>
+                        <div class="text-[10px] text-slate-400 mt-1">
+                            $\int dm = \int \rho(x) dV$ (Exact)
+                        </div>
+                    </div>
+
+                    <div class="bg-slate-950/50 p-3 rounded-xl border border-slate-800/60">
+                        <div class="text-[11px] uppercase tracking-wider text-slate-500 font-bold mb-1">Numerical Error ($\%$)</div>
+                        <div class="text-xl font-black text-rose-400 code-font flex items-baseline gap-1">
+                            <span id="error-percentage">0.00</span>
+                            <span class="text-xs text-slate-500 font-normal">%</span>
+                        </div>
+                        <div class="text-[10px] text-slate-400 mt-1" id="error-desc">
+                            Approximation discrepancy.
+                        </div>
+                    </div>
+                </div>
+
+            </div>
+
+            <!-- Visual Integration Convergence Bar Chart and Steps -->
+            <div class="bg-slate-800/80 border border-slate-700/60 rounded-2xl p-5 shadow-xl">
+                <h3 class="text-xs font-bold uppercase tracking-wider text-slate-400 mb-4 flex items-center justify-between">
+                    <span><i class="fa-solid fa-chart-line text-emerald-400 mr-2"></i> Riemann Convergence Progress</span>
+                    <span class="text-[10px] text-slate-500 font-normal">Slices vs Accuracy</span>
+                </h3>
+                <div class="h-32 flex items-end gap-1.5 bg-slate-950 p-3 rounded-xl border border-slate-800 overflow-hidden" id="chart-bars-container">
+                    <!-- Dynamic chart bars injected here to show numerical convergence -->
+                </div>
+                <div class="flex justify-between text-[10px] text-slate-500 mt-2">
+                    <span>$N = 4$ (Coarse)</span>
+                    <span>Increasing partitions ($N$) decreases numerical error</span>
+                    <span>$N = 100$ (Fine)</span>
+                </div>
+            </div>
+
+        </main>
+
+    </main>
+
+    <!-- Detailed Educational section teaching theory & algorithm step-by-step -->
+    <section id="tutorial-section" class="bg-slate-900 border-t border-slate-800 py-12 px-6">
+        <div class="max-w-6xl mx-auto">
+            
+            <div class="text-center mb-12">
+                <span class="text-xs font-bold tracking-widest text-indigo-400 uppercase bg-indigo-500/10 px-3 py-1 rounded-full">Theory Masterclass</span>
+                <h2 class="text-3xl font-extrabold text-white mt-3">Mathematical & Computational Algorithms</h2>
+                <p class="text-slate-400 text-sm max-w-2xl mx-auto mt-2">
+                    Learn how the physical concept of mass distributions transitions from calculus-based integration to computer-based discretization algorithms.
+                </p>
+            </div>
+
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-8">
+                
+                <!-- Left Column: Masterful Math Exposition -->
+                <div class="bg-slate-800/50 border border-slate-800 rounded-2xl p-6">
+                    <h3 class="text-lg font-bold text-white mb-4 flex items-center gap-2">
+                        <i class="fa-solid fa-square-root-variable text-cyan-400"></i> Mathematical Continuum
+                    </h3>
+                    <div class="space-y-4 text-sm text-slate-300 leading-relaxed">
+                        <p>
+                            To find the total mass $M$ of an object, we sum up all its individual pieces $dm$. As the size of the piece shrinks to zero, the sum becomes a continuous integral:
+                        </p>
+                        <div class="bg-slate-950 p-4 rounded-xl border border-slate-800/80 my-3 font-mono text-center text-indigo-300 overflow-x-auto">
+                            $M = \int dm$
+                        </div>
+                        
+                        <p class="font-bold text-white mt-4">1. One-Dimensional Distribution (1D):</p>
+                        <p>
+                            For an object like a linear rod or wire, the differential element of length is $dl$. This segment contains an infinitesimal mass element $dm$:
+                        </p>
+                        <div class="bg-slate-950/80 p-3 rounded-lg border border-slate-800/50 text-slate-200">
+                            $dm = \lambda(x) \, dl \quad \Longrightarrow \quad M = \int_0^L \lambda(x) \, dx$
+                        </div>
+                        <p class="text-xs text-slate-400">Where $\lambda(x)$ is the linear mass density (kg/m).</p>
+
+                        <p class="font-bold text-white mt-4">2. Two-Dimensional Distribution (2D):</p>
+                        <p>
+                            For a flat plate, we consider an area element $dA$ containing mass $dm$:
+                        </p>
+                        <div class="bg-slate-950/80 p-3 rounded-lg border border-slate-800/50 text-slate-200">
+                            $dm = \sigma(x, y) \, dA \quad \Longrightarrow \quad M = \iint \sigma(x, y) \, dA$
+                        </div>
+                        <p class="text-xs text-slate-400">Where $\sigma(x, y)$ is the surface mass density (kg/m²).</p>
+
+                        <p class="font-bold text-white mt-4">3. Three-Dimensional Distribution (3D):</p>
+                        <p>
+                            For a solid block or cylinder, we write the volume element $dV$ containing mass $dm$. In our simplified block example, we can divide the object into slices of area $A$ and thickness $dx$:
+                        </p>
+                        <div class="bg-slate-950/80 p-3 rounded-lg border border-slate-800/50 text-slate-200">
+                            $dV = A \cdot dx \quad \Longrightarrow \quad dm = \rho(x) \, (A \, dx) \quad \Longrightarrow \quad M = \int_0^L \rho(x) \, A \, dx$
+                        </div>
+                        <p class="text-xs text-slate-400">Where $\rho(x)$ is the volumetric mass density (kg/m³).</p>
+                    </div>
+                </div>
+
+                <!-- Right Column: Computational Discretization Algorithm -->
+                <div class="bg-slate-800/50 border border-slate-800 rounded-2xl p-6 flex flex-col justify-between">
+                    <div>
+                        <h3 class="text-lg font-bold text-white mb-4 flex items-center gap-2">
+                            <i class="fa-solid fa-code text-emerald-400"></i> Computational Riemann Algorithm
+                        </h3>
+                        <p class="text-sm text-slate-300 leading-relaxed mb-4">
+                            Computers cannot perform analytical continuous integration directly. Instead, we divide the object into $N$ discrete slices, calculate the mass of each finite piece $\Delta m_i = \rho(x_i) \Delta V_i$, and sum them up. 
+                        </p>
+                        
+                        <!-- Pseudo Code Box -->
+                        <div class="bg-slate-950 rounded-xl border border-slate-800 overflow-hidden mb-4">
+                            <div class="bg-slate-900 px-4 py-2 border-b border-slate-800 flex justify-between items-center">
+                                <span class="text-xs font-mono text-emerald-400">mass_integration.js</span>
+                                <span class="text-[10px] text-slate-500">Left Riemann Sum</span>
+                            </div>
+                            <pre class="p-4 text-xs code-font text-slate-300 overflow-x-auto"><code><span class="text-purple-400">function</span> <span class="text-blue-400">integrateMass</span>(N, L, ρ_func, V_func) {
+    <span class="text-purple-400">let</span> totalMass = <span class="text-amber-400">0</span>;
+    <span class="text-purple-400">let</span> dx = L / N; <span class="text-slate-500">// Step size</span>
+
+    <span class="text-purple-400">for</span> (<span class="text-purple-400">let</span> i = <span class="text-amber-400">0</span>; i < N; i++) {
+        <span class="text-slate-500">// 1. Determine local position</span>
+        <span class="text-purple-400">let</span> xi = i * dx; 
+        
+        <span class="text-slate-500">// 2. Compute local density & element size</span>
+        <span class="text-purple-400">let</span> density = ρ_func(xi);
+        <span class="text-purple-400">let</span> dV = V_func(dx, xi);
+        
+        <span class="text-slate-500">// 3. Accumulate Δm = ρ(x) * dV</span>
+        totalMass += density * dV;
+    }
+    <span class="text-purple-400">return</span> totalMass;
+}</code></pre>
+                        </div>
+                        
+                        <div class="bg-slate-950 p-4 rounded-xl border border-slate-850 text-xs text-slate-400 space-y-2">
+                            <p class="font-semibold text-slate-300">Convergence Mechanism:</p>
+                            <p>
+                                As $N \to \infty$, the step size $\Delta x \to 0$. The difference between the analytical value and the numerical sum (error) scales as $\mathcal{O}(1/N)$ for simple Riemann sums, and can be optimized using the Trapezoidal Rule or Simpson's Rule.
+                            </p>
+                        </div>
+                    </div>
+
+                    <div class="pt-6 border-t border-slate-800/50 text-right">
+                        <span class="text-xs text-slate-500">Interactive Simulator Version 1.2.0 (Built with Three.js)</span>
+                    </div>
+
+                </div>
+
+            </div>
+
+        </div>
+    </section>
+
+    <script>
+        // --- Globals & Configs ---
+        let currentDimension = '1D';
+        let currentShape = 'rod_straight';
+        let densityProfile = 'constant';
+        let baseDensity = 1.5;
+        let numSlices = 20;
+        let animationFrameId = null;
+        let isAnimating = false;
+        let currentAnimStep = 0;
+
+        // Shape Configurations Map
+        const shapesMap = {
+            '1D': {
+                'rod_straight': 'Straight Linear Rod (Length L = 10)',
+                'rod_arc': 'Semicircular Arc (Radius R = 5)'
+            },
+            '2D': {
+                'plate_rect': 'Rectangular Plate (10 x 4)',
+                'plate_disk': 'Circular Disk (Radius R = 5)'
+            },
+            '3D': {
+                'block_solid': 'Solid rectangular Block (10 x 3 x 3)',
+                'cylinder_solid': 'Solid Cylinder (Length = 10, Radius = 2)'
+            }
+        };
+
+        // --- Three.js Setup Variables ---
+        let scene, camera, renderer, controls;
+        let visualElements = []; // Store visual slices
+        const container = document.getElementById('canvas-container');
+
+        // Init Three.js Canvas
+        function initThreeJS() {
+            scene = new THREE.Scene();
+            scene.background = new THREE.Color(0x0f172a); // Slate-900
+
+            // Camera positioning
+            camera = new THREE.PerspectiveCamera(45, container.clientWidth / container.clientHeight, 0.1, 100);
+            camera.position.set(8, 8, 14);
+
+            // Renderer setup
+            renderer = new THREE.WebGLRenderer({ antialias: true });
+            renderer.setSize(container.clientWidth, container.clientHeight);
+            renderer.setPixelRatio(window.devicePixelRatio);
+            renderer.shadowMap.enabled = true;
+            container.appendChild(renderer.domElement);
+
+            // Controls setup
+            controls = new THREE.OrbitControls(camera, renderer.domElement);
+            controls.enableDamping = true;
+            controls.dampingFactor = 0.05;
+            controls.maxPolarAngle = Math.PI / 1.8;
+
+            // Lights
+            const ambientLight = new THREE.AmbientLight(0xffffff, 0.6);
+            scene.add(ambientLight);
+
+            const dirLight = new THREE.DirectionalLight(0xffffff, 0.8);
+            dirLight.position.set(15, 20, 15);
+            dirLight.castShadow = true;
+            scene.add(dirLight);
+
+            const fillLight = new THREE.DirectionalLight(0x818cf8, 0.4); // soft Indigo fill
+            fillLight.position.set(-15, -10, -15);
+            scene.add(fillLight);
+
+            // Grid Helpers
+            const gridHelper = new THREE.GridHelper(20, 20, 0x475569, 0x334155);
+            gridHelper.position.y = -3;
+            scene.add(gridHelper);
+
+            // Window Resize handling
+            window.addEventListener('resize', onWindowResize);
+
+            // Animation Loop
+            function animate() {
+                requestAnimationFrame(animate);
+                controls.update();
+                renderer.render(scene, camera);
+            }
+            animate();
+        }
+
+        function onWindowResize() {
+            camera.aspect = container.clientWidth / container.clientHeight;
+            camera.updateProjectionMatrix();
+            renderer.setSize(container.clientWidth, container.clientHeight);
+        }
+
+        // --- STREAMING_CHUNK:Density Calculation Helpers... ---
+        // Helper to compute local density at position x (assuming coordinate ranges x in [0, 10])
+        function getDensityAt(x, length = 10) {
+            const relX = x / length; // Normalized position [0, 1]
+            switch(densityProfile) {
+                case 'linear':
+                    // Increasing from baseDensity down to 3 * baseDensity
+                    return baseDensity * (1.0 + relX * 2.0);
+                case 'quadratic':
+                    // High at edges, lower in middle
+                    return baseDensity * (4.0 * Math.pow(relX - 0.5, 2) + 0.5);
+                case 'sinusoidal':
+                    // Fluctuating wave
+                    return baseDensity * (1.0 + 0.6 * Math.sin(relX * Math.PI * 2.5));
+                case 'constant':
+                default:
+                    return baseDensity;
+            }
+        }
+
+        // Color mapping for density (Cold blue to hot magenta/orange)
+        function getColorForDensity(dens, maxDens = 15.0) {
+            const normalized = Math.min(Math.max((dens - 0.5) / (maxDens - 0.5), 0), 1);
+            
+            // Cool Indigo to Hot Red gradient map
+            const colorCold = new THREE.Color(0x38bdf8); // Cyan-400
+            const colorMid = new THREE.Color(0x6366f1);  // Indigo-500
+            const colorHot = new THREE.Color(0xf43f5e);  // Rose-500
+
+            if (normalized < 0.5) {
+                return colorCold.clone().lerp(colorMid, normalized * 2);
+            } else {
+                return colorMid.clone().lerp(colorHot, (normalized - 0.5) * 2);
+            }
+        }
+
+        // Clear scene geometry elements
+        function clearVisualElements() {
+            visualElements.forEach(el => scene.remove(el));
+            visualElements = [];
+        }
+
+        // --- STREAMING_CHUNK:Visual Scene Modellers... ---
+        // Build the active geometry representation visually
+        function buildVisualScene() {
+            clearVisualElements();
+            
+            const numSegments = numSlices;
+            const length = 10;
+            const deltaX = length / numSegments;
+            
+            // Get max possible density for normalization
+            let maxDens = 0.5;
+            for(let i=0; i<numSegments; i++) {
+                const xVal = i * deltaX + deltaX / 2;
+                maxDens = Math.max(maxDens, getDensityAt(xVal, length));
+            }
+
+            if (currentDimension === '1D') {
+                if (currentShape === 'rod_straight') {
+                    // Create Straight Rod made of multiple segments with spacing gaps
+                    const rodRadius = 0.15;
+                    const segmentHeight = deltaX * 0.95; // slightly smaller to create gap
+                    
+                    for (let i = 0; i < numSegments; i++) {
+                        const xPos = -5 + (i * deltaX) + (deltaX / 2);
+                        const densVal = getDensityAt(i * deltaX + deltaX/2, length);
+                        
+                        const geom = new THREE.CylinderGeometry(rodRadius, rodRadius, segmentHeight, 16);
+                        geom.rotateZ(Math.PI / 2); // align horizontally
+                        
+                        const mat = new THREE.MeshPhongMaterial({
+                            color: getColorForDensity(densVal, maxDens),
+                            shininess: 80,
+                            transparent: true,
+                            opacity: (isAnimating && i > currentAnimStep) ? 0.15 : 0.9
+                        });
+                        
+                        const mesh = new THREE.Mesh(geom, mat);
+                        mesh.position.set(xPos, 0, 0);
+                        mesh.castShadow = true;
+                        
+                        // Attach metadata for raycasting / selections
+                        mesh.userData = {
+                            index: i,
+                            pos: (i * deltaX + deltaX/2).toFixed(2),
+                            density: densVal.toFixed(2),
+                            vol: deltaX.toFixed(2),
+                            mass: (densVal * deltaX).toFixed(3)
+                        };
+                        
+                        scene.add(mesh);
+                        visualElements.push(mesh);
+                    }
+                } else if (currentShape === 'rod_arc') {
+                    // Curved semicircular Arc
+                    const arcRadius = 4.5;
+                    const totalAngle = Math.PI; // Semicircular arc
+                    const deltaTheta = totalAngle / numSegments;
+
+                    for (let i = 0; i < numSegments; i++) {
+                        const theta = i * deltaTheta + deltaTheta / 2;
+                        // Map arc length to equivalent density index
+                        const sVal = arcRadius * theta; 
+                        const totalArcLength = arcRadius * totalAngle;
+                        const densVal = getDensityAt((sVal / totalArcLength) * 10, 10);
+
+                        // Arc segment visualization using tube or custom bent cylinder
+                        const geom = new THREE.CylinderGeometry(0.12, 0.12, arcRadius * deltaTheta * 0.95, 12);
+                        geom.rotateZ(theta + Math.PI/2); // Align tangentially
+
+                        const mat = new THREE.MeshPhongMaterial({
+                            color: getColorForDensity(densVal, maxDens),
+                            transparent: true,
+                            opacity: (isAnimating && i > currentAnimStep) ? 0.15 : 0.9
+                        });
+
+                        const mesh = new THREE.Mesh(geom, mat);
+                        mesh.position.set(
+                            arcRadius * Math.cos(theta),
+                            arcRadius * Math.sin(theta) - 1.5,
+                            0
+                        );
+                        mesh.castShadow = true;
+                        
+                        mesh.userData = {
+                            index: i,
+                            pos: `θ = ${(theta * 180 / Math.PI).toFixed(1)}°`,
+                            density: densVal.toFixed(2),
+                            vol: (arcRadius * deltaTheta).toFixed(2) + " (dl)",
+                            mass: (densVal * arcRadius * deltaTheta).toFixed(3)
+                        };
+
+                        scene.add(mesh);
+                        visualElements.push(mesh);
+                    }
+                }
+            } 
+            else if (currentDimension === '2D') {
+                if (currentShape === 'plate_rect') {
+                    // Rectangular Plate divided into grid slices
+                    const width = 10;
+                    const height = 4.5;
+                    const segmentsX = Math.ceil(Math.sqrt(numSegments * 2));
+                    const segmentsY = Math.ceil(numSegments / segmentsX);
+                    
+                    const dx = width / segmentsX;
+                    const dy = height / segmentsY;
+
+                    for (let x = 0; x < segmentsX; x++) {
+                        for (let y = 0; y < segmentsY; y++) {
+                            const xVal = x * dx + dx / 2;
+                            const yVal = y * dy + dy / 2;
+                            const densVal = getDensityAt(xVal, width);
+
+                            const geom = new THREE.BoxGeometry(dx * 0.9, dy * 0.9, 0.08);
+                            const mat = new THREE.MeshPhongMaterial({
+                                color: getColorForDensity(densVal, maxDens),
+                                transparent: true,
+                                opacity: (isAnimating && (x * segmentsY + y) > currentAnimStep) ? 0.15 : 0.9
+                            });
+
+                            const mesh = new THREE.Mesh(geom, mat);
+                            mesh.position.set(-5 + xVal, -2 + yVal, 0);
+                            mesh.castShadow = true;
+
+                            mesh.userData = {
+                                index: `${x}, ${y}`,
+                                pos: `x=${xVal.toFixed(1)}, y=${yVal.toFixed(1)}`,
+                                density: densVal.toFixed(2),
+                                vol: (dx * dy).toFixed(2) + " (dA)",
+                                mass: (densVal * dx * dy).toFixed(3)
+                            };
+
+                            scene.add(mesh);
+                            visualElements.push(mesh);
+                        }
+                    }
+                } else if (currentShape === 'plate_disk') {
+                    // Concentric rings/sectors modeling a disk integration
+                    const maxRadius = 4.8;
+                    const sectors = Math.max(4, Math.ceil(Math.sqrt(numSegments)));
+                    const rings = Math.max(1, Math.ceil(numSegments / sectors));
+
+                    const dr = maxRadius / rings;
+                    const dTheta = (Math.PI * 2) / sectors;
+
+                    for (let r = 0; r < rings; r++) {
+                        for (let s = 0; s < sectors; s++) {
+                            const midR = r * dr + dr / 2;
+                            const midTheta = s * dTheta + dTheta / 2;
+                            // Map disk radial position to density
+                            const densVal = getDensityAt((midR / maxRadius) * 10, 10);
+
+                            // Ring sector geometry
+                            const geom = new THREE.RingGeometry(r * dr, (r + 1) * dr - 0.05, 16, 1, s * dTheta, dTheta - 0.05);
+                            const mat = new THREE.MeshPhongMaterial({
+                                color: getColorForDensity(densVal, maxDens),
+                                side: THREE.DoubleSide,
+                                transparent: true,
+                                opacity: (isAnimating && (r * sectors + s) > currentAnimStep) ? 0.15 : 0.9
+                            });
+
+                            const mesh = new THREE.Mesh(geom, mat);
+                            mesh.position.set(0, 0, 0);
+                            mesh.rotation.x = -Math.PI / 8; // Slight tilt
+                            
+                            // Sector Area = 1/2 * r^2 * dTheta
+                            const outerR = (r + 1) * dr;
+                            const innerR = r * dr;
+                            const sectorArea = 0.5 * (outerR * outerR - innerR * innerR) * dTheta;
+
+                            mesh.userData = {
+                                index: `Ring ${r}, Sector ${s}`,
+                                pos: `r = ${midR.toFixed(2)}, θ = ${(midTheta * 180 / Math.PI).toFixed(0)}°`,
+                                density: densVal.toFixed(2),
+                                vol: sectorArea.toFixed(2) + " (dA)",
+                                mass: (densVal * sectorArea).toFixed(3)
+                            };
+
+                            scene.add(mesh);
+                            visualElements.push(mesh);
+                        }
+                    }
+                }
+            } 
+            else if (currentDimension === '3D') {
+                if (currentShape === 'block_solid') {
+                    // 3D Rectangular block sliced down the x-axis (A * dx)
+                    const width = 10;
+                    const height = 2.8;
+                    const depth = 2.8;
+
+                    for (let i = 0; i < numSegments; i++) {
+                        const xPos = -5 + (i * deltaX) + (deltaX / 2);
+                        const densVal = getDensityAt(i * deltaX + deltaX/2, length);
+
+                        const geom = new THREE.BoxGeometry(deltaX * 0.9, height, depth);
+                        const mat = new THREE.MeshPhongMaterial({
+                            color: getColorForDensity(densVal, maxDens),
+                            transparent: true,
+                            opacity: (isAnimating && i > currentAnimStep) ? 0.15 : 0.8
+                        });
+
+                        const mesh = new THREE.Mesh(geom, mat);
+                        mesh.position.set(xPos, 0, 0);
+                        mesh.castShadow = true;
+
+                        mesh.userData = {
+                            index: i,
+                            pos: `x = ${(i * deltaX + deltaX/2).toFixed(2)}`,
+                            density: densVal.toFixed(2),
+                            vol: (deltaX * height * depth).toFixed(2) + " (dV)",
+                            mass: (densVal * deltaX * height * depth).toFixed(3)
+                        };
+
+                        scene.add(mesh);
+                        visualElements.push(mesh);
+                    }
+                } else if (currentShape === 'cylinder_solid') {
+                    // Solid Cylinder sliced along its length
+                    const cylLength = 10;
+                    const radius = 2.0;
+
+                    for (let i = 0; i < numSegments; i++) {
+                        const xPos = -5 + (i * deltaX) + (deltaX / 2);
+                        const densVal = getDensityAt(i * deltaX + deltaX/2, cylLength);
+
+                        const geom = new THREE.CylinderGeometry(radius, radius, deltaX * 0.9, 24);
+                        geom.rotateZ(Math.PI / 2); // Aligned horizontally
+
+                        const mat = new THREE.MeshPhongMaterial({
+                            color: getColorForDensity(densVal, maxDens),
+                            transparent: true,
+                            opacity: (isAnimating && i > currentAnimStep) ? 0.15 : 0.8
+                        });
+
+                        const mesh = new THREE.Mesh(geom, mat);
+                        mesh.position.set(xPos, 0, 0);
+                        mesh.castShadow = true;
+
+                        // Cyl slice volume = Pi * R^2 * dx
+                        const cylVol = Math.PI * radius * radius * deltaX;
+
+                        mesh.userData = {
+                            index: i,
+                            pos: `x = ${(i * deltaX + deltaX/2).toFixed(2)}`,
+                            density: densVal.toFixed(2),
+                            vol: cylVol.toFixed(2) + " (dV)",
+                            mass: (densVal * cylVol).toFixed(3)
+                        };
+
+                        scene.add(mesh);
+                        visualElements.push(mesh);
+                    }
+                }
+            }
+
+            // Bind interactions to meshes
+            setupRaycasting();
+        }
+
+        // --- STREAMING_CHUNK:Raycasting/Interaction setup... ---
+        // Setup hover detection to display segment values dynamically
+        function setupRaycasting() {
+            const raycaster = new THREE.Raycaster();
+            const mouse = new THREE.Vector2();
+
+            function onPointerMove(event) {
+                // Adjusting coordinate calculations for exact client alignment
+                const rect = renderer.domElement.getBoundingClientRect();
+                mouse.x = ((event.clientX - rect.left) / rect.width) * 2 - 1;
+                mouse.y = -((event.clientY - rect.top) / rect.height) * 2 + 1;
+
+                raycaster.setFromCamera(mouse, camera);
+                const intersects = raycaster.intersectObjects(visualElements);
+
+                if (intersects.length > 0) {
+                    const intersectedObject = intersects[0].object;
+                    highlightElement(intersectedObject);
+                }
+            }
+
+            // Debounced touch handler to avoid event flood
+            function onTouchStart(event) {
+                if (event.touches.length > 0) {
+                    const rect = renderer.domElement.getBoundingClientRect();
+                    mouse.x = ((event.touches[0].clientX - rect.left) / rect.width) * 2 - 1;
+                    mouse.y = -((event.touches[0].clientY - rect.top) / rect.height) * 2 + 1;
+
+                    raycaster.setFromCamera(mouse, camera);
+                    const intersects = raycaster.intersectObjects(visualElements);
+
+                    if (intersects.length > 0) {
+                        highlightElement(intersects[0].object);
+                    }
+                }
+            }
+
+            // Remove existing event listener if any before setting
+            renderer.domElement.addEventListener('pointermove', onPointerMove);
+            renderer.domElement.addEventListener('touchstart', onTouchStart);
+        }
+
+        function highlightElement(object) {
+            // Revert all to normal scale, highlight selected
+            visualElements.forEach(mesh => {
+                mesh.scale.set(1, 1, 1);
+                if (mesh.material) mesh.material.emissive.setHex(0x000000);
+            });
+
+            object.scale.set(1.1, 1.1, 1.1);
+            if (object.material) object.material.emissive.setHex(0x221144); // subtle indigo emissive glow
+
+            // Update DOM element tooltip card values
+            document.getElementById('info-seg-idx').innerText = object.userData.index;
+            document.getElementById('info-seg-pos').innerText = object.userData.pos;
+            document.getElementById('info-seg-dens').innerText = object.userData.density + ' kg/u';
+            document.getElementById('info-seg-vol').innerText = object.userData.vol;
+            document.getElementById('info-seg-mass').innerText = object.userData.mass + ' kg';
+        }
+
+        // --- STREAMING_CHUNK:Math Integration Solver Engine... ---
+        // Analytical Integrals Solver & Riemann Sum numerical evaluation
+        function updateCalculations() {
+            // Read active values
+            baseDensity = parseFloat(document.getElementById('slider-density').value);
+            numSlices = parseInt(document.getElementById('slider-slices').value);
+            densityProfile = document.getElementById('density-type').value;
+
+            document.getElementById('val-density').innerHTML = `${baseDensity.toFixed(2)} <span class="text-[10px] text-slate-500">kg/u</span>`;
+            document.getElementById('val-slices').innerText = numSlices;
+
+            let length = 10;
+            let analyticalMass = 0;
+            let numericalMass = 0;
+
+            // Compute Analytical Value depending on the profile & dimensions
+            // Integrated manually: Integral(rho(x)*dV, 0, L)
+            const getAnalyticalIntegralVal = (V_factor) => {
+                switch(densityProfile) {
+                    case 'linear':
+                        // Integral from 0 to L of rho_0 * (1 + 2*x/L) = rho_0 * [x + x^2/L]_0^L = rho_0 * (L + L) = 2 * rho_0 * L
+                        return 2.0 * baseDensity * length * V_factor;
+                    case 'quadratic':
+                        // Integral of rho_0 * (4*(x/L-0.5)^2 + 0.5) = rho_0 * L * (4/12 + 0.5) = rho_0 * L * 0.8333
+                        return 0.83333 * baseDensity * length * V_factor;
+                    case 'sinusoidal':
+                        // Integral of rho_0 * (1 + 0.6*sin(x/L * 2.5*Pi)) 
+                        // = rho_0 * [x - (0.6*L/(2.5*Pi)) * cos(x/L * 2.5*Pi)]_0^L
+                        // = rho_0 * (L - (0.24*L/Pi) * (cos(2.5*Pi) - cos(0))) = rho_0 * L * (1 + 0.24/Pi) approx rho_0 * L * 1.07639
+                        const integralFactor = 1.0 - (0.6 / (2.5 * Math.PI)) * (Math.cos(2.5 * Math.PI) - Math.cos(0));
+                        return baseDensity * length * integralFactor * V_factor;
+                    case 'constant':
+                    default:
+                        return baseDensity * length * V_factor;
+                }
+            };
+
+            // Calculate exact geometries factors
+            if (currentDimension === '1D') {
+                if (currentShape === 'rod_straight') {
+                    analyticalMass = getAnalyticalIntegralVal(1.0); // 1D wire factor
+                } else if (currentShape === 'rod_arc') {
+                    // Semicircular arc total length = Pi * R
+                    const radius = 4.5;
+                    analyticalMass = getAnalyticalIntegralVal(Math.PI * radius / 10.0);
+                }
+            } else if (currentDimension === '2D') {
+                if (currentShape === 'plate_rect') {
+                    // Plate dimensions width = 10, height = 4.5. Total Area = 45
+                    analyticalMass = getAnalyticalIntegralVal(4.5);
+                } else if (currentShape === 'plate_disk') {
+                    // Circular Disk: radius = 4.8. Total Area = Pi * R^2
+                    const radius = 4.8;
+                    const diskArea = Math.PI * radius * radius;
+                    analyticalMass = getAnalyticalIntegralVal(diskArea / 10.0);
+                }
+            } else if (currentDimension === '3D') {
+                if (currentShape === 'block_solid') {
+                    // Cross sectional area A = height * depth = 2.8 * 2.8 = 7.84
+                    const area = 2.8 * 2.8;
+                    analyticalMass = getAnalyticalIntegralVal(area);
+                } else if (currentShape === 'cylinder_solid') {
+                    // Cross sectional Area = Pi * r^2 = Pi * 2.0^2 = 4*Pi
+                    const radius = 2.0;
+                    const area = Math.PI * radius * radius;
+                    analyticalMass = getAnalyticalIntegralVal(area);
+                }
+            }
+
+            // Render/build virtual models & sum up values of user visual objects
+            buildVisualScene();
+            
+            // Numerical summation loop
+            visualElements.forEach(mesh => {
+                numericalMass += parseFloat(mesh.userData.mass);
+            });
+
+            // Adjust numerical during anim phase
+            if (isAnimating) {
+                let cumulativeSum = 0;
+                for (let i = 0; i <= currentAnimStep && i < visualElements.length; i++) {
+                    cumulativeSum += parseFloat(visualElements[i].userData.mass);
+                }
+                document.getElementById('numerical-sum').innerText = cumulativeSum.toFixed(3);
+            } else {
+                document.getElementById('numerical-sum').innerText = numericalMass.toFixed(3);
+            }
+
+            document.getElementById('analytical-integral').innerText = analyticalMass.toFixed(3);
+
+            // Compute Error
+            const activeVal = isAnimating ? parseFloat(document.getElementById('numerical-sum').innerText) : numericalMass;
+            const errorPercent = Math.abs((activeVal - analyticalMass) / analyticalMass) * 100;
+            document.getElementById('error-percentage').innerText = errorPercent.toFixed(2);
+            
+            const errorDesc = document.getElementById('error-desc');
+            if (isAnimating) {
+                errorDesc.innerText = `Accumulating segments... Step ${currentAnimStep + 1} of ${visualElements.length}`;
+            } else if (errorPercent < 0.5) {
+                errorDesc.innerText = "Highly accurate continuous limit representation.";
+            } else if (errorPercent < 3.0) {
+                errorDesc.innerText = "Acceptable discrete approximation.";
+            } else {
+                errorDesc.innerText = "Coarse grid error. Increase slices to converge.";
+            }
+
+            // Sync visual Convergence Graph bars
+            renderConvergenceGraph(analyticalMass);
+        }
+
+        // --- STREAMING_CHUNK:Integration Accumulation Animation... ---
+        // Animation routine stepping element-by-element
+        function animateIntegration() {
+            if (isAnimating) return;
+            isAnimating = true;
+            currentAnimStep = 0;
+
+            document.getElementById('btn-animate').disabled = true;
+            document.getElementById('btn-animate').innerHTML = `<i class="fa-solid fa-spinner animate-spin"></i> Integrating...`;
+
+            function step() {
+                if (currentAnimStep >= visualElements.length) {
+                    isAnimating = false;
+                    document.getElementById('btn-animate').disabled = false;
+                    document.getElementById('btn-animate').innerHTML = `<i class="fa-solid fa-play"></i> Animate Cumulative Sum`;
+                    updateCalculations();
+                    return;
+                }
+
+                // Focus/Select current mesh step
+                highlightElement(visualElements[currentAnimStep]);
+                
+                // Trigger dynamic calculation sync
+                updateCalculations();
+
+                currentAnimStep++;
+                animationFrameId = setTimeout(step, 100); // 100ms per integration step
+            }
+            step();
+        }
+
+        function resetAnimation() {
+            clearTimeout(animationFrameId);
+            isAnimating = false;
+            currentAnimStep = 0;
+            document.getElementById('btn-animate').disabled = false;
+            document.getElementById('btn-animate').innerHTML = `<i class="fa-solid fa-play"></i> Animate Cumulative Sum`;
+            updateCalculations();
+        }
+
+        // --- STREAMING_CHUNK:Graphing/Numerical Convergence... ---
+        // Render analytical convergence bar charts dynamically
+        function renderConvergenceGraph(analyticalTarget) {
+            const container = document.getElementById('chart-bars-container');
+            container.innerHTML = ''; // Clear graph
+
+            // Generate an array of discrete slices configurations: [4, 8, 16, 32, 64, 100]
+            const comparisonSlices = [4, 8, 16, 24, 32, 48, 64, 80, 100];
+            const maxBarHeight = 110; // in px
+
+            comparisonSlices.forEach(slicesCount => {
+                // Compute corresponding simulated numerical mass for comparison
+                let localSum = 0;
+                const length = 10;
+                const dX = length / slicesCount;
+
+                // Simple evaluation model matching active geometry dimensions
+                for (let i = 0; i < slicesCount; i++) {
+                    const x = i * dX + dX / 2;
+                    const density = getDensityAt(x, length);
+                    
+                    let vElement = dX;
+                    if (currentDimension === '1D') {
+                        if (currentShape === 'rod_arc') {
+                            vElement = (4.5 * Math.PI) / slicesCount;
+                        }
+                    } else if (currentDimension === '2D') {
+                        if (currentShape === 'plate_rect') {
+                            vElement = (4.5 * 10) / slicesCount;
+                        } else { // disk
+                            vElement = (Math.PI * 4.8 * 4.8) / slicesCount;
+                        }
+                    } else if (currentDimension === '3D') {
+                        if (currentShape === 'block_solid') {
+                            vElement = (2.8 * 2.8) * dX;
+                        } else { // cyl
+                            vElement = (Math.PI * 2.0 * 2.0) * dX;
+                        }
+                    }
+                    localSum += density * vElement;
+                }
+
+                // Error percent calculation
+                const error = Math.abs((localSum - analyticalTarget) / analyticalTarget) * 100;
+                const accuracy = Math.max(0, 100 - error);
+                
+                // Height based on visual performance ratio
+                const barHeight = Math.max(10, Math.floor((accuracy / 100) * maxBarHeight));
+                const activeHighlightClass = (slicesCount === numSlices) ? 'bg-gradient-to-t from-emerald-400 to-indigo-500 scale-105 shadow-md shadow-emerald-500/20' : 'bg-slate-700 hover:bg-slate-600';
+
+                const barElement = document.createElement('div');
+                barElement.className = `flex-1 flex flex-col items-center justify-end h-full group cursor-pointer`;
+                barElement.onclick = () => {
+                    document.getElementById('slider-slices').value = slicesCount;
+                    updateCalculations();
+                };
+
+                barElement.innerHTML = `
+                    <div class="w-full text-[9px] text-center text-slate-500 opacity-0 group-hover:opacity-100 transition duration-150">${error.toFixed(1)}% err</div>
+                    <div class="w-full ${activeHighlightClass} rounded-t transition-all duration-300" style="height: ${barHeight}px;"></div>
+                    <div class="text-[9px] mt-1 font-mono text-slate-400 font-bold">${slicesCount}</div>
+                `;
+                container.appendChild(barElement);
+            });
+        }
+
+        // --- STREAMING_CHUNK:Selection and Handlers UI... ---
+        // Dynamically handles selectors changes
+        function selectDimension(dim) {
+            currentDimension = dim;
+            
+            // Toggle active selection styling classes
+            ['btn-1d', 'btn-2d', 'btn-3d'].forEach(id => {
+                const el = document.getElementById(id);
+                el.className = "py-2.5 px-2 rounded-xl border border-slate-700 bg-slate-900 text-slate-400 font-semibold text-xs transition duration-200 flex flex-col items-center gap-1 hover:bg-slate-800/50";
+            });
+
+            const activeBtn = document.getElementById(`btn-${dim.toLowerCase()}`);
+            activeBtn.className = "py-2.5 px-2 rounded-xl border-2 border-indigo-500 bg-indigo-500/10 text-white font-semibold text-xs transition duration-200 flex flex-col items-center gap-1";
+
+            // Update dropdown selections list
+            const selectEl = document.getElementById('shape-select');
+            selectEl.innerHTML = '';
+            
+            const options = shapesMap[dim];
+            let firstKey = null;
+            for (let key in options) {
+                if (!firstKey) firstKey = key;
+                const opt = document.createElement('option');
+                opt.value = key;
+                opt.innerText = options[key];
+                selectEl.appendChild(opt);
+            }
+
+            currentShape = firstKey;
+            
+            // Highlight Viewport Label
+            document.getElementById('viz-label').innerText = `${dim} ${shapesMap[dim][firstKey]}`;
+
+            // Reset camera views dynamically for optimal dimension viewing perspective
+            if (dim === '1D') {
+                camera.position.set(0, 3, 12);
+            } else if (dim === '2D') {
+                camera.position.set(0, 0, 11);
+            } else {
+                camera.position.set(8, 7, 12);
+            }
+            controls.target.set(0,0,0);
+            controls.update();
+
+            updateCalculations();
+        }
+
+        function handleShapeChange() {
+            currentShape = document.getElementById('shape-select').value;
+            document.getElementById('viz-label').innerText = `${currentDimension} ${shapesMap[currentDimension][currentShape]}`;
+            updateCalculations();
+        }
+
+        // --- Window OnLoad Bootstrap ---
+        window.onload = function() {
+            initThreeJS();
+            selectDimension('1D'); // Setup default values
+        }
+    </script>
+</body>
+</html>

@@ -1,0 +1,1377 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Newtonian Dynamics & Third Law Masterclass</title>
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Google Fonts (Inter) -->
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=Fira+Code:wght@400;500&display=swap" rel="stylesheet">
+    <!-- FontAwesome for gorgeous icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    
+    <style>
+        body {
+            font-family: 'Inter', sans-serif;
+        }
+        .fira-code {
+            font-family: 'Fira Code', monospace;
+        }
+        /* Custom scrollbar styling for slick premium feel */
+        ::-webkit-scrollbar {
+            width: 6px;
+            height: 6px;
+        }
+        ::-webkit-scrollbar-track {
+            background: #1e293b;
+        }
+        ::-webkit-scrollbar-thumb {
+            background: #475569;
+            border-radius: 4px;
+        }
+        ::-webkit-scrollbar-thumb:hover {
+            background: #64748b;
+        }
+    </style>
+</head>
+<body class="bg-slate-950 text-slate-100 min-h-screen flex flex-col overflow-x-hidden">
+
+    <!-- Top Navigation Header -->
+    <header class="border-b border-slate-800 bg-slate-900/80 backdrop-blur sticky top-0 z-50 px-6 py-4 flex flex-col md:flex-row items-center justify-between gap-4">
+        <div class="flex items-center gap-3">
+            <div class="bg-indigo-600 text-white p-2.5 rounded-xl shadow-lg shadow-indigo-500/20 flex items-center justify-center">
+                <i class="fa-solid fa-layer-group text-xl animate-pulse"></i>
+            </div>
+            <div>
+                <h1 class="text-xl font-extrabold tracking-tight bg-gradient-to-r from-indigo-400 via-purple-400 to-pink-400 bg-clip-text text-transparent">
+                    Newtonian Dynamics &amp; Third Law Pairs
+                </h1>
+                <p class="text-xs text-slate-400">Interactive Multi-Body Friction Solver &amp; Guided Masterclass</p>
+            </div>
+        </div>
+        <div class="flex items-center gap-4">
+            <span class="px-3 py-1 bg-slate-800 border border-slate-700 text-slate-300 text-xs rounded-full font-medium flex items-center gap-1.5">
+                <span class="h-2 w-2 rounded-full bg-emerald-500 animate-ping"></span> Live Physics Solver Active
+            </span>
+            <button id="resetAllBtn" class="px-4 py-2 bg-slate-800 hover:bg-slate-700 text-slate-200 hover:text-white rounded-lg text-xs font-semibold tracking-wide transition-all duration-200 border border-slate-700 hover:border-slate-600 flex items-center gap-2">
+                <i class="fa-solid fa-arrow-rotate-left"></i> Reset Lab
+            </button>
+        </div>
+    </header>
+
+    <!-- Main Workspace Layout -->
+    <main class="flex-1 grid grid-cols-1 xl:grid-cols-12 overflow-hidden">
+
+        <!-- LEFT PANEL: Guided Educational Lecture (4 Columns) -->
+        <section class="xl:col-span-4 border-r border-slate-800 bg-slate-900/40 flex flex-col overflow-y-auto max-h-[calc(100vh-73px)]">
+            <!-- Educational Tab Selectors -->
+            <div class="flex border-b border-slate-800 bg-slate-950 p-2 gap-1 sticky top-0 z-10">
+                <button onclick="switchTab('system-tab')" id="btn-system-tab" class="lecture-tab flex-1 py-2 px-1.5 text-center text-xs font-bold rounded-lg transition-all bg-indigo-600/20 text-indigo-300 border border-indigo-500/30">
+                    <i class="fa-solid fa-shapes block text-sm mb-1"></i>
+                    1. Systems
+                </button>
+                <button onclick="switchTab('pairs-tab')" id="btn-pairs-tab" class="lecture-tab flex-1 py-2 px-1.5 text-center text-xs font-bold rounded-lg transition-all text-slate-400 hover:bg-slate-800/50 hover:text-slate-200">
+                    <i class="fa-solid fa-people-arrows block text-sm mb-1"></i>
+                    2. Pairs
+                </button>
+                <button onclick="switchTab('math-tab')" id="btn-math-tab" class="lecture-tab flex-1 py-2 px-1.5 text-center text-xs font-bold rounded-lg transition-all text-slate-400 hover:bg-slate-800/50 hover:text-slate-200">
+                    <i class="fa-solid fa-calculator block text-sm mb-1"></i>
+                    3. Derivation
+                </button>
+                <button onclick="switchTab('quiz-tab')" id="btn-quiz-tab" class="lecture-tab flex-1 py-2 px-1.5 text-center text-xs font-bold rounded-lg transition-all text-slate-400 hover:bg-slate-800/50 hover:text-slate-200">
+                    <i class="fa-solid fa-graduation-cap block text-sm mb-1"></i>
+                    4. Quiz
+                </button>
+            </div>
+
+            <!-- Tab Content Area -->
+            <div class="p-5 flex-1 flex flex-col space-y-6">
+
+                <!-- TAB 1: System Selection -->
+                <div id="content-system-tab" class="lecture-content space-y-4">
+                    <div class="bg-indigo-950/40 border border-indigo-800/30 p-4 rounded-xl">
+                        <h3 class="text-sm font-bold text-indigo-300 flex items-center gap-2 mb-2">
+                            <i class="fa-solid fa-circle-question"></i> System Decomposition
+                        </h3>
+                        <p class="text-xs text-slate-300 leading-relaxed">
+                            When dealing with multiple blocks, you can apply Newton's Laws by isolating different systems. Choosing the correct boundary defines which forces are <strong class="text-indigo-400">internal</strong> (cancelled out) versus <strong class="text-emerald-400">external</strong> (causing acceleration).
+                        </p>
+                    </div>
+
+                    <h4 class="text-xs font-bold uppercase tracking-wider text-slate-400 mt-4">Select system to highlight on FBD:</h4>
+                    
+                    <div class="grid grid-cols-1 gap-2.5">
+                        <!-- System A -->
+                        <button onclick="selectSystem('A')" id="sysABtn" class="system-btn p-3 bg-slate-800/60 hover:bg-slate-800 text-left rounded-xl border border-slate-700/60 transition-all flex items-start gap-3 group">
+                            <span class="px-2.5 py-1 bg-cyan-950 text-cyan-400 border border-cyan-800 text-xs font-bold rounded-lg mt-0.5">A</span>
+                            <div>
+                                <span class="text-sm font-bold block text-slate-200 group-hover:text-cyan-300 transition-colors">System A: Block 1 Only</span>
+                                <span class="text-xs text-slate-400 block mt-0.5">Includes friction from ground and the active push force. Block 2 acts externally on it via friction and normal downforce.</span>
+                            </div>
+                        </button>
+
+                        <!-- System B -->
+                        <button onclick="selectSystem('B')" id="sysBBtn" class="system-btn p-3 bg-slate-800/60 hover:bg-slate-800 text-left rounded-xl border border-slate-700/60 transition-all flex items-start gap-3 group">
+                            <span class="px-2.5 py-1 bg-amber-950 text-amber-400 border border-amber-800 text-xs font-bold rounded-lg mt-0.5">B</span>
+                            <div>
+                                <span class="text-sm font-bold block text-slate-200 group-hover:text-amber-300 transition-colors">System B: Block 2 Only</span>
+                                <span class="text-xs text-slate-400 block mt-0.5">The only horizontal force accelerating Block 2 forward is static friction from Block 1.</span>
+                            </div>
+                        </button>
+
+                        <!-- System C -->
+                        <button onclick="selectSystem('C')" id="sysCBtn" class="system-btn p-3 bg-slate-800/60 hover:bg-slate-800 text-left rounded-xl border border-slate-700/60 transition-all flex items-start gap-3 group">
+                            <span class="px-2.5 py-1 bg-purple-950 text-purple-400 border border-purple-800 text-xs font-bold rounded-lg mt-0.5">C</span>
+                            <div>
+                                <span class="text-sm font-bold block text-slate-200 group-hover:text-purple-300 transition-colors">System C: Combined (1 + 2)</span>
+                                <span class="text-xs text-slate-400 block mt-0.5">Treats blocks as a single rigid body of mass <span class="fira-code font-bold">m₁ + m₂</span>. Friction between 1 &amp; 2 becomes internal.</span>
+                            </div>
+                        </button>
+                    </div>
+
+                    <div class="mt-4 p-3 bg-slate-800/30 rounded-xl border border-slate-700/40">
+                        <h4 class="text-xs font-bold text-slate-300 flex items-center gap-1.5 mb-1">
+                            <i class="fa-solid fa-lightbulb text-amber-400"></i> Instructor Pro Tip:
+                        </h4>
+                        <p class="text-xs text-slate-400 leading-relaxed">
+                            Watch how the highlights change on the simulation block grid when you switch systems. Notice that when System C is selected, the interface forces between Block 1 and Block 2 vanish from the combined equation.
+                        </p>
+                    </div>
+                </div>
+
+                <!-- TAB 2: Action-Reaction Pairs -->
+                <div id="content-pairs-tab" class="lecture-content hidden space-y-4">
+                    <div class="bg-purple-950/40 border border-purple-800/30 p-4 rounded-xl">
+                        <h3 class="text-sm font-bold text-purple-300 flex items-center gap-2 mb-2">
+                            <i class="fa-solid fa-people-arrows"></i> Newton's Third Law Pairs
+                        </h3>
+                        <p class="text-xs text-slate-300 leading-relaxed">
+                            Forces always occur in <strong class="text-purple-400">equal and opposite</strong> interaction pairs. Each pair involves the exact same two objects interacting.
+                        </p>
+                    </div>
+
+                    <h4 class="text-xs font-bold uppercase tracking-wider text-slate-400 mt-2">Identify the Interaction Pairs:</h4>
+
+                    <!-- Normal Force Pair Card -->
+                    <div class="bg-slate-800/50 p-4 rounded-xl border border-slate-700/50 hover:border-indigo-500/30 transition-all">
+                        <div class="flex items-center justify-between mb-2">
+                            <span class="text-xs font-extrabold px-2.5 py-1 rounded bg-indigo-950 text-indigo-400 border border-indigo-900">PAIR 1: Contact Normal Force</span>
+                            <button onclick="highlightPair('normal')" class="text-[11px] font-bold text-indigo-400 hover:text-indigo-300 flex items-center gap-1">
+                                <i class="fa-solid fa-eye"></i> Highlight
+                            </button>
+                        </div>
+                        <p class="text-xs text-slate-300 leading-relaxed mb-3">
+                            Block 1 pushes upward on Block 2 to support its weight (<span class="text-indigo-400 font-semibold font-mono">N₁₂</span>). Simultaneously, Block 2 pushes down on Block 1 with an equal magnitude force (<span class="text-indigo-400 font-semibold font-mono font-mono">N₂₁</span>).
+                        </p>
+                        <div class="bg-slate-900/60 p-2.5 rounded-lg fira-code text-xs text-indigo-300 border border-slate-800 text-center">
+                            N₁₂ = N₂₁ = m₂ · g
+                        </div>
+                    </div>
+
+                    <!-- Friction Force Pair Card -->
+                    <div class="bg-slate-800/50 p-4 rounded-xl border border-slate-700/50 hover:border-amber-500/30 transition-all">
+                        <div class="flex items-center justify-between mb-2">
+                            <span class="text-xs font-extrabold px-2.5 py-1 rounded bg-amber-950 text-amber-400 border border-amber-900">PAIR 2: Inter-block Friction</span>
+                            <button onclick="highlightPair('friction')" class="text-[11px] font-bold text-amber-400 hover:text-amber-300 flex items-center gap-1">
+                                <i class="fa-solid fa-eye"></i> Highlight
+                            </button>
+                        </div>
+                        <p class="text-xs text-slate-300 leading-relaxed mb-3">
+                            When Block 1 is pushed right, Block 2 has a tendency to slide backward relative to Block 1. Block 1 exerts static/kinetic friction forward on Block 2 (<span class="text-amber-400 font-semibold font-mono">f₁₂</span>), while Block 2 exerts an equal and opposite friction backward on Block 1 (<span class="text-amber-400 font-semibold font-mono font-mono">f₂₁</span>).
+                        </p>
+                        <div class="bg-slate-900/60 p-2.5 rounded-lg fira-code text-xs text-amber-300 border border-slate-800 text-center">
+                            f₁₂ = f₂₁ &le; &mu;<sub>s</sub> · m₂ · g
+                        </div>
+                    </div>
+
+                    <div class="p-3 bg-amber-950/30 border border-amber-900/30 rounded-xl flex gap-2">
+                        <i class="fa-solid fa-circle-info text-amber-400 mt-0.5 text-xs"></i>
+                        <p class="text-[11px] text-amber-300 leading-relaxed">
+                            <strong>Note:</strong> Gravity and Ground Normal are <em>not</em> action-reaction pairs because they act on the same block. Ground Normal's reaction partner is Block 1 pushing down on the earth!
+                        </p>
+                    </div>
+                </div>
+
+                <!-- TAB 3: Mathematical Derivation & Dynamic Calculator -->
+                <div id="content-math-tab" class="lecture-content hidden space-y-4">
+                    <div class="bg-emerald-950/40 border border-emerald-800/30 p-4 rounded-xl">
+                        <h3 class="text-sm font-bold text-emerald-300 flex items-center gap-2 mb-2">
+                            <i class="fa-solid fa-square-root-variable"></i> Slip Threshold Derivation
+                        </h3>
+                        <p class="text-xs text-slate-300 leading-relaxed">
+                            How do we calculate the absolute maximum force <span class="fira-code font-bold text-emerald-400">F<sub>max</sub></span> we can apply before slipping occurs? Let's walk through the math.
+                        </p>
+                    </div>
+
+                    <!-- Step 1 Math -->
+                    <div class="border-l-2 border-slate-700 pl-3 space-y-1.5">
+                        <span class="text-[10px] font-bold tracking-wider text-slate-500 uppercase">Step 1: Maximum acceleration of Block 2</span>
+                        <p class="text-xs text-slate-300 leading-relaxed">
+                            Block 2 is only accelerated by the friction force from Block 1. The maximum possible static friction force is:
+                        </p>
+                        <div class="bg-slate-950 p-2 rounded fira-code text-[11px] text-slate-300 text-center border border-slate-800">
+                            f<sub>s,max</sub> = &mu;<sub>s</sub> · m₂ · g
+                        </div>
+                        <p class="text-xs text-slate-400">
+                            Applying Newton's 2nd Law for Block 2:
+                        </p>
+                        <div class="bg-slate-950 p-2 rounded fira-code text-[11px] text-emerald-400 text-center border border-slate-800 font-bold">
+                            a<sub>max</sub> = f<sub>s,max</sub> / m₂ = &mu;<sub>s</sub> · g
+                        </div>
+                    </div>
+
+                    <!-- Step 2 Math -->
+                    <div class="border-l-2 border-slate-700 pl-3 space-y-1.5 mt-4">
+                        <span class="text-[10px] font-bold tracking-wider text-slate-500 uppercase">Step 2: No-slip unified motion condition</span>
+                        <p class="text-xs text-slate-300 leading-relaxed">
+                            To avoid slipping, the acceleration of the entire combined system cannot exceed <span class="fira-code font-bold text-emerald-400">a<sub>max</sub></span>.
+                        </p>
+                        <p class="text-xs text-slate-300 leading-relaxed">
+                            Considering System C (Both Blocks):
+                        </p>
+                        <div class="bg-slate-950 p-2 rounded fira-code text-[11px] text-slate-300 text-center border border-slate-800">
+                            F - f<sub>k,ground</sub> = (m₁ + m₂) · a
+                        </div>
+                        <p class="text-xs text-slate-400">
+                            Where ground friction is kinetic: <span class="fira-code">f<sub>k,ground</sub> = &mu;<sub>g</sub> · (m₁ + m₂) · g</span>.
+                        </p>
+                    </div>
+
+                    <!-- Step 3 Math -->
+                    <div class="border-l-2 border-emerald-600 pl-3 space-y-1.5 mt-4">
+                        <span class="text-[10px] font-bold tracking-wider text-emerald-500 uppercase">Step 3: Solve for Maximum Force</span>
+                        <p class="text-xs text-slate-300 leading-relaxed">
+                            Set <span class="fira-code">a = a<sub>max</sub></span> and substitute back:
+                        </p>
+                        <div class="bg-emerald-950/20 p-3 rounded-lg fira-code text-xs text-emerald-300 border border-emerald-500/30 text-center font-bold">
+                            F<sub>max</sub> = (m₁ + m₂) · g · (&mu;<sub>s</sub> + &mu;<sub>g</sub>)
+                        </div>
+                    </div>
+
+                    <!-- Live Plug-In Parameters Solver -->
+                    <div class="bg-slate-950/60 rounded-xl border border-slate-800 p-4 space-y-2.5">
+                        <h4 class="text-xs font-bold uppercase tracking-wider text-slate-400 flex items-center gap-1.5">
+                            <span class="h-2 w-2 rounded-full bg-emerald-500"></span> Live Slider Calculation
+                        </h4>
+                        <div class="text-[11px] text-slate-300 space-y-1.5 fira-code">
+                            <div class="flex justify-between">
+                                <span class="text-slate-400">Combined Mass (m₁+m₂):</span>
+                                <span id="math-mass">4.5 kg</span>
+                            </div>
+                            <div class="flex justify-between">
+                                <span class="text-slate-400">Total friction coeff (&mu;<sub>s</sub>+&mu;<sub>g</sub>):</span>
+                                <span id="math-coeffs">0.70</span>
+                            </div>
+                            <div class="flex justify-between">
+                                <span class="text-slate-400">Gravity (g):</span>
+                                <span class="text-slate-500">9.81 m/s²</span>
+                            </div>
+                            <hr class="border-slate-800 my-1">
+                            <div class="flex justify-between text-xs font-bold text-emerald-400 bg-emerald-950/40 p-2 rounded">
+                                <span>Calculated F_max:</span>
+                                <span id="math-result">30.90 N</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- TAB 4: Student Comprehension Quiz -->
+                <div id="content-quiz-tab" class="lecture-content hidden space-y-4">
+                    <div class="bg-blue-950/40 border border-blue-800/30 p-4 rounded-xl">
+                        <h3 class="text-sm font-bold text-blue-300 flex items-center gap-2 mb-2">
+                            <i class="fa-solid fa-graduation-cap"></i> Check Your Understanding
+                        </h3>
+                        <p class="text-xs text-slate-300 leading-relaxed">
+                            Verify your intuitive understanding of these physical systems. Correct responses unlock expert insight badges!
+                        </p>
+                    </div>
+
+                    <!-- Question 1 -->
+                    <div id="quiz-q1" class="bg-slate-800/40 p-3.5 rounded-xl border border-slate-700/50 space-y-3">
+                        <span class="text-[10px] font-extrabold text-blue-400 tracking-wide uppercase">Question 1</span>
+                        <p class="text-xs font-semibold text-slate-200">
+                            What specific force directly accelerates Block 2 forward (to the right)?
+                        </p>
+                        <div class="grid grid-cols-1 gap-1.5 text-xs">
+                            <button onclick="answerQuiz(1, 'A', false)" class="quiz-option-1 p-2 bg-slate-900/60 hover:bg-slate-900 text-left rounded-lg text-slate-300 hover:text-white transition-all border border-slate-800">
+                                A) The applied external force <span class="font-bold">F</span>.
+                            </button>
+                            <button onclick="answerQuiz(1, 'B', true)" class="quiz-option-1 p-2 bg-slate-900/60 hover:bg-slate-900 text-left rounded-lg text-slate-300 hover:text-white transition-all border border-slate-800">
+                                B) The static friction force <span class="font-bold">f₁₂</span> exerted by Block 1.
+                            </button>
+                            <button onclick="answerQuiz(1, 'C', false)" class="quiz-option-1 p-2 bg-slate-900/60 hover:bg-slate-900 text-left rounded-lg text-slate-300 hover:text-white transition-all border border-slate-800">
+                                C) The normal force <span class="font-bold">N₁₂</span> supporting Block 2.
+                            </button>
+                        </div>
+                        <div id="quiz-explain-1" class="text-[11px] text-slate-400 mt-2 hidden leading-relaxed"></div>
+                    </div>
+
+                    <!-- Question 2 -->
+                    <div id="quiz-q2" class="bg-slate-800/40 p-3.5 rounded-xl border border-slate-700/50 space-y-3">
+                        <span class="text-[10px] font-extrabold text-blue-400 tracking-wide uppercase">Question 2</span>
+                        <p class="text-xs font-semibold text-slate-200">
+                            If you double the mass of Block 2 (m₂), how does the maximum no-slip force <span class="font-bold">F<sub>max</sub></span> change?
+                        </p>
+                        <div class="grid grid-cols-1 gap-1.5 text-xs">
+                            <button onclick="answerQuiz(2, 'A', true)" class="quiz-option-2 p-2 bg-slate-900/60 hover:bg-slate-900 text-left rounded-lg text-slate-300 hover:text-white transition-all border border-slate-800">
+                                A) It increases.
+                            </button>
+                            <button onclick="answerQuiz(2, 'B', false)" class="quiz-option-2 p-2 bg-slate-900/60 hover:bg-slate-900 text-left rounded-lg text-slate-300 hover:text-white transition-all border border-slate-800">
+                                B) It decreases.
+                            </button>
+                            <button onclick="answerQuiz(2, 'C', false)" class="quiz-option-2 p-2 bg-slate-900/60 hover:bg-slate-900 text-left rounded-lg text-slate-300 hover:text-white transition-all border border-slate-800">
+                                C) It stays exactly the same.
+                            </button>
+                        </div>
+                        <div id="quiz-explain-2" class="text-[11px] text-slate-400 mt-2 hidden leading-relaxed"></div>
+                    </div>
+                </div>
+
+            </div>
+        </section>
+
+        <!-- MIDDLE PANEL: Infinite Scroll Physics Canvas & Controls (5 Columns) -->
+        <section class="xl:col-span-5 border-r border-slate-800 bg-slate-950 flex flex-col min-h-[500px]">
+            
+            <!-- Canvas Header Stats Info -->
+            <div class="px-5 py-3 bg-slate-900/30 border-b border-slate-800/80 flex justify-between items-center text-xs">
+                <span class="font-bold text-slate-300 flex items-center gap-1.5">
+                    <i class="fa-solid fa-gauge-high text-indigo-400"></i> VIEWPORT SIMULATOR
+                </span>
+                <div class="flex items-center gap-4">
+                    <span id="slipStatusBadge" class="px-2.5 py-0.5 bg-emerald-950/60 text-emerald-400 border border-emerald-800/60 rounded font-semibold text-[10px] tracking-wide uppercase">
+                        Stationary
+                    </span>
+                    <label class="flex items-center gap-1.5 text-[11px] text-slate-400 cursor-pointer">
+                        <input id="showFbdCheckbox" type="checkbox" checked class="rounded border-slate-700 text-indigo-600 bg-slate-800 focus:ring-0 focus:ring-offset-0">
+                        Show Vectors
+                    </label>
+                </div>
+            </div>
+
+            <!-- Main Interactive Canvas Viewport -->
+            <div class="flex-1 relative bg-slate-950 min-h-[300px]">
+                <canvas id="physicsCanvas" class="w-full h-full block absolute inset-0"></canvas>
+                
+                <!-- Action-Reaction Interactive Link Badge Overlay -->
+                <div id="thirdLawBeamBadge" class="absolute bottom-6 left-1/2 -translate-x-1/2 px-3 py-1 bg-purple-950/90 text-purple-300 border border-purple-500/40 rounded-full text-[10px] font-extrabold flex items-center gap-1.5 shadow-lg tracking-wider pointer-events-none transition-opacity duration-300 opacity-0">
+                    <i class="fa-solid fa-link text-purple-400 animate-spin-slow"></i> THIRD LAW INTERACTION PAIR
+                </div>
+            </div>
+
+            <!-- Live Physics Telemetry Readouts -->
+            <div class="grid grid-cols-3 border-t border-b border-slate-800 bg-slate-900/20 py-2.5 px-4 text-center">
+                <div class="border-r border-slate-800/60">
+                    <span class="text-[10px] text-slate-500 uppercase tracking-wider block">Block 1 Vel</span>
+                    <span id="tel-v1" class="text-sm font-bold font-mono text-cyan-400">0.00 m/s</span>
+                </div>
+                <div class="border-r border-slate-800/60">
+                    <span class="text-[10px] text-slate-500 uppercase tracking-wider block">Block 2 Vel</span>
+                    <span id="tel-v2" class="text-sm font-bold font-mono text-amber-400">0.00 m/s</span>
+                </div>
+                <div>
+                    <span class="text-[10px] text-slate-500 uppercase tracking-wider block">Relative Velocity</span>
+                    <span id="tel-vrel" class="text-sm font-bold font-mono text-slate-400">0.00 m/s</span>
+                </div>
+            </div>
+
+            <!-- Sim Speed, Controls & Triggers -->
+            <div class="p-4 bg-slate-900/40 flex flex-col sm:flex-row items-center justify-between gap-4">
+                <!-- Playback Control Buttons -->
+                <div class="flex items-center gap-2">
+                    <button id="playPauseBtn" class="h-10 px-5 bg-indigo-600 hover:bg-indigo-500 text-white font-bold rounded-xl text-xs tracking-wider transition-all shadow-md shadow-indigo-600/10 hover:shadow-indigo-500/20 active:scale-95 flex items-center gap-1.5">
+                        <i class="fa-solid fa-play"></i> <span>Start Sim</span>
+                    </button>
+                    <button id="stepBtn" class="h-10 w-10 bg-slate-800 hover:bg-slate-700 text-slate-200 hover:text-white rounded-xl transition-all border border-slate-700 hover:border-slate-600 flex items-center justify-center text-xs" title="Step Frame">
+                        <i class="fa-solid fa-forward-step"></i>
+                    </button>
+                    <button id="restartBtn" class="h-10 px-4 bg-slate-800 hover:bg-slate-700 text-slate-200 hover:text-white rounded-xl text-xs transition-all border border-slate-700 flex items-center gap-1.5" title="Reset Positions">
+                        <i class="fa-solid fa-backward"></i> Reset
+                    </button>
+                </div>
+
+                <!-- Special Action Triggers -->
+                <div class="flex items-center gap-2 w-full sm:w-auto">
+                    <!-- Ramp Force Sweep Button -->
+                    <button id="sweepBtn" class="h-10 flex-1 sm:flex-initial px-4 bg-purple-950 hover:bg-purple-900 border border-purple-800 text-purple-300 rounded-xl text-xs font-bold transition-all flex items-center justify-center gap-1.5 group">
+                        <i class="fa-solid fa-wand-magic-sparkles text-purple-400 group-hover:rotate-12 transition-transform"></i>
+                        <span>Force Sweep Mode</span>
+                    </button>
+                </div>
+            </div>
+        </section>
+
+        <!-- RIGHT PANEL: Parameters, Sliders & Telemetry (3 Columns) -->
+        <section class="xl:col-span-3 bg-slate-900/60 p-5 flex flex-col overflow-y-auto max-h-[calc(100vh-73px)] space-y-5">
+            
+            <!-- Parameters Section Header -->
+            <div class="flex items-center gap-1.5 border-b border-slate-800 pb-3">
+                <i class="fa-solid fa-sliders text-indigo-400"></i>
+                <h3 class="text-xs font-extrabold uppercase tracking-widest text-slate-300">Lab Parameters</h3>
+            </div>
+
+            <!-- Mass Controls Group -->
+            <div class="space-y-4">
+                <span class="text-[10px] font-extrabold tracking-wider text-slate-400 uppercase block">Mass Properties</span>
+                
+                <!-- Bottom Block m1 -->
+                <div class="space-y-1.5 bg-slate-800/40 p-3 rounded-xl border border-slate-800">
+                    <div class="flex justify-between items-center text-xs font-semibold">
+                        <label for="m1Slider" class="text-slate-300">m₁ (Bottom Block):</label>
+                        <span id="m1Val" class="text-indigo-400 font-mono">3.0 kg</span>
+                    </div>
+                    <input id="m1Slider" type="range" min="1.0" max="10.0" step="0.5" value="3.0" class="w-full h-1.5 bg-slate-950 rounded-lg appearance-none cursor-pointer accent-indigo-500">
+                </div>
+
+                <!-- Top Block m2 -->
+                <div class="space-y-1.5 bg-slate-800/40 p-3 rounded-xl border border-slate-800">
+                    <div class="flex justify-between items-center text-xs font-semibold">
+                        <label for="m2Slider" class="text-slate-300">m₂ (Top Block):</label>
+                        <span id="m2Val" class="text-amber-400 font-mono">1.5 kg</span>
+                    </div>
+                    <input id="m2Slider" type="range" min="0.5" max="5.0" step="0.1" value="1.5" class="w-full h-1.5 bg-slate-950 rounded-lg appearance-none cursor-pointer accent-amber-500">
+                </div>
+            </div>
+
+            <!-- Friction Controls Group -->
+            <div class="space-y-4 pt-2">
+                <span class="text-[10px] font-extrabold tracking-wider text-slate-400 uppercase block">Friction Interfaces</span>
+
+                <!-- Ground Friction -->
+                <div class="space-y-1.5 bg-slate-800/40 p-3 rounded-xl border border-slate-800">
+                    <div class="flex justify-between items-center text-xs font-semibold">
+                        <label for="muGSlider" class="text-slate-300">&mu;<sub>g</sub> (Ground Friction):</label>
+                        <span id="muGVal" class="text-slate-300 font-mono">0.20</span>
+                    </div>
+                    <input id="muGSlider" type="range" min="0.0" max="1.0" step="0.05" value="0.20" class="w-full h-1.5 bg-slate-950 rounded-lg appearance-none cursor-pointer accent-slate-400">
+                </div>
+
+                <!-- Block 1 & 2 Static Friction -->
+                <div class="space-y-1.5 bg-slate-800/40 p-3 rounded-xl border border-slate-800">
+                    <div class="flex justify-between items-center text-xs font-semibold">
+                        <label for="muSSlider" class="text-slate-300">&mu;<sub>s</sub> (Inter-block Static):</label>
+                        <span id="muSVal" class="text-purple-400 font-mono">0.50</span>
+                    </div>
+                    <input id="muSSlider" type="range" min="0.1" max="1.0" step="0.05" value="0.50" class="w-full h-1.5 bg-slate-950 rounded-lg appearance-none cursor-pointer accent-purple-500">
+                </div>
+
+                <!-- Block 1 & 2 Kinetic Friction -->
+                <div class="space-y-1.5 bg-slate-800/40 p-3 rounded-xl border border-slate-800">
+                    <div class="flex justify-between items-center text-xs font-semibold">
+                        <label for="muKSlider" class="text-slate-300">&mu;<sub>k</sub> (Inter-block Kinetic):</label>
+                        <span id="muKVal" class="text-rose-400 font-mono">0.35</span>
+                    </div>
+                    <input id="muKSlider" type="range" min="0.05" max="0.95" step="0.05" value="0.35" class="w-full h-1.5 bg-slate-950 rounded-lg appearance-none cursor-pointer accent-rose-500">
+                </div>
+            </div>
+
+            <!-- Pushing Force -->
+            <div class="space-y-4 pt-2">
+                <span class="text-[10px] font-extrabold tracking-wider text-slate-400 uppercase block">Active Excitation</span>
+
+                <div class="space-y-1.5 bg-emerald-950/20 p-3.5 rounded-xl border border-emerald-800/30">
+                    <div class="flex justify-between items-center text-xs font-bold">
+                        <label for="fSlider" class="text-emerald-300">Pushing Force (F):</label>
+                        <span id="fVal" class="text-emerald-400 font-mono">25.0 N</span>
+                    </div>
+                    <input id="fSlider" type="range" min="0" max="150" step="1" value="25" class="w-full h-1.5 bg-slate-950 rounded-lg appearance-none cursor-pointer accent-emerald-500">
+                </div>
+            </div>
+
+            <!-- Mini Live Graphs Area -->
+            <div class="space-y-3 pt-4 border-t border-slate-800">
+                <span class="text-[10px] font-extrabold tracking-wider text-slate-400 uppercase block">Friction vs Applied Force Graph</span>
+                <div class="bg-slate-950 rounded-xl border border-slate-800 p-2.5 h-[140px] relative">
+                    <canvas id="telemetryGraph" class="w-full h-full block"></canvas>
+                </div>
+                <div class="flex justify-between text-[10px] text-slate-500 px-1 font-semibold">
+                    <span>F = 0</span>
+                    <span class="text-purple-400">Current Slip: <span id="slipPctVal">0</span>%</span>
+                    <span>150 N</span>
+                </div>
+            </div>
+
+        </section>
+    </main>
+
+    <!-- Custom scripts for physics engine, interface animations, and quiz logic -->
+    <script>
+        // Physics and simulation state variables
+        const g = 9.81; // Gravity constant
+        let m1 = 3.0;   // Mass of bottom block (kg)
+        let m2 = 1.5;   // Mass of top block (kg)
+        let mu_g = 0.20; // Ground friction coefficient
+        let mu_s = 0.50; // Inter-block static coefficient
+        let mu_k = 0.35; // Inter-block kinetic coefficient
+        let F = 25.0;    // Applied push force (N)
+
+        // Kinematics coordinates
+        let x1 = 150.0;  // Horizontal position of block 1 (pixels)
+        let x2 = 150.0;  // Horizontal position of block 2 (pixels)
+        let v1 = 0.0;    // Velocity of block 1 (m/s)
+        let v2 = 0.0;    // Velocity of block 2 (m/s)
+        let a1 = 0.0;    // Acceleration of block 1 (m/s²)
+        let a2 = 0.0;    // Acceleration of block 2 (m/s²)
+        let f12 = 0.0;   // Friction force between block 1 and block 2 (N)
+        let fg = 0.0;    // Friction force from ground (N)
+
+        // Render system visualization settings
+        let currentSystem = 'C'; // Initial selected boundary system (C = Both Blocks)
+        let activeHighlightPair = null; // Currently visually highlighted pair ('normal', 'friction', null)
+        let showFbd = true; // Flag to draw vector arrows
+        let isSimRunning = false; // Playing state of simulation loop
+        let isSweepRunning = false; // Is the automatic sweep force mode executing?
+        let sweepProgress = 0; // Sweep force progress state
+
+        // Dynamic coordinate systems tracking
+        let scrollOffset = 0; // Landscape camera offset to keep blocks centered
+        let physicsTime = 0.0; // Running simulation time
+
+        // Graph data history
+        const graphData = [];
+        const maxGraphPoints = 200;
+
+        // Initialize elements on load
+        window.onload = function() {
+            initUi();
+            setupSimulation();
+            requestAnimationFrame(animationLoop);
+        };
+
+        // UI Initialization & Event binding
+        function initUi() {
+            // Slider elements
+            const m1Slider = document.getElementById('m1Slider');
+            const m2Slider = document.getElementById('m2Slider');
+            const muGSlider = document.getElementById('muGSlider');
+            const muSSlider = document.getElementById('muSSlider');
+            const muKSlider = document.getElementById('muKSlider');
+            const fSlider = document.getElementById('fSlider');
+
+            // Text display panels
+            const m1Val = document.getElementById('m1Val');
+            const m2Val = document.getElementById('m2Val');
+            const muGVal = document.getElementById('muGVal');
+            const muSVal = document.getElementById('muSVal');
+            const muKVal = document.getElementById('muKVal');
+            const fVal = document.getElementById('fVal');
+
+            // Bind values & calculations immediately
+            const updateSlidersText = () => {
+                m1Val.textContent = parseFloat(m1Slider.value).toFixed(1) + " kg";
+                m2Val.textContent = parseFloat(m2Slider.value).toFixed(1) + " kg";
+                muGVal.textContent = parseFloat(muGSlider.value).toFixed(2);
+                muSVal.textContent = parseFloat(muSSlider.value).toFixed(2);
+                muKVal.textContent = parseFloat(muKSlider.value).toFixed(2);
+                fVal.textContent = parseFloat(fSlider.value).toFixed(1) + " N";
+                
+                m1 = parseFloat(m1Slider.value);
+                m2 = parseFloat(m2Slider.value);
+                mu_g = parseFloat(muGSlider.value);
+                mu_s = parseFloat(muSSlider.value);
+                mu_k = parseFloat(muKSlider.value);
+                F = parseFloat(fSlider.value);
+
+                // Safety constraint: kinetic friction cannot mathematically exceed static
+                if (mu_k > mu_s) {
+                    mu_k = mu_s;
+                    muKSlider.value = mu_s;
+                    muKVal.textContent = mu_s.toFixed(2);
+                }
+
+                recalculateDerivation();
+            };
+
+            // Bind input events for fluid feedback
+            [m1Slider, m2Slider, muGSlider, muSSlider, muKSlider, fSlider].forEach(slider => {
+                slider.addEventListener('input', updateSlidersText);
+            });
+
+            // Playback controls
+            const playPauseBtn = document.getElementById('playPauseBtn');
+            const stepBtn = document.getElementById('stepBtn');
+            const restartBtn = document.getElementById('restartBtn');
+            const resetAllBtn = document.getElementById('resetAllBtn');
+            const sweepBtn = document.getElementById('sweepBtn');
+
+            playPauseBtn.addEventListener('click', () => {
+                isSimRunning = !isSimRunning;
+                if (isSimRunning) {
+                    playPauseBtn.innerHTML = `<i class="fa-solid fa-pause"></i> <span>Pause Sim</span>`;
+                    playPauseBtn.classList.replace('bg-indigo-600', 'bg-amber-600');
+                    playPauseBtn.classList.replace('hover:bg-indigo-500', 'hover:bg-amber-500');
+                    // Stop sweep if running manually
+                    if (isSweepRunning) stopSweep();
+                } else {
+                    playPauseBtn.innerHTML = `<i class="fa-solid fa-play"></i> <span>Start Sim</span>`;
+                    playPauseBtn.classList.replace('bg-amber-600', 'bg-indigo-600');
+                    playPauseBtn.classList.replace('hover:bg-amber-500', 'hover:bg-indigo-500');
+                }
+            });
+
+            stepBtn.addEventListener('click', () => {
+                isSimRunning = false;
+                playPauseBtn.innerHTML = `<i class="fa-solid fa-play"></i> <span>Start Sim</span>`;
+                playPauseBtn.classList.replace('bg-amber-600', 'bg-indigo-600');
+                stepPhysics(0.016); // step 1 frame (~60 FPS)
+            });
+
+            restartBtn.addEventListener('click', resetPositions);
+            resetAllBtn.addEventListener('click', resetAll);
+            
+            sweepBtn.addEventListener('click', () => {
+                if (isSweepRunning) {
+                    stopSweep();
+                } else {
+                    startSweep();
+                }
+            });
+
+            // FBD checkbox toggle
+            const showFbdCheckbox = document.getElementById('showFbdCheckbox');
+            showFbdCheckbox.addEventListener('change', (e) => {
+                showFbd = e.target.checked;
+            });
+
+            updateSlidersText();
+            selectSystem('C'); // Default to C
+        }
+
+        // System & UI Tab toggles
+        function switchTab(tabId) {
+            document.querySelectorAll('.lecture-tab').forEach(btn => {
+                btn.className = "lecture-tab flex-1 py-2 px-1.5 text-center text-xs font-bold rounded-lg transition-all text-slate-400 hover:bg-slate-800/50 hover:text-slate-200";
+            });
+            document.querySelectorAll('.lecture-content').forEach(content => {
+                content.classList.add('hidden');
+            });
+
+            const activeBtn = document.getElementById('btn-' + tabId);
+            activeBtn.className = "lecture-tab flex-1 py-2 px-1.5 text-center text-xs font-bold rounded-lg transition-all bg-indigo-600/20 text-indigo-300 border border-indigo-500/30";
+            document.getElementById('content-' + tabId).classList.remove('hidden');
+
+            // Set contextual boundary states automatically
+            if (tabId === 'pairs-tab') {
+                currentSystem = 'None';
+            } else if (tabId === 'system-tab') {
+                currentSystem = 'C';
+                updateSystemButtons();
+            }
+        }
+
+        function selectSystem(sysType) {
+            currentSystem = sysType;
+            updateSystemButtons();
+            activeHighlightPair = null;
+        }
+
+        function updateSystemButtons() {
+            const btns = {
+                'A': document.getElementById('sysABtn'),
+                'B': document.getElementById('sysBBtn'),
+                'C': document.getElementById('sysCBtn')
+            };
+
+            // Reset classes
+            Object.keys(btns).forEach(key => {
+                if (!btns[key]) return;
+                btns[key].className = "system-btn p-3 bg-slate-800/60 hover:bg-slate-800 text-left rounded-xl border border-slate-700/60 transition-all flex items-start gap-3 group";
+            });
+
+            // Select active class
+            if (btns[currentSystem]) {
+                const borderClass = currentSystem === 'A' ? 'border-cyan-500 bg-cyan-950/20' : 
+                                    currentSystem === 'B' ? 'border-amber-500 bg-amber-950/20' : 
+                                                            'border-purple-500 bg-purple-950/20';
+                btns[currentSystem].className = `system-btn p-3 ${borderClass} text-left rounded-xl border transition-all flex items-start gap-3 group`;
+            }
+        }
+
+        function highlightPair(pairType) {
+            currentSystem = 'None';
+            updateSystemButtons();
+            activeHighlightPair = pairType;
+            
+            // Visual pulse overlay
+            const badge = document.getElementById('thirdLawBeamBadge');
+            badge.style.opacity = '1';
+            setTimeout(() => {
+                badge.style.opacity = '0';
+            }, 3000);
+        }
+
+        // Calculations & Algebraic plug-in live calculations
+        function recalculateDerivation() {
+            const combinedMass = m1 + m2;
+            const totalFrictionCombined = mu_s + mu_g;
+            const maxPushForce = combinedMass * g * totalFrictionCombined;
+
+            document.getElementById('math-mass').textContent = combinedMass.toFixed(1) + " kg";
+            document.getElementById('math-coeffs').textContent = totalFrictionCombined.toFixed(2);
+            document.getElementById('math-result').textContent = maxPushForce.toFixed(2) + " N";
+        }
+
+        // Main integration mechanics solver
+        function stepPhysics(dt) {
+            // Gravity vector acceleration elements
+            const N12 = m2 * g;
+            const Ng1 = (m1 + m2) * g;
+
+            // Maximum bounds
+            const f12_static_max = mu_s * N12;
+            const f12_kinetic = mu_k * N12;
+            const fg_kinetic = mu_g * Ng1;
+            const fg_static_max = mu_g * Ng1;
+
+            const VEL_THRESHOLD = 0.01;
+            // Are they locked (moving with similar velocity)?
+            const isLocked = Math.abs(v1 - v2) < VEL_THRESHOLD;
+
+            if (isLocked) {
+                // If locked, we sync velocities conserving momentum
+                const avgV = (v1 * m1 + v2 * m2) / (m1 + m2);
+                v1 = avgV;
+                v2 = avgV;
+
+                if (Math.abs(v1) < VEL_THRESHOLD && F <= fg_static_max) {
+                    // Static lock on ground. Forces are perfectly balanced
+                    a1 = 0;
+                    a2 = 0;
+                    fg = F;
+                    f12 = 0;
+                    v1 = 0;
+                    v2 = 0;
+                } else {
+                    // Moving together without relative slipping
+                    const dirG = v1 > 0 ? 1 : (F > 0 ? 1 : -1);
+                    fg = dirG * fg_kinetic;
+
+                    const a_together = (F - fg) / (m1 + m2);
+                    const f12_req = m2 * a_together;
+
+                    if (Math.abs(f12_req) <= f12_static_max) {
+                        // Hypothesis confirmed: static friction supports acceleration without slip
+                        a1 = a_together;
+                        a2 = a_together;
+                        f12 = f12_req;
+                    } else {
+                        // Slip starts! Accelerations branch out
+                        const slipDir = a_together > 0 ? 1 : -1;
+                        f12 = slipDir * f12_kinetic;
+
+                        a2 = f12 / m2;
+                        a1 = (F - fg - f12) / m1;
+                    }
+                }
+            } else {
+                // Already slipping relative to each other
+                const fg_dir = v1 > 0 ? 1 : (v1 < 0 ? -1 : (F > 0 ? 1 : -1));
+                fg = fg_dir * fg_kinetic;
+
+                const relVel = v1 - v2;
+                const f12_dir = relVel > 0 ? 1 : -1;
+                f12 = f12_dir * f12_kinetic;
+
+                a1 = (F - fg - f12) / m1;
+                a2 = f12 / m2;
+
+                // Check crossing event (locking recovery)
+                const prevRelVel = v1 - v2;
+                const nextRelVel = (v1 + a1 * dt) - (v2 + a2 * dt);
+                
+                if (prevRelVel * nextRelVel <= 0) {
+                    // Relative direction crossed. Conserve momentum and merge velocities
+                    const avgV = (v1 * m1 + v2 * m2) / (m1 + m2);
+                    v1 = avgV;
+                    v2 = avgV;
+                }
+            }
+
+            // Integrate kinematics variables
+            v1 += a1 * dt;
+            v2 += a2 * dt;
+            x1 += v1 * dt * 50; // multiply by scaling factor for elegant display rendering
+            x2 += v2 * dt * 50;
+
+            // Deceleration friction limits
+            if (Math.abs(v1) < VEL_THRESHOLD && Math.abs(a1) < 0.05) v1 = 0;
+            if (Math.abs(v2) < VEL_THRESHOLD && Math.abs(a2) < 0.05) v2 = 0;
+
+            // Camera infinite landscape scroll tracking
+            scrollOffset = x1 - 150.0;
+
+            physicsTime += dt;
+            updateTelemetryDisplay(isLocked);
+        }
+
+        function updateTelemetryDisplay(isLocked) {
+            document.getElementById('tel-v1').textContent = v1.toFixed(2) + " m/s";
+            document.getElementById('tel-v2').textContent = v2.toFixed(2) + " m/s";
+            document.getElementById('tel-vrel').textContent = Math.abs(v1 - v2).toFixed(2) + " m/s";
+
+            // State badges
+            const badge = document.getElementById('slipStatusBadge');
+            const totalFrictionCombined = mu_s + mu_g;
+            const maxPushForce = (m1 + m2) * g * totalFrictionCombined;
+
+            if (Math.abs(v1) < 0.01 && Math.abs(v2) < 0.01) {
+                badge.textContent = "Stationary";
+                badge.className = "px-2.5 py-0.5 bg-slate-900/60 text-slate-400 border border-slate-700/60 rounded font-semibold text-[10px] tracking-wide uppercase";
+            } else if (!isLocked || F > maxPushForce) {
+                badge.textContent = "SLIPPING!";
+                badge.className = "px-2.5 py-0.5 bg-rose-950/60 text-rose-400 border border-rose-800/60 rounded font-semibold text-[10px] tracking-wide uppercase animate-pulse";
+            } else {
+                badge.textContent = "Moving Locked";
+                badge.className = "px-2.5 py-0.5 bg-emerald-950/60 text-emerald-400 border border-emerald-800/60 rounded font-semibold text-[10px] tracking-wide uppercase";
+            }
+
+            // Calculate current slip threshold percentage
+            const N12 = m2 * g;
+            const maxFriction = mu_s * N12;
+            const frictionRatio = maxFriction > 0 ? Math.min(1.0, Math.abs(f12) / maxFriction) : 0;
+            const pct = Math.round(frictionRatio * 100);
+            document.getElementById('slipPctVal').textContent = pct;
+
+            // Store graph telemetry points
+            graphData.push({ F: F, friction: Math.abs(f12) });
+            if (graphData.length > maxGraphPoints) graphData.shift();
+        }
+
+        // Simulation Canvas Drawing Engine
+        function animationLoop() {
+            const canvas = document.getElementById('physicsCanvas');
+            const ctx = canvas.getContext('2d');
+            
+            // Adjust to container sizes cleanly
+            if (canvas.width !== canvas.parentNode.clientWidth || canvas.height !== canvas.parentNode.clientHeight) {
+                canvas.width = canvas.parentNode.clientWidth;
+                canvas.height = canvas.parentNode.clientHeight;
+            }
+
+            // Update physics state when active
+            if (isSimRunning) {
+                stepPhysics(0.016);
+            }
+
+            // If Sweep active, smoothly ramp F slider
+            if (isSweepRunning) {
+                sweepProgress += 0.005;
+                if (sweepProgress > 1.0) {
+                    stopSweep();
+                } else {
+                    const fSlider = document.getElementById('fSlider');
+                    const targetF = Math.round(sweepProgress * 120);
+                    fSlider.value = targetF;
+                    F = targetF;
+                    document.getElementById('fVal').textContent = targetF + ".0 N";
+                    recalculateDerivation();
+                }
+            }
+
+            // Clean background
+            ctx.fillStyle = '#090d16';
+            ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+            // Draw landscape ground with scrolling visual texture gridlines
+            drawGround(ctx, canvas);
+
+            // Draw blocks relative to scroll panning
+            const scale = 50; // pixels per unit dimension scale
+            const hBottom = 55; // Height bottom block
+            const wBottom = 160; // Width bottom block
+            const hTop = 40; // Height top block
+            const wTop = 100; // Width top block
+
+            // Dynamic screen coordinates
+            const b1X = x1 - scrollOffset;
+            const b1Y = canvas.height - 120;
+            const b2X = x2 - scrollOffset + (wBottom - wTop) / 2 + (x2 - x1); // Centering offset with relative shifts
+            const b2Y = b1Y - hTop;
+
+            // Draw boundary highlights depending on System Select
+            drawSystemIsolationBoundaries(ctx, b1X, b1Y, wBottom, hBottom, b2X, b2Y, wTop, hTop);
+
+            // DRAW BOTTOM BLOCK (1)
+            ctx.save();
+            ctx.globalAlpha = (currentSystem === 'B') ? 0.25 : 1.0;
+            drawBlock(ctx, b1X, b1Y, wBottom, hBottom, 'Block 1', 'm₁ = ' + m1.toFixed(1) + 'kg', ['#1e293b', '#334155'], '#38bdf8');
+            ctx.restore();
+
+            // DRAW TOP BLOCK (2)
+            ctx.save();
+            ctx.globalAlpha = (currentSystem === 'A') ? 0.25 : 1.0;
+            drawBlock(ctx, b2X, b2Y, wTop, hTop, 'Block 2', 'm₂ = ' + m2.toFixed(1) + 'kg', ['#3c1510', '#5c1d16'], '#f59e0b');
+            ctx.restore();
+
+            // Draw Free-Body-Diagram Force Vectors
+            if (showFbd) {
+                drawFbdVectors(ctx, b1X, b1Y, wBottom, hBottom, b2X, b2Y, wTop, hTop);
+            }
+
+            // Draw Telemetry friction graph inside canvas
+            drawLiveGraph();
+
+            requestAnimationFrame(animationLoop);
+        }
+
+        // GROUND DRAWING with scrolling landscape grids
+        function drawGround(ctx, canvas) {
+            const groundY = canvas.height - 65;
+            
+            // Draw gradient sky-horizon depth
+            const grad = ctx.createLinearGradient(0, groundY, 0, canvas.height);
+            grad.addColorStop(0, '#0f172a');
+            grad.addColorStop(1, '#020617');
+            ctx.fillStyle = grad;
+            ctx.fillRect(0, groundY, canvas.width, canvas.height - groundY);
+
+            // Ground base border line
+            ctx.beginPath();
+            ctx.moveTo(0, groundY);
+            ctx.lineTo(canvas.width, groundY);
+            ctx.strokeStyle = '#1e293b';
+            ctx.lineWidth = 4;
+            ctx.stroke();
+
+            // Infinite scrolling visual hatch indicators
+            ctx.strokeStyle = '#334155';
+            ctx.lineWidth = 2;
+            const hatchSpacing = 40;
+            const offset = (scrollOffset) % hatchSpacing;
+
+            ctx.beginPath();
+            for (let x = -offset; x < canvas.width; x += hatchSpacing) {
+                ctx.moveTo(x, groundY);
+                ctx.lineTo(x - 15, groundY + 20);
+            }
+            ctx.stroke();
+        }
+
+        // Elegant block rendering with glossy gradients
+        function drawBlock(ctx, x, y, w, h, label, subLabel, colors, borderCol) {
+            // Shadow
+            ctx.shadowColor = 'rgba(0, 0, 0, 0.4)';
+            ctx.shadowBlur = 10;
+            ctx.shadowOffsetY = 4;
+
+            // Block rounded paths
+            const r = 8; // corner radius
+            ctx.beginPath();
+            ctx.moveTo(x + r, y);
+            ctx.lineTo(x + w - r, y);
+            ctx.quadraticCurveTo(x + w, y, x + w, y + r);
+            ctx.lineTo(x + w, y + h - r);
+            ctx.quadraticCurveTo(x + w, y + h, x + w - r, y + h);
+            ctx.lineTo(x + r, y + h - r);
+            ctx.quadraticCurveTo(x, y + h, x, y + h - r);
+            ctx.lineTo(x, y + r);
+            ctx.quadraticCurveTo(x, y, x + r, y);
+            ctx.closePath();
+
+            const grad = ctx.createLinearGradient(x, y, x, y + h);
+            grad.addColorStop(0, colors[0]);
+            grad.addColorStop(1, colors[1]);
+            ctx.fillStyle = grad;
+            ctx.fill();
+
+            ctx.shadowBlur = 0; // reset
+            ctx.shadowOffsetY = 0;
+
+            // Border
+            ctx.strokeStyle = borderCol;
+            ctx.lineWidth = 2;
+            ctx.stroke();
+
+            // Labels
+            ctx.fillStyle = '#f8fafc';
+            ctx.font = 'bold 12px Inter';
+            ctx.textAlign = 'center';
+            ctx.fillText(label, x + w / 2, y + h / 2 - 1);
+
+            ctx.fillStyle = '#94a3b8';
+            ctx.font = '10px Inter';
+            ctx.fillText(subLabel, x + w / 2, y + h / 2 + 13);
+        }
+
+        // Highlight active systems C, A, or B
+        function drawSystemIsolationBoundaries(ctx, b1X, b1Y, wBottom, hBottom, b2X, b2Y, wTop, hTop) {
+            if (currentSystem === 'None') return;
+
+            ctx.save();
+            ctx.setLineDash([5, 5]);
+            ctx.lineWidth = 3;
+
+            if (currentSystem === 'A') {
+                // System A (Bottom Block only)
+                ctx.strokeStyle = '#06b6d4';
+                ctx.shadowColor = 'rgba(6, 182, 212, 0.3)';
+                ctx.shadowBlur = 15;
+                ctx.strokeRect(b1X - 10, b1Y - 10, wBottom + 20, hBottom + 20);
+                drawBoundaryLabel(ctx, b1X - 10, b1Y - 15, "SYSTEM BOUNDARY: A", '#06b6d4');
+            } else if (currentSystem === 'B') {
+                // System B (Top Block only)
+                ctx.strokeStyle = '#f59e0b';
+                ctx.shadowColor = 'rgba(245, 158, 11, 0.3)';
+                ctx.shadowBlur = 15;
+                ctx.strokeRect(b2X - 10, b2Y - 10, wTop + 20, hTop + 20);
+                drawBoundaryLabel(ctx, b2X - 10, b2Y - 15, "SYSTEM BOUNDARY: B", '#f59e0b');
+            } else if (currentSystem === 'C') {
+                // System C (Combined block unit)
+                ctx.strokeStyle = '#a855f7';
+                ctx.shadowColor = 'rgba(168, 85, 247, 0.3)';
+                ctx.shadowBlur = 15;
+
+                const minX = Math.min(b1X, b2X) - 15;
+                const minY = b2Y - 15;
+                const maxX = Math.max(b1X + wBottom, b2X + wTop) + 15;
+                const maxY = b1Y + hBottom + 15;
+
+                ctx.strokeRect(minX, minY, maxX - minX, maxY - minY);
+                drawBoundaryLabel(ctx, minX, minY - 8, "SYSTEM BOUNDARY: C (COMBINED SYSTEM)", '#a855f7');
+            }
+
+            ctx.restore();
+        }
+
+        function drawBoundaryLabel(ctx, x, y, text, color) {
+            ctx.fillStyle = color;
+            ctx.font = '9px Fira Code';
+            ctx.textAlign = 'left';
+            ctx.fillText(text, x, y);
+        }
+
+        // Elegant Vector Overlay System
+        function drawFbdVectors(ctx, b1X, b1Y, wBottom, hBottom, b2X, b2Y, wTop, hTop) {
+            ctx.save();
+            ctx.lineWidth = 2.5;
+
+            const scaleF = 1.4; // scaling magnitude to coordinate offsets
+
+            // Vector origin coordinates
+            const b1Center = { x: b1X + wBottom / 2, y: b1Y + hBottom / 2 };
+            const b2Center = { x: b2X + wTop / 2, y: b2Y + hTop / 2 };
+
+            // ==================== SYSTEM B (BLOCK 2) FORCES ====================
+            if (currentSystem !== 'A') {
+                // 1. Gravity on 2: m2 * g (Downward)
+                drawVector(ctx, b2Center.x, b2Center.y, 0, m2 * g * scaleF, '#ef4444', 'm₂g');
+
+                // 2. Normal force from 1 onto 2: N12 (Upward)
+                const N12 = m2 * g;
+                const highlightN = activeHighlightPair === 'normal';
+                drawVector(ctx, b2Center.x, b2Y, 0, -N12 * scaleF, highlightN ? '#a855f7' : '#3b82f6', 'N₁₂', highlightN);
+
+                // 3. Friction force from 1 onto 2: f12 (Accelerates to right!)
+                const highlightF = activeHighlightPair === 'friction';
+                drawVector(ctx, b2Center.x, b2Y + hTop, f12 * scaleF, 0, highlightF ? '#a855f7' : '#eab308', 'f₁₂', highlightF);
+            }
+
+            // ==================== SYSTEM A (BLOCK 1) FORCES ====================
+            if (currentSystem !== 'B') {
+                // 1. External Push force: F (Rightward)
+                drawVector(ctx, b1X, b1Center.y, F * scaleF, 0, '#10b981', 'F');
+
+                // 2. Ground kinetic friction: fg (Leftward)
+                drawVector(ctx, b1Center.x, b1Y + hBottom, -fg * scaleF, 0, '#f43f5e', 'f_ground');
+
+                // 3. Normal force from Ground: Ng1 (Upward)
+                const Ng1 = (m1 + m2) * g;
+                drawVector(ctx, b1Center.x, b1Y + hBottom, 0, -Ng1 * scaleF, '#3b82f6', 'N_ground');
+
+                // 4. Gravity on 1: m1 * g (Downward)
+                drawVector(ctx, b1Center.x, b1Center.y, 0, m1 * g * scaleF, '#ef4444', 'm₁g');
+
+                // ONLY DRAW IF NOT COMBINED SYSTEM boundary (System C)
+                if (currentSystem !== 'C') {
+                    // 5. Normal force from 2 onto 1: N21 (Downward)
+                    const N21 = m2 * g;
+                    const highlightN = activeHighlightPair === 'normal';
+                    drawVector(ctx, b1Center.x, b1Y, 0, N21 * scaleF, highlightN ? '#a855f7' : '#2563eb', 'N₂₁', highlightN);
+
+                    // 6. Friction force from 2 onto 1: f21 (Leftward)
+                    const highlightF = activeHighlightPair === 'friction';
+                    drawVector(ctx, b1Center.x, b1Y, -f12 * scaleF, 0, highlightF ? '#a855f7' : '#ca8a04', 'f₂₁', highlightF);
+                }
+            }
+
+            // ==================== THIRD LAW INTERACTION LINK LINES ====================
+            if (activeHighlightPair === 'normal') {
+                // Normal pairs matching lines
+                ctx.strokeStyle = 'rgba(168, 85, 247, 0.4)';
+                ctx.setLineDash([3, 3]);
+                ctx.beginPath();
+                ctx.moveTo(b2Center.x, b2Y);
+                ctx.lineTo(b1Center.x, b1Y);
+                ctx.stroke();
+            } else if (activeHighlightPair === 'friction') {
+                // Friction pairs matching lines
+                ctx.strokeStyle = 'rgba(168, 85, 247, 0.4)';
+                ctx.setLineDash([3, 3]);
+                ctx.beginPath();
+                ctx.moveTo(b2Center.x, b2Y + hTop);
+                ctx.lineTo(b1Center.x, b1Y);
+                ctx.stroke();
+            }
+
+            ctx.restore();
+        }
+
+        // Generic custom Vector Drawing utility
+        function drawVector(ctx, startX, startY, dx, dy, color, label, isHighlighted = false) {
+            const length = Math.sqrt(dx * dx + dy * dy);
+            if (length < 8) return; // avoid drawing tiny arrows
+
+            ctx.save();
+            ctx.strokeStyle = color;
+            ctx.fillStyle = color;
+            ctx.lineWidth = isHighlighted ? 4.0 : 2.5;
+
+            // Pulse glow for interaction highlighted pairs
+            if (isHighlighted) {
+                ctx.shadowColor = color;
+                ctx.shadowBlur = 10;
+            }
+
+            const endX = startX + dx;
+            const endY = startY + dy;
+
+            // Draw arrow shaft
+            ctx.beginPath();
+            ctx.moveTo(startX, startY);
+            ctx.lineTo(endX, endY);
+            ctx.stroke();
+
+            // Draw arrow head
+            const angle = Math.atan2(dy, dx);
+            const headLength = 8;
+            ctx.beginPath();
+            ctx.moveTo(endX, endY);
+            ctx.lineTo(endX - headLength * Math.cos(angle - Math.PI / 6), endY - headLength * Math.sin(angle - Math.PI / 6));
+            ctx.lineTo(endX - headLength * Math.cos(angle + Math.PI / 6), endY - headLength * Math.sin(angle + Math.PI / 6));
+            ctx.closePath();
+            ctx.fill();
+
+            // Label
+            ctx.shadowBlur = 0; // clear shadow for text
+            ctx.fillStyle = '#f1f5f9';
+            ctx.font = 'bold 9px Fira Code';
+            
+            // Offset label cleanly from arrow tip
+            const labelX = endX + 12 * Math.cos(angle);
+            const labelY = endY + 12 * Math.sin(angle) + 3;
+            ctx.textAlign = 'center';
+            ctx.fillText(label, labelX, labelY);
+
+            ctx.restore();
+        }
+
+        // Render Custom Telemetry Friction Charts (Renders inside canvas or overlay)
+        function drawLiveGraph() {
+            const canvas = document.getElementById('telemetryGraph');
+            if (!canvas) return;
+            const ctx = canvas.getContext('2d');
+
+            // Responsive scale adjustments
+            if (canvas.width !== canvas.parentNode.clientWidth || canvas.height !== canvas.parentNode.clientHeight) {
+                canvas.width = canvas.parentNode.clientWidth;
+                canvas.height = canvas.parentNode.clientHeight;
+            }
+
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+            const padding = { top: 15, right: 10, bottom: 20, left: 35 };
+            const w = canvas.width - padding.left - padding.right;
+            const h = canvas.height - padding.top - padding.bottom;
+
+            // Draw grid outline
+            ctx.strokeStyle = '#1e293b';
+            ctx.lineWidth = 1;
+            ctx.strokeRect(padding.left, padding.top, w, h);
+
+            // Horizontal grid lines
+            ctx.beginPath();
+            ctx.strokeStyle = '#0f172a';
+            for (let i = 1; i < 4; i++) {
+                const y = padding.top + (h / 4) * i;
+                ctx.moveTo(padding.left, y);
+                ctx.lineTo(padding.left + w, y);
+            }
+            ctx.stroke();
+
+            // Max static limit calculated dynamically
+            const maxF12 = mu_s * m2 * g;
+
+            // Draw data series
+            if (graphData.length > 1) {
+                ctx.beginPath();
+                ctx.strokeStyle = '#a855f7'; // Purple line for friction trace
+                ctx.lineWidth = 2.5;
+
+                for (let i = 0; i < graphData.length; i++) {
+                    const pt = graphData[i];
+                    // Map Force X from [0 to 150] -> width
+                    const x = padding.left + (pt.F / 150.0) * w;
+                    // Map Friction Y from [0 to max static * 1.5] -> height
+                    const yRange = maxF12 * 1.4 || 30.0;
+                    const y = padding.top + h - (pt.friction / yRange) * h;
+
+                    if (i === 0) {
+                        ctx.moveTo(x, y);
+                    } else {
+                        ctx.lineTo(x, y);
+                    }
+                }
+                ctx.stroke();
+
+                // Draw indicator dot on current position
+                const latest = graphData[graphData.length - 1];
+                const dotX = padding.left + (latest.F / 150.0) * w;
+                const yRange = maxF12 * 1.4 || 30.0;
+                const dotY = padding.top + h - (latest.friction / yRange) * h;
+
+                ctx.beginPath();
+                ctx.arc(dotX, dotY, 4, 0, 2 * Math.PI);
+                ctx.fillStyle = '#22c55e'; // Green dot on active point
+                ctx.fill();
+            }
+
+            // Render limit line (Max Static Friction)
+            const limitY = padding.top + h - (maxF12 / (maxF12 * 1.4 || 30.0)) * h;
+            ctx.beginPath();
+            ctx.setLineDash([3, 3]);
+            ctx.strokeStyle = '#ef4444'; // Red limit line
+            ctx.moveTo(padding.left, limitY);
+            ctx.lineTo(padding.left + w, limitY);
+            ctx.stroke();
+            ctx.setLineDash([]);
+
+            // Labels
+            ctx.fillStyle = '#64748b';
+            ctx.font = '8px Inter';
+            ctx.textAlign = 'right';
+            ctx.fillText("Max Static", padding.left - 5, limitY + 3);
+            ctx.fillText("0 N", padding.left - 5, padding.top + h);
+            ctx.fillText("Fric(N)", padding.left - 5, padding.top + 5);
+        }
+
+        // Action Sweep trigger functions
+        function startSweep() {
+            isSweepRunning = true;
+            sweepProgress = 0;
+            isSimRunning = true;
+            graphData.length = 0; // reset trace points
+            
+            // Adjust sweep button state
+            const sweepBtn = document.getElementById('sweepBtn');
+            sweepBtn.innerHTML = `<i class="fa-solid fa-spinner animate-spin"></i> <span>Sweeping...</span>`;
+            sweepBtn.className = "h-10 px-4 bg-purple-600 hover:bg-purple-500 text-white rounded-xl text-xs font-bold transition-all flex items-center justify-center gap-1.5";
+        }
+
+        function stopSweep() {
+            isSweepRunning = false;
+            const sweepBtn = document.getElementById('sweepBtn');
+            sweepBtn.innerHTML = `<i class="fa-solid fa-wand-magic-sparkles"></i> <span>Force Sweep Mode</span>`;
+            sweepBtn.className = "h-10 px-4 bg-purple-950 hover:bg-purple-900 border border-purple-800 text-purple-300 rounded-xl text-xs font-bold transition-all flex items-center justify-center gap-1.5 group";
+        }
+
+        // Quiz scoring & feedback answers
+        function answerQuiz(qNum, choice, isCorrect) {
+            const explainPanel = document.getElementById('quiz-explain-' + qNum);
+            const options = document.querySelectorAll('.quiz-option-' + qNum);
+            
+            // Deactivate styling
+            options.forEach(opt => {
+                opt.className = `quiz-option-${qNum} p-2 bg-slate-900/60 text-slate-400 text-left rounded-lg transition-all border border-slate-800 cursor-not-allowed`;
+                opt.disabled = true;
+            });
+
+            // Target explanation statements
+            explainPanel.classList.remove('hidden');
+
+            if (isCorrect) {
+                explainPanel.className = "text-[11px] text-emerald-400 bg-emerald-950/20 border border-emerald-800/30 p-2.5 rounded-lg mt-2 leading-relaxed";
+                if (qNum === 1) {
+                    explainPanel.innerHTML = `<strong>Correct! <i class="fa-solid fa-circle-check"></i></strong> Block 1 accelerates right, tending to slip out. It grips Block 2 with static friction pushing it to the right. Dynamic interactive proofs!`;
+                } else {
+                    explainPanel.innerHTML = `<strong>Correct! <i class="fa-solid fa-circle-check"></i></strong> Referencing the equation <span class="font-mono">F_max = (m₁ + m₂)g(&mu;_s + &mu;_g)</span>, increasing either mass raises the threshold required to trigger slip.`;
+                }
+            } else {
+                explainPanel.className = "text-[11px] text-rose-400 bg-rose-950/20 border border-rose-800/30 p-2.5 rounded-lg mt-2 leading-relaxed";
+                if (qNum === 1) {
+                    explainPanel.innerHTML = `<strong>Incorrect <i class="fa-solid fa-circle-xmark"></i></strong> Gravity is purely vertical, and the external push acts only on Block 1. The interface friction is what drags Block 2 along.`;
+                } else {
+                    explainPanel.innerHTML = `<strong>Incorrect <i class="fa-solid fa-circle-xmark"></i></strong> Doubling m₂ increases the supporting normal force N₁₂ and thus increases the maximum possible friction support.`;
+                }
+            }
+        }
+
+        // Reset positions without parameters change
+        function resetPositions() {
+            x1 = 150.0;
+            x2 = 150.0;
+            v1 = 0.0;
+            v2 = 0.0;
+            a1 = 0.0;
+            a2 = 0.0;
+            f12 = 0.0;
+            fg = 0.0;
+            scrollOffset = 0;
+            physicsTime = 0.0;
+            graphData.length = 0;
+            stopSweep();
+        }
+
+        // Completely restore parameters to defaults
+        function resetAll() {
+            resetPositions();
+            
+            // Slider defaults
+            document.getElementById('m1Slider').value = 3.0;
+            document.getElementById('m2Slider').value = 1.5;
+            document.getElementById('muGSlider').value = 0.20;
+            document.getElementById('muSSlider').value = 0.50;
+            document.getElementById('muKSlider').value = 0.35;
+            document.getElementById('fSlider').value = 25;
+
+            // Trigger text updates
+            m1 = 3.0;
+            m2 = 1.5;
+            mu_g = 0.20;
+            mu_s = 0.50;
+            mu_k = 0.35;
+            F = 25.0;
+
+            document.getElementById('m1Val').textContent = "3.0 kg";
+            document.getElementById('m2Val').textContent = "1.5 kg";
+            document.getElementById('muGVal').textContent = "0.20";
+            document.getElementById('muSVal').textContent = "0.50";
+            document.getElementById('muKVal').textContent = "0.35";
+            document.getElementById('fVal').textContent = "25.0 N";
+
+            // Reset quiz states
+            for (let i = 1; i <= 2; i++) {
+                const explainPanel = document.getElementById('quiz-explain-' + i);
+                explainPanel.classList.add('hidden');
+                const options = document.querySelectorAll('.quiz-option-' + i);
+                options.forEach(opt => {
+                    opt.className = `quiz-option-${i} p-2 bg-slate-900/60 hover:bg-slate-900 text-left rounded-lg text-slate-300 hover:text-white transition-all border border-slate-800`;
+                    opt.disabled = false;
+                });
+            }
+
+            isSimRunning = false;
+            const playPauseBtn = document.getElementById('playPauseBtn');
+            playPauseBtn.innerHTML = `<i class="fa-solid fa-play"></i> <span>Start Sim</span>`;
+            playPauseBtn.className = "h-10 px-5 bg-indigo-600 hover:bg-indigo-500 text-white font-bold rounded-xl text-xs tracking-wider transition-all shadow-md flex items-center gap-1.5";
+
+            selectSystem('C');
+            recalculateDerivation();
+        }
+
+        function setupSimulation() {
+            recalculateDerivation();
+        }
+    </script>
+</body>
+</html>

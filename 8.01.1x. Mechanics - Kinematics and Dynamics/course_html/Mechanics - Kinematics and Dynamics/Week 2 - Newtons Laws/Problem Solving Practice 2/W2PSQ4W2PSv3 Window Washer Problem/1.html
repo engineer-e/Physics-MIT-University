@@ -1,0 +1,1012 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Interactive Physics Simulator: Window Washer Problem</title>
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- FontAwesome for beautiful icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    
+    <!-- Configure MathJax BEFORE loading the main script to enable $ as inline delimiter -->
+    <script type="text/javascript">
+        window.MathJax = {
+            tex: {
+                inlineMath: [['$', '$'], ['\\(', '\\)']],
+                displayMath: [['$$', '$$'], ['\\[', '\\]']],
+                processEscapes: true
+            },
+            options: {
+                skipHtmlTags: ['script', 'noscript', 'style', 'textarea', 'pre', 'code']
+            },
+            startup: {
+                pageReady: () => {
+                    return MathJax.startup.defaultPageReady().then(() => {
+                        // Global initial typeset once MathJax is fully loaded
+                        if (window.MathJax && typeof window.MathJax.typesetPromise === 'function') {
+                            window.MathJax.typesetPromise();
+                        }
+                    });
+                }
+            }
+        };
+    </script>
+    <!-- MathJax Library Loader -->
+    <script type="text/javascript" id="MathJax-script" async
+      src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js">
+    </script>
+    
+    <style>
+        /* Custom scrollbars for side panels */
+        .custom-scrollbar::-webkit-scrollbar {
+            width: 6px;
+        }
+        .custom-scrollbar::-webkit-scrollbar-track {
+            background: #1e293b;
+        }
+        .custom-scrollbar::-webkit-scrollbar-thumb {
+            background: #475569;
+            border-radius: 3px;
+        }
+        .custom-scrollbar::-webkit-scrollbar-thumb:hover {
+            background: #64748b;
+        }
+    </style>
+</head>
+<body class="bg-slate-950 text-slate-100 min-h-screen flex flex-col font-sans overflow-x-hidden">
+
+    <!-- Header -->
+    <header class="bg-slate-900 border-b border-slate-800 px-6 py-4 flex flex-col md:flex-row justify-between items-center gap-4">
+        <div class="flex items-center gap-3">
+            <div class="bg-blue-600 p-2.5 rounded-lg text-white shadow-lg shadow-blue-500/20">
+                <i class="fa-solid fa-person-falling-burst text-xl"></i>
+            </div>
+            <div>
+                <h1 class="text-xl font-bold tracking-tight text-white flex items-center gap-2">
+                    Window Washer Physics Simulator
+                    <span class="text-xs bg-blue-500/10 text-blue-400 border border-blue-500/20 px-2 py-0.5 rounded font-mono">MIT Classical Mechanics</span>
+                </h1>
+                <p class="text-xs text-slate-400">Interactive decomposition of Newton's Laws & System Boundaries</p>
+            </div>
+        </div>
+        <div class="flex items-center gap-3">
+            <span class="text-xs text-slate-400 font-mono">System Status: <span id="status-badge" class="text-emerald-400">● Stable</span></span>
+        </div>
+    </header>
+
+    <!-- Main Workspace -->
+    <main class="flex-1 grid grid-cols-1 lg:grid-cols-12 overflow-hidden">
+        
+        <!-- Left Column: Controls & Configuration (4 cols) -->
+        <section class="lg:col-span-4 bg-slate-900/60 border-r border-slate-800 p-6 flex flex-col justify-between overflow-y-auto custom-scrollbar gap-6">
+            <div>
+                <!-- Controls Header -->
+                <div class="flex items-center justify-between mb-4">
+                    <h2 class="font-semibold text-slate-200 text-sm tracking-wider uppercase">Simulation Controller</h2>
+                    <span class="text-xs text-slate-500">Params & Boundary Sets</span>
+                </div>
+
+                <!-- System Boundary Mode Selectors -->
+                <div class="mb-6">
+                    <label class="block text-xs font-semibold text-slate-400 uppercase mb-2">Select Active System Boundary:</label>
+                    <div class="grid grid-cols-2 gap-2 text-xs">
+                        <button onclick="setSystemBoundary('washer')" id="btn-washer" class="py-2 px-3 rounded-lg border border-slate-700 bg-slate-800 hover:bg-slate-700 transition-all text-left flex items-center justify-between group">
+                            <span>1. Washer Only ($W$)</span>
+                            <span class="w-2.5 h-2.5 rounded-full bg-amber-500"></span>
+                        </button>
+                        <button onclick="setSystemBoundary('platform')" id="btn-platform" class="py-2 px-3 rounded-lg border border-slate-700 bg-slate-800 hover:bg-slate-700 transition-all text-left flex items-center justify-between group">
+                            <span>2. Platform ($P$)</span>
+                            <span class="w-2.5 h-2.5 rounded-full bg-emerald-500"></span>
+                        </button>
+                        <button onclick="setSystemBoundary('both')" id="btn-both" class="py-2 px-3 rounded-lg border border-slate-700 bg-slate-800 hover:bg-slate-700 transition-all text-left flex items-center justify-between group">
+                            <span>3. Combined ($W + P$)</span>
+                            <span class="w-2.5 h-2.5 rounded-full bg-indigo-500"></span>
+                        </button>
+                        <button onclick="setSystemBoundary('full')" id="btn-full" class="py-2 px-3 rounded-lg border-2 border-blue-500 bg-blue-950/40 text-blue-200 transition-all text-left flex items-center justify-between group">
+                            <span>4. Composite System</span>
+                            <span class="w-2.5 h-2.5 rounded-full bg-blue-500 animate-pulse"></span>
+                        </button>
+                    </div>
+                    <p id="boundary-description" class="text-xs text-slate-400 mt-2 italic bg-slate-950 p-2.5 rounded border border-slate-800">
+                        Analyzing the entire composite system ($W + P + \text{Pulley A} + \text{String 2}$). Internal tensions and normal forces perfectly cancel out!
+                    </p>
+                </div>
+
+                <!-- Adjustable Physical Sliders -->
+                <div class="space-y-4">
+                    <h3 class="text-xs font-semibold text-slate-400 uppercase border-b border-slate-800 pb-2">Physical Constants</h3>
+                    
+                    <!-- Mass of Washer -->
+                    <div>
+                        <div class="flex justify-between text-xs mb-1">
+                            <span class="text-slate-300">Mass of Washer ($m_w$)</span>
+                            <span class="font-mono text-blue-400 font-bold" id="val-mw">70 kg</span>
+                        </div>
+                        <input type="range" id="slider-mw" min="40" max="120" value="70" step="1" 
+                               class="w-full h-1.5 bg-slate-800 rounded-lg appearance-none cursor-pointer accent-blue-500">
+                    </div>
+
+                    <!-- Mass of Platform -->
+                    <div>
+                        <div class="flex justify-between text-xs mb-1">
+                            <span class="text-slate-300">Mass of Platform ($m_p$)</span>
+                            <span class="font-mono text-blue-400 font-bold" id="val-mp">30 kg</span>
+                        </div>
+                        <input type="range" id="slider-mp" min="10" max="80" value="30" step="1" 
+                               class="w-full h-1.5 bg-slate-800 rounded-lg appearance-none cursor-pointer accent-blue-500">
+                    </div>
+
+                    <!-- Mode Toggle: Manual Pull vs Equilibrium -->
+                    <div class="bg-slate-950 p-3 rounded-lg border border-slate-800 space-y-2 mt-4">
+                        <label class="block text-xs font-semibold text-slate-400 uppercase">Pulley Mechanics Mode:</label>
+                        <div class="flex gap-2">
+                            <button id="mode-eq" onclick="setForceMode('equilibrium')" class="flex-1 py-1.5 px-2 rounded text-xs font-medium border border-blue-500 bg-blue-950/30 text-blue-300 transition-all">
+                                Static Equilibrium
+                            </button>
+                            <button id="mode-manual" onclick="setForceMode('manual')" class="flex-1 py-1.5 px-2 rounded text-xs font-medium border border-slate-700 bg-slate-800 text-slate-400 transition-all">
+                                Manual Force ($T_1$)
+                            </button>
+                        </div>
+                    </div>
+
+                    <!-- Pulling Tension Slider (Enabled in manual mode) -->
+                    <div id="container-t1" class="opacity-50 pointer-events-none transition-all duration-300">
+                        <div class="flex justify-between text-xs mb-1">
+                            <span class="text-slate-300">Pulling Tension ($T_1$ or $F_{1,w}$)</span>
+                            <span class="font-mono text-amber-400 font-bold" id="val-t1">490 N</span>
+                        </div>
+                        <input type="range" id="slider-t1" min="200" max="800" value="490" step="5" 
+                               class="w-full h-1.5 bg-slate-800 rounded-lg appearance-none cursor-pointer accent-amber-500">
+                        <div class="flex justify-between text-[10px] text-slate-500 mt-1">
+                            <span>Min (200N)</span>
+                            <span class="text-amber-500/80" id="hint-eq-tension">Equilibrium threshold: 326.7 N</span>
+                            <span>Max (800N)</span>
+                        </div>
+                    </div>
+
+                    <!-- Gravity slider -->
+                    <div>
+                        <div class="flex justify-between text-xs mb-1">
+                            <span class="text-slate-300">Gravitational Accel. ($g$)</span>
+                            <span class="font-mono text-emerald-400 font-bold" id="val-g">9.8 m/s²</span>
+                        </div>
+                        <input type="range" id="slider-g" min="1.0" max="20.0" value="9.8" step="0.1" 
+                               class="w-full h-1.5 bg-slate-800 rounded-lg appearance-none cursor-pointer accent-emerald-500">
+                    </div>
+                </div>
+            </div>
+
+            <!-- Playback State Bar -->
+            <div class="pt-6 border-t border-slate-800">
+                <div class="flex justify-between items-center mb-4">
+                    <span class="text-xs text-slate-400 uppercase font-semibold">Simulation Control</span>
+                    <button onclick="resetPlatform()" class="text-xs text-red-400 hover:text-red-300 flex items-center gap-1 bg-red-950/30 border border-red-900/40 px-2 py-1 rounded">
+                        <i class="fa-solid fa-arrow-rotate-left"></i> Reset System
+                    </button>
+                </div>
+                <div class="grid grid-cols-3 gap-2">
+                    <button id="btn-play" onclick="togglePlay()" class="bg-blue-600 hover:bg-blue-500 text-white font-medium py-2 rounded-lg text-xs transition-all flex items-center justify-center gap-1.5">
+                        <i id="play-icon" class="fa-solid fa-play"></i> <span id="play-text">Pause</span>
+                    </button>
+                    <button onclick="stepFrame()" class="bg-slate-800 hover:bg-slate-700 text-slate-200 font-medium py-2 rounded-lg text-xs transition-all flex items-center justify-center gap-1">
+                        <i class="fa-solid fa-forward-step"></i> Step
+                    </button>
+                    <button id="btn-slow" onclick="toggleSlowMo()" class="bg-slate-800 hover:bg-slate-700 text-slate-200 font-medium py-2 rounded-lg text-xs transition-all">
+                        1.0x Speed
+                    </button>
+                </div>
+            </div>
+        </section>
+
+        <!-- Center Column: Main Physics Engine canvas rendering (5 cols) -->
+        <section class="lg:col-span-5 bg-slate-950 flex flex-col items-center justify-between p-4 relative border-r border-slate-800">
+            <!-- Canvas Overlay UI info -->
+            <div class="absolute top-4 left-4 z-10 bg-slate-900/80 backdrop-blur border border-slate-800 px-3 py-2 rounded-lg text-xs space-y-1">
+                <div class="flex items-center gap-2">
+                    <span class="w-2 h-2 rounded-full bg-blue-500 animate-pulse"></span>
+                    <span class="font-semibold text-slate-200">Interactive Canvas View</span>
+                </div>
+                <p class="text-[10px] text-slate-400">Click & Drag components to test physics reaction forces</p>
+            </div>
+
+            <div class="absolute top-4 right-4 z-10 flex flex-col gap-1 text-right">
+                <div class="bg-slate-900/80 backdrop-blur border border-slate-800 px-3 py-1.5 rounded-lg text-xs">
+                    <span class="text-slate-400">Net Acceleration:</span>
+                    <span id="canvas-accel" class="font-mono font-bold text-emerald-400 ml-1">0.00 m/s²</span>
+                </div>
+                <div class="bg-slate-900/80 backdrop-blur border border-slate-800 px-3 py-1.5 rounded-lg text-xs">
+                    <span class="text-slate-400">Platform Height:</span>
+                    <span id="canvas-height" class="font-mono font-bold text-emerald-400 ml-1">1.20 m</span>
+                </div>
+            </div>
+
+            <!-- Canvas Container -->
+            <div class="w-full h-full flex items-center justify-center min-h-[480px]">
+                <canvas id="physics-canvas" class="w-full h-full rounded-xl bg-slate-900/40 border border-slate-900 cursor-crosshair"></canvas>
+            </div>
+
+            <!-- Lower Quick Stats Indicator -->
+            <div class="w-full bg-slate-900/40 border border-slate-800/80 rounded-xl p-3 flex justify-between text-xs font-mono text-slate-400 gap-2 overflow-x-auto">
+                <div>T1 (Pull): <span id="stat-t1" class="text-amber-400 font-bold">--</span></div>
+                <div>T2 (String 2): <span id="stat-t2" class="text-indigo-400 font-bold">--</span></div>
+                <div>Normal (N): <span id="stat-normal" class="text-emerald-400 font-bold">--</span></div>
+                <div>W + P Weight: <span id="stat-weight" class="text-red-400 font-bold">--</span></div>
+            </div>
+        </section>
+
+        <!-- Right Column: Interactive FBD / Math Proof Engine (3 cols) -->
+        <section class="lg:col-span-3 bg-slate-900/40 p-6 flex flex-col justify-between overflow-y-auto custom-scrollbar gap-6">
+            
+            <!-- Mathematical Algorithm Breakdown -->
+            <div class="space-y-4">
+                <div class="flex items-center gap-2 mb-2">
+                    <div class="p-1.5 rounded bg-blue-500/10 text-blue-400">
+                        <i class="fa-solid fa-graduation-cap"></i>
+                    </div>
+                    <h2 class="font-bold text-sm uppercase tracking-wider text-slate-200">Mathematical Proof</h2>
+                </div>
+
+                <div class="bg-slate-950/80 border border-slate-800 p-3 rounded-lg space-y-2 text-xs leading-relaxed">
+                    <p class="text-slate-300 font-semibold border-b border-slate-800 pb-1 flex justify-between items-center">
+                        <span>Equation of Motion</span>
+                        <span id="current-system-label" class="text-[10px] bg-blue-500/20 text-blue-300 px-1.5 py-0.5 rounded uppercase">Full System</span>
+                    </p>
+                    
+                    <!-- Dynamic Math Latex equation box -->
+                    <div class="py-2 flex items-center justify-center text-center bg-slate-900/50 rounded border border-slate-800/40 text-blue-300 min-h-[50px] font-mono text-xs">
+                        <div id="math-latex" class="w-full text-center px-1">
+                            $$3T_1 - (m_w + m_p)g = (m_w + m_p)a$$
+                        </div>
+                    </div>
+
+                    <div class="text-[11px] text-slate-400 space-y-1">
+                        <span class="text-slate-300 font-medium block">Key Derivation steps:</span>
+                        <ul class="list-disc pl-4 space-y-1" id="derivation-list">
+                            <li>Massless pulleys imply uniform tension along String 1: $T_1$.</li>
+                            <li>Massless platform string 2 tension $T_2 = 2T_1$.</li>
+                            <li>Total upward forces supporting the platform: $T_2 + T_1 = 3T_1$.</li>
+                            <li>Downward gravitational force: $(m_w + m_p)g$.</li>
+                        </ul>
+                    </div>
+                </div>
+
+                <!-- Live Variable Output Calculations -->
+                <div class="bg-slate-950/80 border border-slate-800 p-3 rounded-lg space-y-2 text-xs font-mono">
+                    <p class="text-slate-300 font-semibold border-b border-slate-800 pb-1">Real-Time Evaluation</p>
+                    <div class="space-y-1.5 text-slate-400">
+                        <div class="flex justify-between">
+                            <span>Upward Tension $3T_1$:</span>
+                            <span id="calc-upward" class="text-blue-400">1470 N</span>
+                        </div>
+                        <div class="flex justify-between">
+                            <span>Downward Weight $W_{\text{total}}$:</span>
+                            <span id="calc-downward" class="text-red-400">980 N</span>
+                        </div>
+                        <div class="flex justify-between border-t border-slate-800/60 pt-1 text-slate-300">
+                            <span>Net Force $F_{\text{net}}$:</span>
+                            <span id="calc-fnet" class="text-amber-400">+490 N</span>
+                        </div>
+                        <div class="flex justify-between text-slate-300">
+                            <span>System Mass $m_{\text{sys}}$:</span>
+                            <span id="calc-msys">100 kg</span>
+                        </div>
+                        <div class="flex justify-between border-t border-slate-800/60 pt-1 font-bold text-slate-100">
+                            <span>Calculated $a$:</span>
+                            <span id="calc-a" class="text-emerald-400">4.90 m/s²</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Educational Expert Tips -->
+            <div class="bg-blue-950/20 border border-blue-900/30 rounded-lg p-3 text-xs text-blue-300">
+                <p class="font-bold mb-1"><i class="fa-solid fa-circle-info mr-1"></i> Expert Insight</p>
+                <p id="expert-tip" class="text-[11px] text-blue-400/90 leading-relaxed">
+                    By drawing a boundary around the composite system (Washer + Platform + Pulley A), we ignore the complex internal normal force ($N$) and tension ($T_2$). This is the power of selective Newtonian boundary systems!
+                </p>
+            </div>
+
+        </section>
+    </main>
+
+    <!-- Interactive Bottom Explanation Tab panel -->
+    <footer class="bg-slate-900 border-t border-slate-800 py-3 px-6 text-xs text-slate-400 flex flex-col sm:flex-row justify-between items-center gap-3">
+        <div class="flex items-center gap-4">
+            <span class="font-semibold text-slate-300"><i class="fa-solid fa-code-branch mr-1"></i> Interactive Sandbox Version 1.2</span>
+            <span>Created for advanced physics visualization</span>
+        </div>
+        <div class="flex gap-4">
+            <a href="#" onclick="showQuickGuide()" class="text-blue-400 hover:text-blue-300 underline">Show Explanation Guide</a>
+        </div>
+    </footer>
+
+    <!-- Simple Guide Modal -->
+    <div id="guide-modal" class="hidden fixed inset-0 z-50 bg-slate-950/80 backdrop-blur-sm flex items-center justify-center p-4">
+        <div class="bg-slate-900 border border-slate-800 max-w-lg w-full rounded-xl p-6 shadow-2xl space-y-4">
+            <div class="flex justify-between items-center border-b border-slate-800 pb-3">
+                <h3 class="text-base font-bold text-white flex items-center gap-2">
+                    <i class="fa-solid fa-graduation-cap text-blue-500"></i>
+                    Window Washer Problem Explained
+                </h3>
+                <button onclick="closeGuide()" class="text-slate-400 hover:text-white transition-all text-lg">&times;</button>
+            </div>
+            <div class="text-xs text-slate-300 space-y-2 leading-relaxed">
+                <p>In standard textbook problems, a window washer of mass \(m_w\) stands on a platform of mass \(m_p\), holding a rope that loops over a pulley setup to suspend them.</p>
+                
+                <h4 class="font-bold text-slate-100 mt-2">The Golden Systems Matrix:</h4>
+                <ul class="list-disc pl-5 space-y-1">
+                    <li><strong class="text-amber-400">System 1 (Washer):</strong> Experiences gravity (\(m_w g\)), upward normal force from the platform (\(N\)), and the pulling tension from the rope (\(T_1\)) pulling their hands up.</li>
+                    <li><strong class="text-emerald-400">System 2 (Platform):</strong> Experiences gravity (\(m_p g\)), downward contact normal force from the washer (\(N\)), and the upward tension of String 2 (\(T_2\)).</li>
+                    <li><strong class="text-indigo-400">System 3 (Combined):</strong> Here, the contact normal force \(N\) becomes an <em>internal force</em> and cancels out, leaving only external weights and tensions.</li>
+                    <li><strong class="text-blue-400">System 4 (Full Composite):</strong> Including Pulley A means String 2's tension \(T_2\) also becomes internal! We are left with simple upward force of \(3T_1\) and total weight \((m_w+m_p)g\).</li>
+                </ul>
+            </div>
+            <div class="flex justify-end pt-2">
+                <button onclick="closeGuide()" class="bg-blue-600 hover:bg-blue-500 text-white font-medium px-4 py-2 rounded-lg text-xs transition-all">
+                    Got it, Let's Simulate!
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- MAIN SIMULATION SCRIPT -->
+    <script>
+        // Physics variables state management
+        let state = {
+            mw: 70,       // mass of washer (kg)
+            mp: 30,       // mass of platform (kg)
+            g: 9.8,       // gravity (m/s^2)
+            t1: 490,      // pulling tension (N)
+            accel: 0,     // current computed system acceleration (m/s^2)
+            y: 1.2,       // height of platform above floor (meters)
+            velocity: 0,  // physical speed (m/s)
+            boundary: 'full', // 'washer', 'platform', 'both', 'full'
+            forceMode: 'equilibrium', // 'equilibrium' or 'manual'
+            isPlaying: true,
+            isSlowMo: false,
+            lastFrameTime: performance.now(),
+            maxHeight: 3.5,
+            minHeight: 0.2
+        };
+
+        // Canvas element configuration
+        const canvas = document.getElementById('physics-canvas');
+        const ctx = canvas.getContext('2d');
+        
+        // Setup slider change listeners
+        const sliderMw = document.getElementById('slider-mw');
+        const sliderMp = document.getElementById('slider-mp');
+        const sliderT1 = document.getElementById('slider-t1');
+        const sliderG = document.getElementById('slider-g');
+
+        const valMw = document.getElementById('val-mw');
+        const valMp = document.getElementById('val-mp');
+        const valT1 = document.getElementById('val-t1');
+        const valG = document.getElementById('val-g');
+
+        function updateSliderValues() {
+            state.mw = parseFloat(sliderMw.value);
+            state.mp = parseFloat(sliderMp.value);
+            state.g = parseFloat(sliderG.value);
+            
+            valMw.innerText = `${state.mw} kg`;
+            valMp.innerText = `${state.mp} kg`;
+            valG.innerText = `${state.g} m/s²`;
+
+            // Adjust equilibrium tension dynamically
+            const eqTension = ((state.mw + state.mp) * state.g) / 3;
+            document.getElementById('hint-eq-tension').innerText = `Equilibrium: ${eqTension.toFixed(1)} N`;
+
+            if (state.forceMode === 'equilibrium') {
+                state.t1 = parseFloat(eqTension.toFixed(1));
+                sliderT1.value = state.t1;
+                valT1.innerText = `${state.t1} N`;
+            } else {
+                state.t1 = parseFloat(sliderT1.value);
+                valT1.innerText = `${state.t1} N`;
+            }
+
+            calculatePhysicsOutputs();
+        }
+
+        // Handle System boundary selection tabs
+        function setSystemBoundary(type) {
+            state.boundary = type;
+            
+            // Unset all buttons
+            ['btn-washer', 'btn-platform', 'btn-both', 'btn-full'].forEach(id => {
+                document.getElementById(id).className = "py-2 px-3 rounded-lg border border-slate-700 bg-slate-800 hover:bg-slate-700 transition-all text-left flex items-center justify-between group text-slate-300";
+            });
+
+            const activeBtn = document.getElementById(`btn-${type}`);
+            const desc = document.getElementById('boundary-description');
+            const mathTitle = document.getElementById('current-system-label');
+
+            if (type === 'washer') {
+                activeBtn.className = "py-2 px-3 rounded-lg border-2 border-amber-500 bg-amber-950/40 text-amber-200 transition-all text-left flex items-center justify-between group";
+                desc.innerText = "Analyzing System 1: The Washer-person alone. Forces include weight ($m_w g$), platform normal force ($N$), and the upward tension of String 1 ($T_1$) on the hands.";
+                mathTitle.innerText = "System: Washer Only";
+            } else if (type === 'platform') {
+                activeBtn.className = "py-2 px-3 rounded-lg border-2 border-emerald-500 bg-emerald-950/40 text-emerald-200 transition-all text-left flex items-center justify-between group";
+                desc.innerText = "Analyzing System 2: The Platform alone. Forces include the platform weight ($m_p g$), the downward normal action of the person ($N$), and upward pull from string 2 ($T_2$).";
+                mathTitle.innerText = "System: Platform Only";
+            } else if (type === 'both') {
+                activeBtn.className = "py-2 px-3 rounded-lg border-2 border-indigo-500 bg-indigo-950/40 text-indigo-200 transition-all text-left flex items-center justify-between group";
+                desc.innerText = "Analyzing System 3: Washer + Platform. The contact forces ($N$) are internal and cancel out. External forces: total weight, String 1 tension on hand ($T_1$), and String 2 tension ($T_2$) on platform.";
+                mathTitle.innerText = "System: Combined ($W+P$)";
+            } else if (type === 'full') {
+                activeBtn.className = "py-2 px-3 rounded-lg border-2 border-blue-500 bg-blue-950/40 text-blue-200 transition-all text-left flex items-center justify-between group";
+                desc.innerText = "Analyzing System 4 (Composite): Washer + Platform + Pulley A + String 2. Extremely elegant because all internal forces ($N$, $T_2$) disappear. Supported upward by $3T_1$!";
+                mathTitle.innerText = "Composite System";
+            }
+
+            calculatePhysicsOutputs();
+            updateMathRender();
+        }
+
+        function setForceMode(mode) {
+            state.forceMode = mode;
+            const btnEq = document.getElementById('mode-eq');
+            const btnManual = document.getElementById('mode-manual');
+            const sliderCont = document.getElementById('container-t1');
+
+            if (mode === 'equilibrium') {
+                btnEq.className = "flex-1 py-1.5 px-2 rounded text-xs font-medium border border-blue-500 bg-blue-950/30 text-blue-300 transition-all";
+                btnManual.className = "flex-1 py-1.5 px-2 rounded text-xs font-medium border border-slate-700 bg-slate-800 text-slate-400 transition-all";
+                sliderCont.className = "opacity-50 pointer-events-none transition-all duration-300";
+                
+                // Reset velocity to 0 to simulate stable physical conditions
+                state.velocity = 0;
+            } else {
+                btnEq.className = "flex-1 py-1.5 px-2 rounded text-xs font-medium border border-slate-700 bg-slate-800 text-slate-400 transition-all";
+                btnManual.className = "flex-1 py-1.5 px-2 rounded text-xs font-medium border border-amber-500 bg-amber-950/30 text-amber-300 transition-all";
+                sliderCont.className = "opacity-100 transition-all duration-300";
+            }
+            updateSliderValues();
+        }
+
+        // Calculate dynamic values for physics outputs
+        function calculatePhysicsOutputs() {
+            const mTotal = state.mw + state.mp;
+            const totalWeight = mTotal * state.g;
+
+            // Compute ideal tensions based on current state.t1
+            let T1 = state.t1;
+            let T2 = 2 * T1; // Pulley A is massless, so T2 must balance T1 on both sides
+
+            // Normal force calculation from Washer FBD:
+            // T1 + N - Mw*g = Mw*a  => N = Mw(g + a) - T1
+            let computedNormal = 0;
+            let computedAccel = 0;
+
+            if (state.forceMode === 'equilibrium') {
+                computedAccel = 0;
+                T1 = totalWeight / 3;
+                T2 = 2 * T1;
+                computedNormal = state.mw * state.g - T1;
+            } else {
+                // Acceleration = F_net / m_total
+                // Net upward force is 3*T1. Net downward is (Mw+Mp)*g
+                computedAccel = (3 * T1 - totalWeight) / mTotal;
+                computedNormal = state.mw * (state.g + computedAccel) - T1;
+            }
+
+            state.accel = computedAccel;
+
+            // Keep status updates
+            document.getElementById('stat-t1').innerText = `${T1.toFixed(1)} N`;
+            document.getElementById('stat-t2').innerText = `${T2.toFixed(1)} N`;
+            document.getElementById('stat-normal').innerText = `${computedNormal.toFixed(1)} N`;
+            document.getElementById('stat-weight').innerText = `${totalWeight.toFixed(1)} N`;
+
+            // Canvas info update
+            document.getElementById('canvas-accel').innerText = `${computedAccel >= 0 ? '+' : ''}${computedAccel.toFixed(2)} m/s²`;
+            if (Math.abs(computedAccel) < 0.01) {
+                document.getElementById('canvas-accel').className = "font-mono font-bold text-emerald-400 ml-1";
+                document.getElementById('status-badge').className = "text-emerald-400";
+                document.getElementById('status-badge').innerText = "● Equilibrium";
+            } else {
+                document.getElementById('canvas-accel').className = "font-mono font-bold text-red-400 ml-1";
+                document.getElementById('status-badge').className = "text-red-400";
+                document.getElementById('status-badge').innerText = computedAccel > 0 ? "● Accelerating Upward" : "● Accelerating Downward";
+            }
+
+            // Right sidebar stats
+            document.getElementById('calc-upward').innerText = `${(3 * T1).toFixed(1)} N`;
+            document.getElementById('calc-downward').innerText = `${totalWeight.toFixed(1)} N`;
+            const fNet = 3 * T1 - totalWeight;
+            document.getElementById('calc-fnet').innerText = `${fNet >= 0 ? '+' : ''}${fNet.toFixed(1)} N`;
+            document.getElementById('calc-msys').innerText = `${mTotal.toFixed(1)} kg`;
+            document.getElementById('calc-a').innerText = `${computedAccel.toFixed(2)} m/s²`;
+        }
+
+        // Re-write MathJax formula on active system change
+        function updateMathRender() {
+            const container = document.getElementById('math-latex');
+            const stepsList = document.getElementById('derivation-list');
+            const desc = document.getElementById('boundary-description');
+            let formula = "";
+            let steps = [];
+
+            switch (state.boundary) {
+                case 'washer':
+                    formula = "$$T_1 + N - m_w g = m_w a$$";
+                    steps = [
+                        "Analyzing individual Washer-person of mass $m_w$.",
+                        "Upward forces: Tension of String 1 $T_1$ and Platform contact Normal force $N$.",
+                        "Downward force: Gravitational pull $m_w g$.",
+                        "Forces combine to accelerate the washer with acceleration $a$."
+                    ];
+                    break;
+                case 'platform':
+                    formula = "$$T_2 - N - m_p g = m_p a$$";
+                    steps = [
+                        "Analyzing individual Platform of mass $m_p$.",
+                        "Upward force: Tension of String 2 $T_2$.",
+                        "Downward forces: Platform gravity $m_p g$ and Newton's Third Law action-reaction contact Normal force $N$ from washer."
+                    ];
+                    break;
+                case 'both':
+                    formula = "$$(T_1 + T_2) - (m_w + m_p)g = (m_w + m_p)a$$";
+                    steps = [
+                        "Combined system of Washer + Platform.",
+                        "Notice the contact normal force $N$ is now entirely internal and cancels out.",
+                        "Upward support tensions are $T_1$ (from rope pull) and $T_2$ (from platform connection)."
+                    ];
+                    break;
+                case 'full':
+                default:
+                    formula = "$$3T_1 - (m_w + m_p)g = (m_w + m_p)a$$";
+                    steps = [
+                        "The most elegant choice of boundary (Composite System).",
+                        "Since Pulley A is massless: $T_2 = 2T_1$.",
+                        "Substituting $T_2$ into the combined equations yields $3T_1$ total upward force.",
+                        "Internal forces ($N$ and $T_2$) are resolved internally, making calculation simple!"
+                    ];
+                    break;
+            }
+
+            container.innerHTML = formula;
+            stepsList.innerHTML = steps.map(step => `<li>${step}</li>`).join('');
+
+            // Trigger MathJax re-render for dynamically modified fields
+            if (window.MathJax && typeof window.MathJax.typesetPromise === 'function') {
+                window.MathJax.typesetPromise([container, stepsList, desc]);
+            }
+        }
+
+        // Toggle simulation runs
+        function togglePlay() {
+            state.isPlaying = !state.isPlaying;
+            document.getElementById('play-icon').className = state.isPlaying ? "fa-solid fa-pause" : "fa-solid fa-play";
+            document.getElementById('play-text').innerText = state.isPlaying ? "Pause" : "Resume";
+        }
+
+        function toggleSlowMo() {
+            state.isSlowMo = !state.isSlowMo;
+            document.getElementById('btn-slow').innerText = state.isSlowMo ? "0.25x Speed" : "1.0x Speed";
+            document.getElementById('btn-slow').className = state.isSlowMo 
+                ? "bg-amber-950/40 border border-amber-800 text-amber-300 font-medium py-2 rounded-lg text-xs transition-all" 
+                : "bg-slate-800 hover:bg-slate-700 text-slate-200 font-medium py-2 rounded-lg text-xs transition-all";
+        }
+
+        function stepFrame() {
+            const dt = 0.016; // Standard 60fps single step
+            updatePhysics(dt);
+        }
+
+        function resetPlatform() {
+            state.y = 1.2;
+            state.velocity = 0;
+            document.getElementById('canvas-height').innerText = `${state.y.toFixed(2)} m`;
+        }
+
+        // Core physics equation loop integration
+        function updatePhysics(dt) {
+            if (state.forceMode === 'equilibrium') {
+                state.velocity = 0;
+                state.accel = 0;
+                return;
+            }
+
+            // Adjust dt for slow motion setting
+            if (state.isSlowMo) {
+                dt = dt * 0.25;
+            }
+
+            // Explicit Euler integrator
+            state.velocity += state.accel * dt;
+            state.y += state.velocity * dt;
+
+            // Collisions with ceiling or floor limits
+            if (state.y > state.maxHeight) {
+                state.y = state.maxHeight;
+                state.velocity = 0;
+            } else if (state.y < state.minHeight) {
+                state.y = state.minHeight;
+                state.velocity = 0;
+            }
+
+            document.getElementById('canvas-height').innerText = `${state.y.toFixed(2)} m`;
+        }
+
+        // Canvas Rendering System with customized aesthetic boundaries
+        function resizeCanvas() {
+            const rect = canvas.getBoundingClientRect();
+            canvas.width = rect.width * window.devicePixelRatio;
+            canvas.height = rect.height * window.devicePixelRatio;
+            ctx.scale(window.devicePixelRatio, window.devicePixelRatio);
+        }
+
+        function drawSimulation() {
+            const w = canvas.width / window.devicePixelRatio;
+            const h = canvas.height / window.devicePixelRatio;
+
+            ctx.clearRect(0, 0, w, h);
+
+            // Draw ceiling background
+            ctx.fillStyle = "#1e293b";
+            ctx.fillRect(0, 0, w, 25);
+            ctx.fillStyle = "#0f172a";
+            ctx.fillRect(0, 25, w, 1);
+
+            // Calculate vertical scale mapping
+            // Sim ranges from y = 0.0 to 4.0 meters
+            const scaleY = (val) => {
+                const innerH = h - 80;
+                return h - 50 - (val / 4.0) * innerH;
+            };
+
+            // Horizontal positions for the components
+            const xFixedAnchor = w * 0.2;
+            const xPulleyA = w * 0.45;
+            const xPulleyB = w * 0.7;
+            const platformW = w * 0.45;
+            const xPlatformStart = w * 0.35;
+            const xPlatformEnd = xPlatformStart + platformW;
+            const xPlatformCenter = xPlatformStart + platformW / 2;
+
+            const yCeiling = 25;
+            const yPlatform = scaleY(state.y);
+
+            // ----------------------------------------------------
+            // 1. DRAW STRINGS (ROPES) & PULLEYS
+            // ----------------------------------------------------
+            
+            // Draw Fixed Pulley B suspended from ceiling
+            const rPulley = 18;
+            const yPulleyB = yCeiling + 45;
+            
+            // Suspension link for Pulley B (String 3)
+            ctx.strokeStyle = "#94a3b8";
+            ctx.lineWidth = 3;
+            ctx.beginPath();
+            ctx.moveTo(xPulleyB, yCeiling);
+            ctx.lineTo(xPulleyB, yPulleyB);
+            ctx.stroke();
+
+            // Draw Pulley B body
+            ctx.fillStyle = "#334155";
+            ctx.beginPath();
+            ctx.arc(xPulleyB, yPulleyB, rPulley, 0, Math.PI * 2);
+            ctx.fill();
+            ctx.strokeStyle = "#64748b";
+            ctx.stroke();
+            // Center axle
+            ctx.fillStyle = "#cbd5e1";
+            ctx.beginPath();
+            ctx.arc(xPulleyB, yPulleyB, 4, 0, Math.PI * 2);
+            ctx.fill();
+
+            // Mobile Pulley A (suspended from platform via string 2)
+            // String 2 links platform center to Pulley A axle
+            const yPulleyA = yPlatform - 120; // fixed distance from platform
+            ctx.strokeStyle = "#818cf8"; // Purple for string 2
+            ctx.lineWidth = 4;
+            ctx.beginPath();
+            ctx.moveTo(xPlatformStart + 40, yPlatform);
+            ctx.lineTo(xPlatformStart + 40, yPulleyA);
+            ctx.stroke();
+
+            // Draw Pulley A body
+            ctx.fillStyle = "#334155";
+            ctx.beginPath();
+            ctx.arc(xPlatformStart + 40, yPulleyA, rPulley, 0, Math.PI * 2);
+            ctx.fill();
+            ctx.strokeStyle = "#4f46e5";
+            ctx.stroke();
+            ctx.fillStyle = "#cbd5e1";
+            ctx.beginPath();
+            ctx.arc(xPlatformStart + 40, yPulleyA, 4, 0, Math.PI * 2);
+            ctx.fill();
+
+            // String 1 (The long complex pulled rope)
+            // Loop path: Fixed anchor on ceiling -> Goes down/under Pulley A -> Goes up/over Pulley B -> Goes down to Washer's hand
+            ctx.strokeStyle = "#f59e0b"; // Orange/Amber for string 1
+            ctx.lineWidth = 2.5;
+            ctx.beginPath();
+
+            // segment 1: Anchor at ceiling to Pulley A left edge
+            ctx.moveTo(xFixedAnchor, yCeiling);
+            ctx.lineTo(xPlatformStart + 40 - rPulley, yPulleyA);
+            
+            // Loop under Pulley A
+            ctx.arc(xPlatformStart + 40, yPulleyA, rPulley, Math.PI, 0, true);
+
+            // segment 2: Pulley A right edge to Pulley B left edge
+            ctx.lineTo(xPulleyB - rPulley, yPulleyB);
+
+            // Loop over Pulley B
+            ctx.arc(xPulleyB, yPulleyB, rPulley, Math.PI, 0, false);
+
+            // segment 3: Pulley B right edge down to person's hand level
+            const yHand = yPlatform - 45;
+            ctx.lineTo(xPulleyB + rPulley, yHand);
+            ctx.stroke();
+
+            // Draw a small node representing the pulled string handle
+            ctx.fillStyle = "#d97706";
+            ctx.beginPath();
+            ctx.arc(xPulleyB + rPulley, yHand, 5, 0, Math.PI * 2);
+            ctx.fill();
+
+            // ----------------------------------------------------
+            // 2. DRAW PLATFORM
+            // ----------------------------------------------------
+            ctx.fillStyle = "#475569";
+            ctx.beginPath();
+            ctx.roundRect(xPlatformStart, yPlatform, platformW, 10, 4);
+            ctx.fill();
+
+            // Draw safety railings/reinforcement on platform
+            ctx.strokeStyle = "#64748b";
+            ctx.lineWidth = 2;
+            ctx.beginPath();
+            ctx.moveTo(xPlatformStart + 10, yPlatform);
+            ctx.lineTo(xPlatformStart + 10, yPlatform - 30);
+            ctx.lineTo(xPlatformEnd - 10, yPlatform - 30);
+            ctx.lineTo(xPlatformEnd - 10, yPlatform);
+            ctx.stroke();
+
+            // ----------------------------------------------------
+            // 3. DRAW WASHER (PERSON)
+            // ----------------------------------------------------
+            const xPerson = xPlatformEnd - 70;
+            const yFoot = yPlatform;
+            const personHeight = 55;
+
+            // Head
+            ctx.fillStyle = "#fed7aa";
+            ctx.beginPath();
+            ctx.arc(xPerson, yFoot - personHeight, 9, 0, Math.PI * 2);
+            ctx.fill();
+
+            // Torso (Shirt)
+            ctx.fillStyle = "#ef4444"; // Red shirt like teacher in reference image
+            ctx.beginPath();
+            ctx.roundRect(xPerson - 6, yFoot - personHeight + 9, 12, 24, 3);
+            ctx.fill();
+
+            // Legs (Blue pants)
+            ctx.strokeStyle = "#3b82f6";
+            ctx.lineWidth = 4;
+            // Left leg
+            ctx.beginPath();
+            ctx.moveTo(xPerson - 3, yFoot - personHeight + 33);
+            ctx.lineTo(xPerson - 5, yFoot);
+            ctx.stroke();
+            // Right leg
+            ctx.beginPath();
+            ctx.moveTo(xPerson + 3, yFoot - personHeight + 33);
+            ctx.lineTo(xPerson + 5, yFoot);
+            ctx.stroke();
+
+            // Arms (one pulling rope, one balancing)
+            ctx.strokeStyle = "#fed7aa";
+            ctx.lineWidth = 3.5;
+            // Arm holding rope (reaches out to xPulleyB + rPulley at yHand)
+            ctx.beginPath();
+            ctx.moveTo(xPerson - 4, yFoot - personHeight + 15);
+            ctx.lineTo(xPulleyB + rPulley, yHand);
+            ctx.stroke();
+
+            // Draw platform ground floor line
+            ctx.fillStyle = "#0f172a";
+            ctx.fillRect(0, h - 40, w, 40);
+            ctx.fillStyle = "#334155";
+            ctx.fillRect(0, h - 40, w, 3);
+
+            // ----------------------------------------------------
+            // 4. DRAW FORCE VECTORS (SYNCED WITH FBD VIEWER CHOICE)
+            // ----------------------------------------------------
+            drawSystemVectors(ctx, {
+                boundary: state.boundary,
+                xPerson,
+                yFoot,
+                personHeight,
+                xPlatformCenter,
+                yPlatform,
+                platformW,
+                yPulleyA,
+                xPulleyA: xPlatformStart + 40,
+                yHand,
+                xHand: xPulleyB + rPulley,
+                T1: state.t1,
+                accel: state.accel,
+                mw: state.mw,
+                mp: state.mp,
+                g: state.g
+            });
+        }
+
+        // Draw force vectors with clean, proportional arrows based on boundary systems
+        function drawSystemVectors(ctx, params) {
+            const T1_scaled = params.T1 * 0.15;
+            const T2_scaled = (params.T1 * 2) * 0.15;
+            const Ww_scaled = (params.mw * params.g) * 0.15;
+            const Wp_scaled = (params.mp * params.g) * 0.15;
+            
+            // Scaled normal force
+            const a = params.accel;
+            const N_actual = params.mw * (params.g + a) - params.T1;
+            const N_scaled = N_actual * 0.15;
+
+            // Arrow drawing helper
+            function drawArrow(x, y, dx, dy, color, label) {
+                const headlen = 8; // length of head in pixels
+                const angle = Math.atan2(dy, dx);
+                ctx.strokeStyle = color;
+                ctx.fillStyle = color;
+                ctx.lineWidth = 3;
+
+                ctx.beginPath();
+                ctx.moveTo(x, y);
+                ctx.lineTo(x + dx, y + dy);
+                ctx.stroke();
+
+                // Draw arrow head
+                ctx.beginPath();
+                ctx.moveTo(x + dx, y + dy);
+                ctx.lineTo(x + dx - headlen * Math.cos(angle - Math.PI / 6), y + dy - headlen * Math.sin(angle - Math.PI / 6));
+                ctx.lineTo(x + dx - headlen * Math.cos(angle + Math.PI / 6), y + dy - headlen * Math.sin(angle + Math.PI / 6));
+                ctx.fill();
+
+                // Draw text label
+                ctx.font = "bold 10px monospace";
+                ctx.fillStyle = "#f8fafc";
+                ctx.fillText(label, x + dx + 8 * Math.cos(angle), y + dy + 4);
+            }
+
+            // Draw selection outlines & specific system vectors
+            if (params.boundary === 'washer') {
+                // Highlight boundary around Washer
+                ctx.strokeStyle = "rgba(245, 158, 11, 0.25)";
+                ctx.fillStyle = "rgba(245, 158, 11, 0.05)";
+                ctx.lineWidth = 2;
+                ctx.beginPath();
+                ctx.arc(params.xPerson, params.yFoot - 25, 45, 0, Math.PI * 2);
+                ctx.fill();
+                ctx.stroke();
+
+                // Vector 1: Upward Tension on hand (T1)
+                drawArrow(params.xHand, params.yHand, 0, -T1_scaled, "#f59e0b", "T1 (Pull)");
+                
+                // Vector 2: Weight of washer (Mw * g)
+                drawArrow(params.xPerson, params.yFoot - 25, 0, Ww_scaled, "#ef4444", "mw.g");
+
+                // Vector 3: Normal Force from Platform (N)
+                drawArrow(params.xPerson, params.yFoot, 0, -N_scaled, "#10b981", "Normal (N)");
+
+            } else if (params.boundary === 'platform') {
+                // Highlight boundary around Platform
+                ctx.strokeStyle = "rgba(16, 185, 129, 0.25)";
+                ctx.fillStyle = "rgba(16, 185, 129, 0.05)";
+                ctx.lineWidth = 2;
+                ctx.beginPath();
+                ctx.roundRect(params.xPlatformCenter - params.platformW/2 - 5, params.yPlatform - 15, params.platformW + 10, 35, 6);
+                ctx.fill();
+                ctx.stroke();
+
+                // Vector 1: Upward tension of string 2 (T2)
+                drawArrow(params.xPlatformCenter - 50, params.yPlatform, 0, -T2_scaled, "#818cf8", "T2 (String 2)");
+
+                // Vector 2: Normal Force from person (N, downward)
+                drawArrow(params.xPerson, params.yPlatform, 0, N_scaled, "#10b981", "N (Action)");
+
+                // Vector 3: Weight of platform (Mp * g)
+                drawArrow(params.xPlatformCenter, params.yPlatform + 10, 0, Wp_scaled, "#ec4899", "mp.g");
+
+            } else if (params.boundary === 'both') {
+                // Highlight boundary around both
+                ctx.strokeStyle = "rgba(99, 102, 241, 0.25)";
+                ctx.fillStyle = "rgba(99, 102, 241, 0.04)";
+                ctx.lineWidth = 2;
+                ctx.beginPath();
+                ctx.roundRect(params.xPlatformCenter - params.platformW/2 - 10, params.yPlatform - 65, params.platformW + 20, 85, 10);
+                ctx.fill();
+                ctx.stroke();
+
+                // Vector 1: Upward Tension 1 on hands
+                drawArrow(params.xHand, params.yHand, 0, -T1_scaled, "#f59e0b", "T1");
+
+                // Vector 2: Upward Tension 2 on Platform
+                drawArrow(params.xPlatformCenter - 50, params.yPlatform, 0, -T2_scaled, "#818cf8", "T2");
+
+                // Vector 3: Combined Weight ((Mw + Mp)*g)
+                drawArrow(params.xPlatformCenter, params.yPlatform, 0, Ww_scaled + Wp_scaled, "#ef4444", "(mw + mp).g");
+
+            } else if (params.boundary === 'full') {
+                // Highlight overall Composite system boundary including Pulley A
+                ctx.strokeStyle = "rgba(59, 130, 246, 0.3)";
+                ctx.fillStyle = "rgba(59, 130, 246, 0.04)";
+                ctx.lineWidth = 3;
+                
+                ctx.beginPath();
+                ctx.roundRect(params.xPlatformCenter - params.platformW/2 - 15, params.yPulleyA - 25, params.platformW + 30, (params.yPlatform - params.yPulleyA) + 45, 12);
+                ctx.fill();
+                ctx.stroke();
+
+                // Vector 1: T1 on hand
+                drawArrow(params.xHand, params.yHand, 0, -T1_scaled, "#f59e0b", "T1 (Hand)");
+
+                // Vector 2 & 3: Two upwards support tensions T1 supporting Pulley A
+                drawArrow(params.xPulleyA - 18, params.yPulleyA, 0, -T1_scaled, "#3b82f6", "T1");
+                drawArrow(params.xPulleyA + 18, params.yPulleyA, 0, -T1_scaled, "#3b82f6", "T1");
+
+                // Vector 4: Total weight down
+                drawArrow(params.xPlatformCenter, params.yPlatform, 0, Ww_scaled + Wp_scaled, "#ef4444", "(mw + mp).g");
+            }
+        }
+
+        // Loop animation sequence
+        function animate(timestamp) {
+            let dt = (timestamp - state.lastFrameTime) / 1000;
+            state.lastFrameTime = timestamp;
+
+            // Caps dt to avoid wild jumps
+            if (dt > 0.1) dt = 0.1;
+
+            if (state.isPlaying) {
+                updatePhysics(dt);
+            }
+
+            drawSimulation();
+            requestAnimationFrame(animate);
+        }
+
+        // Initialize Slider & Mode triggers
+        sliderMw.addEventListener('input', updateSliderValues);
+        sliderMp.addEventListener('input', updateSliderValues);
+        sliderT1.addEventListener('input', updateSliderValues);
+        sliderG.addEventListener('input', updateSliderValues);
+
+        window.onload = function() {
+            resizeCanvas();
+            updateSliderValues();
+            setSystemBoundary('full');
+            
+            // Force global typeset of static element labels initially (once DOM is stable)
+            setTimeout(() => {
+                if (window.MathJax && typeof window.MathJax.typesetPromise === 'function') {
+                    window.MathJax.typesetPromise();
+                }
+            }, 300);
+            
+            // Start Canvas Animation Loop
+            requestAnimationFrame(animate);
+        };
+
+        window.addEventListener('resize', resizeCanvas);
+
+        // Modal triggers
+        function showQuickGuide() {
+            document.getElementById('guide-modal').classList.remove('hidden');
+        }
+
+        function closeGuide() {
+            document.getElementById('guide-modal').classList.add('hidden');
+        }
+    </script>
+</body>
+</html>

@@ -1,0 +1,936 @@
+<!DOCTYPE html>
+<html lang="en" class="dark">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Uniform vs Non-Uniform Tension Simulator</title>
+    <!-- Tailwind CSS for high-end modern styling -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- KaTeX for crisp mathematical formulas -->
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.8/dist/katex.min.css">
+    <script src="https://cdn.jsdelivr.net/npm/katex@0.16.8/dist/katex.min.js"></script>
+    <!-- KaTeX Auto-Render Extension to render all $ math $ on page -->
+    <script src="https://cdn.jsdelivr.net/npm/katex@0.16.8/dist/contrib/auto-render.min.js"></script>
+    <!-- Google Font Inter -->
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;500;700&display=swap" rel="stylesheet">
+    <style>
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: #0f172a; /* Tailwind Slate-900 */
+        }
+        .code-font {
+            font-family: 'JetBrains Mono', monospace;
+        }
+        /* Custom scrollbar styling for a cleaner look */
+        ::-webkit-scrollbar {
+            width: 6px;
+            height: 6px;
+        }
+        ::-webkit-scrollbar-track {
+            background: #1e293b;
+        }
+        ::-webkit-scrollbar-thumb {
+            background: #475569;
+            border-radius: 3px;
+        }
+        ::-webkit-scrollbar-thumb:hover {
+            background: #64748b;
+        }
+    </style>
+</head>
+<body class="text-slate-100 min-h-screen flex flex-col antialiased">
+
+    <!-- Header Navigation -->
+    <header class="border-b border-slate-800 bg-slate-900/80 backdrop-blur sticky top-0 z-50 px-6 py-4">
+        <div class="max-w-7xl mx-auto flex flex-col md:flex-row md:items-center md:justify-between gap-4">
+            <div>
+                <div class="flex items-center gap-2">
+                    <span class="px-2.5 py-1 text-xs font-semibold uppercase tracking-wider text-emerald-400 bg-emerald-950/50 border border-emerald-800/50 rounded-full">Physics Lab</span>
+                    <span class="text-xs text-slate-400 font-mono">v2.2 (Live-Sync & LaTeX Render Fixed)</span>
+                </div>
+                <h1 class="text-2xl font-extrabold text-white tracking-tight mt-1">Tension in a Rope: Uniformity Dynamics</h1>
+            </div>
+            <div class="flex items-center gap-3">
+                <button id="btn-reset" class="px-4 py-2 bg-slate-800 hover:bg-slate-700 active:bg-slate-600 text-sm font-medium rounded-lg border border-slate-700 transition duration-150 flex items-center gap-2">
+                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 1121.21 15H18M9.55 12h.01M12 12h.01M14.45 12h.01"></path></svg>
+                    Reset System
+                </button>
+                <button id="btn-play" class="px-5 py-2 bg-emerald-600 hover:bg-emerald-500 active:bg-emerald-700 text-sm font-semibold rounded-lg text-white shadow-lg shadow-emerald-900/30 transition duration-150 flex items-center gap-2">
+                    <svg id="play-icon" class="w-4 h-4" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM9.555 7.168A1 1 0 008 8v4a1 1 0 001.555.832l3-2a1 1 0 000-1.664l-3-2z" clip-rule="evenodd"></path></svg>
+                    <span id="play-text">Pause Lab</span>
+                </button>
+            </div>
+        </div>
+    </header>
+
+    <!-- Main Interactive Grid -->
+    <main class="flex-1 max-w-7xl w-full mx-auto p-4 lg:p-6 grid grid-cols-1 lg:grid-cols-12 gap-6 overflow-hidden">
+        
+        <!-- Left Column: Masterclass & Parameter Dashboard (5 cols) -->
+        <section class="lg:col-span-5 flex flex-col gap-6 overflow-y-auto max-h-[calc(100vh-140px)] pr-2">
+            
+            <!-- Masterclass Course Steps -->
+            <div class="bg-slate-900/80 border border-slate-800 rounded-2xl p-5 shadow-xl">
+                <h2 class="text-xs font-bold text-slate-400 uppercase tracking-widest mb-3 flex items-center gap-2">
+                    <span class="w-2 h-2 rounded-full bg-emerald-500"></span> Expert Lecture Steps
+                </h2>
+                <div class="grid grid-cols-4 gap-2 mb-4">
+                    <button id="step-0" class="step-btn py-2 text-xs font-bold rounded-lg border bg-emerald-950/40 text-emerald-300 border-emerald-800/80 transition-all">Intro</button>
+                    <button id="step-1" class="step-btn py-2 text-xs font-bold rounded-lg border bg-slate-800 text-slate-300 border-slate-700 hover:border-slate-600 transition-all">Case I</button>
+                    <button id="step-2" class="step-btn py-2 text-xs font-bold rounded-lg border bg-slate-800 text-slate-300 border-slate-700 hover:border-slate-600 transition-all">Case II</button>
+                    <button id="step-3" class="step-btn py-2 text-xs font-bold rounded-lg border bg-slate-800 text-slate-300 border-slate-700 hover:border-slate-600 transition-all">Case III</button>
+                </div>
+                
+                <!-- Dynamic Step Content Card -->
+                <div class="bg-slate-950/60 rounded-xl p-4 border border-slate-800/80 min-h-[160px] flex flex-col justify-between">
+                    <div>
+                        <h3 id="lecture-title" class="text-md font-bold text-white mb-2">1. Understanding Tension</h3>
+                        <p id="lecture-desc" class="text-sm text-slate-300 leading-relaxed">
+                            Tension at any coordinate <span class="code-font">$P$</span> of a rope represents the magnitude of the action-reaction forces that the left and right segments exert on each other. Slice the rope to visualize this inside the <strong>Slice Inspector</strong>.
+                        </p>
+                    </div>
+                    <div class="mt-4 pt-3 border-t border-slate-800/60 flex items-center justify-between text-xs text-slate-400 font-mono">
+                        <span id="constraint-indicator" class="flex items-center gap-1.5 text-blue-400 bg-blue-950/55 px-2 py-0.5 rounded border border-blue-900/50">
+                            Mode: Interactive Explore
+                        </span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Controls & Variables Dashboard -->
+            <div class="bg-slate-900/80 border border-slate-800 rounded-2xl p-5 shadow-xl flex flex-col gap-5">
+                <h2 class="text-xs font-bold text-slate-400 uppercase tracking-widest flex items-center gap-2">
+                    <svg class="w-4 h-4 text-emerald-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6V4m0 2a2 2 0 100 4m0-4a2 2 0 110 4m-6 8a2 2 0 100-4m0 4a2 2 0 110-4m0 4v2m0-6V4m6 6v10m6-2a2 2 0 100-4m0 4a2 2 0 110-4m0 4v2m0-6V4"></path></svg>
+                    Live Parameter Adjustments
+                </h2>
+
+                <!-- Force A (Left Pull) -->
+                <div>
+                    <div class="flex justify-between items-center mb-1">
+                        <label class="text-sm font-semibold text-slate-200">Force $F_a$ (Left Pull)</label>
+                        <span class="text-xs text-emerald-400 font-mono font-bold" id="val-fa">10.0 N</span>
+                    </div>
+                    <input type="range" id="input-fa" min="0" max="100" step="0.5" value="10" class="w-full accent-emerald-500 h-1.5 bg-slate-800 rounded-lg cursor-pointer">
+                </div>
+
+                <!-- Force B (Right Pull) -->
+                <div>
+                    <div class="flex justify-between items-center mb-1">
+                        <label class="text-sm font-semibold text-slate-200">Force $F_b$ (Right Pull)</label>
+                        <span class="text-xs text-emerald-400 font-mono font-bold" id="val-fb">10.0 N</span>
+                    </div>
+                    <input type="range" id="input-fb" min="0" max="100" step="0.5" value="10" class="w-full accent-emerald-500 h-1.5 bg-slate-800 rounded-lg cursor-pointer">
+                </div>
+
+                <!-- Rope Mass -->
+                <div>
+                    <div class="flex justify-between items-center mb-1">
+                        <label class="text-sm font-semibold text-slate-200">Rope Mass ($M_{\text{rope}}$)</label>
+                        <span class="text-xs text-emerald-400 font-mono font-bold" id="val-mass">2.00 kg</span>
+                    </div>
+                    <input type="range" id="input-mass" min="0.01" max="10" step="0.05" value="2.00" class="w-full accent-emerald-500 h-1.5 bg-slate-800 rounded-lg cursor-pointer">
+                    <p id="massless-alert" class="hidden mt-1.5 text-xs text-amber-400 bg-amber-950/40 border border-amber-900/50 px-2 py-1 rounded">
+                        ⚠️ Near-massless approximation enabled. High acceleration warnings active.
+                    </p>
+                </div>
+
+                <!-- Rope Length -->
+                <div>
+                    <div class="flex justify-between items-center mb-1">
+                        <label class="text-sm font-semibold text-slate-200">Rope Length ($L$)</label>
+                        <span class="text-xs text-emerald-400 font-mono font-bold" id="val-len">5.0 m</span>
+                    </div>
+                    <input type="range" id="input-len" min="1.0" max="10.0" step="0.5" value="5.0" class="w-full accent-emerald-500 h-1.5 bg-slate-800 rounded-lg cursor-pointer">
+                </div>
+
+                <!-- Live Dynamic Math Cards -->
+                <div class="bg-slate-950/80 rounded-xl p-4 border border-slate-800 flex flex-col gap-3">
+                    <h3 class="text-xs font-semibold text-slate-400 uppercase tracking-widest font-mono">Real-time Calculation Matrix</h3>
+                    
+                    <div class="flex flex-col gap-3">
+                        <div class="bg-slate-900/50 p-3 rounded-xl border border-slate-800 flex flex-col sm:flex-row sm:justify-between sm:items-center gap-2">
+                            <span class="text-xs text-slate-400 font-medium">Net Force ($F_{\text{net}}$):</span>
+                            <div id="math-fnet" class="text-sm font-semibold text-white overflow-x-auto max-w-full"></div>
+                        </div>
+                        <div class="bg-slate-900/50 p-3 rounded-xl border border-slate-800 flex flex-col sm:flex-row sm:justify-between sm:items-center gap-2">
+                            <span class="text-xs text-slate-400 font-medium">Acceleration ($a$):</span>
+                            <div id="math-accel" class="text-sm font-semibold text-white overflow-x-auto max-w-full"></div>
+                        </div>
+                        <div class="bg-slate-900/50 p-3 rounded-xl border border-slate-800 flex flex-col sm:flex-row sm:justify-between sm:items-center gap-2">
+                            <span class="text-xs text-slate-400 font-medium">Tension Function $T(x)$:</span>
+                            <div id="math-tension" class="text-sm font-semibold text-white overflow-x-auto max-w-full animate-pulse-once"></div>
+                        </div>
+                    </div>
+                </div>
+
+            </div>
+        </section>
+
+        <!-- Right Column: Interactive Arenas & Graphing (7 cols) -->
+        <section class="lg:col-span-7 flex flex-col gap-6 overflow-y-auto pr-2">
+            
+            <!-- Sandbox Simulation Viewport -->
+            <div class="bg-slate-900/80 border border-slate-800 rounded-2xl p-5 shadow-xl flex flex-col gap-3">
+                <div class="flex justify-between items-center">
+                    <h2 class="text-xs font-bold text-slate-400 uppercase tracking-widest flex items-center gap-2">
+                        <span class="w-2.5 h-2.5 rounded-full bg-indigo-500 animate-pulse"></span> Dynamic Physical Arena
+                    </h2>
+                    <span class="text-xs text-indigo-400 font-mono">Endless wrapping track</span>
+                </div>
+                
+                <!-- Main Simulator Canvas -->
+                <div class="relative w-full bg-slate-950 rounded-xl border border-slate-800/80 overflow-hidden">
+                    <canvas id="canvas-arena" class="block w-full h-[220px]"></canvas>
+                    
+                    <!-- Touch/Mouse guide badge -->
+                    <div class="absolute bottom-3 right-3 bg-slate-900/90 border border-slate-700/60 rounded px-2.5 py-1 text-[11px] text-slate-400 pointer-events-none font-medium flex items-center gap-1.5">
+                        <svg class="w-3.5 h-3.5 text-indigo-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 15l-2 5L9 9l11 4-5 2zm0 0l5 5M7.188 2.239l.777 2.897M5.136 7.965l-2.898-.777M13.95 4.05l-2.122 2.122m-5.657 5.656l-2.12 2.122"></path></svg>
+                        Drag slice indicator or slide bars below
+                    </div>
+                </div>
+            </div>
+
+            <!-- Slice Investigator & Analytical Plot Grid -->
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                
+                <!-- Slice Investigator Card -->
+                <div class="bg-slate-900/80 border border-slate-800 rounded-2xl p-4 flex flex-col gap-3 shadow-lg">
+                    <div class="flex justify-between items-center">
+                        <h3 class="text-xs font-bold text-slate-400 uppercase tracking-widest flex items-center gap-1.5">
+                            <span class="w-2 h-2 bg-pink-500 rounded-full"></span> Slice Inspector
+                        </h3>
+                        <span class="text-xs font-mono text-pink-400" id="slice-pos-label">x = 2.50 m</span>
+                    </div>
+                    <div class="bg-slate-950 rounded-xl border border-slate-800/80 overflow-hidden relative">
+                        <canvas id="canvas-slice" class="block w-full h-[140px]"></canvas>
+                    </div>
+                    <!-- Live math for this slice -->
+                    <div class="bg-slate-950/60 border border-slate-800/80 p-2.5 rounded-lg text-xs font-mono flex flex-col gap-1 text-slate-300">
+                        <div class="flex justify-between">
+                            <span>Left pulls Right ($T_P$):</span>
+                            <span id="math-slice-tp-l" class="text-pink-400 font-bold">10.0 N</span>
+                        </div>
+                        <div class="flex justify-between">
+                            <span>Right pulls Left ($T_P$):</span>
+                            <span id="math-slice-tp-r" class="text-pink-400 font-bold">10.0 N</span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Live Tension Grapher -->
+                <div class="bg-slate-900/80 border border-slate-800 rounded-2xl p-4 flex flex-col gap-3 shadow-lg">
+                    <div class="flex justify-between items-center">
+                        <h3 class="text-xs font-bold text-slate-400 uppercase tracking-widest flex items-center gap-1.5">
+                            <span class="w-2 h-2 bg-amber-500 rounded-full"></span> Tension Profile $T(x)$
+                        </h3>
+                        <span class="text-xs font-mono text-amber-400 font-semibold">Continuous Stress</span>
+                    </div>
+                    <div class="bg-slate-950 rounded-xl border border-slate-800/80 overflow-hidden">
+                        <canvas id="canvas-plot" class="block w-full h-[140px]"></canvas>
+                    </div>
+                    <!-- Legend or warning -->
+                    <div id="math-plot-legend" class="text-[10px] text-slate-400 leading-tight font-mono flex items-center gap-2 py-0.5">
+                        <span class="w-2.5 h-1.5 bg-gradient-to-r from-blue-500 to-red-500 rounded flex-shrink-0"></span>
+                        Linear distribution from $x=0$ ($F_a$) to $x=L$ ($F_b$)
+                    </div>
+                </div>
+
+            </div>
+
+            <!-- Dynamic Diagnostic Statistics Bar -->
+            <div class="bg-slate-900/80 border border-slate-800 rounded-2xl px-5 py-3.5 shadow-xl flex flex-wrap justify-between items-center gap-3">
+                <div class="flex items-center gap-6">
+                    <div class="flex flex-col">
+                        <span class="text-[10px] uppercase font-bold tracking-wider text-slate-500">Rope Velocity</span>
+                        <span id="stat-vel" class="text-sm font-mono font-extrabold text-indigo-400">0.00 m/s</span>
+                    </div>
+                    <div class="flex flex-col border-l border-slate-800 pl-6">
+                        <span class="text-[10px] uppercase font-bold tracking-wider text-slate-500">Acceleration</span>
+                        <span id="stat-accel" class="text-sm font-mono font-extrabold text-indigo-400">0.00 m/s²</span>
+                    </div>
+                    <div class="flex flex-col border-l border-slate-800 pl-6">
+                        <span class="text-[10px] uppercase font-bold tracking-wider text-slate-500">Global Pos</span>
+                        <span id="stat-pos" class="text-sm font-mono font-extrabold text-indigo-400">0.00 m</span>
+                    </div>
+                </div>
+                <div class="flex gap-2">
+                    <span class="px-2 py-0.5 bg-emerald-950/40 border border-emerald-900/50 text-[11px] rounded font-semibold text-emerald-400">Frictionless Track</span>
+                    <span class="px-2 py-0.5 bg-slate-850 border border-slate-700/50 text-[11px] rounded font-semibold text-slate-400">Euler Integrator</span>
+                </div>
+            </div>
+
+        </section>
+    </main>
+
+    <script>
+        // Configuration state variables
+        let state = {
+            Fa: 10.0,       // Force pulling left (Newtons)
+            Fb: 10.0,       // Force pulling right (Newtons)
+            mass: 2.00,     // Rope mass (kg)
+            length: 5.0,    // Rope length (m)
+            sliceX: 2.50,   // User selected slice coordinate (m)
+            pos: 0.0,       // Horizontal displacement of the rope center (m)
+            vel: 0.0,       // Current velocity of the rope (m/s)
+            accel: 0.0,     // Current acceleration of the rope (m/s^2)
+            isPlaying: true,
+            activeStep: 0,
+            isDraggingSlice: false
+        };
+
+        // Lesson definitions synchronized with lecture slides
+        const lessonSteps = [
+            {
+                title: "1. Understanding Tension",
+                desc: "Tension at any point $P$ is the action-reaction force pair inside the rope body. When sliced, the left segment pulls right and the right segment pulls left with equal magnitude $T_P$. Click 'Case I' to proceed.",
+                mode: "Interactive Explore"
+            },
+            {
+                title: "2. Case I: Acceleration is Zero",
+                desc: "When acceleration $a = 0$ (e.g. static state or uniform motion), $T_b - T_a = M_{\\text{rope}} \\cdot a = 0 \\implies T_b = T_a$. The tension is perfectly uniform across the entire rope length. Try changing both forces to match!",
+                mode: "Case I: a = 0 (Static/Uniform Velocity)"
+            },
+            {
+                title: "3. Case II: General Acceleration ($a \\neq 0$)",
+                desc: "With a massive rope accelerating ($a \\neq 0$), $T_b - T_a = M_{\\text{rope}} \\cdot a$. This sets up a linear tension gradient along the rope. Tension at the leading end is larger. The distribution is highly non-uniform!",
+                mode: "Case II: Acceleration with Mass"
+            },
+            {
+                title: "4. Case III: Massless Approximation",
+                desc: "In many textbook physics problems, the string is modeled as 'massless' ($M_{\\text{rope}} \\to 0$). Here, even if $a \\neq 0$, the mass term vanishes: $T_b - T_a \\approx 0 \\implies T$ stays uniform. Play with this dynamic!",
+                mode: "Case III: Massless String Model"
+            }
+        ];
+
+        // UI elements binding
+        const inputFa = document.getElementById('input-fa');
+        const inputFb = document.getElementById('input-fb');
+        const inputMass = document.getElementById('input-mass');
+        const inputLen = document.getElementById('input-len');
+
+        const valFa = document.getElementById('val-fa');
+        const valFb = document.getElementById('val-fb');
+        const valMass = document.getElementById('val-mass');
+        const valLen = document.getElementById('val-len');
+
+        const statVel = document.getElementById('stat-vel');
+        const statAccel = document.getElementById('stat-accel');
+        const statPos = document.getElementById('stat-pos');
+
+        const btnPlay = document.getElementById('btn-play');
+        const btnReset = document.getElementById('btn-reset');
+        const playIcon = document.getElementById('play-icon');
+        const playText = document.getElementById('play-text');
+        const masslessAlert = document.getElementById('massless-alert');
+
+        // Dynamic Math element binding
+        const mathFnet = document.getElementById('math-fnet');
+        const mathAccel = document.getElementById('math-accel');
+        const mathTension = document.getElementById('math-tension');
+        const slicePosLabel = document.getElementById('slice-pos-label');
+        const mathSliceTpL = document.getElementById('math-slice-tp-l');
+        const mathSliceTpR = document.getElementById('math-slice-tp-r');
+
+        // Canvases & contexts
+        const canvasArena = document.getElementById('canvas-arena');
+        const ctxArena = canvasArena.getContext('2d');
+        const canvasSlice = document.getElementById('canvas-slice');
+        const ctxSlice = canvasSlice.getContext('2d');
+        const canvasPlot = document.getElementById('canvas-plot');
+        const ctxPlot = canvasPlot.getContext('2d');
+
+        // Global KaTeX auto-render helper
+        function renderMath(element) {
+            if (typeof renderMathInElement === 'function') {
+                renderMathInElement(element, {
+                    delimiters: [
+                        {left: '$$', right: '$$', display: true},
+                        {left: '$', right: '$', display: false}
+                    ],
+                    throwOnError: false
+                });
+            }
+        }
+
+        function computeDynamics(dt) {
+            // Net pull vector (Fb points right, Fa points left)
+            const netForce = state.Fb - state.Fa;
+            
+            // Avoid divide by zero on massless calculation
+            const massCoeff = Math.max(state.mass, 0.01);
+            state.accel = netForce / massCoeff;
+
+            if (state.isPlaying) {
+                // Euler integration
+                state.vel += state.accel * dt;
+                
+                // Virtual dampening to prevent infinite runaway speed in massless extremes
+                state.vel *= 0.992; 
+                state.pos += state.vel * dt;
+            } else {
+                state.vel = 0;
+            }
+
+            // Bound position inside infinite scrolling wrap coordinate to simplify rendering
+            if (state.pos > 100) state.pos -= 100;
+            if (state.pos < -100) state.pos += 100;
+        }
+
+        // Get local tension at any x position (from 0 to L)
+        function getTensionAt(x) {
+            const ratio = state.length > 0 ? (x / state.length) : 0;
+            // Linear tension profile between left end Fa (x=0) and right end Fb (x=L)
+            return state.Fa + (state.Fb - state.Fa) * ratio;
+        }
+
+        function updateUIValues() {
+            valFa.textContent = `${state.Fa.toFixed(1)} N`;
+            valFb.textContent = `${state.Fb.toFixed(1)} N`;
+            valMass.textContent = `${state.mass.toFixed(2)} kg`;
+            valLen.textContent = `${state.length.toFixed(1)} m`;
+
+            statVel.textContent = `${state.vel.toFixed(2)} m/s`;
+            statAccel.textContent = `${state.accel.toFixed(2)} m/s²`;
+            statPos.textContent = `${state.pos.toFixed(2)} m`;
+
+            slicePosLabel.textContent = `x = ${state.sliceX.toFixed(2)} m`;
+
+            // Massless threshold warning
+            if (state.mass <= 0.20) {
+                masslessAlert.classList.remove('hidden');
+            } else {
+                masslessAlert.classList.add('hidden');
+            }
+
+            // Sync slide controls if updated externally
+            inputFa.value = state.Fa;
+            inputFb.value = state.Fb;
+            inputMass.value = state.mass;
+            inputLen.value = state.length;
+        }
+
+        function renderLiveEquations() {
+            try {
+                const fnet = state.Fb - state.Fa;
+                katex.render(`F_{\\text{net}} = F_b - F_a = ${state.Fb.toFixed(1)} - ${state.Fa.toFixed(1)} = ${fnet.toFixed(1)}\\text{ N}`, mathFnet);
+                katex.render(`a = \\frac{F_{\\text{net}}}{M} = \\frac{${fnet.toFixed(1)}}{${state.mass.toFixed(2)}} = ${state.accel.toFixed(2)}\\text{ m/s}^2`, mathAccel);
+                katex.render(`T(x) = F_a + \\left(F_b - F_a\\right)\\frac{x}{L}`, mathTension);
+
+                // Update Slice Investigator metrics
+                const Tp = getTensionAt(state.sliceX);
+                mathSliceTpL.textContent = `${Tp.toFixed(2)} N`;
+                mathSliceTpR.textContent = `${Tp.toFixed(2)} N`;
+            } catch (err) {
+                console.error("Math Formula Rendering Failure:", err);
+            }
+        }
+
+        // Helper to draw clean vector arrow with styling
+        function drawArrow(ctx, fromX, fromY, toX, toY, color, label = "", thick = 2) {
+            const headlen = 10; // length of head in pixels
+            const dx = toX - fromX;
+            const dy = toY - fromY;
+            const angle = Math.atan2(dy, dx);
+            
+            ctx.beginPath();
+            ctx.moveTo(fromX, fromY);
+            ctx.lineTo(toX, toY);
+            ctx.strokeStyle = color;
+            ctx.lineWidth = thick;
+            ctx.stroke();
+            
+            // Arrowhead
+            ctx.beginPath();
+            ctx.moveTo(toX, toY);
+            ctx.lineTo(toX - headlen * Math.cos(angle - Math.PI / 6), toY - headlen * Math.sin(angle - Math.PI / 6));
+            ctx.lineTo(toX - headlen * Math.cos(angle + Math.PI / 6), toY - headlen * Math.sin(angle + Math.PI / 6));
+            ctx.closePath();
+            ctx.fillStyle = color;
+            ctx.fill();
+
+            if (label) {
+                ctx.fillStyle = "#f1f5f9";
+                ctx.font = "bold 11px Inter, sans-serif";
+                ctx.textAlign = "center";
+                ctx.fillText(label, fromX + dx/2, fromY - 8);
+            }
+        }
+
+        // Color mapper for tension stress heat-map (Blue = low tension, Red = high tension)
+        function getTensionColor(tensionVal) {
+            // Normalize tension between 0 and 100 for color mapping
+            const minT = 0;
+            const maxT = 100;
+            const clamped = Math.max(minT, Math.min(maxT, tensionVal));
+            const t = (clamped - minT) / (maxT - minT);
+            
+            // Map: Blue (RGB: 59, 130, 246) -> Indigo (RGB: 139, 92, 246) -> Red (RGB: 239, 68, 68)
+            const r = Math.round(59 + (239 - 59) * t);
+            const g = Math.round(130 + (68 - 130) * t);
+            const b = Math.round(246 + (68 - 246) * t);
+            return `rgb(${r}, ${g}, ${b})`;
+        }
+
+        // Render Physical Arena
+        function renderArena() {
+            const width = canvasArena.width = canvasArena.parentElement.clientWidth * window.devicePixelRatio;
+            const height = canvasArena.height = 220 * window.devicePixelRatio;
+            ctxArena.scale(window.devicePixelRatio, window.devicePixelRatio);
+            const w = width / window.devicePixelRatio;
+            const h = height / window.devicePixelRatio;
+
+            ctxArena.clearRect(0, 0, w, h);
+
+            // Draw Background Track & Gridlines (Endless Wrapping effect)
+            ctxArena.strokeStyle = "#1e293b";
+            ctxArena.lineWidth = 1;
+            const gridSpacing = 40;
+            const xOffset = (state.pos * 15) % gridSpacing; // Scale velocity displacement visually
+            
+            for (let x = -gridSpacing; x < w + gridSpacing; x += gridSpacing) {
+                ctxArena.beginPath();
+                ctxArena.moveTo(x + xOffset, 0);
+                ctxArena.lineTo(x + xOffset, h);
+                ctxArena.stroke();
+            }
+
+            // Draw Frictionless ground rails
+            ctxArena.fillStyle = "#1e293b";
+            ctxArena.fillRect(0, h - 50, w, 6);
+
+            // Calculate Rope center placement
+            const ropeWidthPx = state.length * 30; // 30 pixels per meter
+            const ropeStartX = (w - ropeWidthPx) / 2;
+            const ropeY = h - 75;
+
+            // Draw track borders/limit guides
+            ctxArena.fillStyle = "#334155";
+            ctxArena.font = "9px 'JetBrains Mono'";
+            ctxArena.fillText("RAIL LIMIT GAUGING TRACK", 15, h - 15);
+
+            // Render Forces pulling the ends
+            const arrowBaseLength = 15;
+            // Left Force (Fa) pulls leftwards
+            if (state.Fa > 0) {
+                const leftArrowX = ropeStartX - (state.Fa * 0.8) - arrowBaseLength;
+                drawArrow(ctxArena, ropeStartX, ropeY, leftArrowX, ropeY, "#3b82f6", `Fa: ${state.Fa.toFixed(0)}N`, 3);
+            }
+            // Right Force (Fb) pulls rightwards
+            if (state.Fb > 0) {
+                const rightArrowX = (ropeStartX + ropeWidthPx) + (state.Fb * 0.8) + arrowBaseLength;
+                drawArrow(ctxArena, ropeStartX + ropeWidthPx, ropeY, rightArrowX, ropeY, "#ef4444", `Fb: ${state.Fb.toFixed(0)}N`, 3);
+            }
+
+            // Render Segment Slices for the Heatmap gradient
+            const segmentCount = 40;
+            const segW = ropeWidthPx / segmentCount;
+            
+            for (let i = 0; i < segmentCount; i++) {
+                const segStartX = ropeStartX + (i * segW);
+                const localX = (i / segmentCount) * state.length;
+                const tension = getTensionAt(localX);
+                
+                ctxArena.fillStyle = getTensionColor(tension);
+                
+                // Main rope cylinder body
+                ctxArena.beginPath();
+                ctxArena.roundRect(segStartX, ropeY - 10, segW + 0.5, 20, 2);
+                ctxArena.fill();
+            }
+
+            // Render Rope End Connectors (Metallic Gripping blocks)
+            ctxArena.fillStyle = "#cbd5e1";
+            ctxArena.beginPath();
+            ctxArena.roundRect(ropeStartX - 5, ropeY - 14, 6, 28, 2);
+            ctxArena.roundRect(ropeStartX + ropeWidthPx - 1, ropeY - 14, 6, 28, 2);
+            ctxArena.fill();
+
+            // Render Intersecting "Slice Investigator" Plane marker
+            const slicePx = ropeStartX + (state.sliceX / state.length) * ropeWidthPx;
+            ctxArena.strokeStyle = "#ec4899"; // pink-500
+            ctxArena.lineWidth = 2;
+            ctxArena.setLineDash([5, 4]);
+            
+            ctxArena.beginPath();
+            ctxArena.moveTo(slicePx, ropeY - 35);
+            ctxArena.lineTo(slicePx, ropeY + 35);
+            ctxArena.stroke();
+            ctxArena.setLineDash([]);
+
+            // Slice Label Tooltip
+            ctxArena.fillStyle = "#ec4899";
+            ctxArena.beginPath();
+            ctxArena.arc(slicePx, ropeY - 35, 4, 0, 2 * Math.PI);
+            ctxArena.fill();
+            ctxArena.font = "bold 10px Inter, sans-serif";
+            ctxArena.textAlign = "center";
+            ctxArena.fillText(`P (x=${state.sliceX.toFixed(1)}m)`, slicePx, ropeY - 45);
+        }
+
+        // Render Slice Investigator Detail View (Completely Overlap-Proof)
+        function renderSliceDetail() {
+            const w = canvasSlice.width = canvasSlice.parentElement.clientWidth;
+            const h = canvasSlice.height = 140;
+            ctxSlice.clearRect(0, 0, w, h);
+
+            const centerY = h / 2 + 10;
+            const gap = 35; // Visual separation gap to demonstrate split segments
+            const leftEnd = 30;
+            const rightEnd = w - 30;
+            const middle = w / 2;
+
+            const splitLeftX = middle - gap/2;
+            const splitRightX = middle + gap/2;
+
+            // DRAW LEFT SECTION (from 0 to sliceX)
+            const gradientLeft = ctxSlice.createLinearGradient(leftEnd, 0, splitLeftX, 0);
+            gradientLeft.addColorStop(0, getTensionColor(state.Fa));
+            gradientLeft.addColorStop(1, getTensionColor(getTensionAt(state.sliceX)));
+            ctxSlice.fillStyle = gradientLeft;
+            ctxSlice.beginPath();
+            ctxSlice.roundRect(leftEnd, centerY - 12, splitLeftX - leftEnd, 24, [6, 2, 2, 6]);
+            ctxSlice.fill();
+
+            // Draw metallic grip on far left
+            ctxSlice.fillStyle = "#94a3b8";
+            ctxSlice.fillRect(leftEnd, centerY - 15, 4, 30);
+
+            // DRAW RIGHT SECTION (from sliceX to L)
+            const gradientRight = ctxSlice.createLinearGradient(splitRightX, 0, rightEnd, 0);
+            gradientRight.addColorStop(0, getTensionColor(getTensionAt(state.sliceX)));
+            gradientRight.addColorStop(1, getTensionColor(state.Fb));
+            ctxSlice.fillStyle = gradientRight;
+            ctxSlice.beginPath();
+            ctxSlice.roundRect(splitRightX, centerY - 12, rightEnd - splitRightX, 24, [2, 6, 6, 2]);
+            ctxSlice.fill();
+
+            // Draw metallic grip on far right
+            ctxSlice.fillStyle = "#94a3b8";
+            ctxSlice.fillRect(rightEnd - 4, centerY - 15, 4, 30);
+
+            // TENSION VECTORS AT SLICE PLANE
+            const sliceTension = getTensionAt(state.sliceX);
+            const vectorScale = Math.min(25 + sliceTension * 0.45, 60);
+
+            // Left segment pulled right by Right section
+            drawArrow(ctxSlice, splitLeftX, centerY, splitLeftX + vectorScale, centerY, "#ec4899", ``, 2.5);
+            // Label for left segment tension (positioned centered over the left rope body to prevent overlaps)
+            ctxSlice.fillStyle = "#ec4899";
+            ctxSlice.font = "bold 10px 'JetBrains Mono', monospace";
+            ctxSlice.textAlign = "center";
+            ctxSlice.fillText(`T_P = ${sliceTension.toFixed(1)} N`, (leftEnd + splitLeftX) / 2, centerY - 22);
+
+            // Right segment pulled left by Left section
+            drawArrow(ctxSlice, splitRightX, centerY, splitRightX - vectorScale, centerY, "#ec4899", ``, 2.5);
+            // Label for right segment tension (positioned centered over the right rope body to prevent overlaps)
+            ctxSlice.fillStyle = "#ec4899";
+            ctxSlice.font = "bold 10px 'JetBrains Mono', monospace";
+            ctxSlice.textAlign = "center";
+            ctxSlice.fillText(`T_P = ${sliceTension.toFixed(1)} N`, (splitRightX + rightEnd) / 2, centerY - 22);
+
+            // Action-Reaction plane labels
+            ctxSlice.strokeStyle = "#475569";
+            ctxSlice.setLineDash([2, 3]);
+            ctxSlice.beginPath();
+            ctxSlice.moveTo(middle, centerY - 40);
+            ctxSlice.lineTo(middle, centerY + 30);
+            ctxSlice.stroke();
+            ctxSlice.setLineDash([]);
+            
+            ctxSlice.fillStyle = "#cbd5e1";
+            ctxSlice.font = "10px Inter";
+            ctxSlice.textAlign = "center";
+            ctxSlice.fillText("Imaginary Slice Plane", middle, centerY - 45);
+        }
+
+        // Render Graph Plot
+        function renderPlot() {
+            const w = canvasPlot.width = canvasPlot.parentElement.clientWidth;
+            const h = canvasPlot.height = 140;
+            ctxPlot.clearRect(0, 0, w, h);
+
+            const padding = { top: 20, right: 35, bottom: 25, left: 35 };
+            const graphWidth = w - padding.left - padding.right;
+            const graphHeight = h - padding.top - padding.bottom;
+
+            // Draw Axis lines
+            ctxPlot.strokeStyle = "#334155";
+            ctxPlot.lineWidth = 1;
+            ctxPlot.beginPath();
+            ctxPlot.moveTo(padding.left, padding.top);
+            ctxPlot.lineTo(padding.left, h - padding.bottom);
+            ctxPlot.lineTo(w - padding.right, h - padding.bottom);
+            ctxPlot.stroke();
+
+            // Label axes
+            ctxPlot.fillStyle = "#94a3b8";
+            ctxPlot.font = "9px Inter, sans-serif";
+            ctxPlot.textAlign = "center";
+            ctxPlot.fillText("x (m)", padding.left + graphWidth / 2, h - 5);
+            
+            ctxPlot.save();
+            ctxPlot.translate(10, padding.top + graphHeight / 2);
+            ctxPlot.rotate(-Math.PI / 2);
+            ctxPlot.fillText("Tension (N)", 0, 0);
+            ctxPlot.restore();
+
+            // Scale calculations
+            const maxForceLimit = 100;
+            const scaleY = (val) => h - padding.bottom - (val / maxForceLimit) * graphHeight;
+            const scaleX = (val) => padding.left + (val / state.length) * graphWidth;
+
+            // Render linear tension curve
+            ctxPlot.beginPath();
+            ctxPlot.moveTo(scaleX(0), scaleY(state.Fa));
+            ctxPlot.lineTo(scaleX(state.length), scaleY(state.Fb));
+            ctxPlot.strokeStyle = "#f59e0b"; // amber-500
+            ctxPlot.lineWidth = 2.5;
+            ctxPlot.stroke();
+
+            // Draw horizontal reference lines for uniform tension case if appropriate
+            if (Math.abs(state.Fa - state.Fb) < 0.1) {
+                ctxPlot.strokeStyle = "rgba(16, 185, 129, 0.2)";
+                ctxPlot.setLineDash([4, 4]);
+                ctxPlot.beginPath();
+                ctxPlot.moveTo(padding.left, scaleY(state.Fa));
+                ctxPlot.lineTo(w - padding.right, scaleY(state.Fa));
+                ctxPlot.stroke();
+                ctxPlot.setLineDash([]);
+            }
+
+            // Highlighting current slice position on the graph
+            const sliceValY = getTensionAt(state.sliceX);
+            const plotSliceX = scaleX(state.sliceX);
+            const plotSliceY = scaleY(sliceValY);
+
+            ctxPlot.fillStyle = "#ec4899"; // pink-500
+            ctxPlot.beginPath();
+            ctxPlot.arc(plotSliceX, plotSliceY, 5, 0, 2 * Math.PI);
+            ctxPlot.fill();
+
+            // Horizontal & vertical coordinate guidelines to axes
+            ctxPlot.strokeStyle = "rgba(236, 72, 153, 0.3)";
+            ctxPlot.beginPath();
+            ctxPlot.moveTo(plotSliceX, plotSliceY);
+            ctxPlot.lineTo(padding.left, plotSliceY);
+            ctxPlot.moveTo(plotSliceX, plotSliceY);
+            ctxPlot.lineTo(plotSliceX, h - padding.bottom);
+            ctxPlot.stroke();
+
+            // Coordinate label readout
+            ctxPlot.fillStyle = "#f1f5f9";
+            ctxPlot.font = "9px 'JetBrains Mono'";
+            ctxPlot.fillText(`(${state.sliceX.toFixed(1)}m, ${sliceValY.toFixed(1)}N)`, plotSliceX + 35, plotSliceY - 10);
+
+            // Graph boundary numeric markings
+            ctxPlot.fillStyle = "#64748b";
+            ctxPlot.textAlign = "right";
+            ctxPlot.fillText("0", padding.left - 5, h - padding.bottom);
+            ctxPlot.fillText("100", padding.left - 5, padding.top + 8);
+            
+            ctxPlot.textAlign = "center";
+            ctxPlot.fillText(`${state.length.toFixed(1)}`, w - padding.right, h - padding.bottom + 12);
+        }
+
+        // Aggregate Draw Orchestration
+        function renderAll() {
+            renderArena();
+            renderSliceDetail();
+            renderPlot();
+        }
+
+        // Dynamic Drag Listener for slice placement inside Physical Arena
+        function handleSliceSelection(evt) {
+            const rect = canvasArena.getBoundingClientRect();
+            // Scale touch/mouse coordinates inside canvas
+            const scaleXCoord = evt.clientX - rect.left;
+            
+            const w = rect.width;
+            const ropeWidthPx = state.length * 30;
+            const ropeStartX = (w - ropeWidthPx) / 2;
+
+            // Isolate local click position on rope line
+            const clickLocalX = scaleXCoord - ropeStartX;
+            const rawX = (clickLocalX / ropeWidthPx) * state.length;
+            
+            // Constrain limits
+            state.sliceX = Math.max(0, Math.min(state.length, rawX));
+            
+            updateUIValues();
+            renderLiveEquations();
+            renderAll();
+        }
+
+        // Setup mouse listeners on Dynamic Arena
+        canvasArena.addEventListener('mousedown', (e) => {
+            state.isDraggingSlice = true;
+            handleSliceSelection(e);
+        });
+
+        window.addEventListener('mousemove', (e) => {
+            if (state.isDraggingSlice) {
+                handleSliceSelection(e);
+            }
+        });
+
+        window.addEventListener('mouseup', () => {
+            state.isDraggingSlice = false;
+        });
+
+        // Touch alternatives for mobile compatibility
+        canvasArena.addEventListener('touchstart', (e) => {
+            state.isDraggingSlice = true;
+            handleSliceSelection(e.touches[0]);
+        }, {passive: true});
+
+        canvasArena.addEventListener('touchmove', (e) => {
+            if (state.isDraggingSlice) {
+                handleSliceSelection(e.touches[0]);
+            }
+        }, {passive: true});
+
+        canvasArena.addEventListener('touchend', () => {
+            state.isDraggingSlice = false;
+        });
+
+        const stepBtns = document.querySelectorAll('.step-btn');
+        const lectureTitle = document.getElementById('lecture-title');
+        const lectureDesc = document.getElementById('lecture-desc');
+        const constraintIndicator = document.getElementById('constraint-indicator');
+
+        function triggerStep(stepIndex) {
+            state.activeStep = stepIndex;
+            
+            // Toggle active classes
+            stepBtns.forEach((btn, idx) => {
+                if (idx === stepIndex) {
+                    btn.className = "step-btn py-2 text-xs font-bold rounded-lg border bg-emerald-950/40 text-emerald-300 border-emerald-800/80 transition-all";
+                } else {
+                    btn.className = "step-btn py-2 text-xs font-bold rounded-lg border bg-slate-800 text-slate-300 border-slate-700 hover:border-slate-600 transition-all";
+                }
+            });
+
+            const stepInfo = lessonSteps[stepIndex];
+            lectureTitle.textContent = stepInfo.title;
+            lectureDesc.innerHTML = stepInfo.desc;
+            renderMath(lectureDesc); // Typeset the dynamic LaTeX inside the step description
+            constraintIndicator.textContent = `Scenario Mode: ${stepInfo.mode}`;
+
+            // Adjust physics properties to showcase specific dynamic states
+            switch(stepIndex) {
+                case 0: // Intro
+                    state.Fa = 10.0;
+                    state.Fb = 10.0;
+                    state.mass = 2.0;
+                    break;
+                case 1: // Case I: Static
+                    state.Fa = 30.0;
+                    state.Fb = 30.0;
+                    state.mass = 2.0;
+                    break;
+                case 2: // Case II: Acceleration
+                    state.Fa = 15.0;
+                    state.Fb = 55.0;
+                    state.mass = 4.0;
+                    break;
+                case 3: // Case III: Massless
+                    state.Fa = 40.0;
+                    state.Fb = 45.0; // Minimal differential, showcasing near infinite acceleration danger
+                    state.mass = 0.05; // tiny mass mimicking massless rope modeling
+                    break;
+            }
+            
+            // Enforce safe slice coordinates
+            state.sliceX = state.length / 2;
+
+            updateUIValues();
+            renderLiveEquations();
+            renderAll();
+        }
+
+        stepBtns.forEach((btn, idx) => {
+            btn.addEventListener('click', () => triggerStep(idx));
+        });
+
+        inputFa.addEventListener('input', (e) => {
+            state.Fa = parseFloat(e.target.value);
+            updateUIValues();
+            renderLiveEquations();
+            renderAll();
+        });
+
+        inputFb.addEventListener('input', (e) => {
+            state.Fb = parseFloat(e.target.value);
+            updateUIValues();
+            renderLiveEquations();
+            renderAll();
+        });
+
+        inputMass.addEventListener('input', (e) => {
+            state.mass = parseFloat(e.target.value);
+            updateUIValues();
+            renderLiveEquations();
+            renderAll();
+        });
+
+        inputLen.addEventListener('input', (e) => {
+            const oldLen = state.length;
+            state.length = parseFloat(e.target.value);
+            // Re-scale slice position proportionally
+            state.sliceX = (state.sliceX / oldLen) * state.length;
+            updateUIValues();
+            renderLiveEquations();
+            renderAll();
+        });
+
+        btnPlay.addEventListener('click', () => {
+            state.isPlaying = !state.isPlaying;
+            if (state.isPlaying) {
+                playIcon.innerHTML = `<path fill-rule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zM7 8a1 1 0 012 0v4a1 1 0 11-2 0V8zm5-1a1 1 0 00-1 1v4a1 1 0 102 0V8a1 1 0 00-1-1z" clip-rule="evenodd"></path>`;
+                playText.textContent = "Pause Lab";
+                btnPlay.className = "px-5 py-2 bg-emerald-600 hover:bg-emerald-500 active:bg-emerald-700 text-sm font-semibold rounded-lg text-white shadow-lg shadow-emerald-900/30 transition duration-150 flex items-center gap-2";
+            } else {
+                playIcon.innerHTML = `<path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM9.555 7.168A1 1 0 008 8v4a1 1 0 001.555.832l3-2a1 1 0 000-1.664l-3-2z" clip-rule="evenodd"></path>`;
+                playText.textContent = "Resume Lab";
+                btnPlay.className = "px-5 py-2 bg-indigo-600 hover:bg-indigo-500 active:bg-indigo-700 text-sm font-semibold rounded-lg text-white shadow-lg shadow-indigo-900/30 transition duration-150 flex items-center gap-2";
+            }
+        });
+
+        btnReset.addEventListener('click', () => {
+            state.vel = 0;
+            state.pos = 0;
+            state.accel = 0;
+            triggerStep(state.activeStep);
+        });
+
+        // Window resize responsive redrawing
+        window.addEventListener('resize', renderAll);
+
+        let lastTime = performance.now();
+        function loop(timestamp) {
+            const dt = (timestamp - lastTime) / 1000;
+            lastTime = timestamp;
+
+            // Constrain physics update steps
+            const boundedDt = Math.min(dt, 0.1);
+            computeDynamics(boundedDt);
+            updateUIValues();
+            renderAll();
+
+            requestAnimationFrame(loop);
+        }
+
+        // Initialize equations on load
+        window.onload = function() {
+            triggerStep(0);
+            renderLiveEquations();
+            
+            // Typeset all initial static math on page
+            renderMath(document.body);
+            
+            // Fire up simulation rendering pipeline
+            requestAnimationFrame(loop);
+        };
+    </script>
+</body>
+</html>

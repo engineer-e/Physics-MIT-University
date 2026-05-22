@@ -1,0 +1,396 @@
+0
+00:00:00,000 --> 00:00:03,880
+
+
+1
+00:00:03,880 --> 00:00:05,980
+We're now going to talk about gravity
+
+2
+00:00:05,980 --> 00:00:07,540
+at the surface of the Earth.
+
+3
+00:00:07,540 --> 00:00:10,420
+Specifically, the gravitational acceleration
+
+4
+00:00:10,420 --> 00:00:13,570
+that a body on the surface is experiencing.
+
+5
+00:00:13,570 --> 00:00:16,420
+That is the reason why I'm not flying away right now,
+
+6
+00:00:16,420 --> 00:00:18,670
+because I'm standing here and my body
+
+7
+00:00:18,670 --> 00:00:22,280
+is experiencing this gravitational acceleration.
+
+8
+00:00:22,280 --> 00:00:24,260
+Let's look at that in more detail.
+
+9
+00:00:24,260 --> 00:00:26,290
+Let's say we have the Sun here, and it's
+
+10
+00:00:26,290 --> 00:00:29,140
+being orbited by the Earth.
+
+11
+00:00:29,140 --> 00:00:32,940
+And so the earth is experiencing a force,
+
+12
+00:00:32,940 --> 00:00:37,130
+F. Let's say this is object 1 and this is object 2, of 1,
+
+13
+00:00:37,130 --> 00:00:40,540
+2 towards the Sun.
+
+14
+00:00:40,540 --> 00:00:43,510
+It also means that we are describing
+
+15
+00:00:43,510 --> 00:00:46,090
+this with a unit vector r hat.
+
+16
+00:00:46,090 --> 00:00:49,920
+In polar coordinates that goes the opposite way.
+
+17
+00:00:49,920 --> 00:00:53,230
+And so you have this here.
+
+18
+00:00:53,230 --> 00:00:57,460
+And we can then write down our universal [INAUDIBLE] rotation.
+
+19
+00:00:57,460 --> 00:01:00,280
+And we're going to have minus, because this is pointing
+
+20
+00:01:00,280 --> 00:01:07,990
+in the opposite direction of the force here, Gm1m2 over r1 2
+
+21
+00:01:07,990 --> 00:01:09,640
+squared.
+
+22
+00:01:09,640 --> 00:01:13,900
+That here is a distance between the two objects
+
+23
+00:01:13,900 --> 00:01:17,110
+and, the direction is given here by the r hat,
+
+24
+00:01:17,110 --> 00:01:19,480
+together with the minus sign.
+
+25
+00:01:19,480 --> 00:01:24,670
+Now, we can consider a slightly different scenario now.
+
+26
+00:01:24,670 --> 00:01:26,590
+We have the Earth here, and we're
+
+27
+00:01:26,590 --> 00:01:31,070
+moving our other object, our second object, right here
+
+28
+00:01:31,070 --> 00:01:33,940
+on top of the surface of the Earth.
+
+29
+00:01:33,940 --> 00:01:39,370
+And we have already been using F equals mg
+
+30
+00:01:39,370 --> 00:01:42,940
+because that describes how objects
+
+31
+00:01:42,940 --> 00:01:45,100
+fall close to the surface of the Earth.
+
+32
+00:01:45,100 --> 00:01:48,730
+So if I let my pen drop here, then that's described by F
+
+33
+00:01:48,730 --> 00:01:50,320
+equals mg.
+
+34
+00:01:50,320 --> 00:01:53,140
+It's a very special kind of acceleration,
+
+35
+00:01:53,140 --> 00:01:56,890
+the gravitational acceleration, that is actually tied
+
+36
+00:01:56,890 --> 00:01:58,580
+to this kind of setup here.
+
+37
+00:01:58,580 --> 00:02:00,860
+So something that is at the surface
+
+38
+00:02:00,860 --> 00:02:03,130
+or near the surface of the Earth.
+
+39
+00:02:03,130 --> 00:02:05,290
+So I want to write a little Earth here
+
+40
+00:02:05,290 --> 00:02:08,259
+to make that very clear.
+
+41
+00:02:08,259 --> 00:02:10,880
+If I was on the moon, I had different dimensions,
+
+42
+00:02:10,880 --> 00:02:13,120
+the moon is a lot smaller than the Earth,
+
+43
+00:02:13,120 --> 00:02:15,550
+and so I would get a g moon, that
+
+44
+00:02:15,550 --> 00:02:17,170
+is actually quite a difference.
+
+45
+00:02:17,170 --> 00:02:22,882
+Only 16% of the Earth's gravitational acceleration.
+
+46
+00:02:22,882 --> 00:02:24,340
+What we're going to do now is we're
+
+47
+00:02:24,340 --> 00:02:28,570
+going to combine these two things because, really, it's
+
+48
+00:02:28,570 --> 00:02:29,920
+the same kind of scenario.
+
+49
+00:02:29,920 --> 00:02:34,000
+I move our second object right to the surface of my Earth.
+
+50
+00:02:34,000 --> 00:02:39,110
+Then I can use the same setup as what we have here.
+
+51
+00:02:39,110 --> 00:02:41,620
+And so we're going to equate it out,
+
+52
+00:02:41,620 --> 00:02:46,080
+and we're going to have mg Earth.
+
+53
+00:02:46,080 --> 00:02:49,750
+And that's equals-- we're going to take the magnitude
+
+54
+00:02:49,750 --> 00:02:52,340
+of this force here now.
+
+55
+00:02:52,340 --> 00:02:54,520
+So we have gm, and now we need to see.
+
+56
+00:02:54,520 --> 00:02:58,120
+So this little mass here has mass m.
+
+57
+00:02:58,120 --> 00:02:59,710
+And this is our Earth.
+
+58
+00:02:59,710 --> 00:03:03,190
+So we know that is an Earth radius
+
+59
+00:03:03,190 --> 00:03:05,830
+and it has an Earth mass.
+
+60
+00:03:05,830 --> 00:03:09,970
+So this is our test mass here, and now m Earth
+
+61
+00:03:09,970 --> 00:03:15,950
+is the second mass over the radius of the Earth squared.
+
+62
+00:03:15,950 --> 00:03:19,420
+And we'll see that m and m here cancel,
+
+63
+00:03:19,420 --> 00:03:21,430
+so the mass of the test object actually
+
+64
+00:03:21,430 --> 00:03:24,490
+is no longer important, and we get
+
+65
+00:03:24,490 --> 00:03:33,190
+to g Earth equals gm Earth over the Earth radius squared.
+
+66
+00:03:33,190 --> 00:03:36,430
+And you will see that, really, if we were sitting
+
+67
+00:03:36,430 --> 00:03:39,190
+on a different planet, we would have
+
+68
+00:03:39,190 --> 00:03:41,500
+a different gravitational acceleration because it
+
+69
+00:03:41,500 --> 00:03:48,310
+is tied to the mass of our planet and the Earth radius.
+
+70
+00:03:48,310 --> 00:03:52,990
+So in the following, let's put some numbers into this
+
+71
+00:03:52,990 --> 00:03:56,190
+to actually calculate the little g.
+
+72
+00:03:56,190 --> 00:04:00,220
+So we have g Earth, our gravitational acceleration.
+
+73
+00:04:00,220 --> 00:04:04,430
+And so we have capital G, that's the gravitational constant,
+
+74
+00:04:04,430 --> 00:04:10,480
+6.67 times 10 to the minus 11 newton per kilogram
+
+75
+00:04:10,480 --> 00:04:16,990
+squared meters square, and then times the Earth mass.
+
+76
+00:04:16,990 --> 00:04:22,380
+And that's about 6 times 10 to the 24 kilograms.
+
+77
+00:04:22,380 --> 00:04:25,300
+And we need to divide that by the Earth's radius.
+
+78
+00:04:25,300 --> 00:04:30,390
+And that's also about 6 times 10 to the 6 meters.
+
+79
+00:04:30,390 --> 00:04:32,780
+And that gets squared.
+
+80
+00:04:32,780 --> 00:04:39,130
+And so that comes out to about 9.81 meters per second squared.
+
+81
+00:04:39,130 --> 00:04:42,950
+And I'm pretty sure all you have seen this number here already.
+
+82
+00:04:42,950 --> 00:04:46,000
+So again, the point is that this pertains
+
+83
+00:04:46,000 --> 00:04:48,340
+to this particular setup.
+
+84
+00:04:48,340 --> 00:04:53,620
+Means that we are operating here on the surface of the Earth.
+
+85
+00:04:53,620 --> 00:04:56,140
+If I was going to go on a really tall mountain,
+
+86
+00:04:56,140 --> 00:04:59,090
+let's say the Mauna Kea mountain on the big island of Hawaii
+
+87
+00:04:59,090 --> 00:05:02,260
+at 10,000 feet, my little g would already
+
+88
+00:05:02,260 --> 00:05:05,690
+be a little bit different because I would be much further
+
+89
+00:05:05,690 --> 00:05:08,000
+away from the center of the Earth
+
+90
+00:05:08,000 --> 00:05:12,800
+than what the average Earth radius is.
+
+91
+00:05:12,800 --> 00:05:17,960
+So we have here used the gravitational constant plus
+
+92
+00:05:17,960 --> 00:05:22,430
+the Earth mass and the Earth radius to determine little g.
+
+93
+00:05:22,430 --> 00:05:25,460
+But one can actually also do it the opposite way.
+
+94
+00:05:25,460 --> 00:05:30,620
+Back in the day, capital G was not known.
+
+95
+00:05:30,620 --> 00:05:35,090
+And so you can do an experiment to determine little g
+
+96
+00:05:35,090 --> 00:05:38,690
+from some kind of set up in the lab,
+
+97
+00:05:38,690 --> 00:05:42,500
+and then actually determine your gravitational constant.
+
+98
+00:05:42,500 --> 00:05:45,190
+Maybe you're going to do that one day.
+

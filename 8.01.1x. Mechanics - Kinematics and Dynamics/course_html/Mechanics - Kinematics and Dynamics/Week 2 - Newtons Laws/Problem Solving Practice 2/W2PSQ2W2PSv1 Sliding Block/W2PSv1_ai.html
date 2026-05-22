@@ -1,0 +1,1300 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Dynamic Incline & Bumper Simulator</title>
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- FontAwesome for icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <!-- KaTeX CSS, JS, & Auto-Render Extension for high-fidelity equations -->
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.8/dist/katex.min.css">
+    <script src="https://cdn.jsdelivr.net/npm/katex@0.16.8/dist/katex.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/katex@0.16.8/dist/contrib/auto-render.min.js"></script>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Fira+Code:wght@400;500;600&family=Inter:wght@300;400;500;600;700&display=swap');
+        body {
+            font-family: 'Inter', sans-serif;
+        }
+        .code-font {
+            font-family: 'Fira Code', monospace;
+        }
+        /* Custom scrollbars */
+        ::-webkit-scrollbar {
+            width: 6px;
+            height: 6px;
+        }
+        ::-webkit-scrollbar-track {
+            background: #1e293b;
+        }
+        ::-webkit-scrollbar-thumb {
+            background: #475569;
+            border-radius: 3px;
+        }
+        ::-webkit-scrollbar-thumb:hover {
+            background: #64748b;
+        }
+    </style>
+</head>
+<body class="bg-slate-950 text-slate-100 min-h-screen flex flex-col overflow-x-hidden selection:bg-indigo-500 selection:text-white">
+
+    <!-- Header -->
+    <header class="border-b border-slate-800 bg-slate-900/80 backdrop-blur sticky top-0 z-50 px-6 py-4 flex flex-col md:flex-row items-center justify-between gap-4">
+        <div class="flex items-center gap-3">
+            <div class="h-10 w-10 rounded-xl bg-gradient-to-tr from-indigo-600 to-violet-500 flex items-center justify-center shadow-lg shadow-indigo-500/20">
+                <i class="fa-solid fa-mountain-sun text-white text-lg"></i>
+            </div>
+            <div>
+                <h1 class="text-xl font-bold tracking-tight bg-gradient-to-r from-white via-slate-200 to-indigo-300 bg-clip-text text-transparent">Incline Bumper Mechanics</h1>
+                <p class="text-xs text-slate-400">Dynamic Free Body Diagram & Energy Dissipation Simulator</p>
+            </div>
+        </div>
+        <div class="flex items-center gap-2">
+            <span class="text-xs px-2.5 py-1 rounded-full bg-indigo-500/10 text-indigo-400 border border-indigo-500/20 font-medium">
+                Physics Solver & Integrator
+            </span>
+        </div>
+    </header>
+
+    <!-- Main Content Grid -->
+    <main class="flex-1 grid grid-cols-1 xl:grid-cols-12 gap-6 p-6">
+        
+        <!-- Left Column: Controls & Dynamic Mathematical Sidebar (5 cols) -->
+        <section class="xl:col-span-5 flex flex-col gap-6">
+            
+            <!-- Dynamic State HUD -->
+            <div class="bg-slate-900 border border-slate-800 rounded-2xl p-5 shadow-xl relative overflow-hidden">
+                <div class="absolute -right-16 -top-16 w-32 h-32 bg-indigo-600/10 rounded-full blur-2xl"></div>
+                <h2 class="text-xs font-semibold text-indigo-400 uppercase tracking-wider mb-3">Live System State</h2>
+                <div class="grid grid-cols-2 gap-4">
+                    <div class="bg-slate-950/50 rounded-xl p-3 border border-slate-800/60">
+                        <span class="text-xs text-slate-400 block mb-1">Active Regime</span>
+                        <span id="regime-badge" class="inline-flex items-center gap-1.5 text-sm font-semibold text-emerald-400">
+                            <span class="h-2 w-2 rounded-full bg-emerald-400 animate-pulse"></span>
+                            Initializing...
+                        </span>
+                    </div>
+                    <div class="bg-slate-950/50 rounded-xl p-3 border border-slate-800/60">
+                        <span class="text-xs text-slate-400 block mb-1">Energy (KE + PE)</span>
+                        <span id="energy-val" class="text-sm font-bold text-slate-200">0.00 J</span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Parameters Dashboard -->
+            <div class="bg-slate-900 border border-slate-800 rounded-2xl p-6 shadow-xl flex flex-col gap-5">
+                <div class="flex items-center justify-between border-b border-slate-800 pb-3">
+                    <h3 class="font-bold text-slate-200 flex items-center gap-2">
+                        <i class="fa-solid fa-sliders text-indigo-400"></i> Adjustable System Parameters
+                    </h3>
+                    <button id="reset-params" class="text-xs text-slate-400 hover:text-white transition flex items-center gap-1">
+                        <i class="fa-solid fa-arrow-rotate-left"></i> Defaults
+                    </button>
+                </div>
+
+                <!-- Simulation Controls (Play, Pause, Step, SlowMo) -->
+                <div class="flex flex-wrap gap-2 justify-center py-2 bg-slate-950/50 rounded-xl border border-slate-800/60 p-2">
+                    <button id="btn-play-pause" class="flex-1 min-w-[100px] py-2 px-3 rounded-lg bg-indigo-600 hover:bg-indigo-500 active:scale-95 text-white font-semibold transition flex items-center justify-center gap-2">
+                        <i class="fa-solid fa-play" id="play-icon"></i> <span id="play-text">Start</span>
+                    </button>
+                    <button id="btn-step" class="py-2 px-4 rounded-lg bg-slate-800 hover:bg-slate-700 active:scale-95 text-slate-200 transition flex items-center justify-center gap-1" title="Single step forward">
+                        <i class="fa-solid fa-forward-step"></i>
+                    </button>
+                    <button id="btn-restart" class="py-2 px-4 rounded-lg bg-slate-800 hover:bg-slate-700 active:scale-95 text-slate-200 transition flex items-center justify-center gap-1" title="Restart simulation">
+                        <i class="fa-solid fa-rotate-right"></i>
+                    </button>
+                    <button id="btn-slow" class="px-3 rounded-lg bg-slate-800 hover:bg-slate-700 active:scale-95 text-xs text-slate-300 transition font-medium" title="Toggle Slow Motion">
+                        <i class="fa-solid fa-gauge-simple"></i> 1x
+                    </button>
+                </div>
+
+                <!-- Quick Presets -->
+                <div>
+                    <span class="text-xs font-semibold text-slate-400 block mb-2">Simulation Presets</span>
+                    <div class="grid grid-cols-2 gap-2">
+                        <button onclick="applyPreset('frictionless')" class="text-xs py-2 px-3 rounded-lg bg-slate-950 hover:bg-slate-800 border border-slate-800 hover:border-slate-700 transition text-left flex items-center justify-between">
+                            <span>Perpetual Bounce</span>
+                            <span class="text-[10px] bg-emerald-500/10 text-emerald-400 px-1.5 py-0.5 rounded">No Friction</span>
+                        </button>
+                        <button onclick="applyPreset('damped')" class="text-xs py-2 px-3 rounded-lg bg-slate-950 hover:bg-slate-800 border border-slate-800 hover:border-slate-700 transition text-left flex items-center justify-between">
+                            <span>Classic Damping</span>
+                            <span class="text-[10px] bg-blue-500/10 text-blue-400 px-1.5 py-0.5 rounded">Typical</span>
+                        </button>
+                        <button onclick="applyPreset('highFriction')" class="text-xs py-2 px-3 rounded-lg bg-slate-950 hover:bg-slate-800 border border-slate-800 hover:border-slate-700 transition text-left flex items-center justify-between">
+                            <span>Heavy Drag</span>
+                            <span class="text-[10px] bg-amber-500/10 text-amber-400 px-1.5 py-0.5 rounded">Stuck after</span>
+                        </button>
+                        <button onclick="applyPreset('softBumper')" class="text-xs py-2 px-3 rounded-lg bg-slate-950 hover:bg-slate-800 border border-slate-800 hover:border-slate-700 transition text-left flex items-center justify-between">
+                            <span>Soft Bumper</span>
+                            <span class="text-[10px] bg-purple-500/10 text-purple-400 px-1.5 py-0.5 rounded">Elastic</span>
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Sliders -->
+                <div class="space-y-4">
+                    <!-- Theta -->
+                    <div>
+                        <div class="flex justify-between text-xs mb-1">
+                            <span class="text-slate-300 font-medium">Incline Angle (&theta;)</span>
+                            <span id="val-theta" class="text-indigo-400 font-bold">30.0°</span>
+                        </div>
+                        <input type="range" id="slide-theta" min="10" max="75" step="0.5" value="30" class="w-full accent-indigo-500 bg-slate-950 rounded-lg h-2 cursor-pointer">
+                    </div>
+
+                    <!-- Friction Coefficient (mu_k) -->
+                    <div>
+                        <div class="flex justify-between text-xs mb-1">
+                            <span class="text-slate-300 font-medium">Kinetic Friction Coefficient (&mu;<sub>k</sub>)</span>
+                            <span id="val-muk" class="text-indigo-400 font-bold">0.15</span>
+                        </div>
+                        <input type="range" id="slide-muk" min="0" max="0.8" step="0.01" value="0.15" class="w-full accent-indigo-500 bg-slate-950 rounded-lg h-2 cursor-pointer">
+                    </div>
+
+                    <!-- Spring Constant (k) -->
+                    <div>
+                        <div class="flex justify-between text-xs mb-1">
+                            <span class="text-slate-300 font-medium">Bumper Stiffness (k)</span>
+                            <span id="val-k" class="text-indigo-400 font-bold">100 N/m</span>
+                        </div>
+                        <input type="range" id="slide-k" min="20" max="400" step="5" value="100" class="w-full accent-indigo-500 bg-slate-950 rounded-lg h-2 cursor-pointer">
+                    </div>
+
+                    <!-- Mass (m) -->
+                    <div>
+                        <div class="flex justify-between text-xs mb-1">
+                            <span class="text-slate-300 font-medium">Block Mass (m)</span>
+                            <span id="val-m" class="text-indigo-400 font-bold">1.5 kg</span>
+                        </div>
+                        <input type="range" id="slide-m" min="0.2" max="5.0" step="0.1" value="1.5" class="w-full accent-indigo-500 bg-slate-950 rounded-lg h-2 cursor-pointer">
+                    </div>
+
+                    <!-- Gravity (g) -->
+                    <div>
+                        <div class="flex justify-between text-xs mb-1">
+                            <span class="text-slate-300 font-medium">Gravitational Field (g)</span>
+                            <span id="val-g" class="text-indigo-400 font-bold">9.81 m/s²</span>
+                        </div>
+                        <input type="range" id="slide-g" min="1.0" max="25.0" step="0.1" value="9.81" class="w-full accent-indigo-500 bg-slate-950 rounded-lg h-2 cursor-pointer">
+                    </div>
+                </div>
+            </div>
+
+            <!-- Mathematical Sidebar (Updates Real-time) -->
+            <div class="bg-slate-900 border border-slate-800 rounded-2xl p-6 shadow-xl flex flex-col gap-4 flex-1">
+                <h3 class="font-bold text-slate-200 border-b border-slate-800 pb-3 flex items-center gap-2">
+                    <i class="fa-solid fa-square-root-variable text-emerald-400"></i> Mathematical Solver Block
+                </h3>
+                
+                <div class="space-y-4 text-xs text-slate-300 overflow-y-auto max-h-[350px] pr-2">
+                    
+                    <!-- Dynamic Equation Card -->
+                    <div id="card-going-down" class="p-3.5 rounded-xl border border-slate-800 bg-slate-950/40 transition duration-300">
+                        <div class="flex justify-between items-center mb-1">
+                            <span class="font-semibold text-slate-200">1. Sliding Downward</span>
+                            <span class="indicator text-[10px] font-bold px-2 py-0.5 rounded bg-slate-800 text-slate-400">INACTIVE</span>
+                        </div>
+                        <div class="my-2 text-center text-sm py-1 bg-slate-950 rounded" id="eq-down"></div>
+                        <p class="text-[11px] text-slate-400">Friction acts *upward* to oppose descent. Acceleration is positive down the plane.</p>
+                    </div>
+
+                    <div id="card-bumper-active" class="p-3.5 rounded-xl border border-slate-800 bg-slate-950/40 transition duration-300">
+                        <div class="flex justify-between items-center mb-1">
+                            <span class="font-semibold text-slate-200">2. Compressing Spring</span>
+                            <span class="indicator text-[10px] font-bold px-2 py-0.5 rounded bg-slate-800 text-slate-400">INACTIVE</span>
+                        </div>
+                        <div class="my-2 text-center text-sm py-1 bg-slate-950 rounded" id="eq-spring"></div>
+                        <p class="text-[11px] text-slate-400">Spring force acts *upwards* proportional to compression ($x$). Force of friction flips with motion.</p>
+                    </div>
+
+                    <div id="card-going-up" class="p-3.5 rounded-xl border border-slate-800 bg-slate-950/40 transition duration-300">
+                        <div class="flex justify-between items-center mb-1">
+                            <span class="font-semibold text-slate-200">3. Sliding Upward</span>
+                            <span class="indicator text-[10px] font-bold px-2 py-0.5 rounded bg-slate-800 text-slate-400">INACTIVE</span>
+                        </div>
+                        <div class="my-2 text-center text-sm py-1 bg-slate-950 rounded" id="eq-up"></div>
+                        <p class="text-[11px] text-slate-400">Friction flips, acting *downward* along with gravity, resulting in rapid deceleration.</p>
+                    </div>
+
+                    <div id="card-equilibrium" class="p-3.5 rounded-xl border border-slate-800 bg-slate-950/40 transition duration-300">
+                        <div class="flex justify-between items-center mb-1">
+                            <span class="font-semibold text-slate-200">4. Static Equilibrium</span>
+                            <span class="indicator text-[10px] font-bold px-2 py-0.5 rounded bg-slate-800 text-slate-400">INACTIVE</span>
+                        </div>
+                        <div class="my-2 text-center text-sm py-1 bg-slate-950 rounded" id="eq-equilibrium"></div>
+                        <p class="text-[11px] text-slate-400">The block is at rest. Static friction exactly balances gravity.</p>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Right Column: Visualizer, Free Body Diagram, and Charts (7 cols) -->
+        <section class="xl:col-span-7 flex flex-col gap-6">
+            
+            <!-- Main Sandbox Window -->
+            <div class="bg-slate-900 border border-slate-800 rounded-2xl p-4 shadow-xl flex flex-col gap-4 relative">
+                <div class="flex items-center justify-between">
+                    <h3 class="font-bold text-slate-200 flex items-center gap-2">
+                        <i class="fa-solid fa-circle-play text-indigo-400"></i> Interactive Simulation Window
+                    </h3>
+                    <div class="flex gap-4 text-xs text-slate-400">
+                        <span><strong class="text-emerald-400">Green:</strong> Gravity</span>
+                        <span><strong class="text-orange-400">Orange:</strong> Friction</span>
+                        <span><strong class="text-pink-400">Pink:</strong> Spring Force</span>
+                    </div>
+                </div>
+
+                <!-- Simulation Canvas Wrapper -->
+                <div class="relative w-full aspect-[16/9] md:aspect-[2/1] bg-slate-950 rounded-xl overflow-hidden border border-slate-800">
+                    <canvas id="canvas-sim" class="w-full h-full block cursor-crosshair"></canvas>
+                    
+                    <!-- Dynamic HUD overlay inside simulation -->
+                    <div class="absolute top-4 left-4 bg-slate-900/90 backdrop-blur px-3 py-2 rounded-lg border border-slate-800 text-xs flex flex-col gap-1 z-10 select-none">
+                        <div class="flex justify-between gap-6"><span>Position ($s$):</span> <span id="hud-pos" class="font-bold text-indigo-400 text-right">0.00 m</span></div>
+                        <div class="flex justify-between gap-6"><span>Velocity ($v$):</span> <span id="hud-vel" class="font-bold text-indigo-400 text-right">0.00 m/s</span></div>
+                        <div class="flex justify-between gap-6"><span>Acceleration ($a$):</span> <span id="hud-acc" class="font-bold text-indigo-400 text-right">0.00 m/s²</span></div>
+                    </div>
+
+                    <!-- Drag to start instruction -->
+                    <div class="absolute bottom-4 left-4 text-[11px] text-slate-500 bg-slate-950/80 px-2.5 py-1 rounded border border-slate-800/60 pointer-events-none">
+                        <i class="fa-solid fa-arrows-left-right"></i> Click/Drag block on slide to change initial position
+                    </div>
+                </div>
+            </div>
+
+            <!-- Free Body Diagram Detail Card -->
+            <div class="bg-slate-900 border border-slate-800 rounded-2xl p-5 shadow-xl grid grid-cols-1 md:grid-cols-12 gap-6">
+                <div class="md:col-span-5 flex flex-col justify-between">
+                    <div>
+                        <h3 class="font-bold text-slate-200 flex items-center gap-2 mb-2">
+                            <i class="fa-solid fa-vector-square text-violet-400"></i> Free Body Diagram
+                        </h3>
+                        <p class="text-xs text-slate-400 leading-relaxed">
+                            Observe how normal, gravity, and friction components change directions. The coordinate system rotates matching Walter Lewin's video analysis:
+                        </p>
+                    </div>
+                    <div class="bg-slate-950/50 p-3 rounded-lg border border-slate-800/60 mt-3 animate-math">
+                        <p class="text-xs leading-relaxed text-slate-300">
+                            Coordinate axis $\hat{i}$ points down the incline. Thus, gravity along the incline is $+mg\sin(\theta)$, and friction force is $\mp\mu_k N$.
+                        </p>
+                    </div>
+                </div>
+                <div class="md:col-span-7 bg-slate-950 rounded-xl overflow-hidden border border-slate-800 h-[200px]">
+                    <canvas id="canvas-fbd" class="w-full h-full block"></canvas>
+                </div>
+            </div>
+
+            <!-- Real-Time Metrics Plotter -->
+            <div class="bg-slate-900 border border-slate-800 rounded-2xl p-5 shadow-xl flex flex-col gap-3">
+                <div class="flex items-center justify-between">
+                    <h3 class="font-bold text-slate-200 flex items-center gap-2">
+                        <i class="fa-solid fa-chart-line text-cyan-400"></i> Phase & Motion Waveforms
+                    </h3>
+                    <div class="flex gap-2">
+                        <button id="plot-select-pos" class="px-2.5 py-1 text-xs rounded-md bg-indigo-500/20 text-indigo-300 border border-indigo-500/40">s(t)</button>
+                        <button id="plot-select-vel" class="px-2.5 py-1 text-xs rounded-md bg-slate-800 text-slate-400 hover:text-white">v(t)</button>
+                        <button id="plot-select-acc" class="px-2.5 py-1 text-xs rounded-md bg-slate-800 text-slate-400 hover:text-white">a(t)</button>
+                        <button id="btn-clear-plot" class="px-2.5 py-1 text-xs text-slate-400 hover:text-white transition"><i class="fa-solid fa-trash"></i></button>
+                    </div>
+                </div>
+                <div class="bg-slate-950 rounded-xl overflow-hidden border border-slate-800 h-[150px] relative">
+                    <canvas id="canvas-plots" class="w-full h-full block"></canvas>
+                </div>
+            </div>
+
+            <!-- Interactive Computational Explanation -->
+            <div class="bg-slate-900 border border-slate-800 rounded-2xl p-5 shadow-xl">
+                <h3 class="font-bold text-slate-200 mb-3 flex items-center gap-2">
+                    <i class="fa-solid fa-terminal text-yellow-400"></i> Numerical Integration & Step Algorithm
+                </h3>
+                <div class="bg-slate-950 p-4 rounded-xl border border-slate-800/80 text-xs space-y-3 leading-relaxed">
+                    <p class="text-slate-400">
+                        This simulator models non-linear discontinuous forces using the high-accuracy <strong class="text-slate-200">Verlet Euler-Cromer Integrator</strong>. Unlike plain Euler integration, it naturally conserves energy in periodic cycles by calculating the upcoming step velocity *prior* to displacement calculation.
+                    </p>
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-4 pt-2 animate-math">
+                        <div class="p-3 bg-slate-900/60 rounded-lg border border-slate-800">
+                            <span class="font-semibold text-slate-200 block mb-1">1. Acceleration update</span>
+                            <span class="code-font text-emerald-400 block">$a_{t} = \Sigma F(s_{t}, v_{t}) / m$</span>
+                        </div>
+                        <div class="p-3 bg-slate-900/60 rounded-lg border border-slate-800">
+                            <span class="font-semibold text-slate-200 block mb-1">2. Symplectic state shift</span>
+                            <span class="code-font text-emerald-400 block">$v_{t+dt} = v_t + a_t \cdot dt$</span>
+                            <span class="code-font text-emerald-400 block">$s_{t+dt} = s_t + v_{t+dt} \cdot dt$</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+        </section>
+    </main>
+
+    <!-- Footer -->
+    <footer class="border-t border-slate-800 bg-slate-900/40 p-6 text-center text-xs text-slate-500">
+        <p>&copy; 2026 Interactive Physics Sandbox. Formulated for conceptual education of Classical Mechanics.</p>
+    </footer>
+
+    <!-- Main Simulator Script Core -->
+    <script>
+        // System variables & State declaration
+        const simParams = {
+            theta: 30 * Math.PI / 180, // Radians
+            muk: 0.15,
+            k: 100,
+            m: 1.5,
+            g: 9.81,
+            L: 8.0,          // Complete Incline Length in meters
+            springStart: 5.5, // Spring position from top (meters)
+        };
+
+        const simState = {
+            s: 1.0,         // Current Position from top along incline (meters)
+            v: 0.0,         // Velocity (positive down the incline)
+            a: 0.0,         // Acceleration along incline
+            time: 0,
+            isPlaying: false,
+            isDragging: false,
+            isSlowMo: false,
+            activeRegime: 'Going Down', // 'Going Down', 'Spring Contact', 'Going Up', 'Equilibrium'
+            trail: [],      // History for waveforms
+            maxTrailSize: 600,
+            activePlot: 'pos' // 'pos', 'vel', 'acc'
+        };
+
+        // Render configuration
+        let canvasSim, ctxSim;
+        let canvasFBD, ctxFBD;
+        let canvasPlots, ctxPlots;
+
+        // Canvas Scale factors (pixels per meter)
+        let pixelsPerMeter = 1;
+
+        // DOM elements
+        let playBtn, playIcon, playText, stepBtn, restartBtn, slowBtn;
+        let hudPos, hudVel, hudAcc, energyVal, regimeBadge;
+        
+        // Setup Web Interface Events on load
+        window.addEventListener('DOMContentLoaded', () => {
+            initElements();
+            initSliders();
+            initCanvases();
+            updateEquations();
+            resetSimulation();
+            updateMathVisuals();
+            renderDynamicLatex();
+            
+            // Start main dynamic render loop
+            requestAnimationFrame(renderLoop);
+        });
+
+        function initElements() {
+            playBtn = document.getElementById('btn-play-pause');
+            playIcon = document.getElementById('play-icon');
+            playText = document.getElementById('play-text');
+            stepBtn = document.getElementById('btn-step');
+            restartBtn = document.getElementById('btn-restart');
+            slowBtn = document.getElementById('btn-slow');
+            
+            hudPos = document.getElementById('hud-pos');
+            hudVel = document.getElementById('hud-vel');
+            hudAcc = document.getElementById('hud-acc');
+            energyVal = document.getElementById('energy-val');
+            regimeBadge = document.getElementById('regime-badge');
+
+            // Set up button listeners
+            playBtn.addEventListener('click', togglePlay);
+            stepBtn.addEventListener('click', () => {
+                simState.isPlaying = false;
+                updateSimulation(0.016);
+                updatePlotsAndHUD();
+            });
+            restartBtn.addEventListener('click', () => {
+                resetSimulation();
+                updatePlotsAndHUD();
+            });
+            slowBtn.addEventListener('click', () => {
+                simState.isSlowMo = !simState.isSlowMo;
+                slowBtn.innerHTML = simState.isSlowMo ? '<i class="fa-solid fa-gauge-simple"></i> 0.25x' : '<i class="fa-solid fa-gauge-simple"></i> 1x';
+                slowBtn.classList.toggle('bg-indigo-600/30', simState.isSlowMo);
+                slowBtn.classList.toggle('text-indigo-300', simState.isSlowMo);
+            });
+
+            // Plot selections
+            const pPos = document.getElementById('plot-select-pos');
+            const pVel = document.getElementById('plot-select-vel');
+            const pAcc = document.getElementById('plot-select-acc');
+            const pClear = document.getElementById('btn-clear-plot');
+
+            const setPlotBtnStyle = (activeBtn) => {
+                [pPos, pVel, pAcc].forEach(b => {
+                    b.className = "px-2.5 py-1 text-xs rounded-md bg-slate-800 text-slate-400 hover:text-white transition";
+                });
+                activeBtn.className = "px-2.5 py-1 text-xs rounded-md bg-indigo-500/20 text-indigo-300 border border-indigo-500/40 font-semibold";
+            };
+
+            pPos.addEventListener('click', () => { simState.activePlot = 'pos'; setPlotBtnStyle(pPos); });
+            pVel.addEventListener('click', () => { simState.activePlot = 'vel'; setPlotBtnStyle(pVel); });
+            pAcc.addEventListener('click', () => { simState.activePlot = 'acc'; setPlotBtnStyle(pAcc); });
+            pClear.addEventListener('click', () => { simState.trail = []; });
+
+            document.getElementById('reset-params').addEventListener('click', () => {
+                document.getElementById('slide-theta').value = 30;
+                document.getElementById('slide-muk').value = 0.15;
+                document.getElementById('slide-k').value = 100;
+                document.getElementById('slide-m').value = 1.5;
+                document.getElementById('slide-g').value = 9.81;
+                updateFromSliders();
+                resetSimulation();
+            });
+        }
+
+        function initSliders() {
+            const inputs = [
+                { id: 'slide-theta', valId: 'val-theta', suffix: '°', parser: v => { simParams.theta = v * Math.PI / 180; return parseFloat(v).toFixed(1); } },
+                { id: 'slide-muk', valId: 'val-muk', suffix: '', parser: v => { simParams.muk = parseFloat(v); return parseFloat(v).toFixed(2); } },
+                { id: 'slide-k', valId: 'val-k', suffix: ' N/m', parser: v => { simParams.k = parseFloat(v); return v; } },
+                { id: 'slide-m', valId: 'val-m', suffix: ' kg', parser: v => { simParams.m = parseFloat(v); return parseFloat(v).toFixed(1); } },
+                { id: 'slide-g', valId: 'val-g', suffix: ' m/s²', parser: v => { simParams.g = parseFloat(v); return parseFloat(v).toFixed(2); } }
+            ];
+
+            inputs.forEach(slider => {
+                const el = document.getElementById(slider.id);
+                if (el) {
+                    const valEl = document.getElementById(slider.valId);
+                    const handleUpdate = () => {
+                        const parsed = slider.parser(el.value);
+                        if (valEl) valEl.textContent = parsed + slider.suffix;
+                        updateEquations();
+                    };
+                    el.addEventListener('input', handleUpdate);
+                    el.addEventListener('change', handleUpdate);
+                    // Run initial parser values
+                    handleUpdate();
+                }
+            });
+        }
+
+        function updateFromSliders() {
+            document.querySelectorAll('input[type="range"]').forEach(input => {
+                input.dispatchEvent(new Event('input'));
+            });
+        }
+
+        function initCanvases() {
+            canvasSim = document.getElementById('canvas-sim');
+            ctxSim = canvasSim.getContext('2d');
+            
+            canvasFBD = document.getElementById('canvas-fbd');
+            ctxFBD = canvasFBD.getContext('2d');
+
+            canvasPlots = document.getElementById('canvas-plots');
+            ctxPlots = canvasPlots.getContext('2d');
+
+            // Responsive sizing helper
+            const resize = () => {
+                // Main visualizer
+                const simD = canvasSim.getBoundingClientRect();
+                canvasSim.width = simD.width * window.devicePixelRatio;
+                canvasSim.height = simD.height * window.devicePixelRatio;
+                ctxSim.scale(window.devicePixelRatio, window.devicePixelRatio);
+
+                // FBD Canvas
+                const fbdD = canvasFBD.getBoundingClientRect();
+                canvasFBD.width = fbdD.width * window.devicePixelRatio;
+                canvasFBD.height = fbdD.height * window.devicePixelRatio;
+                ctxFBD.scale(window.devicePixelRatio, window.devicePixelRatio);
+
+                // Waveforms
+                const plotD = canvasPlots.getBoundingClientRect();
+                canvasPlots.width = plotD.width * window.devicePixelRatio;
+                canvasPlots.height = plotD.height * window.devicePixelRatio;
+                ctxPlots.scale(window.devicePixelRatio, window.devicePixelRatio);
+            };
+
+            window.addEventListener('resize', resize);
+            resize();
+
+            // Setup Mouse interaction on Main Canvas for block relocation
+            let isMousedown = false;
+            
+            const handleInteractStart = (e) => {
+                const rect = canvasSim.getBoundingClientRect();
+                const clientX = e.touches ? e.touches[0].clientX : e.clientX;
+                const clientY = e.touches ? e.touches[0].clientY : e.clientY;
+                const mouseX = clientX - rect.left;
+                const mouseY = clientY - rect.top;
+
+                // Project mouse coordinates along the inclined surface
+                const physicalPos = getPositionAlongIncline(mouseX, mouseY);
+                if (physicalPos >= 0 && physicalPos <= simParams.L) {
+                    simState.isDragging = true;
+                    simState.s = Math.max(0.1, Math.min(physicalPos, simParams.springStart - 0.2));
+                    simState.v = 0.0;
+                    simState.a = 0.0;
+                    simState.trail = [];
+                    updatePlotsAndHUD();
+                }
+            };
+
+            const handleInteractMove = (e) => {
+                if (!simState.isDragging) return;
+                const rect = canvasSim.getBoundingClientRect();
+                const clientX = e.touches ? e.touches[0].clientX : e.clientX;
+                const clientY = e.touches ? e.touches[0].clientY : e.clientY;
+                const mouseX = clientX - rect.left;
+                const mouseY = clientY - rect.top;
+
+                const physicalPos = getPositionAlongIncline(mouseX, mouseY);
+                if (physicalPos >= 0 && physicalPos <= simParams.L) {
+                    simState.s = Math.max(0.1, Math.min(physicalPos, simParams.springStart - 0.1));
+                    simState.v = 0.0;
+                    simState.a = 0.0;
+                    updatePlotsAndHUD();
+                }
+            };
+
+            const handleInteractEnd = () => {
+                simState.isDragging = false;
+            };
+
+            canvasSim.addEventListener('mousedown', handleInteractStart);
+            canvasSim.addEventListener('mousemove', handleInteractMove);
+            window.addEventListener('mouseup', handleInteractEnd);
+
+            canvasSim.addEventListener('touchstart', handleInteractStart, { passive: true });
+            canvasSim.addEventListener('touchmove', handleInteractMove, { passive: true });
+            canvasSim.addEventListener('touchend', handleInteractEnd);
+        }
+
+        // Project coordinate math to Incline coordinates
+        function getPositionAlongIncline(mx, my) {
+            // Get raw dimensions of the canvas element
+            const rect = canvasSim.getBoundingClientRect();
+            const width = rect.width;
+            const height = rect.height;
+
+            const paddingLeft = 50;
+            const paddingBottom = 40;
+            const startX = paddingLeft;
+            const startY = height - paddingBottom;
+
+            // Simple trig projection
+            const dx = mx - startX;
+            const dy = startY - my;
+
+            const dist = Math.sqrt(dx*dx + dy*dy);
+            const clickAngle = Math.atan2(dy, dx);
+            const angleDiff = clickAngle - simParams.theta;
+
+            // Project along the actual slope hypotenuse
+            return (dist * Math.cos(angleDiff)) / (width - 100) * simParams.L;
+        }
+
+        function updateEquations() {
+            // Fill high-fidelity math descriptions with KaTeX dynamically
+            try {
+                katex.render("a_{\\text{down}} = g(\\sin\\theta - \\mu_k\\cos\\theta)", document.getElementById('eq-down'), { throwOnError: false });
+                katex.render("a_{\\text{bumper}} = g(\\sin\\theta \\mp \\mu_k\\cos\\theta) - \\frac{k}{m}x", document.getElementById('eq-spring'), { throwOnError: false });
+                katex.render("a_{\\text{up}} = g(\\sin\\theta + \\mu_k\\cos\\theta)", document.getElementById('eq-up'), { throwOnError: false });
+                katex.render("a_{\\text{eq}} = 0 \\quad (g\\sin\\theta \\le \\mu_s g\\cos\\theta)", document.getElementById('eq-equilibrium'), { throwOnError: false });
+            } catch (err) {
+                console.warn("Failed to load KaTeX render blocks: ", err);
+            }
+        }
+
+        // Auto-render mathematical elements (e.g. static cards and documentation)
+        function renderDynamicLatex() {
+            try {
+                renderMathInElement(document.body, {
+                    delimiters: [
+                        {left: '$$', right: '$$', display: true},
+                        {left: '$', right: '$', display: false}
+                    ],
+                    throwOnError: false
+                });
+            } catch (err) {
+                console.warn("Failed to auto-render LaTeX elements in document body: ", err);
+            }
+        }
+
+        function togglePlay() {
+            simState.isPlaying = !simState.isPlaying;
+            if (simState.isPlaying) {
+                playIcon.className = 'fa-solid fa-pause';
+                playText.textContent = 'Pause';
+            } else {
+                playIcon.className = 'fa-solid fa-play';
+                playText.textContent = 'Resume';
+            }
+        }
+
+        function resetSimulation() {
+            simState.s = 1.0;
+            simState.v = 0.0;
+            simState.a = 0.0;
+            simState.time = 0;
+            simState.isPlaying = false;
+            simState.trail = [];
+            simState.activeRegime = 'Going Down';
+            
+            playIcon.className = 'fa-solid fa-play';
+            playText.textContent = 'Start';
+        }
+
+        function applyPreset(presetType) {
+            resetSimulation();
+            switch (presetType) {
+                case 'frictionless':
+                    document.getElementById('slide-theta').value = 35;
+                    document.getElementById('slide-muk').value = 0.0;
+                    document.getElementById('slide-k').value = 180;
+                    document.getElementById('slide-m').value = 1.2;
+                    break;
+                case 'damped':
+                    document.getElementById('slide-theta').value = 25;
+                    document.getElementById('slide-muk').value = 0.12;
+                    document.getElementById('slide-k').value = 110;
+                    document.getElementById('slide-m').value = 1.5;
+                    break;
+                case 'highFriction':
+                    document.getElementById('slide-theta').value = 22;
+                    document.getElementById('slide-muk').value = 0.35;
+                    document.getElementById('slide-k').value = 130;
+                    document.getElementById('slide-m').value = 1.6;
+                    break;
+                case 'softBumper':
+                    document.getElementById('slide-theta').value = 30;
+                    document.getElementById('slide-muk').value = 0.08;
+                    document.getElementById('slide-k').value = 35;
+                    document.getElementById('slide-m').value = 1.0;
+                    break;
+            }
+            updateFromSliders();
+            updatePlotsAndHUD();
+        }
+
+        // core engine calculations
+        function updateSimulation(dt) {
+            if (simState.isDragging) return;
+
+            // Euler-Cromer Symplectic Integrator
+            const g = simParams.g;
+            const theta = simParams.theta;
+            const muk = simParams.muk;
+            const m = simParams.m;
+            const k = simParams.k;
+            const springStart = simParams.springStart;
+
+            const gravityComp = g * Math.sin(theta);   // positive down-incline
+            const frictionComp = muk * g * Math.cos(theta); // magnitude of friction accel limit
+
+            let acceleration = 0.0;
+            const springComp = Math.max(0, simState.s - springStart);
+
+            // Determine if the block is stationary
+            const epsilon = 1e-4;
+            const isStationary = Math.abs(simState.v) < epsilon;
+
+            if (springComp > 0) {
+                // Spring is compressed
+                const F_spring_acc = -(k / m) * springComp; // Pulls back (negative, up-slope)
+                
+                if (isStationary) {
+                    // Static situation in bumper contact
+                    const staticForce = gravityComp + F_spring_acc;
+                    if (Math.abs(staticForce) <= frictionComp) {
+                        acceleration = 0.0;
+                        simState.v = 0.0;
+                        simState.activeRegime = 'Equilibrium';
+                    } else {
+                        // Exceeded static friction
+                        const sign = Math.sign(staticForce);
+                        acceleration = staticForce - sign * frictionComp;
+                        simState.activeRegime = 'Spring Contact';
+                    }
+                } else {
+                    // Moving in Bumper
+                    const frictionDirection = Math.sign(simState.v); // opposes movement direction
+                    acceleration = gravityComp + F_spring_acc - frictionDirection * frictionComp;
+                    simState.activeRegime = 'Spring Contact';
+                }
+            } else {
+                // Free motion along plane
+                if (isStationary) {
+                    // On open incline
+                    if (Math.abs(gravityComp) <= frictionComp) {
+                        // Angle is too small, friction holds the block at rest
+                        acceleration = 0.0;
+                        simState.v = 0.0;
+                        simState.activeRegime = 'Equilibrium';
+                    } else {
+                        // Starts slipping down
+                        acceleration = gravityComp - frictionComp;
+                        simState.activeRegime = 'Going Down';
+                    }
+                } else {
+                    // Dynamic motion
+                    if (simState.v > 0) {
+                        // Going down
+                        acceleration = gravityComp - frictionComp;
+                        simState.activeRegime = 'Going Down';
+                    } else {
+                        // Going up
+                        acceleration = gravityComp + frictionComp;
+                        simState.activeRegime = 'Going Up';
+                    }
+                }
+            }
+
+            simState.a = acceleration;
+
+            // Time step increment using Symplectic Euler-Cromer
+            simState.v += simState.a * dt;
+            simState.s += simState.v * dt;
+
+            // Bounds constraints
+            if (simState.s < 0) {
+                // Soft bounce off the absolute top barrier of the guide rail
+                simState.s = 0;
+                simState.v = -simState.v * 0.1; // extreme loss
+            }
+
+            // If velocity approaches zero on the incline, bring it to complete rest
+            if (simState.activeRegime === 'Equilibrium') {
+                simState.v = 0.0;
+            }
+
+            simState.time += dt;
+        }
+
+        function calculateEnergy() {
+            const h = (simParams.L - simState.s) * Math.sin(simParams.theta);
+            const PE_grav = simParams.m * simParams.g * h;
+            const KE = 0.5 * simParams.m * simState.v * simState.v;
+            
+            const compression = Math.max(0, simState.s - simParams.springStart);
+            const PE_spring = 0.5 * simParams.k * compression * compression;
+
+            return KE + PE_grav + PE_spring;
+        }
+
+        function updatePlotsAndHUD() {
+            // Update HUD text values
+            hudPos.textContent = simState.s.toFixed(2) + " m";
+            hudVel.textContent = simState.v.toFixed(2) + " m/s";
+            hudAcc.textContent = simState.a.toFixed(2) + " m/s²";
+            
+            const energy = calculateEnergy();
+            energyVal.textContent = energy.toFixed(2) + " J";
+
+            // Update badge representation
+            regimeBadge.className = "inline-flex items-center gap-1.5 text-sm font-semibold";
+            if (simState.activeRegime === 'Going Down') {
+                regimeBadge.innerHTML = '<span class="h-2.5 w-2.5 rounded-full bg-blue-500 animate-pulse"></span> Sliding Down';
+                regimeBadge.classList.add('text-blue-400');
+            } else if (simState.activeRegime === 'Going Up') {
+                regimeBadge.innerHTML = '<span class="h-2.5 w-2.5 rounded-full bg-purple-500 animate-pulse"></span> Sliding Up';
+                regimeBadge.classList.add('text-purple-400');
+            } else if (simState.activeRegime === 'Spring Contact') {
+                regimeBadge.innerHTML = '<span class="h-2.5 w-2.5 rounded-full bg-pink-500 animate-bounce"></span> Spring Contact';
+                regimeBadge.classList.add('text-pink-400');
+            } else {
+                regimeBadge.innerHTML = '<span class="h-2.5 w-2.5 rounded-full bg-slate-500"></span> Stopped';
+                regimeBadge.classList.add('text-slate-400');
+            }
+
+            // Save waveform trajectory
+            let plotVal = 0;
+            if (simState.activePlot === 'pos') plotVal = simState.s;
+            else if (simState.activePlot === 'vel') plotVal = simState.v;
+            else if (simState.activePlot === 'acc') plotVal = simState.a;
+
+            simState.trail.push(plotVal);
+            if (simState.trail.length > simState.maxTrailSize) {
+                simState.trail.shift();
+            }
+
+            updateMathVisuals();
+        }
+
+        function updateMathVisuals() {
+            const cards = {
+                'Going Down': 'card-going-down',
+                'Spring Contact': 'card-bumper-active',
+                'Going Up': 'card-going-up',
+                'Equilibrium': 'card-equilibrium'
+            };
+
+            // Remove highlighted active state across math cards
+            Object.values(cards).forEach(id => {
+                const el = document.getElementById(id);
+                el.className = "p-3.5 rounded-xl border border-slate-800 bg-slate-950/40 transition duration-300 opacity-60 scale-95";
+                el.querySelector('.indicator').className = "indicator text-[10px] font-bold px-2 py-0.5 rounded bg-slate-800 text-slate-500";
+                el.querySelector('.indicator').textContent = "INACTIVE";
+            });
+
+            // Highlight currently executing card
+            const currentCardId = cards[simState.activeRegime];
+            if (currentCardId) {
+                const card = document.getElementById(currentCardId);
+                card.className = "p-3.5 rounded-xl border border-indigo-500/30 bg-indigo-500/5 transition duration-300 scale-100 ring-1 ring-indigo-500/20";
+                
+                const ind = card.querySelector('.indicator');
+                ind.textContent = "ACTIVE";
+                ind.className = "indicator text-[10px] font-bold px-2 py-0.5 rounded bg-emerald-500/20 text-emerald-400";
+            }
+        }
+
+        // Animation Loop
+        let lastTime = 0;
+        function renderLoop(timestamp) {
+            if (!lastTime) lastTime = timestamp;
+            let elapsed = (timestamp - lastTime) / 1000;
+            lastTime = timestamp;
+
+            // Max cap dt to prevent tab-switching calculation spikes
+            if (elapsed > 0.1) elapsed = 0.1;
+
+            if (simState.isPlaying) {
+                // Handle Slow Motion multiplier
+                const substeps = 4;
+                const finalDt = (elapsed / substeps) * (simState.isSlowMo ? 0.25 : 1.0);
+                
+                for (let i = 0; i < substeps; i++) {
+                    updateSimulation(finalDt);
+                }
+                updatePlotsAndHUD();
+            }
+
+            drawSimulation();
+            drawFBD();
+            drawPlots();
+
+            requestAnimationFrame(renderLoop);
+        }
+
+        // DRAWING UTILITIES
+        function drawSimulation() {
+            // Clear canvas viewport
+            const rect = canvasSim.getBoundingClientRect();
+            const width = rect.width;
+            const height = rect.height;
+            ctxSim.clearRect(0, 0, width, height);
+
+            // Padding offsets
+            const paddingLeft = 60;
+            const paddingBottom = 40;
+            
+            // Incline geometry endpoints
+            const startX = paddingLeft;
+            const startY = height - paddingBottom;
+            const theta = simParams.theta;
+            
+            const inclineW = width - 120;
+            const endX = startX + inclineW;
+            const endY = startY - inclineW * Math.tan(theta);
+
+            pixelsPerMeter = inclineW / simParams.L;
+
+            // Draw ground level
+            ctxSim.strokeStyle = '#334155';
+            ctxSim.lineWidth = 2;
+            ctxSim.beginPath();
+            ctxSim.moveTo(startX - 20, startY);
+            ctxSim.lineTo(endX + 40, startY);
+            ctxSim.stroke();
+
+            // Draw horizontal reference angle (theta line)
+            ctxSim.strokeStyle = '#475569';
+            ctxSim.setLineDash([4, 4]);
+            ctxSim.beginPath();
+            ctxSim.moveTo(startX, startY);
+            ctxSim.lineTo(startX + 120, startY);
+            ctxSim.stroke();
+            ctxSim.setLineDash([]);
+
+            // Draw Angle Label
+            ctxSim.fillStyle = '#94a3b8';
+            ctxSim.font = '11px sans-serif';
+            ctxSim.fillText("θ", startX + 35, startY - 8);
+            ctxSim.beginPath();
+            ctxSim.arc(startX, startY, 25, 0, -theta, true);
+            ctxSim.stroke();
+
+            // Draw Incline Board (Slope)
+            ctxSim.strokeStyle = '#6366f1';
+            ctxSim.lineWidth = 4;
+            ctxSim.beginPath();
+            ctxSim.moveTo(startX, startY);
+            ctxSim.lineTo(endX, endY);
+            ctxSim.stroke();
+
+            // Coordinate Axis Vectors reference (Walter Lewin format)
+            ctxSim.save();
+            ctxSim.translate(startX + 10, startY - 60);
+            ctxSim.rotate(-theta);
+            ctxSim.strokeStyle = '#818cf8';
+            ctxSim.lineWidth = 1.5;
+            // i-hat (axis parallel)
+            ctxSim.beginPath();
+            ctxSim.moveTo(0, 0);
+            ctxSim.lineTo(30, 0);
+            ctxSim.stroke();
+            drawArrowhead(ctxSim, 30, 0, 0, 4);
+            ctxSim.fillStyle = '#818cf8';
+            ctxSim.fillText("î", 32, -3);
+
+            // j-hat (axis perpendicular)
+            ctxSim.beginPath();
+            ctxSim.moveTo(0, 0);
+            ctxSim.lineTo(0, -30);
+            ctxSim.stroke();
+            drawArrowhead(ctxSim, 0, -30, -Math.PI/2, 4);
+            ctxSim.fillText("ĵ", -3, -34);
+            ctxSim.restore();
+
+            // Compute block center translation
+            const blockS = simState.s;
+            const px = startX + blockS * pixelsPerMeter * Math.cos(theta);
+            const py = startY - blockS * pixelsPerMeter * Math.sin(theta);
+
+            // DRAW BUMPER (SPRING)
+            const springMeters = simParams.L - simParams.springStart;
+            const springPxLength = springMeters * pixelsPerMeter;
+            
+            // Bumper base coordinates
+            const basePx = startX + simParams.L * pixelsPerMeter * Math.cos(theta);
+            const basePy = startY - simParams.L * pixelsPerMeter * Math.sin(theta);
+
+            // Draw solid backstop
+            ctxSim.save();
+            ctxSim.translate(basePx, basePy);
+            ctxSim.rotate(-theta);
+            ctxSim.fillStyle = '#ef4444';
+            ctxSim.fillRect(0, -15, 6, 30);
+            ctxSim.restore();
+
+            // Calculate current spring length based on compression
+            const compression = Math.max(0, simState.s - simParams.springStart);
+            const currentSpringMeters = springMeters - compression;
+            const currentSpringPx = currentSpringMeters * pixelsPerMeter;
+
+            // Render detailed spring zig-zags
+            ctxSim.save();
+            ctxSim.translate(basePx, basePy);
+            ctxSim.rotate(-theta);
+            ctxSim.strokeStyle = '#f472b6';
+            ctxSim.lineWidth = 2.5;
+            ctxSim.beginPath();
+            ctxSim.moveTo(0, 0);
+
+            const numCoils = 14;
+            const stepCoil = -currentSpringPx / numCoils;
+            for (let i = 1; i <= numCoils; i++) {
+                const targetX = stepCoil * i;
+                const targetY = (i % 2 === 0 ? 8 : -8) * (i === numCoils ? 0 : 1);
+                ctxSim.lineTo(targetX, targetY);
+            }
+            ctxSim.stroke();
+            ctxSim.restore();
+
+            // DRAW BLOCK
+            ctxSim.save();
+            ctxSim.translate(px, py);
+            ctxSim.rotate(-theta);
+
+            // Render box shape centered on base-middle
+            const blockW = 35;
+            const blockH = 22;
+            
+            // Interactive glow when dragging
+            if (simState.isDragging) {
+                ctxSim.shadowColor = '#6366f1';
+                ctxSim.shadowBlur = 10;
+                ctxSim.fillStyle = '#4f46e5';
+            } else {
+                ctxSim.fillStyle = '#312e81';
+            }
+            
+            ctxSim.strokeStyle = '#818cf8';
+            ctxSim.lineWidth = 2;
+            ctxSim.fillRect(-blockW/2, -blockH, blockW, blockH);
+            ctxSim.strokeRect(-blockW/2, -blockH, blockW, blockH);
+            
+            // Center indicator dot
+            ctxSim.fillStyle = '#a5b4fc';
+            ctxSim.beginPath();
+            ctxSim.arc(0, -blockH/2, 2.5, 0, 2*Math.PI);
+            ctxSim.fill();
+            ctxSim.restore();
+
+            // FORCE VECTOR overlay (Centered on the Block)
+            ctxSim.save();
+            ctxSim.translate(px, py - (blockH / 2 * Math.cos(theta))); // translate to mass center
+            
+            const scale = 5.5; // Force vectors visual scaler
+
+            // 1. GRAVITY Force Vector (mg) -> Green
+            const F_grav = simParams.m * simParams.g;
+            ctxSim.strokeStyle = '#34d399';
+            ctxSim.lineWidth = 2;
+            ctxSim.beginPath();
+            ctxSim.moveTo(0, 0);
+            ctxSim.lineTo(0, F_grav * scale);
+            ctxSim.stroke();
+            drawArrowhead(ctxSim, 0, F_grav * scale, Math.PI / 2, 4);
+
+            // 2. NORMAL Force (N) -> Blue-sky
+            const F_norm = simParams.m * simParams.g * Math.cos(theta);
+            const normX = -F_norm * Math.sin(theta) * scale;
+            const normY = -F_norm * Math.cos(theta) * scale;
+            ctxSim.strokeStyle = '#38bdf8';
+            ctxSim.beginPath();
+            ctxSim.moveTo(0, 0);
+            ctxSim.lineTo(normX, normY);
+            ctxSim.stroke();
+            drawArrowhead(ctxSim, normX, normY, -theta - Math.PI / 2, 4);
+
+            // 3. FRICTION Force (fk) -> Orange
+            // Determine friction vector direction
+            let frictionMag = simParams.muk * F_norm;
+            let frictionDir = 0; // along plane
+            
+            if (simState.activeRegime === 'Going Down') {
+                frictionDir = -1; // Opposes downward motion (acts UP-slope)
+            } else if (simState.activeRegime === 'Going Up') {
+                frictionDir = 1;  // Opposes upward motion (acts DOWN-slope)
+            } else if (simState.activeRegime === 'Spring Contact') {
+                frictionDir = -Math.sign(simState.v); // opposing velocity sign
+            } else {
+                frictionMag = 0; // Equilibrium/Stopped holds zero sliding friction
+            }
+
+            if (frictionMag > 0.05) {
+                const fricX = frictionDir * frictionMag * Math.cos(theta) * scale;
+                const fricY = -frictionDir * frictionMag * Math.sin(theta) * scale;
+                ctxSim.strokeStyle = '#fb923c';
+                ctxSim.beginPath();
+                ctxSim.moveTo(0, 0);
+                ctxSim.lineTo(fricX, fricY);
+                ctxSim.stroke();
+                drawArrowhead(ctxSim, fricX, fricY, frictionDir > 0 ? -theta : -theta + Math.PI, 4);
+            }
+
+            // 4. SPRING Force -> Pink (only when in contact)
+            if (compression > 0) {
+                const F_sp = simParams.k * compression;
+                const spX = -F_sp * Math.cos(theta) * scale;
+                const spY = F_sp * Math.sin(theta) * scale;
+                ctxSim.strokeStyle = '#f472b6';
+                ctxSim.lineWidth = 2;
+                ctxSim.beginPath();
+                ctxSim.moveTo(0, 0);
+                ctxSim.lineTo(spX, spY);
+                ctxSim.stroke();
+                drawArrowhead(ctxSim, spX, spY, -theta + Math.PI, 4);
+            }
+
+            ctxSim.restore();
+        }
+
+        function drawFBD() {
+            const rect = canvasFBD.getBoundingClientRect();
+            const width = rect.width;
+            const height = rect.height;
+            ctxFBD.clearRect(0, 0, width, height);
+
+            // Center of block on FBD
+            const cx = width / 2;
+            const cy = height / 2 + 10;
+            const theta = simParams.theta;
+
+            // Drawing Block rotated
+            ctxFBD.save();
+            ctxFBD.translate(cx, cy);
+            ctxFBD.rotate(-theta);
+            
+            ctxFBD.strokeStyle = 'rgba(99, 102, 241, 0.4)';
+            ctxFBD.fillStyle = 'rgba(99, 102, 241, 0.08)';
+            ctxFBD.lineWidth = 1;
+            ctxFBD.fillRect(-40, -25, 80, 50);
+            ctxFBD.strokeRect(-40, -25, 80, 50);
+
+            // Draw coordinate overlay lines
+            ctxFBD.strokeStyle = 'rgba(255, 255, 255, 0.15)';
+            ctxFBD.setLineDash([3, 3]);
+            ctxFBD.beginPath();
+            ctxFBD.moveTo(-70, 0);
+            ctxFBD.lineTo(70, 0);
+            ctxFBD.moveTo(0, -60);
+            ctxFBD.lineTo(0, 60);
+            ctxFBD.stroke();
+            ctxFBD.setLineDash([]);
+            ctxFBD.restore();
+
+            // Vector drawing scales
+            const scale = 5.0;
+            const F_g = simParams.m * simParams.g;
+            const F_n = F_g * Math.cos(theta);
+            
+            // Draw Gravitational Force (Straight Down)
+            ctxFBD.strokeStyle = '#34d399';
+            ctxFBD.lineWidth = 2;
+            ctxFBD.beginPath();
+            ctxFBD.moveTo(cx, cy);
+            ctxFBD.lineTo(cx, cy + F_g * scale);
+            ctxFBD.stroke();
+            drawArrowhead(ctxFBD, cx, cy + F_g * scale, Math.PI / 2, 4.5);
+            ctxFBD.fillStyle = '#34d399';
+            ctxFBD.font = '10px sans-serif';
+            ctxFBD.fillText("mg", cx + 5, cy + F_g * scale - 2);
+
+            // Draw Normal Force (Perpendicular to slope)
+            const nX = cx - F_n * Math.sin(theta) * scale;
+            const nY = cy - F_n * Math.cos(theta) * scale;
+            ctxFBD.strokeStyle = '#38bdf8';
+            ctxFBD.beginPath();
+            ctxFBD.moveTo(cx, cy);
+            ctxFBD.lineTo(nX, nY);
+            ctxFBD.stroke();
+            drawArrowhead(ctxFBD, nX, nY, -theta - Math.PI/2, 4.5);
+            ctxFBD.fillStyle = '#38bdf8';
+            ctxFBD.fillText("N", nX + 5, nY);
+
+            // Draw Friction Force
+            let frictionMag = simParams.muk * F_n;
+            let fDir = 0;
+            if (simState.activeRegime === 'Going Down') fDir = -1;
+            else if (simState.activeRegime === 'Going Up') fDir = 1;
+            else if (simState.activeRegime === 'Spring Contact') fDir = -Math.sign(simState.v);
+
+            if (fDir !== 0 && frictionMag > 0.05) {
+                const fX = cx + fDir * frictionMag * Math.cos(theta) * scale;
+                const fY = cy - fDir * frictionMag * Math.sin(theta) * scale;
+                ctxFBD.strokeStyle = '#fb923c';
+                ctxFBD.beginPath();
+                ctxFBD.moveTo(cx, cy);
+                ctxFBD.lineTo(fX, fY);
+                ctxFBD.stroke();
+                drawArrowhead(ctxFBD, fX, fY, fDir > 0 ? -theta : -theta + Math.PI, 4.5);
+                ctxFBD.fillStyle = '#fb923c';
+                ctxFBD.fillText("fk", fX + 5, fY - 2);
+            }
+
+            // Draw Spring Force if compressing
+            const comp = Math.max(0, simState.s - simParams.springStart);
+            if (comp > 0) {
+                const F_sp = simParams.k * comp;
+                const spX = cx - F_sp * Math.cos(theta) * scale;
+                const spY = cy + F_sp * Math.sin(theta) * scale;
+                ctxFBD.strokeStyle = '#f472b6';
+                ctxFBD.beginPath();
+                ctxFBD.moveTo(cx, cy);
+                ctxFBD.lineTo(spX, spY);
+                ctxFBD.stroke();
+                drawArrowhead(ctxFBD, spX, spY, -theta + Math.PI, 4.5);
+                ctxFBD.fillStyle = '#f472b6';
+                ctxFBD.fillText("Fs", spX - 15, spY + 8);
+            }
+        }
+
+        function drawPlots() {
+            const rect = canvasPlots.getBoundingClientRect();
+            const width = rect.width;
+            const height = rect.height;
+            ctxPlots.clearRect(0, 0, width, height);
+
+            if (simState.trail.length < 2) {
+                ctxPlots.fillStyle = '#475569';
+                ctxPlots.font = '11px sans-serif';
+                ctxPlots.fillText("Awaiting timeline waveform data...", width / 2 - 80, height / 2);
+                return;
+            }
+
+            // Grid backgrounds
+            ctxPlots.strokeStyle = 'rgba(255, 255, 255, 0.05)';
+            ctxPlots.lineWidth = 1;
+            ctxPlots.beginPath();
+            for (let i = 0; i < width; i += 40) {
+                ctxPlots.moveTo(i, 0);
+                ctxPlots.lineTo(i, height);
+            }
+            for (let j = 0; j < height; j += 25) {
+                ctxPlots.moveTo(0, j);
+                ctxPlots.lineTo(width, j);
+            }
+            ctxPlots.stroke();
+
+            // Zero line
+            let zeroY = height / 2;
+            let maxExpected = 1.0;
+            
+            if (simState.activePlot === 'pos') {
+                zeroY = height - 15; // Position is always positive down plane
+                maxExpected = simParams.L + 1;
+            } else if (simState.activePlot === 'vel') {
+                zeroY = height / 2;
+                maxExpected = 8.0; // Max velocity expected
+            } else if (simState.activePlot === 'acc') {
+                zeroY = height / 2;
+                maxExpected = 25.0; // Dynamic scale range
+            }
+
+            ctxPlots.strokeStyle = 'rgba(255, 255, 255, 0.15)';
+            ctxPlots.beginPath();
+            ctxPlots.moveTo(0, zeroY);
+            ctxPlots.lineTo(width, zeroY);
+            ctxPlots.stroke();
+
+            // Render graph trail line
+            ctxPlots.strokeStyle = '#818cf8';
+            ctxPlots.lineWidth = 2;
+            ctxPlots.beginPath();
+
+            const pointsCount = simState.trail.length;
+            const sliceX = width / simState.maxTrailSize;
+
+            for (let i = 0; i < pointsCount; i++) {
+                const x = (simState.maxTrailSize - pointsCount + i) * sliceX;
+                const rawVal = simState.trail[i];
+                
+                // Map to graph bounds
+                let ratio = rawVal / maxExpected;
+                if (ratio > 1.0) ratio = 1.0;
+                if (ratio < -1.0) ratio = -1.0;
+
+                let y = zeroY;
+                if (simState.activePlot === 'pos') {
+                    y = zeroY - (rawVal / simParams.L) * (height - 30);
+                } else {
+                    y = zeroY - ratio * (height / 2 - 10);
+                }
+
+                if (i === 0) ctxPlots.moveTo(x, y);
+                else ctxPlots.lineTo(x, y);
+            }
+            ctxPlots.stroke();
+
+            // Floating value badge overlay
+            const currentVal = simState.trail[pointsCount - 1];
+            ctxPlots.fillStyle = '#cbd5e1';
+            ctxPlots.font = '10px monospace';
+            ctxPlots.fillText(`Current: ${currentVal.toFixed(2)}`, width - 110, 16);
+        }
+
+        function drawArrowhead(ctx, x, y, angle, size) {
+            ctx.save();
+            ctx.translate(x, y);
+            ctx.rotate(angle);
+            ctx.fillStyle = ctx.strokeStyle;
+            ctx.beginPath();
+            ctx.moveTo(0, 0);
+            ctx.lineTo(-size * 1.5, -size * 0.7);
+            ctx.lineTo(-size * 1.5, size * 0.7);
+            ctx.closePath();
+            ctx.fill();
+            ctx.restore();
+        }
+    </script>
+</body>
+</html>

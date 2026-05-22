@@ -1,0 +1,901 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Kinetic Friction: Physics Simulator & Interactive Infographic</title>
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- FontAwesome Icons for UI -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <!-- MathJax for high-quality mathematical rendering -->
+    <script>
+        window.MathJax = {
+            tex: {
+                inlineMath: [['$', '$'], ['\\(', '\\)']],
+                displayMath: [['$$', '$$'], ['\\[', '\\]']]
+            },
+            svg: {
+                fontCache: 'global'
+            }
+        };
+    </script>
+    <script async src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;500;700&display=swap');
+        body {
+            font-family: 'Inter', sans-serif;
+        }
+        .mono-font {
+            font-family: 'JetBrains Mono', monospace;
+        }
+        /* Custom scrollbars for a premium look */
+        ::-webkit-scrollbar {
+            width: 6px;
+            height: 6px;
+        }
+        ::-webkit-scrollbar-track {
+            background: #1f2937;
+        }
+        ::-webkit-scrollbar-thumb {
+            background: #4b5563;
+            border-radius: 3px;
+        }
+        ::-webkit-scrollbar-thumb:hover {
+            background: #6b7280;
+        }
+    </style>
+</head>
+<body class="bg-slate-950 text-slate-100 min-h-screen flex flex-col antialiased selection:bg-cyan-500 selection:text-slate-900">
+
+    <!-- Header Section -->
+    <header class="border-b border-slate-800 bg-slate-900/80 backdrop-blur sticky top-0 z-50 px-4 py-4 md:px-8 flex flex-col md:flex-row md:items-center md:justify-between gap-4">
+        <div class="flex items-center gap-3">
+            <div class="h-10 w-10 rounded-xl bg-gradient-to-tr from-cyan-500 to-blue-600 flex items-center justify-center shadow-lg shadow-cyan-500/10">
+                <i class="fa-solid fa-wind text-white text-lg"></i>
+            </div>
+            <div>
+                <h1 class="text-xl font-bold tracking-tight bg-gradient-to-r from-cyan-400 to-blue-400 bg-clip-text text-transparent">Kinetic Friction Explorer</h1>
+                <p class="text-xs text-slate-400">Interactive Simulator, Mathematical Proofs & Concept Check</p>
+            </div>
+        </div>
+        <div class="flex items-center gap-2 text-xs font-semibold">
+            <span class="px-2.5 py-1 rounded-full bg-cyan-950/50 border border-cyan-800/60 text-cyan-400 flex items-center gap-1.5">
+                <span class="h-1.5 w-1.5 rounded-full bg-cyan-400 animate-pulse"></span>
+                Interactive Sandbox Active
+            </span>
+        </div>
+    </header>
+
+    <main class="flex-1 max-w-7xl w-full mx-auto p-4 md:p-6 lg:p-8 grid grid-cols-1 lg:grid-cols-12 gap-6">
+        
+        <!-- LEFT COLUMN: Simulator Workspace (7 cols on large screens) -->
+        <section class="lg:col-span-7 flex flex-col gap-6">
+            
+            <!-- Sandbox Card -->
+            <div class="bg-slate-900 border border-slate-800 rounded-2xl shadow-xl overflow-hidden flex flex-col">
+                <div class="p-4 border-b border-slate-800 bg-slate-900/50 flex flex-wrap items-center justify-between gap-3">
+                    <div class="flex items-center gap-2">
+                        <i class="fa-solid fa-flask text-cyan-400"></i>
+                        <h2 class="font-bold text-slate-200">Interactive Physical Simulator</h2>
+                    </div>
+                    <div class="flex items-center gap-2">
+                        <button id="reset-btn" class="px-3 py-1.5 rounded-lg bg-slate-800 hover:bg-slate-700 text-slate-300 text-xs font-medium transition flex items-center gap-1">
+                            <i class="fa-solid fa-rotate-left"></i> Reset Lab
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Simulation Canvas Wrapper -->
+                <div class="relative bg-slate-950 p-4 border-b border-slate-800/80 flex flex-col items-center">
+                    <!-- Status Display -->
+                    <div class="absolute top-6 left-6 z-10 flex flex-col gap-1 pointer-events-none">
+                        <div class="px-2 py-1 rounded bg-slate-900/90 border border-slate-700/80 text-[10px] font-bold tracking-widest text-cyan-400 uppercase">
+                            State: <span id="sim-state">Stationary</span>
+                        </div>
+                        <div class="px-2 py-1 rounded bg-slate-900/90 border border-slate-700/80 text-[10px] font-mono text-slate-300">
+                            v = <span id="v-val">0.00</span> m/s
+                        </div>
+                    </div>
+
+                    <!-- Force Vector Legend overlay -->
+                    <div class="absolute top-6 right-6 z-10 flex flex-col gap-1.5 bg-slate-900/80 backdrop-blur p-2.5 rounded-lg border border-slate-800 text-[10px] text-slate-400">
+                        <div class="flex items-center gap-1.5">
+                            <span class="w-3.5 h-0.5 bg-emerald-400 inline-block"></span>
+                            <span>Applied Force ($F$)</span>
+                        </div>
+                        <div class="flex items-center gap-1.5">
+                            <span class="w-3.5 h-0.5 bg-red-400 inline-block"></span>
+                            <span>Kinetic Friction (${\vec{f}}^k$)</span>
+                        </div>
+                        <div class="flex items-center gap-1.5">
+                            <span class="w-3.5 h-0.5 bg-blue-400 inline-block"></span>
+                            <span>Normal Force ($N$)</span>
+                        </div>
+                        <div class="flex items-center gap-1.5">
+                            <span class="w-3.5 h-0.5 bg-yellow-500 inline-block"></span>
+                            <span>Gravity ($W = mg$)</span>
+                        </div>
+                    </div>
+
+                    <!-- The Canvas -->
+                    <div class="w-full relative rounded-xl overflow-hidden bg-gradient-to-b from-slate-950 to-slate-900 border border-slate-800/50">
+                        <canvas id="simCanvas" class="w-full block" height="320"></canvas>
+                    </div>
+                </div>
+
+                <!-- Live Computational Readouts -->
+                <div class="grid grid-cols-2 sm:grid-cols-4 divide-x divide-y sm:divide-y-0 divide-slate-800 bg-slate-900/40 text-center">
+                    <div class="p-4">
+                        <span class="block text-[11px] font-medium uppercase tracking-wider text-slate-400">Normal Force ($N$)</span>
+                        <span class="block text-xl font-bold text-blue-400 mt-1 mono-font" id="readout-normal">98.10 N</span>
+                    </div>
+                    <div class="p-4">
+                        <span class="block text-[11px] font-medium uppercase tracking-wider text-slate-400">Kinetic Friction (${\vec{f}}^k$)</span>
+                        <span class="block text-xl font-bold text-red-400 mt-1 mono-font" id="readout-friction">29.43 N</span>
+                    </div>
+                    <div class="p-4">
+                        <span class="block text-[11px] font-medium uppercase tracking-wider text-slate-400">Applied Force ($F$)</span>
+                        <span class="block text-xl font-bold text-emerald-400 mt-1 mono-font" id="readout-applied">30.00 N</span>
+                    </div>
+                    <div class="p-4">
+                        <span class="block text-[11px] font-medium uppercase tracking-wider text-slate-400">Net Acceleration ($a$)</span>
+                        <span class="block text-xl font-bold text-purple-400 mt-1 mono-font" id="readout-accel">0.06 m/s²</span>
+                    </div>
+                </div>
+
+                <!-- Simulation Settings & Controls -->
+                <div class="p-6 bg-slate-900/90 border-t border-slate-800 flex flex-col gap-6">
+                    <!-- Preset Configurations to showcase core properties -->
+                    <div>
+                        <span class="block text-xs font-semibold text-slate-300 uppercase tracking-widest mb-3">Experimental Preset Scenarios</span>
+                        <div class="grid grid-cols-1 sm:grid-cols-3 gap-2">
+                            <button id="preset-constant-v" class="px-3 py-2 rounded-xl bg-cyan-950/40 border border-cyan-800/80 text-cyan-300 hover:bg-cyan-950/60 transition text-xs font-medium text-left flex items-start gap-2">
+                                <i class="fa-solid fa-gauge-simple-high mt-0.5 text-cyan-400"></i>
+                                <div>
+                                    <div class="font-bold">1. Constant Velocity</div>
+                                    <div class="text-[10px] text-cyan-400/80 mt-0.5">$F = {\vec{f}}^k \implies a = 0$</div>
+                                </div>
+                            </button>
+                            <button id="preset-area-test" class="px-3 py-2 rounded-xl bg-slate-800/50 border border-slate-700/60 text-slate-300 hover:bg-slate-800 transition text-xs font-medium text-left flex items-start gap-2">
+                                <i class="fa-solid fa-vector-square mt-0.5 text-indigo-400"></i>
+                                <div>
+                                    <div class="font-bold">2. Contact Area Proof</div>
+                                    <div class="text-[10px] text-slate-400 mt-0.5">Toggle $A_1$ vs $A_2$ (Same mass)</div>
+                                </div>
+                            </button>
+                            <button id="preset-acceleration" class="px-3 py-2 rounded-xl bg-slate-800/50 border border-slate-700/60 text-slate-300 hover:bg-slate-800 transition text-xs font-medium text-left flex items-start gap-2">
+                                <i class="fa-solid fa-arrow-trend-up mt-0.5 text-emerald-400"></i>
+                                <div>
+                                    <div class="font-bold">3. Accelerated Motion</div>
+                                    <div class="text-[10px] text-slate-400 mt-0.5">$F > {\vec{f}}^k \implies a > 0$</div>
+                                </div>
+                            </button>
+                        </div>
+                    </div>
+
+                    <!-- Interactive Sliders -->
+                    <div class="grid grid-cols-1 sm:grid-cols-2 gap-5">
+                        
+                        <!-- Friction Coeff slider -->
+                        <div class="flex flex-col gap-2">
+                            <div class="flex justify-between items-center text-xs">
+                                <span class="font-semibold text-slate-300 flex items-center gap-1">
+                                    <i class="fa-solid fa-sliders text-cyan-500"></i>
+                                    Kinetic Coeff. ($\mu_k$)
+                                </span>
+                                <span class="mono-font font-bold text-cyan-400" id="val-muk">0.30</span>
+                            </div>
+                            <input type="range" id="slider-muk" min="0.05" max="0.90" step="0.01" value="0.30" class="w-full accent-cyan-400 bg-slate-950 rounded-lg appearance-none h-2 cursor-pointer">
+                            <div class="flex justify-between text-[10px] text-slate-500">
+                                <span>Ice / Ultra-slick (0.05)</span>
+                                <span>Rough Rubber (0.90)</span>
+                            </div>
+                        </div>
+
+                        <!-- Applied Force slider -->
+                        <div class="flex flex-col gap-2">
+                            <div class="flex justify-between items-center text-xs">
+                                <span class="font-semibold text-slate-300 flex items-center gap-1">
+                                    <i class="fa-solid fa-hand-fist text-emerald-500"></i>
+                                    Applied Pulling Force ($F$)
+                                </span>
+                                <span class="mono-font font-bold text-emerald-400" id="val-applied">30 N</span>
+                            </div>
+                            <input type="range" id="slider-applied" min="0" max="100" step="1" value="30" class="w-full accent-emerald-400 bg-slate-950 rounded-lg appearance-none h-2 cursor-pointer">
+                            <div class="flex justify-between text-[10px] text-slate-500">
+                                <span>0 N</span>
+                                <span>100 N</span>
+                            </div>
+                        </div>
+
+                        <!-- Mass slider -->
+                        <div class="flex flex-col gap-2">
+                            <div class="flex justify-between items-center text-xs">
+                                <span class="font-semibold text-slate-300 flex items-center gap-1">
+                                    <i class="fa-solid fa-weight-hanging text-blue-500"></i>
+                                    Object Mass ($m$)
+                                </span>
+                                <span class="mono-font font-bold text-blue-400" id="val-mass">10 kg</span>
+                            </div>
+                            <input type="range" id="slider-mass" min="2" max="25" step="0.5" value="10" class="w-full accent-blue-400 bg-slate-950 rounded-lg appearance-none h-2 cursor-pointer">
+                            <div class="flex justify-between text-[10px] text-slate-500">
+                                <span>Light (2 kg)</span>
+                                <span>Heavy (25 kg)</span>
+                            </div>
+                        </div>
+
+                        <!-- Contact Area toggler -->
+                        <div class="flex flex-col gap-2">
+                            <span class="text-xs font-semibold text-slate-300 flex items-center gap-1">
+                                <i class="fa-solid fa-compress text-indigo-500"></i>
+                                Object Orientation (Contact Area)
+                            </span>
+                            <div class="grid grid-cols-2 gap-2 mt-1">
+                                <button id="btn-orientation-wide" class="py-1.5 rounded-lg border border-cyan-500 bg-cyan-950/30 text-cyan-300 text-xs font-semibold flex items-center justify-center gap-2">
+                                    <span class="w-4 h-2 bg-cyan-500 inline-block rounded-sm"></span>
+                                    Wide Aspect ($A_1$)
+                                </button>
+                                <button id="btn-orientation-tall" class="py-1.5 rounded-lg border border-slate-700 bg-slate-800 text-slate-400 text-xs font-semibold flex items-center justify-center gap-2">
+                                    <span class="w-2 h-4 bg-slate-500 inline-block rounded-sm"></span>
+                                    Tall Aspect ($A_2$)
+                                </button>
+                            </div>
+                        </div>
+
+                    </div>
+                </div>
+            </div>
+
+            <!-- Conceptual Insights and Video Proof -->
+            <div class="bg-slate-900 border border-slate-800 rounded-2xl p-6 flex flex-col gap-4">
+                <h3 class="font-bold text-slate-200 flex items-center gap-2">
+                    <i class="fa-solid fa-circle-info text-blue-400"></i>
+                    What this Simulator Proves (Video Correlation)
+                </h3>
+                <div class="space-y-3 text-sm text-slate-300 leading-relaxed">
+                    <div class="flex gap-3 items-start">
+                        <div class="h-6 w-6 rounded bg-slate-800 flex items-center justify-center font-bold text-cyan-400 shrink-0 text-xs">1</div>
+                        <p>
+                            <strong>Independence of Contact Area ($A$):</strong> Switch between <span class="text-cyan-400">Wide ($A_1$)</span> and <span class="text-indigo-400">Tall ($A_2$)</span> orientations. Note that even though the distribution over the surface changes dramatically, the calculated kinetic friction force ($f^k$) remains completely identical!
+                        </p>
+                    </div>
+                    <div class="flex gap-3 items-start">
+                        <div class="h-6 w-6 rounded bg-slate-800 flex items-center justify-center font-bold text-cyan-400 shrink-0 text-xs">2</div>
+                        <p>
+                            <strong>Independence of Velocity ($v$):</strong> Run the simulator at different speeds. Notice that once the object is in motion, the friction vector ($f^k$) doesn't scale with velocity. It only depends on the normal force and surface coefficient.
+                        </p>
+                    </div>
+                    <div class="flex gap-3 items-start">
+                        <div class="h-6 w-6 rounded bg-slate-800 flex items-center justify-center font-bold text-cyan-400 shrink-0 text-xs">3</div>
+                        <p>
+                            <strong>The Balance of Forces ($F = f^k$):</strong> In order to maintain a <strong>constant velocity</strong> ($\vec{v} = \text{constant}$), your applied force must perfectly equal the kinetic friction force, leading to a net acceleration of $a = 0$.
+                        </p>
+                    </div>
+                </div>
+            </div>
+
+        </section>
+
+        <!-- RIGHT COLUMN: Infographic, Formulas, Algorithms & Quiz (5 cols) -->
+        <section class="lg:col-span-5 flex flex-col gap-6">
+            
+            <!-- Mathematical and Physical Infographic -->
+            <div class="bg-slate-900 border border-slate-800 rounded-2xl p-6 flex flex-col gap-6">
+                <div class="border-b border-slate-800 pb-4">
+                    <span class="text-xs font-bold text-cyan-500 uppercase tracking-widest">Core Physics Formula</span>
+                    <h2 class="text-xl font-extrabold text-slate-100 mt-1">Mathematical Infographic</h2>
+                </div>
+
+                <!-- Core Formula Block -->
+                <div class="bg-slate-950 border border-cyan-950/80 rounded-xl p-5 relative overflow-hidden flex flex-col gap-3 items-center text-center">
+                    <div class="absolute -top-12 -left-12 h-32 w-32 rounded-full bg-cyan-500/5 blur-xl"></div>
+                    <span class="text-xs text-slate-400 uppercase tracking-widest font-semibold">The Friction Law of Amontons-Coulomb</span>
+                    <div class="text-2xl font-bold text-slate-100 tracking-wide select-none my-1">
+                        $$|{\vec{f}}^k| = \mu_k |\vec{N}|$$
+                    </div>
+                    <p class="text-[11px] text-slate-400 max-w-xs leading-relaxed">
+                        The magnitude of kinetic friction force is directly proportional to the magnitude of the normal force, scaled by the coefficient of friction.
+                    </p>
+                </div>
+
+                <!-- Mathematical Breakdown List -->
+                <div class="space-y-4">
+                    <h4 class="text-xs font-semibold text-slate-400 uppercase tracking-widest">Component Analysis</h4>
+                    
+                    <div class="flex items-start gap-3">
+                        <div class="mt-0.5 h-6 w-6 rounded bg-red-950/50 border border-red-800/50 flex items-center justify-center font-mono font-bold text-red-400 text-xs">f^k</div>
+                        <div>
+                            <span class="block text-xs font-bold text-slate-200">Kinetic Friction Force (${\vec{f}}^k$)</span>
+                            <span class="block text-xs text-slate-400 mt-0.5">Tangential opposing force acting parallel to the contact interface, opposite to relative motion.</span>
+                        </div>
+                    </div>
+
+                    <div class="flex items-start gap-3">
+                        <div class="mt-0.5 h-6 w-6 rounded bg-cyan-950/50 border border-cyan-800/50 flex items-center justify-center font-mono font-bold text-cyan-400 text-xs">\mu_k</div>
+                        <div>
+                            <span class="block text-xs font-bold text-slate-200">Coefficient of Kinetic Friction ($\mu_k$)</span>
+                            <span class="block text-xs text-slate-400 mt-0.5">A dimensionless constant based entirely on the materials in contact. Independent of area and speed.</span>
+                        </div>
+                    </div>
+
+                    <div class="flex items-start gap-3">
+                        <div class="mt-0.5 h-6 w-6 rounded bg-blue-950/50 border border-blue-800/50 flex items-center justify-center font-mono font-bold text-blue-400 text-xs">N</div>
+                        <div>
+                            <span class="block text-xs font-bold text-slate-200">Normal Force ($\vec{N}$)</span>
+                            <span class="block text-xs text-slate-400 mt-0.5">The perpendicular contact force exerted by the surface onto the object (often equal to $mg$ on a flat plane).</span>
+                        </div>
+                    </div>
+
+                    <div class="flex items-start gap-3">
+                        <div class="mt-0.5 h-6 w-6 rounded bg-purple-950/50 border border-purple-800/50 flex items-center justify-center font-mono font-bold text-purple-400 text-xs">C</div>
+                        <div>
+                            <span class="block text-xs font-bold text-slate-200">Total Contact Force ($\vec{C}$)</span>
+                            <span class="block text-xs text-slate-400 mt-0.5">The true vector sum of normal and tangential components: <strong class="text-purple-400">$\vec{C} = \vec{N} + {\vec{f}}^k$</strong></span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Simulation & Computational Algorithm -->
+                <div class="bg-slate-950 border border-slate-800 rounded-xl p-4 flex flex-col gap-3">
+                    <span class="text-xs font-bold text-slate-400 uppercase tracking-widest flex items-center gap-1.5">
+                        <i class="fa-solid fa-code text-indigo-400"></i> Sim Computational Steps
+                    </span>
+                    <ol class="text-xs space-y-2 text-slate-400 list-decimal pl-4">
+                        <li>
+                            <strong>Calculate Gravity:</strong> $W = m \cdot g$ (where $g = 9.81 \, \text{m/s}^2$).
+                        </li>
+                        <li>
+                            <strong>Resolve Normal Force:</strong> On a horizontal plane, $N = W$.
+                        </li>
+                        <li>
+                            <strong>Compute Friction Limit:</strong> $f^k = \mu_k \cdot N$.
+                        </li>
+                        <li>
+                            <strong>Determine Motion State:</strong> If $F > f^k$ (or if currently moving), net acceleration is computed using Newton's 2nd Law:
+                            <div class="bg-slate-900 border border-slate-800/50 p-2 my-1 rounded text-center text-slate-200 font-mono">
+                                $a = \frac{F - f^k}{m}$
+                            </div>
+                        </li>
+                        <li>
+                            <strong>Update System Kinematics:</strong> Apply integration step:
+                            <span class="block mt-1 text-cyan-400 font-mono">$v_{t+1} = v_t + a \cdot \Delta t$</span>
+                            <span class="block text-emerald-400 font-mono">$x_{t+1} = x_t + v \cdot \Delta t$</span>
+                        </li>
+                    </ol>
+                </div>
+
+            </div>
+
+            <!-- Interactive Concept Check Quiz -->
+            <div class="bg-slate-900 border border-slate-800 rounded-2xl p-6 flex flex-col gap-4">
+                <div class="border-b border-slate-800 pb-3 flex items-center justify-between">
+                    <div>
+                        <span class="text-xs font-bold text-emerald-500 uppercase tracking-widest">Knowledge Check</span>
+                        <h2 class="text-lg font-bold text-slate-100 mt-0.5">Conceptual Quiz</h2>
+                    </div>
+                    <span class="px-2 py-0.5 rounded bg-slate-800 text-[10px] text-slate-400 font-mono font-semibold" id="quiz-progress">Q1/3</span>
+                </div>
+
+                <div id="quiz-container">
+                    <!-- Dynamic Quiz Content -->
+                    <div id="quiz-question" class="text-sm text-slate-200 font-semibold mb-4 leading-relaxed">
+                        Loading first question...
+                    </div>
+                    <div id="quiz-options" class="flex flex-col gap-2">
+                        <!-- Options generated dynamically -->
+                    </div>
+                    <div id="quiz-feedback" class="mt-4 p-3 rounded-xl text-xs font-semibold hidden">
+                        <!-- Feedback text goes here -->
+                    </div>
+                    <div class="flex justify-end mt-4 pt-4 border-t border-slate-800/60">
+                        <button id="quiz-next-btn" class="px-4 py-2 bg-gradient-to-r from-cyan-500 to-blue-600 hover:from-cyan-400 hover:to-blue-500 text-slate-950 font-bold rounded-lg text-xs transition duration-150 shadow-lg shadow-cyan-500/20 hidden">
+                            Next Question <i class="fa-solid fa-arrow-right ml-1"></i>
+                        </button>
+                    </div>
+                </div>
+            </div>
+
+        </section>
+    </main>
+
+    <!-- Footer -->
+    <footer class="border-t border-slate-800 bg-slate-900/50 py-6 px-4 text-center text-xs text-slate-500 mt-12">
+        <p>© 2026 Physics Interactive Labs. Designed for physics instruction and intuitive mechanical understanding.</p>
+    </footer>
+
+    <!-- JavaScript Physics Logic and UI Interactions -->
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            // Simulator DOM References
+            const canvas = document.getElementById('simCanvas');
+            const ctx = canvas.getContext('2d');
+            const sliderMuk = document.getElementById('slider-muk');
+            const sliderApplied = document.getElementById('slider-applied');
+            const sliderMass = document.getElementById('slider-mass');
+            const valMuk = document.getElementById('val-muk');
+            const valApplied = document.getElementById('val-applied');
+            const valMass = document.getElementById('val-mass');
+            const btnWide = document.getElementById('btn-orientation-wide');
+            const btnTall = document.getElementById('btn-orientation-tall');
+            const btnReset = document.getElementById('reset-btn');
+            
+            // Readout DOM References
+            const simStateEl = document.getElementById('sim-state');
+            const simVVal = document.getElementById('v-val');
+            const rNormal = document.getElementById('readout-normal');
+            const rFriction = document.getElementById('readout-friction');
+            const rApplied = document.getElementById('readout-applied');
+            const rAccel = document.getElementById('readout-accel');
+
+            // Preset Buttons
+            const btnPresetConst = document.getElementById('preset-constant-v');
+            const btnPresetArea = document.getElementById('preset-area-test');
+            const btnPresetAccel = document.getElementById('preset-acceleration');
+
+            // Physics Variables & Simulation State
+            let mass = 10.0; // kg
+            let mu_k = 0.30; 
+            let F_applied = 30.0; // N
+            let isWideAspect = true; // Aspect configuration toggle
+            const g = 9.81; // m/s^2
+
+            let x_pos = 100; // block position in canvas pixels
+            let velocity = 0.0; // m/s
+            let accel = 0.0; // m/s^2
+            let lastTime = performance.now();
+            let isMoving = false;
+
+            // Resize and adjust canvas dynamically
+            function resizeCanvas() {
+                const rect = canvas.parentNode.getBoundingClientRect();
+                canvas.width = rect.width;
+            }
+            window.addEventListener('resize', () => {
+                resizeCanvas();
+                draw();
+            });
+            resizeCanvas();
+
+            // Setup Preset Event Handlers
+            btnPresetConst.addEventListener('click', () => {
+                // To achieve constant velocity: F_applied must balance kinetic friction.
+                // f^k = mu_k * m * g
+                mass = 10.0;
+                mu_k = 0.30;
+                F_applied = parseFloat((mu_k * mass * g).toFixed(2));
+                
+                sliderMass.value = mass;
+                sliderMuk.value = mu_k;
+                sliderApplied.value = F_applied;
+                
+                velocity = 3.5; // Starts with initial velocity to clearly demonstrate dynamic translation without acceleration
+                x_pos = 50;
+                updateInputLabels();
+                setActivePreset(btnPresetConst);
+            });
+
+            btnPresetArea.addEventListener('click', () => {
+                // Focus: area orientation change, zero initial velocity to observe start-up values
+                mass = 15.0;
+                mu_k = 0.40;
+                F_applied = 40.0;
+                
+                sliderMass.value = mass;
+                sliderMuk.value = mu_k;
+                sliderApplied.value = F_applied;
+                
+                velocity = 0.0;
+                x_pos = 100;
+                updateInputLabels();
+                setActivePreset(btnPresetArea);
+            });
+
+            btnPresetAccel.addEventListener('click', () => {
+                // High acceleration setup
+                mass = 8.0;
+                mu_k = 0.20;
+                F_applied = 60.0;
+                
+                sliderMass.value = mass;
+                sliderMuk.value = mu_k;
+                sliderApplied.value = F_applied;
+                
+                velocity = 0.0;
+                x_pos = 30;
+                updateInputLabels();
+                setActivePreset(btnPresetAccel);
+            });
+
+            function setActivePreset(activeBtn) {
+                [btnPresetConst, btnPresetArea, btnPresetAccel].forEach(btn => {
+                    btn.classList.remove('bg-cyan-950/40', 'border-cyan-800/80', 'text-cyan-300');
+                    btn.classList.add('bg-slate-800/50', 'border-slate-700/60', 'text-slate-300');
+                });
+                activeBtn.classList.remove('bg-slate-800/50', 'border-slate-700/60', 'text-slate-300');
+                activeBtn.classList.add('bg-cyan-950/40', 'border-cyan-800/80', 'text-cyan-300');
+            }
+
+            // Sync user changes of UI inputs
+            function updateInputLabels() {
+                valMuk.textContent = mu_k.toFixed(2);
+                valApplied.textContent = F_applied.toFixed(0) + " N";
+                valMass.textContent = mass.toFixed(1) + " kg";
+            }
+
+            sliderMuk.addEventListener('input', (e) => {
+                mu_k = parseFloat(e.target.value);
+                updateInputLabels();
+            });
+            sliderApplied.addEventListener('input', (e) => {
+                F_applied = parseFloat(e.target.value);
+                updateInputLabels();
+            });
+            sliderMass.addEventListener('input', (e) => {
+                mass = parseFloat(e.target.value);
+                updateInputLabels();
+            });
+
+            btnWide.addEventListener('click', () => {
+                isWideAspect = true;
+                btnWide.className = "py-1.5 rounded-lg border border-cyan-500 bg-cyan-950/30 text-cyan-300 text-xs font-semibold flex items-center justify-center gap-2";
+                btnTall.className = "py-1.5 rounded-lg border border-slate-700 bg-slate-800 text-slate-400 text-xs font-semibold flex items-center justify-center gap-2";
+            });
+
+            btnTall.addEventListener('click', () => {
+                isWideAspect = false;
+                btnTall.className = "py-1.5 rounded-lg border border-indigo-500 bg-indigo-950/30 text-indigo-300 text-xs font-semibold flex items-center justify-center gap-2";
+                btnWide.className = "py-1.5 rounded-lg border border-slate-700 bg-slate-800 text-slate-400 text-xs font-semibold flex items-center justify-center gap-2";
+            });
+
+            btnReset.addEventListener('click', () => {
+                mass = 10.0;
+                mu_k = 0.30;
+                F_applied = 30.0;
+                isWideAspect = true;
+                x_pos = 100;
+                velocity = 0.0;
+                accel = 0.0;
+                sliderMass.value = 10;
+                sliderMuk.value = 0.30;
+                sliderApplied.value = 30;
+                btnWide.click();
+                updateInputLabels();
+            });
+
+            // Physics Loop Updates
+            function updatePhysics(dt) {
+                const weight = mass * g;
+                const normalForce = weight;
+                const kineticFriction = mu_k * normalForce;
+
+                // Threshold check: static friction is simplified to make the app's kinetic focus stand out. 
+                // The block initiates movement when the pulling force exceeds kinetic threshold or is already in motion.
+                if (F_applied > kineticFriction || Math.abs(velocity) > 0.01) {
+                    isMoving = true;
+                    
+                    // a = (F - f^k) / m
+                    // Friction always acts in opposite direction of movement velocity direction.
+                    const frictionDirection = velocity >= 0 ? -1 : 1;
+                    const dynamicFrictionForce = kineticFriction * (velocity !== 0 ? Math.sign(velocity) : 1);
+                    
+                    accel = (F_applied - dynamicFrictionForce) / mass;
+                    
+                    // Velocity Update (Euler-Cromer Integration method)
+                    velocity += accel * dt;
+                    
+                    // Handle edge state where pull stops but block slows to rest
+                    if (F_applied <= kineticFriction && Math.abs(velocity) < 0.1) {
+                        velocity = 0;
+                        accel = 0;
+                        isMoving = false;
+                    }
+                } else {
+                    accel = 0;
+                    velocity = 0;
+                    isMoving = false;
+                }
+
+                // Update physical pixel space position
+                // Scaling factor for visually elegant translation speed
+                x_pos += velocity * dt * 25; 
+
+                // Wall boundary wrap around so exploration is infinite and seamless
+                const blockWidth = isWideAspect ? 140 : 60;
+                if (x_pos > canvas.width) {
+                    x_pos = -blockWidth;
+                } else if (x_pos < -blockWidth) {
+                    x_pos = canvas.width;
+                }
+
+                // Push values to real-time telemetry readouts
+                rNormal.textContent = normalForce.toFixed(2) + " N";
+                rFriction.textContent = kineticFriction.toFixed(2) + " N";
+                rApplied.textContent = F_applied.toFixed(2) + " N";
+                rAccel.textContent = accel.toFixed(2) + " m/s²";
+                
+                simVVal.textContent = velocity.toFixed(2);
+                simStateEl.textContent = isMoving ? (Math.abs(accel) < 0.01 ? "Constant Speed" : "Accelerating") : "Stationary";
+                simStateEl.className = isMoving ? 
+                    (Math.abs(accel) < 0.01 ? "text-cyan-400 font-bold" : "text-emerald-400 font-bold") : 
+                    "text-slate-400 font-bold";
+            }
+
+            // Canvas Vector Painting System
+            function draw() {
+                ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+                const groundY = canvas.height - 80;
+                
+                // Draw Surface Base Line
+                ctx.strokeStyle = '#334155';
+                ctx.lineWidth = 4;
+                ctx.beginPath();
+                ctx.moveTo(0, groundY);
+                ctx.lineTo(canvas.width, groundY);
+                ctx.stroke();
+
+                // Draw microscopic interlocking roughness pattern on surface to visually indicate friction source
+                ctx.strokeStyle = '#1e293b';
+                ctx.lineWidth = 2;
+                ctx.beginPath();
+                for (let i = 0; i < canvas.width; i += 16) {
+                    ctx.moveTo(i, groundY);
+                    ctx.lineTo(i + 8, groundY + 8);
+                    ctx.lineTo(i + 16, groundY);
+                }
+                ctx.stroke();
+
+                // Define Block Size Dimensions based on Selected Aspect Area (A1 vs A2)
+                const blockWidth = isWideAspect ? 140 : 65;
+                const blockHeight = isWideAspect ? 65 : 140;
+                const blockX = x_pos;
+                const blockY = groundY - blockHeight;
+
+                // Create Gradient for Object Block
+                const blockGrad = ctx.createLinearGradient(blockX, blockY, blockX + blockWidth, blockY + blockHeight);
+                if (isWideAspect) {
+                    blockGrad.addColorStop(0, '#0e7490'); // cyan
+                    blockGrad.addColorStop(1, '#0891b2');
+                } else {
+                    blockGrad.addColorStop(0, '#4338ca'); // indigo
+                    blockGrad.addColorStop(1, '#4f46e5');
+                }
+
+                // Paint Main Moving Mass Block
+                ctx.fillStyle = blockGrad;
+                ctx.strokeStyle = isWideAspect ? '#22d3ee' : '#818cf8';
+                ctx.lineWidth = 2;
+                ctx.beginPath();
+                ctx.roundRect(blockX, blockY, blockWidth, blockHeight, 8);
+                ctx.fill();
+                ctx.stroke();
+
+                // Draw Mass text marker inside block center
+                ctx.fillStyle = '#ffffff';
+                ctx.font = 'bold 15px Inter';
+                ctx.textAlign = 'center';
+                ctx.textBaseline = 'middle';
+                ctx.fillText(`m = ${mass.toFixed(1)} kg`, blockX + blockWidth / 2, blockY + blockHeight / 2 - 10);
+                
+                // Draw Label showing current surface contact area description
+                ctx.font = '10px JetBrains Mono';
+                ctx.fillStyle = '#94a3b8';
+                ctx.fillText(`Area: ${isWideAspect ? "A₁ (Wide)" : "A₂ (Tall)"}`, blockX + blockWidth / 2, blockY + blockHeight / 2 + 12);
+
+                // --- VECTOR FORCE ARROWS GRAPHICS ---
+                const centerX = blockX + blockWidth / 2;
+                const centerY = blockY + blockHeight / 2;
+
+                // Force scale ratio to translate Newtons into aesthetic on-screen pixel lengths
+                const scale = 1.8;
+
+                // 1. Gravity Vector (W = mg) - Yellow - Pointing Down
+                const wForce = mass * g;
+                drawVectorArrow(centerX, centerY, centerX, centerY + (wForce * scale), '#eab308', 'W = mg', false);
+
+                // 2. Normal Force Vector (N) - Blue - Pointing Up
+                drawVectorArrow(centerX, groundY, centerX, groundY - (wForce * scale), '#60a5fa', 'N', true);
+
+                // 3. Applied Pulling Force (F) - Green - Pointing Right (Originates at right wall boundary of block)
+                if (F_applied > 0) {
+                    drawVectorArrow(blockX + blockWidth, centerY, blockX + blockWidth + (F_applied * scale), centerY, '#34d399', 'F_app', false);
+                }
+
+                // 4. Kinetic Friction Opponent (f^k) - Red - Pointing Left (Originates at base surface boundary)
+                const kFriction = mu_k * wForce;
+                if (isMoving || F_applied > 0) {
+                    drawVectorArrow(blockX, groundY, blockX - (kFriction * scale), groundY, '#f87171', 'f^k', false);
+                }
+            }
+
+            // Arrow draw helper
+            function drawVectorArrow(fromx, fromy, tox, toy, color, label, isOffsetLabel) {
+                // Ignore tiny trivial arrows
+                if (Math.abs(fromx - tox) < 5 && Math.abs(fromy - toy) < 5) return;
+
+                ctx.strokeStyle = color;
+                ctx.fillStyle = color;
+                ctx.lineWidth = 3;
+
+                // Arrow Shaft
+                ctx.beginPath();
+                ctx.moveTo(fromx, fromy);
+                ctx.lineTo(tox, toy);
+                ctx.stroke();
+
+                // Arrow Head Calculations
+                const angle = Math.atan2(toy - fromy, tox - fromx);
+                const r = 8; // head size
+                ctx.beginPath();
+                ctx.moveTo(tox, toy);
+                ctx.lineTo(tox - r * Math.cos(angle - Math.PI / 6), toy - r * Math.sin(angle - Math.PI / 6));
+                ctx.lineTo(tox - r * Math.cos(angle + Math.PI / 6), toy - r * Math.sin(angle + Math.PI / 6));
+                ctx.closePath();
+                ctx.fill();
+
+                // Vector labels offset styling
+                ctx.font = 'bold 11px Inter';
+                ctx.fillStyle = color;
+                ctx.textAlign = 'center';
+                if (angle === 0) { // Right pointing
+                    ctx.fillText(label, tox + 18, toy + 4);
+                } else if (angle === Math.PI) { // Left pointing
+                    ctx.fillText(label, tox - 18, toy + 4);
+                } else if (angle > 0) { // Downward
+                    ctx.fillText(label, tox, toy + 15);
+                } else { // Upward
+                    ctx.fillText(label, tox, toy - 12);
+                }
+            }
+
+            // Primary RequestAnimationFrame Simulation Run Loop
+            function mainLoop(timestamp) {
+                const dt = Math.min((timestamp - lastTime) / 1000, 0.1); // cap dt to avoid background page resume teleportation errors
+                lastTime = timestamp;
+
+                updatePhysics(dt);
+                draw();
+
+                requestAnimationFrame(mainLoop);
+            }
+            requestAnimationFrame(mainLoop);
+
+
+            // --- CONCEPTUAL QUIZ SYSTEM ---
+            const quizQuestions = [
+                {
+                    q: "An object with the same mass is flipped from its wide base ($A_1$) to a tall narrow base ($A_2$). What happens to the kinetic friction force (${\\vec{f}}^k$)?",
+                    options: [
+                        "It increases because the pressure on the surface is higher.",
+                        "It decreases because the physical area touching the surface is smaller.",
+                        "It remains completely unchanged because friction is independent of contact area.",
+                        "It becomes zero because of reduced surface interlocking."
+                    ],
+                    correct: 2,
+                    explain: "Correct! The classical law of friction ($f^k = \\mu_k N$) shows that contact area does not factor into the magnitude of kinetic friction. Though contact pressure changes, total frictional force is independent of macroscopic area."
+                },
+                {
+                    q: "If you double the pulling force ($F$) of an object already sliding at constant velocity across a surface, what happens to the kinetic friction force?",
+                    options: [
+                        "The kinetic friction force doubles in response.",
+                        "The kinetic friction force remains unchanged, and the object accelerates.",
+                        "The kinetic friction force drops to zero.",
+                        "The kinetic friction force decreases to balance the speed."
+                    ],
+                    correct: 1,
+                    explain: "Exactly! Kinetic friction is a constant value determined purely by $f^k = \\mu_k N$. Increasing the external pulling force beyond this threshold creates an unbalanced force, generating a net acceleration ($a > 0$)."
+                },
+                {
+                    q: "What properties determine the kinetic coefficient of friction ($\\mu_k$) for any sliding pair?",
+                    options: [
+                        "The relative sliding velocity of the two components.",
+                        "The total weight of the object and the acceleration rate.",
+                        "The microscopic material composition and roughness profiles of the two contacting surfaces.",
+                        "The overall dimensional surface areas of both objects."
+                    ],
+                    correct: 2,
+                    explain: "Spot on! The coefficient $\\mu_k$ is a dimensionless value reflecting the intrinsic material pairs in contact (e.g., rubber on concrete vs. ice on steel) and is independent of size, weight, or sliding speed."
+                }
+            ];
+
+            let currentQuizIndex = 0;
+
+            const qQuestion = document.getElementById('quiz-question');
+            const qOptions = document.getElementById('quiz-options');
+            const qFeedback = document.getElementById('quiz-feedback');
+            const qNextBtn = document.getElementById('quiz-next-btn');
+            const qProgress = document.getElementById('quiz-progress');
+
+            function loadQuizQuestion() {
+                const data = quizQuestions[currentQuizIndex];
+                qProgress.textContent = `Q${currentQuizIndex + 1}/${quizQuestions.length}`;
+                qQuestion.textContent = data.q;
+                
+                // Re-trigger math formatting
+                if (window.MathJax) {
+                    setTimeout(() => MathJax.typeset(), 10);
+                }
+
+                qOptions.innerHTML = '';
+                qFeedback.classList.add('hidden');
+                qNextBtn.classList.add('hidden');
+
+                data.options.forEach((opt, idx) => {
+                    const btn = document.createElement('button');
+                    btn.className = "w-full p-3 rounded-xl border border-slate-800 bg-slate-950/40 hover:bg-slate-800 hover:border-slate-700 text-xs font-medium text-left transition duration-150 flex items-start gap-3 text-slate-300";
+                    btn.innerHTML = `
+                        <span class="h-5 w-5 rounded-full bg-slate-800 border border-slate-700 flex items-center justify-center font-bold text-[10px] shrink-0 text-slate-400 select-none">${String.fromCharCode(65 + idx)}</span>
+                        <span class="flex-1">${opt}</span>
+                    `;
+                    btn.addEventListener('click', () => handleOptionSelection(idx, btn));
+                    qOptions.appendChild(btn);
+                });
+            }
+
+            function handleOptionSelection(chosenIdx, clickedBtn) {
+                const data = quizQuestions[currentQuizIndex];
+                const optionBtns = qOptions.querySelectorAll('button');
+
+                // Disable further button clicking
+                optionBtns.forEach(btn => {
+                    btn.disabled = true;
+                    btn.classList.remove('hover:bg-slate-800', 'hover:border-slate-700');
+                });
+
+                if (chosenIdx === data.correct) {
+                    clickedBtn.className = "w-full p-3 rounded-xl border border-emerald-500/50 bg-emerald-950/30 text-xs font-medium text-left flex items-start gap-3 text-emerald-300";
+                    clickedBtn.querySelector('span').className = "h-5 w-5 rounded-full bg-emerald-500 text-slate-950 border border-emerald-400 flex items-center justify-center font-bold text-[10px] shrink-0";
+                    
+                    qFeedback.className = "mt-4 p-3 rounded-xl text-xs font-medium bg-emerald-950/30 border border-emerald-500/30 text-emerald-300 block";
+                    qFeedback.textContent = data.explain;
+                } else {
+                    clickedBtn.className = "w-full p-3 rounded-xl border border-red-500/50 bg-red-950/30 text-xs font-medium text-left flex items-start gap-3 text-red-300";
+                    clickedBtn.querySelector('span').className = "h-5 w-5 rounded-full bg-red-500 text-slate-950 border border-red-400 flex items-center justify-center font-bold text-[10px] shrink-0";
+                    
+                    // Highlight the correct answer with a soft subtle border
+                    const correctBtn = optionBtns[data.correct];
+                    correctBtn.classList.add('border-emerald-500/40', 'bg-emerald-950/10');
+
+                    qFeedback.className = "mt-4 p-3 rounded-xl text-xs font-medium bg-red-950/30 border border-red-500/30 text-red-300 block";
+                    qFeedback.textContent = `Incorrect. ${data.explain}`;
+                }
+
+                if (window.MathJax) {
+                    MathJax.typeset();
+                }
+
+                qNextBtn.classList.remove('hidden');
+            }
+
+            qNextBtn.addEventListener('click', () => {
+                currentQuizIndex++;
+                if (currentQuizIndex < quizQuestions.length) {
+                    loadQuizQuestion();
+                } else {
+                    // Show finish screen
+                    qProgress.textContent = "Complete!";
+                    qQuestion.innerHTML = "🎉 Congratulations! You have mastered the properties of kinetic friction.";
+                    qOptions.innerHTML = `
+                        <div class="text-xs text-slate-400 leading-relaxed p-4 bg-slate-950/50 rounded-xl border border-slate-800">
+                            You've successfully analyzed:
+                            <ul class="list-disc pl-5 mt-2 space-y-1">
+                                <li>The mathematical formulation: <strong class="text-cyan-400">$f^k = \\mu_k N$</strong></li>
+                                <li>Why friction is completely <strong>independent of contact surface area</strong>.</li>
+                                <li>Why friction is <strong>independent of sliding velocity</strong>.</li>
+                            </ul>
+                        </div>
+                    `;
+                    qFeedback.classList.add('hidden');
+                    qNextBtn.className = "px-4 py-2 bg-slate-800 hover:bg-slate-700 text-slate-300 font-bold rounded-lg text-xs transition";
+                    qNextBtn.innerHTML = '<i class="fa-solid fa-rotate-left mr-1"></i> Restart Quiz';
+                    currentQuizIndex = -1; // Ready to restart on click
+                }
+            });
+
+            // Initialize first question
+            loadQuizQuestion();
+        });
+    </script>
+</body>
+</html>

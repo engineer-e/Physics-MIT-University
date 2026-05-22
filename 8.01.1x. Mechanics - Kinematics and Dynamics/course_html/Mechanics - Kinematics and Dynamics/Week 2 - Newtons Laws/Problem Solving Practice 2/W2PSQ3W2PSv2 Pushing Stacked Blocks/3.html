@@ -1,0 +1,1295 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Two-Block Motion & System Analysis Simulator</title>
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Google Fonts: Inter & JetBrains Mono for clean reading & math -->
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+    <!-- KaTeX for beautiful, actual LaTeX rendering -->
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.8/dist/katex.min.css">
+    <script src="https://cdn.jsdelivr.net/npm/katex@0.16.8/dist/katex.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/katex@0.16.8/dist/contrib/auto-render.min.js"></script>
+    <style>
+        body {
+            font-family: 'Inter', sans-serif;
+        }
+        .math-font {
+            font-family: 'JetBrains Mono', monospace;
+        }
+        /* Style KaTeX overrides to blend beautifully with our color scheme */
+        .katex {
+            font-size: 1.05em !important;
+            color: inherit !important;
+        }
+        .katex-display {
+            margin: 0.5em 0 !important;
+            padding: 0.25em 0;
+            overflow-x: auto;
+            overflow-y: hidden;
+        }
+        /* Custom scrollbar styling for a premium dark look */
+        ::-webkit-scrollbar {
+            width: 8px;
+            height: 8px;
+        }
+        ::-webkit-scrollbar-track {
+            background: #1e293b;
+        }
+        ::-webkit-scrollbar-thumb {
+            background: #475569;
+            border-radius: 4px;
+        }
+        ::-webkit-scrollbar-thumb:hover {
+            background: #64748b;
+        }
+    </style>
+</head>
+<body class="bg-slate-950 text-slate-100 min-h-screen flex flex-col overflow-x-hidden selection:bg-indigo-500 selection:text-white">
+
+    <!-- Top Navigation / Banner -->
+    <header class="border-b border-slate-800 bg-slate-900/80 backdrop-blur-md sticky top-0 z-50 px-6 py-4 flex flex-col md:flex-row justify-between items-center gap-4">
+        <div class="flex items-center gap-3">
+            <div class="w-10 h-10 bg-indigo-600 rounded-lg flex items-center justify-center shadow-lg shadow-indigo-500/20">
+                <svg class="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19.428 15.428a2 2 0 00-1.022-.547l-2.387-.477a6 6 0 00-3.86.517l-.318.158a6 6 0 01-3.86.517L6.05 15.21a2 2 0 00-1.806.547M8 4h8l-1 1v5.172a2 2 0 00.586 1.414l5 5c1.26 1.26.367 3.414-1.415 3.414H4.828c-1.782 0-2.674-2.154-1.414-3.414l5-5A2 2 0 009 10.172V5L8 4z" /></svg>
+            </div>
+            <div>
+                <h1 class="text-xl font-bold tracking-tight bg-gradient-to-r from-indigo-400 via-purple-400 to-pink-400 bg-clip-text text-transparent">Classical Mechanics Expert</h1>
+                <p class="text-xs text-slate-400">Two-Block Friction & Dynamic System Selection</p>
+            </div>
+        </div>
+        <div class="flex items-center gap-4">
+            <span class="inline-flex items-center px-3 py-1 rounded-full text-xs font-semibold bg-emerald-500/10 text-emerald-400 border border-emerald-500/20 shadow-sm">
+                <span class="w-2 h-2 bg-emerald-400 rounded-full mr-2 animate-ping"></span>
+                Active Lab Simulation
+            </span>
+        </div>
+    </header>
+
+    <!-- Main Dashboard Layout -->
+    <main class="flex-1 grid grid-cols-1 xl:grid-cols-12 gap-6 p-6 max-w-[1600px] w-full mx-auto">
+        
+        <!-- Left Panel: Interactive controls, lesson step guides (5 Cols) -->
+        <section class="xl:col-span-5 flex flex-col gap-6">
+            
+            <!-- Systems Selection Selector Tabs -->
+            <div class="bg-slate-900 border border-slate-800 rounded-2xl p-5 shadow-xl">
+                <h2 class="text-sm font-bold uppercase tracking-wider text-slate-400 mb-4 flex items-center gap-2">
+                    <svg class="w-4 h-4 text-indigo-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-3 7h3m-3 4h3m-6-4h.01M9 16h.01" /></svg>
+                    Choose Analytical System Boundary
+                </h2>
+                <div class="grid grid-cols-3 gap-2">
+                    <button onclick="setSystemBoundary('composite')" id="tab-composite" class="py-3 px-2 rounded-xl text-xs font-semibold transition-all duration-300 border bg-indigo-600 border-indigo-500 text-white shadow-lg shadow-indigo-600/10 hover:bg-indigo-500 flex flex-col items-center gap-1">
+                        <span>System 1 + 2</span>
+                        <span class="opacity-85 text-[10px] font-normal">Composite Blocks</span>
+                    </button>
+                    <button onclick="setSystemBoundary('block1')" id="tab-block1" class="py-3 px-2 rounded-xl text-xs font-semibold transition-all duration-300 border border-slate-800 bg-slate-950 text-slate-400 hover:text-slate-200 hover:border-slate-700 flex flex-col items-center gap-1">
+                        <span>System 1 Only</span>
+                        <span class="opacity-70 text-[10px] font-normal">Bottom Block</span>
+                    </button>
+                    <button onclick="setSystemBoundary('block2')" id="tab-block2" class="py-3 px-2 rounded-xl text-xs font-semibold transition-all duration-300 border border-slate-800 bg-slate-950 text-slate-400 hover:text-slate-200 hover:border-slate-700 flex flex-col items-center gap-1">
+                        <span>System 2 Only</span>
+                        <span class="opacity-70 text-[10px] font-normal">Top Block</span>
+                    </button>
+                </div>
+            </div>
+
+            <!-- Controls Panel -->
+            <div id="controls-panel" class="bg-slate-900 border border-slate-800 rounded-2xl p-5 shadow-xl flex flex-col gap-5">
+                <div class="flex justify-between items-center border-b border-slate-800 pb-3">
+                    <h3 class="font-bold text-lg text-slate-200 flex items-center gap-2">
+                        <svg class="w-5 h-5 text-indigo-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6V4m0 2a2 2 0 100 4m0-4a2 2 0 110 4m-6 8a2 2 0 100-4m0 4a2 2 0 110-4m0 4v2m0-6V4m6 6v10m6-2a2 2 0 100-4m0 4a2 2 0 110-4m0 4v2m0-6V4" /></svg>
+                        Adjust Variables
+                    </h3>
+                    <div class="flex gap-2">
+                        <button onclick="resetSimulation()" class="px-3 py-1.5 rounded-lg bg-slate-800 hover:bg-slate-700 text-xs font-semibold text-slate-300 flex items-center gap-1.5 transition">
+                            <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 1121.27 15" /></svg>
+                            Reset System
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Sliders -->
+                <div class="flex flex-col gap-4">
+                    <!-- F_applied Slider -->
+                    <div>
+                        <div class="flex justify-between items-center mb-1.5">
+                            <label class="text-xs font-semibold text-rose-400 flex items-center gap-1">
+                                <span class="w-2 h-2 rounded-full bg-rose-500"></span>
+                                External Pushing Force ($F$)
+                            </label>
+                            <span class="text-sm font-semibold math-font text-rose-400" id="val-F">45.0 N</span>
+                        </div>
+                        <input type="range" id="slider-F" min="0" max="120" step="0.5" value="45" class="w-full h-1.5 bg-slate-800 rounded-lg appearance-none cursor-pointer accent-rose-500" oninput="updateParameters()">
+                        <div class="flex justify-between text-[10px] text-slate-500 px-1 mt-1">
+                            <span>0 N</span>
+                            <span>60 N</span>
+                            <span>120 N</span>
+                        </div>
+                    </div>
+
+                    <!-- Grid Layout for Coefficients and Masses -->
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        <!-- m1 Slider -->
+                        <div>
+                            <div class="flex justify-between items-center mb-1.5">
+                                <label class="text-xs font-semibold text-sky-400 flex items-center gap-1">
+                                    <span class="w-2 h-2 rounded-full bg-sky-500"></span>
+                                    Mass of Block 1 ($m_1$)
+                                </label>
+                                <span class="text-sm font-semibold math-font text-sky-400" id="val-m1">6.0 kg</span>
+                            </div>
+                            <input type="range" id="slider-m1" min="1" max="15" step="0.1" value="6" class="w-full h-1.5 bg-slate-800 rounded-lg appearance-none cursor-pointer accent-sky-500" oninput="updateParameters()">
+                        </div>
+
+                        <!-- m2 Slider -->
+                        <div>
+                            <div class="flex justify-between items-center mb-1.5">
+                                <label class="text-xs font-semibold text-emerald-400 flex items-center gap-1">
+                                    <span class="w-2 h-2 rounded-full bg-emerald-500"></span>
+                                    Mass of Block 2 ($m_2$)
+                                </label>
+                                <span class="text-sm font-semibold math-font text-emerald-400" id="val-m2">4.0 kg</span>
+                            </div>
+                            <input type="range" id="slider-m2" min="1" max="15" step="0.1" value="4" class="w-full h-1.5 bg-slate-800 rounded-lg appearance-none cursor-pointer accent-emerald-500" oninput="updateParameters()">
+                        </div>
+
+                        <!-- mu_s (Static Friction) -->
+                        <div>
+                            <div class="flex justify-between items-center mb-1.5">
+                                <label class="text-xs font-semibold text-indigo-400 flex items-center gap-1">
+                                    <span class="w-2 h-2 rounded-full bg-indigo-500"></span>
+                                    Static Friction ($\mu_s$)
+                                </label>
+                                <span class="text-sm font-semibold math-font text-indigo-400" id="val-mus">0.40</span>
+                            </div>
+                            <input type="range" id="slider-mus" min="0.1" max="1.0" step="0.02" value="0.4" class="w-full h-1.5 bg-slate-800 rounded-lg appearance-none cursor-pointer accent-indigo-500" oninput="updateParameters()">
+                        </div>
+
+                        <!-- mu_k (Ground Friction) -->
+                        <div>
+                            <div class="flex justify-between items-center mb-1.5">
+                                <label class="text-xs font-semibold text-purple-400 flex items-center gap-1">
+                                    <span class="w-2 h-2 rounded-full bg-purple-500"></span>
+                                    Ground Friction ($\mu_k$)
+                                </label>
+                                <span class="text-sm font-semibold math-font text-purple-400" id="val-muk">0.15</span>
+                            </div>
+                            <input type="range" id="slider-muk" min="0.0" max="0.5" step="0.01" value="0.15" class="w-full h-1.5 bg-slate-800 rounded-lg appearance-none cursor-pointer accent-purple-500" oninput="updateParameters()">
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Run Experiments Automation Box -->
+                <div class="bg-slate-950/60 p-4 rounded-xl border border-slate-800/80 flex flex-col sm:flex-row gap-3 items-center justify-between">
+                    <div>
+                        <div class="text-xs font-semibold text-slate-300">Analytical Verification Helper</div>
+                        <div class="text-[11px] text-slate-500 mt-0.5">Let the system auto-ramp up force to physically witness slipping.</div>
+                    </div>
+                    <button id="btn-ramp" onclick="toggleForceRamp()" class="w-full sm:w-auto px-4 py-2 bg-gradient-to-r from-purple-600 to-indigo-600 hover:from-purple-500 hover:to-indigo-500 text-xs font-semibold rounded-lg text-white shadow-lg shadow-indigo-600/10 transition flex items-center justify-center gap-1.5">
+                        <svg id="icon-ramp-play" class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z" /></svg>
+                        <span>Start Auto-Ramp Force</span>
+                    </button>
+                </div>
+            </div>
+
+            <!-- Mathematical Algorithm Translation -->
+            <div class="bg-slate-900 border border-slate-800 rounded-2xl p-5 shadow-xl flex-1 flex flex-col">
+                <div class="flex items-center gap-2 mb-4 border-b border-slate-800 pb-3">
+                    <svg class="w-5 h-5 text-indigo-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 7h6m0 10v-3m-3 3h.01M9 17h.01M9 14h.01M12 14h.01M15 11h.01M12 11h.01M9 11h.01M7 21h10a2 2 0 002-2V5a2 2 0 00-2-2H7a2 2 0 00-2 2v14a2 2 0 002 2z" /></svg>
+                    <h3 class="font-bold text-md text-slate-200">Mathematical & Boundary Sync</h3>
+                </div>
+
+                <!-- Explanation content depending on active System Tab -->
+                <div id="math-analysis" class="flex-1 text-sm text-slate-300 flex flex-col gap-4">
+                    <!-- Dynamic calculations rendered elegantly -->
+                </div>
+            </div>
+
+        </section>
+
+        <!-- Right Panel: Physical Simulator Canvas, FBD Render, Real-Time Stats (7 Cols) -->
+        <section class="xl:col-span-7 flex flex-col gap-6">
+            
+            <!-- Real-time Status Card & Simulation Display -->
+            <div class="bg-slate-900 border border-slate-800 rounded-2xl overflow-hidden shadow-2xl flex flex-col">
+                <!-- Status Top Bar -->
+                <div class="px-5 py-3 border-b border-slate-800 bg-slate-900/50 flex flex-wrap gap-3 justify-between items-center">
+                    <div class="flex items-center gap-2">
+                        <span class="w-3 h-3 rounded-full bg-indigo-500 animate-pulse"></span>
+                        <span class="text-xs font-bold uppercase tracking-wider text-slate-300">Interactive Canvas</span>
+                    </div>
+                    <!-- Status Indicator Badge -->
+                    <div id="sim-status-badge" class="px-3 py-1 rounded-full text-xs font-bold math-font border bg-emerald-500/10 text-emerald-400 border-emerald-500/20">
+                        STATIC (NO MOTION)
+                    </div>
+                </div>
+
+                <!-- Physical Canvas Area -->
+                <div class="relative w-full aspect-[16/9] min-h-[300px] bg-slate-950 border-b border-slate-800">
+                    <canvas id="simCanvas" class="absolute inset-0 w-full h-full block cursor-pointer"></canvas>
+                    
+                    <!-- Slipping Overlay Indicator -->
+                    <div id="slip-warning" class="absolute top-4 left-4 pointer-events-none opacity-0 transition-opacity duration-300 bg-red-500/10 border border-red-500/20 text-red-400 text-xs font-bold px-3 py-1.5 rounded-lg flex items-center gap-1.5 shadow-lg shadow-red-950/20">
+                        <svg class="w-4 h-4 text-red-500 animate-bounce" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" /></svg>
+                        SLIPPING DETECTED
+                    </div>
+
+                    <!-- Falling Off Overlay Indicator -->
+                    <div id="fall-warning" class="absolute top-4 left-4 pointer-events-none opacity-0 transition-opacity duration-300 bg-amber-500/10 border border-amber-500/20 text-amber-400 text-xs font-bold px-3 py-1.5 rounded-lg flex items-center gap-1.5 shadow-lg shadow-amber-950/20">
+                        <svg class="w-4 h-4 text-amber-500 animate-pulse" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19.428 15.428a2 2 0 00-1.022-.547l-2.387-.477a6 6 0 00-3.86.517l-.318.158a6 6 0 01-3.86.517L6.05 15.21a2 2 0 00-1.806.547" /></svg>
+                        BLOCK 2 HAS FALLEN OFF!
+                    </div>
+                </div>
+
+                <!-- Simulation Interactive Controls -->
+                <div class="px-5 py-4 bg-slate-900/50 flex justify-between items-center gap-4">
+                    <div class="flex gap-2">
+                        <button onclick="togglePlayPause()" id="btn-play" class="p-2.5 rounded-xl bg-indigo-600 hover:bg-indigo-500 text-white font-semibold transition flex items-center gap-2 px-5 shadow-lg shadow-indigo-600/10">
+                            <svg id="icon-play" class="w-4 h-4" fill="currentColor" viewBox="0 0 24 24"><path d="M8 5v14l11-7z" /></svg>
+                            <span id="txt-play">Pause</span>
+                        </button>
+                        <button onclick="resetSimulation()" class="p-2.5 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-300 transition" title="Reset Simulation">
+                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 1121.27 15" /></svg>
+                        </button>
+                    </div>
+                    
+                    <!-- Dynamic Velocity & Acceleration Telemetry -->
+                    <div class="flex items-center gap-4 text-xs font-semibold text-slate-400">
+                        <div class="flex flex-col items-end">
+                            <span class="text-[10px] text-slate-500 uppercase">Block 1 Vel</span>
+                            <span class="math-font text-sky-400 text-sm" id="telemetry-v1">0.00 m/s</span>
+                        </div>
+                        <div class="w-px h-6 bg-slate-800"></div>
+                        <div class="flex flex-col items-end">
+                            <span class="text-[10px] text-slate-500 uppercase">Block 2 Vel</span>
+                            <span class="math-font text-emerald-400 text-sm" id="telemetry-v2">0.00 m/s</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Dynamic Free Body Diagram Render -->
+            <div class="bg-slate-900 border border-slate-800 rounded-2xl p-5 shadow-xl flex flex-col gap-4">
+                <div class="flex justify-between items-center border-b border-slate-800 pb-3">
+                    <h3 class="font-bold text-md text-slate-200 flex items-center gap-2">
+                        <svg class="w-5 h-5 text-indigo-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14 10l-2 1m0 0l-2-1m2 1v2.5M20 7l-2 1m2-1l-2-1m2 1v2.5M14 4l-2-1-2 1M4 7l2-1M4 7l2 1M4 7v2.5M12 21l-2-1m2 1l2-1m-2 1v-2.5M6 18l-2-1v-2.5M18 18l2-1v-2.5" /></svg>
+                        Free Body Diagram (FBD)
+                    </h3>
+                    <span id="fbd-target-tag" class="text-xs font-semibold px-2.5 py-1 bg-indigo-500/10 text-indigo-300 border border-indigo-500/20 rounded-lg">
+                        System: Composite (1+2)
+                    </span>
+                </div>
+
+                <!-- FBD Canvas Container -->
+                <div class="w-full h-[320px] bg-slate-950 rounded-xl relative overflow-hidden border border-slate-800/80">
+                    <canvas id="fbdCanvas" class="absolute inset-0 w-full h-full block"></canvas>
+                    
+                    <!-- Empty/Static explanation watermark -->
+                    <div class="absolute bottom-3 right-3 text-[10px] text-slate-600 font-mono select-none">
+                        Labels are layout-separated to avoid overlap
+                    </div>
+                </div>
+            </div>
+
+        </section>
+    </main>
+
+    <!-- Sound-less notifications / warnings -->
+    <script>
+        // Global variables & parameters
+        const g = 9.81; // gravitational acceleration (m/s^2)
+        const scale = 40; // pixel per meter
+
+        // Physics State Variables
+        let m1 = 6.0;
+        let m2 = 4.0;
+        let mu_s = 0.40;
+        let mu_k = 0.15;
+        let mu_k_inter = 0.32; // kinetic friction coefficient between blocks
+        let F_applied = 45.0;
+
+        // Dynamic State (Positions, Velocities, Accelerations)
+        let x1 = 200; 
+        let v1 = 0;
+        let a1 = 0;
+
+        let x2 = 200; 
+        let v2 = 0;
+        let a2 = 0;
+
+        // Block Dimensions
+        const w1 = 180;
+        const h1 = 70;
+        const w2 = 110;
+        const h2 = 50;
+
+        // State control
+        let isPlaying = true;
+        let isSlipping = false;
+        let isFallen = false;
+        let activeSystem = 'composite'; 
+        let autoRamping = false;
+        let lastTime = 0;
+        let particleSystem = [];
+
+        // Camera scroll
+        let scrollX = 0;
+
+        // References to UI Elements
+        const canvas = document.getElementById('simCanvas');
+        const ctx = canvas.getContext('2d');
+        const fbdCanvas = document.getElementById('fbdCanvas');
+        const fbdCtx = fbdCanvas.getContext('2d');
+
+        // Render mathematical formulas in element using KaTeX auto-render helper
+        function renderMath() {
+            if (window.renderMathInElement) {
+                renderMathInElement(document.getElementById('math-analysis'), {
+                    delimiters: [
+                        {left: '$$', right: '$$', display: true},
+                        {left: '$', right: '$', display: false}
+                    ],
+                    throwOnError: false
+                });
+            }
+        }
+
+        // Set canvas sizing dynamically
+        function resizeCanvases() {
+            const containerWidth = canvas.parentElement.clientWidth;
+            const containerHeight = canvas.parentElement.clientHeight;
+            canvas.width = containerWidth * window.devicePixelRatio;
+            canvas.height = containerHeight * window.devicePixelRatio;
+            canvas.style.width = containerWidth + 'px';
+            canvas.style.height = containerHeight + 'px';
+            ctx.scale(window.devicePixelRatio, window.devicePixelRatio);
+
+            const fbdWidth = fbdCanvas.parentElement.clientWidth;
+            const fbdHeight = fbdCanvas.parentElement.clientHeight;
+            fbdCanvas.width = fbdWidth * window.devicePixelRatio;
+            fbdCanvas.height = fbdHeight * window.devicePixelRatio;
+            fbdCanvas.style.width = fbdWidth + 'px';
+            fbdCanvas.style.height = fbdHeight + 'px';
+            fbdCtx.scale(window.devicePixelRatio, window.devicePixelRatio);
+        }
+
+        window.addEventListener('resize', () => {
+            resizeCanvases();
+            updateMathDetails();
+            drawFbd();
+        });
+        
+        window.addEventListener('load', () => {
+            resizeCanvases();
+            resetSimulation();
+            
+            // Run KaTeX over the entire document body once on load to convert slider descriptions & variables
+            if (window.renderMathInElement) {
+                renderMathInElement(document.body, {
+                    delimiters: [
+                        {left: '$$', right: '$$', display: true},
+                        {left: '$', right: '$', display: false}
+                    ],
+                    throwOnError: false
+                });
+            }
+            
+            requestAnimationFrame(physicsLoop);
+        });
+
+        // Change system selection
+        function setSystemBoundary(system) {
+            activeSystem = system;
+            
+            // Manage Tab Styles
+            const tabs = ['composite', 'block1', 'block2'];
+            tabs.forEach(t => {
+                const btn = document.getElementById(`tab-${t}`);
+                if (t === system) {
+                    btn.className = "py-3 px-2 rounded-xl text-xs font-semibold transition-all duration-300 border bg-indigo-600 border-indigo-500 text-white shadow-lg shadow-indigo-600/10 hover:bg-indigo-500 flex flex-col items-center gap-1";
+                } else {
+                    btn.className = "py-3 px-2 rounded-xl text-xs font-semibold transition-all duration-300 border border-slate-800 bg-slate-950 text-slate-400 hover:text-slate-200 hover:border-slate-700 flex flex-col items-center gap-1";
+                }
+            });
+
+            // Update label tags in UI
+            const labels = {
+                'composite': 'System: Composite (1+2)',
+                'block1': 'System: Bottom Block (1)',
+                'block2': 'System: Top Block (2)'
+            };
+            document.getElementById('fbd-target-tag').innerText = labels[system];
+
+            // Render math breakdown and FBD immediately
+            updateMathDetails();
+            drawFbd();
+        }
+
+        // Read Sliders & Sync Display
+        function updateParameters() {
+            F_applied = parseFloat(document.getElementById('slider-F').value);
+            m1 = parseFloat(document.getElementById('slider-m1').value);
+            m2 = parseFloat(document.getElementById('slider-m2').value);
+            mu_s = parseFloat(document.getElementById('slider-mus').value);
+            mu_k = parseFloat(document.getElementById('slider-muk').value);
+            mu_k_inter = mu_s * 0.8; 
+
+            document.getElementById('val-F').innerText = F_applied.toFixed(1) + ' N';
+            document.getElementById('val-m1').innerText = m1.toFixed(1) + ' kg';
+            document.getElementById('val-m2').innerText = m2.toFixed(1) + ' kg';
+            document.getElementById('val-mus').innerText = mu_s.toFixed(2);
+            document.getElementById('val-muk').innerText = mu_k.toFixed(2);
+
+            updateMathDetails();
+            drawFbd();
+        }
+
+        // Reset simulation position state variables
+        function resetSimulation() {
+            x1 = 200;
+            v1 = 0;
+            a1 = 0;
+            x2 = 200;
+            v2 = 0;
+            a2 = 0;
+            isFallen = false;
+            isSlipping = false;
+            autoRamping = false;
+            particleSystem = [];
+            
+            // Sync slider UI back if ramp was running
+            const btn = document.getElementById('btn-ramp');
+            btn.className = "w-full sm:w-auto px-4 py-2 bg-gradient-to-r from-purple-600 to-indigo-600 hover:from-purple-500 hover:to-indigo-500 text-xs font-semibold rounded-lg text-white shadow-lg shadow-indigo-600/10 transition flex items-center justify-center gap-1.5";
+            btn.innerHTML = `
+                <svg id="icon-ramp-play" class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z" /></svg>
+                <span>Start Auto-Ramp Force</span>
+            `;
+
+            updateMathDetails();
+            drawFbd();
+        }
+
+        // Toggle Play / Pause
+        function togglePlayPause() {
+            isPlaying = !isPlaying;
+            document.getElementById('txt-play').innerText = isPlaying ? "Pause" : "Play";
+            document.getElementById('icon-play').innerHTML = isPlaying 
+                ? '<svg class="w-4 h-4" fill="currentColor" viewBox="0 0 24 24"><path d="M6 19h4V5H6v14zm8-14v14h4V5h-4z"/></svg>'
+                : '<path d="M8 5v14l11-7z" />';
+        }
+
+        // Auto force ramping triggers
+        function toggleForceRamp() {
+            autoRamping = !autoRamping;
+            const btn = document.getElementById('btn-ramp');
+            if (autoRamping) {
+                btn.className = "w-full sm:w-auto px-4 py-2 bg-rose-600 hover:bg-rose-500 text-xs font-semibold rounded-lg text-white shadow-lg shadow-rose-600/10 transition flex items-center justify-center gap-1.5";
+                btn.innerHTML = `
+                    <span class="w-2 h-2 rounded-full bg-white animate-ping mr-1"></span>
+                    <span>Stop Auto-Ramp</span>
+                `;
+                // Set play as true automatically
+                if(!isPlaying) togglePlayPause();
+            } else {
+                btn.className = "w-full sm:w-auto px-4 py-2 bg-gradient-to-r from-purple-600 to-indigo-600 hover:from-purple-500 hover:to-indigo-500 text-xs font-semibold rounded-lg text-white shadow-lg shadow-indigo-600/10 transition flex items-center justify-center gap-1.5";
+                btn.innerHTML = `
+                    <svg id="icon-ramp-play" class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z" /></svg>
+                    <span>Start Auto-Ramp Force</span>
+                `;
+            }
+        }
+
+        // Friction smoke and sliding dynamic particles
+        function addSlidingParticles(x, y, count) {
+            for (let i = 0; i < count; i++) {
+                particleSystem.push({
+                    x: x,
+                    y: y,
+                    vx: (Math.random() - 1.2) * 2,
+                    vy: (Math.random() - 0.5) * 1,
+                    alpha: 1,
+                    life: Math.random() * 0.4 + 0.3
+                });
+            }
+        }
+
+        function updateAndDrawParticles(ctx_target) {
+            ctx_target.save();
+            for (let i = particleSystem.length - 1; i >= 0; i--) {
+                const p = particleSystem[i];
+                p.x += p.vx;
+                p.y += p.vy;
+                p.alpha -= 0.03;
+                p.life -= 0.016;
+
+                ctx_target.fillStyle = `rgba(148, 163, 184, ${p.alpha})`;
+                ctx_target.beginPath();
+                ctx_target.arc(p.x, p.y, Math.random() * 2 + 1, 0, Math.PI * 2);
+                ctx_target.fill();
+
+                if (p.alpha <= 0 || p.life <= 0) {
+                    particleSystem.splice(i, 1);
+                }
+            }
+            ctx_target.restore();
+        }
+
+        // Mathematical evaluation engine for sync variables
+        function getPhysicsVariables() {
+            const F_crit = mu_k * (m1 + m2) * g; // External Force required to overcome ground friction
+            const F_max = (m1 + m2) * (mu_s + mu_k) * g; // Max force on block 1 before block 2 starts slipping
+
+            // Inter-block friction parameters
+            const N12 = m2 * g;
+            const f_s_max = mu_s * N12;
+            const f_k2 = mu_k_inter * N12;
+
+            return {
+                F_crit: F_crit,
+                F_max: F_max,
+                N12: N12,
+                f_s_max: f_s_max,
+                f_k2: f_k2
+            };
+        }
+
+        // Render dynamic text block with KaTeX compiler
+        function updateMathDetails() {
+            const mathContainer = document.getElementById('math-analysis');
+            const vars = getPhysicsVariables();
+
+            // Setup custom HTML template depending on the current analytical target system
+            let systemSpecificHtml = '';
+
+            if (activeSystem === 'composite') {
+                systemSpecificHtml = `
+                    <div class="bg-indigo-950/40 p-4 rounded-xl border border-indigo-900/30 flex-1 flex flex-col gap-3">
+                        <div class="font-bold text-slate-200 text-xs uppercase tracking-wider">Dynamic Equation Block for System ($1 + 2$)</div>
+                        <p class="text-xs text-slate-400">
+                            When we draw our system boundary around the <span class="text-indigo-400 font-semibold">entire composite system</span>, 
+                            the static friction force $f_s$ acting at the interface is strictly an <strong>internal force</strong>. 
+                            According to Newton's Third Law, these action-reaction pairs cancel perfectly:
+                        </p>
+                        
+                        <div class="bg-slate-950/80 p-3 rounded-lg border border-slate-800 font-mono text-xs flex flex-col gap-2">
+                            <div class="text-slate-400 border-b border-slate-900 pb-1.5">Newton's Second Law Formulation:</div>
+                            <div class="flex flex-col gap-2 my-1">
+                                <div class="text-center font-semibold text-pink-400">
+                                    $$F_{\\text{net}} = (m_1 + m_2) a$$
+                                </div>
+                                <div class="text-center font-semibold text-rose-400">
+                                    $$F - f_{\\text{gnd}} = (m_1 + m_2) a$$
+                                </div>
+                            </div>
+                            <div class="mt-2 text-[11px] text-slate-300 border-t border-slate-800 pt-2">
+                                Substituting dynamic variables:<br>
+                                $$ ${F_applied.toFixed(1)}\\text{ N} - ${vars.F_crit.toFixed(1)}\\text{ N} = (${m1.toFixed(1)}\\text{ kg} + ${m2.toFixed(1)}\\text{ kg}) \\cdot a $$
+                            </div>
+                        </div>
+
+                        <div class="p-3 bg-red-950/20 rounded-xl border border-red-500/10 text-xs flex flex-col gap-1.5 text-red-300">
+                            <div class="font-semibold text-red-200 flex items-center gap-1.5">
+                                <svg class="w-4 h-4 text-red-400" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M8.257 3.099c.765-1.36 2.722-1.36 3.486 0l5.58 9.92c.75 1.334-.213 2.98-1.742 2.98H4.42c-1.53 0-2.493-1.646-1.743-2.98l5.58-9.92zM11 13a1 1 0 11-2 0 1 1 0 012 0zm-1-8a1 1 0 00-1 1v3a1 1 0 002 0V6a1 1 0 00-1-1z" clip-rule="evenodd" /></svg>
+                                Solver Boundary Limitation:
+                            </div>
+                            <p class="text-[11px] leading-relaxed text-slate-400">
+                                Since the static friction boundary condition $f_s \\le \\mu_s N_{12}$ does not appear in this expression, you <strong>cannot</strong> solve for the maximum force $F_{\\text{max}}$ that causes slipping here.
+                            </p>
+                        </div>
+                    </div>
+                `;
+            } else if (activeSystem === 'block2') {
+                systemSpecificHtml = `
+                    <div class="bg-indigo-950/40 p-4 rounded-xl border border-indigo-900/30 flex-1 flex flex-col gap-3">
+                        <div class="font-bold text-slate-200 text-xs uppercase tracking-wider">Dynamic Equation Block for System 2 (Top Block)</div>
+                        <p class="text-xs text-slate-400">
+                            Isolating the <span class="text-emerald-400 font-semibold">top block ($m_2$)</span> reveals that the interface friction 
+                            force $f_s$ is the <strong>sole driving force</strong> accelerating it forward.
+                        </p>
+                        
+                        <div class="bg-slate-950/80 p-3 rounded-lg border border-slate-800 font-mono text-xs flex flex-col gap-2">
+                            <div class="text-slate-400 border-b border-slate-900 pb-1.5">Acceleration Threshold Formulation:</div>
+                            <div class="flex flex-col gap-2 my-1">
+                                <div class="text-center font-semibold text-emerald-400">
+                                    $$f_s = m_2 \\cdot a$$
+                                </div>
+                                <div class="text-center font-semibold text-pink-400">
+                                    $$f_{s,\\text{max}} = \\mu_s \\cdot m_2 \\cdot g$$
+                                </div>
+                            </div>
+                            <div class="mt-2 text-[11px] text-slate-300 border-t border-slate-800 pt-2">
+                                Dynamic interface friction limit calculated:<br>
+                                $$f_{s,\\text{max}} = ${mu_s.toFixed(2)} \\times ${m2.toFixed(1)}\\text{ kg} \\times 9.81\\text{ m/s}^2 = ${vars.f_s_max.toFixed(2)}\\text{ N}$$
+                            </div>
+                        </div>
+
+                        <div class="p-3 bg-emerald-950/20 rounded-xl border border-emerald-500/10 text-xs flex flex-col gap-1.5 text-emerald-300">
+                            <div class="font-semibold text-emerald-200 flex items-center gap-1.5">
+                                <svg class="w-4 h-4 text-emerald-400" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd" /></svg>
+                                Proving critical acceleration:
+                            </div>
+                            <p class="text-[11px] leading-relaxed text-slate-400">
+                                Dividing by mass, we obtain the absolute maximum acceleration before slip:
+                                $$a_{\\text{max}} = \\mu_s \\cdot g = ${(mu_s * g).toFixed(2)}\\text{ m/s}^2$$
+                                If bottom block acceleration exceeds this, slippage occurs!
+                            </p>
+                        </div>
+                    </div>
+                `;
+            } else if (activeSystem === 'block1') {
+                systemSpecificHtml = `
+                    <div class="bg-indigo-950/40 p-4 rounded-xl border border-indigo-900/30 flex-1 flex flex-col gap-3">
+                        <div class="font-bold text-slate-200 text-xs uppercase tracking-wider">Dynamic Equation Block for System 1 (Bottom Block)</div>
+                        <p class="text-xs text-slate-400">
+                            Isolating the <span class="text-sky-400 font-semibold">bottom block ($m_1$)</span> maps out opposing dynamic vector forces: 
+                            applied push $F$, ground resistance $f_{\\text{gnd}}$, and the opposing friction reaction force $-f_s$ from the top block dragging it backward.
+                        </p>
+                        
+                        <div class="bg-slate-950/80 p-3 rounded-lg border border-slate-800 font-mono text-xs flex flex-col gap-2">
+                            <div class="text-slate-400 border-b border-slate-900 pb-1.5">Dynamic Equation of Motion:</div>
+                            <div class="text-center font-semibold text-sky-400 my-2">
+                                $$F - f_{\\text{gnd}} - f_s = m_1 \\cdot a$$
+                            </div>
+                            <div class="mt-2 text-[11px] text-slate-300 border-t border-slate-800 pt-2">
+                                Current variables substituted:<br>
+                                $$ ${F_applied.toFixed(1)}\\text{ N} - ${vars.F_crit.toFixed(1)}\\text{ N} - f_s = ${m1.toFixed(1)}\\text{ kg} \\cdot a $$
+                            </div>
+                        </div>
+
+                        <div class="p-3 bg-indigo-950/50 rounded-xl border border-indigo-500/10 text-xs flex flex-col gap-1.5 text-indigo-300">
+                            <div class="font-semibold text-indigo-200 flex items-center gap-1.5">
+                                <svg class="w-4 h-4 text-indigo-400" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7-4a1 1 0 11-2 0 1 1 0 012 0zM9 9a1 1 0 000 2v3a1 1 0 001 1h1a1 1 0 100-2v-3a1 1 0 00-1-1H9z" clip-rule="evenodd" /></svg>
+                                Proving maximum slipping threshold:
+                            </div>
+                            <p class="text-[11px] leading-relaxed text-slate-400">
+                                Setting $a = a_{\\text{max}} = \\mu_s \\cdot g$ and $f_s = f_{s,\\text{max}}$ yields the analytical slipping threshold limit:
+                                $$F_{\\text{max}} = (m_1 + m_2)(\\mu_s + \\mu_k)g = ${vars.F_max.toFixed(2)}\\text{ N}$$
+                            </p>
+                        </div>
+                    </div>
+                `;
+            }
+
+            mathContainer.innerHTML = `
+                <!-- Calculated thresholds dashboard always visible inside math tab -->
+                <div class="grid grid-cols-2 gap-3 mb-2">
+                    <div class="bg-slate-950 p-2.5 rounded-lg border border-slate-800 flex flex-col justify-center">
+                        <span class="text-[10px] text-slate-500 uppercase font-semibold">Min Force to Move System ($F_{\\text{crit}}$)</span>
+                        <span class="math-font text-purple-400 font-bold text-sm">${vars.F_crit.toFixed(2)} N</span>
+                    </div>
+                    <div class="bg-slate-950 p-2.5 rounded-lg border border-slate-800 flex flex-col justify-center">
+                        <span class="text-[10px] text-slate-500 uppercase font-semibold">Max Slipping Threshold ($F_{\\text{max}}$)</span>
+                        <span class="math-font text-rose-400 font-bold text-sm">${vars.F_max.toFixed(2)} N</span>
+                    </div>
+                </div>
+                ${systemSpecificHtml}
+            `;
+
+            // Compile with KaTeX immediately
+            renderMath();
+        }
+
+        // Computational Dynamic Engine Loop
+        function physicsLoop(timestamp) {
+            if (!lastTime) lastTime = timestamp;
+            let dt = (timestamp - lastTime) / 1000;
+            lastTime = timestamp;
+
+            if (dt > 0.1) dt = 0.16;
+
+            if (isPlaying) {
+                const vars = getPhysicsVariables();
+
+                // Dynamic force ramping helper
+                if (autoRamping) {
+                    F_applied += 0.15; 
+                    if (F_applied > 120) {
+                        F_applied = 0; 
+                    }
+                    document.getElementById('slider-F').value = F_applied.toFixed(1);
+                    document.getElementById('val-F').innerText = F_applied.toFixed(1) + ' N';
+                    updateMathDetails();
+                }
+
+                const N_ground_composite = (m1 + m2) * g;
+                const f_k_ground = mu_k * N_ground_composite;
+
+                let isSystemStationary = false;
+                
+                if (v1 === 0 && F_applied <= f_k_ground) {
+                    isSystemStationary = true;
+                }
+
+                if (isSystemStationary) {
+                    a1 = 0;
+                    a2 = 0;
+                    v1 = 0;
+                    v2 = 0;
+                    isSlipping = false;
+                } else {
+                    if (!isFallen) {
+                        const a_unified = (F_applied - f_k_ground) / (m1 + m2);
+                        const f_s_required = m2 * a_unified;
+
+                        if (Math.abs(f_s_required) <= vars.f_s_max && a_unified >= 0) {
+                            isSlipping = false;
+                            a1 = a_unified;
+                            a2 = a_unified;
+                        } else {
+                            isSlipping = true;
+                            a2 = vars.f_k2 / m2; 
+
+                            const N_g1 = (m1 + m2) * g; 
+                            const f_g1 = mu_k * N_g1;
+                            a1 = (F_applied - f_g1 - vars.f_k2) / m1;
+                            
+                            if (Math.random() < 0.3) {
+                                const slipX = x2 + (Math.random() * w2) - w2/2;
+                                const slipY = canvas.height / window.devicePixelRatio - 110;
+                                addSlidingParticles(slipX, slipY, 2);
+                            }
+                        }
+
+                        v1 += a1 * dt;
+                        if (v1 < 0) { v1 = 0; a1 = 0; }
+                        x1 += v1 * dt * scale;
+
+                        v2 += a2 * dt;
+                        if (v2 < 0) { v2 = 0; a2 = 0; }
+                        x2 += v2 * dt * scale;
+
+                        const relDist = x1 - x2;
+                        if (Math.abs(relDist) > w1/2) {
+                            isFallen = true;
+                            isSlipping = false;
+                        }
+
+                    } else {
+                        isSlipping = false;
+                        
+                        const N_ground1 = m1 * g;
+                        const f_ground1 = mu_k * N_ground1;
+                        
+                        a1 = (F_applied - f_ground1) / m1;
+                        v1 += a1 * dt;
+                        if (v1 < 0) { v1 = 0; a1 = 0; }
+                        x1 += v1 * dt * scale;
+
+                        if (v2 > 0) {
+                            a2 = -mu_k * g;
+                            v2 += a2 * dt;
+                            if (v2 < 0) { v2 = 0; a2 = 0; }
+                        } else {
+                            a2 = 0;
+                            v2 = 0;
+                        }
+                        x2 += v2 * dt * scale;
+
+                        if (v2 > 0 && Math.random() < 0.25) {
+                            addSlidingParticles(x2 + (Math.random()*w2 - w2/2), canvas.height / window.devicePixelRatio - 50, 1);
+                        }
+                    }
+                }
+
+                scrollX = x1 - (canvas.width / window.devicePixelRatio) * 0.4;
+            }
+
+            drawSimulation();
+            drawFbd();
+            updateTelemetry();
+
+            requestAnimationFrame(physicsLoop);
+        }
+
+        // Update simulation telemetry indicators
+        function updateTelemetry() {
+            document.getElementById('telemetry-v1').innerText = (v1).toFixed(2) + ' m/s';
+            document.getElementById('telemetry-v2').innerText = (v2).toFixed(2) + ' m/s';
+
+            const slipWarning = document.getElementById('slip-warning');
+            const fallWarning = document.getElementById('fall-warning');
+            
+            slipWarning.style.opacity = isSlipping ? '1' : '0';
+            fallWarning.style.opacity = isFallen ? '1' : '0';
+
+            const statusBadge = document.getElementById('sim-status-badge');
+            if (v1 === 0 && v2 === 0) {
+                statusBadge.className = "px-3 py-1 rounded-full text-xs font-bold math-font border bg-slate-800 text-slate-400 border-slate-700";
+                statusBadge.innerText = "STATIC (STATIONARY)";
+            } else if (isFallen) {
+                statusBadge.className = "px-3 py-1 rounded-full text-xs font-bold math-font border bg-amber-500/10 text-amber-400 border-amber-500/20";
+                statusBadge.innerText = "BLOCKS SEPARATED";
+            } else if (isSlipping) {
+                statusBadge.className = "px-3 py-1 rounded-full text-xs font-bold math-font border bg-red-500/10 text-red-400 border-red-500/20";
+                statusBadge.innerText = "DYNAMIC SLIPPING STATE";
+            } else {
+                statusBadge.className = "px-3 py-1 rounded-full text-xs font-bold math-font border bg-emerald-500/10 text-emerald-400 border-emerald-500/20";
+                statusBadge.innerText = "COHESIVE MOTION (UNIFIED)";
+            }
+        }
+
+        // Drawing main dynamic physics canvas
+        function drawSimulation() {
+            const ctx_w = canvas.width / window.devicePixelRatio;
+            const ctx_h = canvas.height / window.devicePixelRatio;
+            ctx.clearRect(0, 0, ctx_w, ctx_h);
+
+            const groundY = ctx_h - 60;
+
+            // Draw moving grid background (Ground Scrolling effect)
+            ctx.save();
+            ctx.strokeStyle = '#1e293b';
+            ctx.lineWidth = 1.5;
+            const gridSpacing = 40;
+            const offset = -scrollX % gridSpacing;
+            for (let x = offset; x < ctx_w; x += gridSpacing) {
+                ctx.beginPath();
+                ctx.moveTo(x, 0);
+                ctx.lineTo(x, groundY);
+                ctx.stroke();
+            }
+            ctx.restore();
+
+            // Draw ground surface line
+            ctx.save();
+            ctx.strokeStyle = '#475569';
+            ctx.lineWidth = 4;
+            ctx.beginPath();
+            ctx.moveTo(0, groundY);
+            ctx.lineTo(ctx_w, groundY);
+            ctx.stroke();
+
+            ctx.fillStyle = '#0f172a';
+            ctx.fillRect(0, groundY + 2, ctx_w, ctx_h - groundY);
+            ctx.restore();
+
+            updateAndDrawParticles(ctx);
+
+            const b1_left = x1 - w1/2 - scrollX;
+            const b1_top = groundY - h1;
+
+            let b2_left, b2_top;
+            if (!isFallen) {
+                b2_left = x2 - w2/2 - scrollX;
+                b2_top = b1_top - h2;
+            } else {
+                b2_left = x2 - w2/2 - scrollX;
+                b2_top = groundY - h2; 
+            }
+
+            drawSystemBoundaryOutline(ctx, b1_left, b1_top, b2_left, b2_top);
+
+            // Draw Block 1 (Bottom Block)
+            ctx.save();
+            ctx.shadowColor = 'rgba(0, 0, 0, 0.4)';
+            ctx.shadowBlur = 10;
+            ctx.shadowOffsetY = 4;
+            ctx.fillStyle = '#1e293b';
+            ctx.strokeStyle = '#38bdf8'; 
+            ctx.lineWidth = 3.5;
+            roundRect(ctx, b1_left, b1_top, w1, h1, 8, true, true);
+            
+            ctx.shadowColor = 'transparent';
+            ctx.fillStyle = '#f8fafc';
+            ctx.font = '600 13px Inter';
+            ctx.textAlign = 'center';
+            // Offset downward inside the block to preserve a clear margin near the interface
+            ctx.fillText(`m₁ = ${m1.toFixed(1)} kg`, b1_left + w1/2, b1_top + h1/2 + 13);
+            ctx.restore();
+
+            // Draw Block 2 (Top Block)
+            ctx.save();
+            ctx.shadowColor = 'rgba(0, 0, 0, 0.3)';
+            ctx.shadowBlur = 8;
+            ctx.shadowOffsetY = 3;
+            ctx.fillStyle = '#0f172a';
+            ctx.strokeStyle = '#10b981'; 
+            ctx.lineWidth = 3.5;
+            roundRect(ctx, b2_left, b2_top, w2, h2, 6, true, true);
+
+            ctx.shadowColor = 'transparent';
+            ctx.fillStyle = '#f8fafc';
+            ctx.font = '600 12px Inter';
+            ctx.textAlign = 'center';
+            // Offset upward inside the block to preserve a clear margin near the interface
+            ctx.fillText(`m₂ = ${m2.toFixed(1)} kg`, b2_left + w2/2, b2_top + h2/2 - 5);
+            ctx.restore();
+
+            drawForceVectors(ctx, b1_left, b1_top, b2_left, b2_top, groundY);
+        }
+
+        // Layout-aware force labeling function to avoid label superpositioning/collisions
+        function drawForceVectorArrow(ctx_target, fromX, fromY, toX, toY, color, text, labelPos = 'above-mid', boldText = false) {
+            const headlen = 10; 
+            const dx = toX - fromX;
+            const dy = toY - fromY;
+            const angle = Math.atan2(dy, dx);
+            
+            ctx_target.save();
+            ctx_target.strokeStyle = color;
+            ctx_target.fillStyle = color;
+            ctx_target.lineWidth = 3.0;
+
+            // Draw line arrow
+            ctx_target.beginPath();
+            ctx_target.moveTo(fromX, fromY);
+            ctx_target.lineTo(toX, toY);
+            ctx_target.stroke();
+
+            // Draw pointer tip
+            ctx_target.beginPath();
+            ctx_target.moveTo(toX, toY);
+            ctx_target.lineTo(toX - headlen * Math.cos(angle - Math.PI / 6), toY - headlen * Math.sin(angle - Math.PI / 6));
+            ctx_target.lineTo(toX - headlen * Math.cos(angle + Math.PI / 6), toY - headlen * Math.sin(angle + Math.PI / 6));
+            ctx_target.closePath();
+            ctx_target.fill();
+
+            // Label text drawing configuration with separate margin offsets
+            ctx_target.fillStyle = '#f8fafc';
+            ctx_target.font = boldText ? '700 11.5px JetBrains Mono, monospace' : '500 11px JetBrains Mono, monospace';
+            ctx_target.shadowColor = '#000000';
+            ctx_target.shadowBlur = 4;
+            
+            const midX = fromX + dx * 0.5;
+            const midY = fromY + dy * 0.5;
+
+            let textX = midX;
+            let textY = midY;
+            let align = 'center';
+
+            // Precise offset mapping based on positioning directive parameter
+            switch (labelPos) {
+                case 'above-mid':
+                    textX = midX;
+                    textY = midY - 12;
+                    align = 'center';
+                    break;
+                case 'below-mid':
+                    textX = midX;
+                    textY = midY + 18;
+                    align = 'center';
+                    break;
+                case 'top-tip':
+                    textX = toX;
+                    textY = toY - 12;
+                    align = 'center';
+                    break;
+                case 'bottom-tip':
+                    textX = toX;
+                    textY = toY + 18;
+                    align = 'center';
+                    break;
+                case 'left-tip':
+                    textX = toX - 12;
+                    textY = toY + 4;
+                    align = 'right';
+                    break;
+                case 'right-tip':
+                    textX = toX + 12;
+                    textY = toY + 4;
+                    align = 'left';
+                    break;
+            }
+
+            ctx_target.textAlign = align;
+            ctx_target.fillText(text, textX, textY);
+            ctx_target.restore();
+        }
+
+        // Draws spaced forces with distinct physical separation offsets
+        function drawForceVectors(ctx_target, b1_l, b1_t, b2_l, b2_t, ground_y) {
+            // Pushing Force Vector (Applied to block 1 left side)
+            if (F_applied > 0) {
+                const fArrowLength = Math.min(30 + F_applied * 1.0, 150); 
+                const startX = b1_l - fArrowLength;
+                const startY = b1_t + h1/2;
+                drawForceVectorArrow(ctx_target, startX, startY, b1_l - 4, startY, '#f43f5e', `F = ${F_applied.toFixed(1)} N`, 'above-mid', true);
+            }
+
+            const vars = getPhysicsVariables();
+
+            // Ground Opposing Friction Arrow vector (Drawn below ground coordinate line)
+            if (v1 > 0 || F_applied > 0) {
+                const groundFrictionVal = (v1 > 0) ? (mu_k * (m1 + (isFallen ? 0 : m2)) * g) : Math.min(F_applied, mu_k * (m1 + m2) * g);
+                if (groundFrictionVal > 0.5) {
+                    const fGndLen = Math.min(30 + groundFrictionVal * 1.5, 120);
+                    const frictionStartX = b1_l + w1/2;
+                    const frictionStartY = ground_y + 12; // offset vertically below contact plane
+                    drawForceVectorArrow(ctx_target, frictionStartX, frictionStartY, frictionStartX - fGndLen, frictionStartY, '#a855f7', `f_gnd = ${groundFrictionVal.toFixed(1)} N`, 'below-mid');
+                }
+            }
+
+            // Interface Friction Force arrows vector overlay
+            if (!isFallen && (v1 > 0 || isSlipping)) {
+                let f_inter;
+                if (isSlipping) {
+                    f_inter = vars.f_k2; 
+                } else {
+                    const unified_a = (v1 === 0) ? 0 : (F_applied - (mu_k * (m1+m2)*g)) / (m1+m2);
+                    f_inter = m2 * Math.max(0, unified_a);
+                }
+
+                if (f_inter > 0.5) {
+                    const fInterLen = Math.min(35 + f_inter * 1.5, 110);
+                    
+                    // On top Block (pointing forward). Offset left and drawn just above contact line to avoid overlap
+                    const b2_center_x = b2_l + w2/2;
+                    const b2_base_y = b1_t - 6; 
+                    drawForceVectorArrow(ctx_target, b2_center_x - 30, b2_base_y, b2_center_x - 30 + fInterLen, b2_base_y, '#10b981', `f_s = ${f_inter.toFixed(1)} N`, 'above-mid');
+
+                    // On bottom Block (reaction vector pointing backward). Offset right and drawn just below contact line to avoid overlap
+                    const b1_center_x = b1_l + w1/2;
+                    const b1_top_y = b1_t + 8; 
+                    drawForceVectorArrow(ctx_target, b1_center_x + 30, b1_top_y, b1_center_x + 30 - fInterLen, b1_top_y, '#38bdf8', `-f_s = ${f_inter.toFixed(1)} N`, 'below-mid');
+                }
+            }
+        }
+
+        // Highlight active analytical system boundary
+        function drawSystemBoundaryOutline(ctx_target, b1_l, b1_t, b2_l, b2_t) {
+            ctx_target.save();
+            ctx_target.strokeStyle = '#6366f1';
+            ctx_target.lineWidth = 2.5;
+            ctx_target.setLineDash([6, 4]);
+            
+            ctx_target.shadowColor = 'rgba(99, 102, 241, 0.4)';
+            ctx_target.shadowBlur = 10;
+
+            const padding = 12;
+
+            if (activeSystem === 'composite') {
+                if (!isFallen) {
+                    const minLeft = Math.min(b1_l, b2_l) - padding;
+                    const maxRight = Math.max(b1_l + w1, b2_l + w2) + padding;
+                    const minTop = b2_t - padding;
+                    const maxBottom = b1_t + h1 + padding;
+                    roundRect(ctx_target, minLeft, minTop, maxRight - minLeft, maxBottom - minTop, 12, false, true);
+                } else {
+                    roundRect(ctx_target, b1_l - padding, b1_t - padding, w1 + padding*2, h1 + padding*2, 10, false, true);
+                    roundRect(ctx_target, b2_l - padding, b2_t - padding, w2 + padding*2, h2 + padding*2, 10, false, true);
+                }
+            } else if (activeSystem === 'block1') {
+                roundRect(ctx_target, b1_l - padding, b1_t - padding, w1 + padding*2, h1 + padding*2, 10, false, true);
+            } else if (activeSystem === 'block2') {
+                roundRect(ctx_target, b2_l - padding, b2_t - padding, w2 + padding*2, h2 + padding*2, 10, false, true);
+            }
+
+            ctx_target.restore();
+        }
+
+        // Independent FBD rendering with explicit vector directions and safe label positioning
+        function drawFbd() {
+            const fbd_w = fbdCanvas.width / window.devicePixelRatio;
+            const fbd_h = fbdCanvas.height / window.devicePixelRatio;
+            fbdCtx.clearRect(0, 0, fbd_w, fbd_h);
+
+            const cx = fbd_w / 2;
+            const cy = fbd_h / 2;
+
+            const vars = getPhysicsVariables();
+
+            let f_ground_val = 0;
+            let f_inter_val = 0;
+            
+            if (F_applied > 0) {
+                f_ground_val = (v1 > 0) ? (mu_k * (m1 + (isFallen ? 0 : m2)) * g) : Math.min(F_applied, mu_k * (m1 + m2) * g);
+                if (isSlipping) {
+                    f_inter_val = vars.f_k2;
+                } else {
+                    const unified_a = (v1 === 0) ? 0 : (F_applied - (mu_k * (m1+m2)*g)) / (m1+m2);
+                    f_inter_val = m2 * Math.max(0, unified_a);
+                }
+            }
+
+            fbdCtx.save();
+            fbdCtx.textAlign = 'center';
+
+            if (activeSystem === 'composite') {
+                // System 1 + 2 Composite Blocks diagram
+                const scaleFbd = 1.0;
+                const draw_w1 = 200 * scaleFbd;
+                const draw_h1 = 60 * scaleFbd;
+                const draw_w2 = 130 * scaleFbd;
+                const draw_h2 = 45 * scaleFbd;
+
+                const center_b1_x = cx - draw_w1/2;
+                const center_b1_y = cy - draw_h1/2 + 20;
+                const center_b2_x = cx - draw_w2/2;
+                const center_b2_y = center_b1_y - draw_h2;
+
+                // Wrap-around dashed boundary overlay
+                fbdCtx.save();
+                fbdCtx.strokeStyle = 'rgba(99, 102, 241, 0.4)';
+                fbdCtx.setLineDash([4, 3]);
+                fbdCtx.lineWidth = 1.5;
+                roundRect(fbdCtx, center_b1_x - 12, center_b2_y - 12, draw_w1 + 24, draw_h1 + draw_h2 + 24, 8, false, true);
+                fbdCtx.restore();
+
+                // Draw Blocks
+                fbdCtx.fillStyle = '#1e293b';
+                fbdCtx.strokeStyle = '#38bdf8';
+                fbdCtx.lineWidth = 2.5;
+                roundRect(fbdCtx, center_b1_x, center_b1_y, draw_w1, draw_h1, 6, true, true);
+
+                fbdCtx.fillStyle = '#0f172a';
+                fbdCtx.strokeStyle = '#10b981';
+                fbdCtx.lineWidth = 2.5;
+                roundRect(fbdCtx, center_b2_x, center_b2_y, draw_w2, draw_h2, 5, true, true);
+
+                fbdCtx.fillStyle = 'rgba(255, 255, 255, 0.5)';
+                fbdCtx.font = '10px JetBrains Mono';
+                fbdCtx.fillText('m₁', cx, center_b1_y + draw_h1/2 + 3);
+                fbdCtx.fillText('m₂', cx, center_b2_y + draw_h2/2 + 3);
+
+                // --- COMPOSITE SYSTEM VECTORS ---
+                // 1. External Push force
+                drawForceVectorArrow(fbdCtx, center_b1_x - 65, center_b1_y + draw_h1/2, center_b1_x - 3, center_b1_y + draw_h1/2, '#f43f5e', `F = ${F_applied.toFixed(1)} N`, 'above-mid', true);
+
+                // 2. Composite Total Gravity Weight (Offset right of center)
+                const totalMass = m1 + m2;
+                const totalW = totalMass * g;
+                drawForceVectorArrow(fbdCtx, cx + 30, center_b1_y + draw_h1/2, cx + 30, center_b1_y + draw_h1/2 + 65, '#e2e8f0', `(m₁+m₂)g = ${totalW.toFixed(1)} N`, 'bottom-tip');
+
+                // 3. Ground Normal force (Offset left of center to prevent vector overlaps)
+                drawForceVectorArrow(fbdCtx, cx - 30, center_b1_y + draw_h1, cx - 30, center_b1_y - 45, '#38bdf8', `N_g = ${totalW.toFixed(1)} N`, 'top-tip');
+
+                // 4. Ground opposing friction vector (Drawn at contact floor level pointing left)
+                if (f_ground_val > 0) {
+                    drawForceVectorArrow(fbdCtx, center_b1_x, center_b1_y + draw_h1, center_b1_x - 55, center_b1_y + draw_h1, '#a855f7', `f_gnd = ${f_ground_val.toFixed(1)} N`, 'left-tip');
+                }
+
+                // Internal Friction Cancel Indicator Note
+                fbdCtx.fillStyle = '#64748b';
+                fbdCtx.font = '500 10.5px Inter';
+                fbdCtx.fillText('Internal friction force vector pairs cancel out (Σf_internal = 0)', cx, cy + draw_h1 + 45);
+
+            } else if (activeSystem === 'block1') {
+                // Isolated Block 1 ONLY (Bottom Block)
+                const draw_w1 = 200;
+                const draw_h1 = 65;
+                const center_b1_x = cx - draw_w1/2;
+                const center_b1_y = cy - draw_h1/2 - 5;
+
+                // Bounding visual dashboard
+                fbdCtx.save();
+                fbdCtx.strokeStyle = 'rgba(99, 102, 241, 0.4)';
+                fbdCtx.setLineDash([4, 3]);
+                roundRect(fbdCtx, center_b1_x - 12, center_b1_y - 12, draw_w1 + 24, draw_h1 + 24, 8, false, true);
+                fbdCtx.restore();
+
+                // Block body
+                fbdCtx.fillStyle = '#1e293b';
+                fbdCtx.strokeStyle = '#38bdf8';
+                fbdCtx.lineWidth = 3;
+                roundRect(fbdCtx, center_b1_x, center_b1_y, draw_w1, draw_h1, 6, true, true);
+                
+                fbdCtx.fillStyle = '#ffffff';
+                fbdCtx.font = '600 12px Inter';
+                fbdCtx.fillText('m₁ (Bottom Block)', cx, center_b1_y + draw_h1/2 + 4);
+
+                // --- SYSTEM 1 FORCE ARROWS WITH SEPARATE LAYOUT DIRECTIVES ---
+                // 1. External Push force F
+                drawForceVectorArrow(fbdCtx, center_b1_x - 65, center_b1_y + draw_h1/2, center_b1_x - 3, center_b1_y + draw_h1/2, '#f43f5e', `F = ${F_applied.toFixed(1)} N`, 'above-mid', true);
+
+                // 2. Mass 1 gravity weight downward (Drawn straight down)
+                const w1_val = m1 * g;
+                drawForceVectorArrow(fbdCtx, cx, center_b1_y + draw_h1/2, cx, center_b1_y + draw_h1/2 + 65, '#e2e8f0', `m₁g = ${w1_val.toFixed(1)} N`, 'bottom-tip');
+
+                // 3. Ground normal upward. Offset left to avoid gravity overlap
+                const nGround_val = (m1 + m2) * g;
+                drawForceVectorArrow(fbdCtx, cx - 45, center_b1_y + draw_h1, cx - 45, center_b1_y - 35, '#38bdf8', `N_g = ${nGround_val.toFixed(1)} N`, 'top-tip');
+
+                // 4. Downward normal force from Block 2 pushing on Block 1. Offset right to avoid overlap
+                const n21_val = m2 * g;
+                drawForceVectorArrow(fbdCtx, cx + 45, center_b1_y, cx + 45, center_b1_y + 45, '#10b981', `N_21 = ${n21_val.toFixed(1)} N`, 'bottom-tip');
+
+                // 5. Ground opposing friction pointing left
+                if (f_ground_val > 0) {
+                    drawForceVectorArrow(fbdCtx, center_b1_x, center_b1_y + draw_h1, center_b1_x - 55, center_b1_y + draw_h1, '#a855f7', `f_gnd = ${f_ground_val.toFixed(1)} N`, 'left-tip');
+                }
+
+                // 6. Contact friction drag (f_12) pointing left from top block contact. Offset top
+                if (f_inter_val > 0) {
+                    drawForceVectorArrow(fbdCtx, cx, center_b1_y, cx - 60, center_b1_y, '#10b981', `f_12 = ${f_inter_val.toFixed(1)} N`, 'left-tip');
+                }
+
+            } else if (activeSystem === 'block2') {
+                // Isolated Block 2 ONLY (Top Block)
+                const draw_w2 = 170;
+                const draw_h2 = 70;
+                const center_b2_x = cx - draw_w2/2;
+                const center_b2_y = cy - draw_h2/2 - 10;
+
+                fbdCtx.save();
+                fbdCtx.strokeStyle = 'rgba(99, 102, 241, 0.4)';
+                fbdCtx.setLineDash([4, 3]);
+                roundRect(fbdCtx, center_b2_x - 12, center_b2_y - 12, draw_w2 + 24, draw_h2 + 24, 8, false, true);
+                fbdCtx.restore();
+
+                // Block body
+                fbdCtx.fillStyle = '#0f172a';
+                fbdCtx.strokeStyle = '#10b981';
+                fbdCtx.lineWidth = 3;
+                roundRect(fbdCtx, center_b2_x, center_b2_y, draw_w2, draw_h2, 6, true, true);
+                
+                fbdCtx.fillStyle = '#ffffff';
+                fbdCtx.font = '600 12px Inter';
+                fbdCtx.fillText('m₂ (Top Block)', cx, center_b2_y + draw_h2/2 + 4);
+
+                // --- SYSTEM 2 FORCE ARROWS (TOP BLOCK) ---
+                // 1. Gravity weight vector (Drawn straight down, offset slightly right)
+                const w2_val = m2 * g;
+                drawForceVectorArrow(fbdCtx, cx + 35, center_b2_y + draw_h2/2, cx + 35, center_b2_y + draw_h2/2 + 65, '#e2e8f0', `m₂g = ${w2_val.toFixed(1)} N`, 'bottom-tip');
+
+                // 2. Normal force upward from Block 1 interface. Offset slightly left to prevent overlap
+                drawForceVectorArrow(fbdCtx, cx - 35, center_b2_y + draw_h2, cx - 35, center_b2_y - 25, '#10b981', `N_12 = ${w2_val.toFixed(1)} N`, 'top-tip');
+
+                // 3. Friction force driving top block forward (Points right)
+                if (f_inter_val > 0.1) {
+                    drawForceVectorArrow(fbdCtx, cx, center_b2_y + draw_h2, cx + 70, center_b2_y + draw_h2, '#10b981', `f_21 = ${f_inter_val.toFixed(1)} N`, 'right-tip');
+                } else if (F_applied > 0 && v1 === 0) {
+                    const impending_f = Math.min(F_applied, vars.f_s_max);
+                    drawForceVectorArrow(fbdCtx, cx, center_b2_y + draw_h2, cx + 60, center_b2_y + draw_h2, 'rgba(16, 185, 129, 0.4)', `impending f_s`, 'right-tip');
+                }
+            }
+
+            fbdCtx.restore();
+        }
+
+        // Helper function for round rectangles
+        function roundRect(ctx, x, y, width, height, radius, fill, stroke) {
+            if (typeof radius === 'undefined') {
+                radius = 5;
+            }
+            if (typeof radius === 'number') {
+                radius = {tl: radius, tr: radius, br: radius, bl: radius};
+            } else {
+                var defaultRadius = {tl: 0, tr: 0, br: 0, bl: 0};
+                for (var side in defaultRadius) {
+                    radius[side] = radius[side] || defaultRadius[side];
+                }
+            }
+            ctx.beginPath();
+            ctx.moveTo(x + radius.tl, y);
+            ctx.lineTo(x + width - radius.tr, y);
+            ctx.quadraticCurveTo(x + width, y, x + width, y + radius.tr);
+            ctx.lineTo(x + width, y + height - radius.br);
+            ctx.quadraticCurveTo(x + width, y + height, x + width - radius.br, y + height);
+            ctx.lineTo(x + radius.bl, y + height);
+            ctx.quadraticCurveTo(x, y + height, x, y + height - radius.bl);
+            ctx.lineTo(x, y + radius.tl);
+            ctx.quadraticCurveTo(x, y, x + radius.tl, y);
+            ctx.closePath();
+            if (fill) {
+                ctx.fill();
+            }
+            if (stroke) {
+                ctx.stroke();
+            }
+        }
+    </script>
+</body>
+</html>

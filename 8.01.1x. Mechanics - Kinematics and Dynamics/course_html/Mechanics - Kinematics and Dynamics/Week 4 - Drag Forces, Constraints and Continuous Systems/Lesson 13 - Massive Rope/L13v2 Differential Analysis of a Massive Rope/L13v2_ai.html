@@ -1,0 +1,856 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Massive Rope Tension Simulator</title>
+    <!-- Tailwind CSS for modern styling -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Chart.js for real-time telemetry plots -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <!-- MathJax for rendering gorgeous mathematical notation -->
+    <script>
+        window.MathJax = {
+            tex: {
+                inlineMath: [['$', '$'], ['\\(', '\\)']],
+                displayMath: [['$$', '$$'], ['\\[', '\\]']]
+            },
+            options: {
+                skipHtmlTags: ['script', 'noscript', 'style', 'textarea', 'pre']
+            }
+        };
+    </script>
+    <script id="MathJax-script" async src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
+    <style>
+        /* Custom styled scrollbars for code/math panels */
+        .custom-scrollbar::-webkit-scrollbar {
+            width: 6px;
+            height: 6px;
+        }
+        .custom-scrollbar::-webkit-scrollbar-track {
+            background: #1e293b;
+        }
+        .custom-scrollbar::-webkit-scrollbar-thumb {
+            background: #475569;
+            border-radius: 3px;
+        }
+    </style>
+</head>
+<body class="bg-slate-900 text-slate-100 min-h-screen flex flex-col font-sans">
+
+    <!-- Header -->
+    <header class="border-b border-slate-800 bg-slate-950/80 backdrop-blur-md px-6 py-4 sticky top-0 z-50 flex flex-col md:flex-row md:items-center justify-between gap-4">
+        <div>
+            <h1 class="text-2xl font-extrabold tracking-tight text-transparent bg-clip-text bg-gradient-to-r from-cyan-400 to-indigo-400">
+                Massive Rope Tension Simulator
+            </h1>
+            <p class="text-xs text-slate-400 mt-1">
+                Comparing Macroscopic Analysis vs. Continuous Differential Calculus & Numerical Methods
+            </p>
+        </div>
+        <div class="flex items-center gap-3">
+            <span class="px-2 py-1 text-xs font-semibold rounded bg-cyan-500/10 text-cyan-400 border border-cyan-500/20">
+                Continuous & Discrete Solver Sync
+            </span>
+        </div>
+    </header>
+
+    <!-- Main Workspace -->
+    <main class="flex-1 grid grid-cols-1 lg:grid-cols-12 gap-6 p-6 overflow-hidden">
+        
+        <!-- Left Side: Interactive Physics Canvas & Controls (7 cols) -->
+        <section class="lg:col-span-7 flex flex-col gap-6 h-full">
+            
+            <!-- Controls Card -->
+            <div class="bg-slate-950 border border-slate-800 rounded-xl p-5 shadow-xl">
+                <h2 class="text-sm font-semibold tracking-wider text-slate-400 uppercase mb-4 flex items-center gap-2">
+                    <span class="w-2.5 h-2.5 rounded-full bg-cyan-500"></span> System Parameters
+                </h2>
+                
+                <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+                    <!-- Density Profile Selection -->
+                    <div class="col-span-1 md:col-span-3">
+                        <label class="block text-xs font-semibold text-slate-400 uppercase tracking-wider mb-2">Mass Density Profile \(\lambda(x)\)</label>
+                        <div class="grid grid-cols-3 gap-2">
+                            <button id="btn-profile-uniform" class="px-3 py-2 text-xs rounded-lg border font-medium transition duration-200 bg-cyan-500/20 border-cyan-500 text-cyan-200" onclick="setProfile('uniform')">
+                                Uniform (\(M/L\))
+                            </button>
+                            <button id="btn-profile-tapered" class="px-3 py-2 text-xs rounded-lg border border-slate-800 bg-slate-900 text-slate-400 hover:border-slate-700 hover:text-slate-200 transition duration-200" onclick="setProfile('tapered')">
+                                Tapered (Thick Top)
+                            </button>
+                            <button id="btn-profile-clumpy" class="px-3 py-2 text-xs rounded-lg border border-slate-800 bg-slate-900 text-slate-400 hover:border-slate-700 hover:text-slate-200 transition duration-200" onclick="setProfile('clumpy')">
+                                Clumpy (Sinusoidal)
+                            </button>
+                        </div>
+                    </div>
+
+                    <!-- Mass Slider -->
+                    <div>
+                        <div class="flex justify-between text-xs mb-1">
+                            <span class="text-slate-400">Total Mass \(M\)</span>
+                            <span id="val-mass" class="font-mono text-cyan-400 font-bold">2.0 kg</span>
+                        </div>
+                        <input id="slide-mass" type="range" min="0.5" max="10.0" step="0.1" value="2.0" class="w-full h-1 bg-slate-800 rounded-lg appearance-none cursor-pointer accent-cyan-400" oninput="updateParameters()">
+                    </div>
+
+                    <!-- Length Slider -->
+                    <div>
+                        <div class="flex justify-between text-xs mb-1">
+                            <span class="text-slate-400">Total Length \(L\)</span>
+                            <span id="val-length" class="font-mono text-cyan-400 font-bold">4.0 m</span>
+                        </div>
+                        <input id="slide-length" type="range" min="1.0" max="10.0" step="0.5" value="4.0" class="w-full h-1 bg-slate-800 rounded-lg appearance-none cursor-pointer accent-cyan-400" oninput="updateParameters()">
+                    </div>
+
+                    <!-- Gravity Slider -->
+                    <div>
+                        <div class="flex justify-between text-xs mb-1">
+                            <span class="text-slate-400">Gravity \(g\)</span>
+                            <span id="val-gravity" class="font-mono text-cyan-400 font-bold">9.8 m/s²</span>
+                        </div>
+                        <input id="slide-gravity" type="range" min="0" max="25" step="0.5" value="9.8" class="w-full h-1 bg-slate-800 rounded-lg appearance-none cursor-pointer accent-cyan-400" oninput="updateParameters()">
+                    </div>
+
+                    <!-- Numerical Steps Slider -->
+                    <div class="col-span-1 md:col-span-3">
+                        <div class="flex justify-between text-xs mb-1">
+                            <span class="text-slate-400 flex items-center gap-1">
+                                Discretization Segments \(N\) 
+                                <span class="text-[10px] text-slate-500 font-normal">(Low $N$ shows Euler numerical approximations)</span>
+                            </span>
+                            <span id="val-steps" class="font-mono text-cyan-400 font-bold">50</span>
+                        </div>
+                        <input id="slide-steps" type="range" min="5" max="150" step="5" value="50" class="w-full h-1 bg-slate-800 rounded-lg appearance-none cursor-pointer accent-cyan-400" oninput="updateParameters()">
+                    </div>
+                </div>
+            </div>
+
+            <!-- Visualization Canvas Row -->
+            <div class="grid grid-cols-1 md:grid-cols-12 gap-6 flex-1 min-h-[350px]">
+                
+                <!-- Interactive Physics Canvas (Col span 5) -->
+                <div class="md:col-span-5 bg-slate-950 border border-slate-800 rounded-xl p-4 flex flex-col shadow-xl">
+                    <h3 class="text-xs font-semibold tracking-wider text-slate-400 uppercase mb-2">Interactive Rope Canvas</h3>
+                    <div class="relative flex-1 bg-slate-900 border border-slate-800/50 rounded-lg overflow-hidden flex items-center justify-center">
+                        <canvas id="ropeCanvas" class="absolute inset-0 w-full h-full cursor-crosshair"></canvas>
+                        <!-- Canvas instruction overlay -->
+                        <div class="absolute bottom-2 left-2 right-2 bg-slate-950/80 backdrop-blur-sm p-2 rounded text-[10px] text-slate-400 text-center pointer-events-none border border-slate-800/40">
+                            Hover or click along the rope to select evaluation point \(x\)
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Plot Panel (Col span 7) -->
+                <div class="md:col-span-7 bg-slate-950 border border-slate-800 rounded-xl p-4 flex flex-col justify-between shadow-xl">
+                    <div class="flex items-center justify-between mb-2">
+                        <h3 class="text-xs font-semibold tracking-wider text-slate-400 uppercase">Live Calculus Distributions</h3>
+                        <div class="flex gap-2">
+                            <span class="text-[10px] bg-indigo-500/20 text-indigo-300 border border-indigo-500/30 px-2 py-0.5 rounded">Tension \(T(x)\)</span>
+                            <span class="text-[10px] bg-emerald-500/20 text-emerald-300 border border-emerald-500/30 px-2 py-0.5 rounded">Density \(\lambda(x)\)</span>
+                        </div>
+                    </div>
+                    <div class="flex-1 min-h-[220px] relative">
+                        <canvas id="plotsCanvas"></canvas>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Telemetry / FBD Card -->
+            <div class="bg-slate-950 border border-slate-800 rounded-xl p-4 shadow-xl grid grid-cols-1 md:grid-cols-3 gap-4">
+                <div class="border-r border-slate-800/50 pr-4">
+                    <h4 class="text-[10px] tracking-wider text-slate-500 uppercase font-bold mb-1">State Telemetry</h4>
+                    <div class="space-y-1">
+                        <div class="flex justify-between text-xs"><span class="text-slate-400">Selected position \(x\):</span> <span id="telemetry-x" class="font-mono text-cyan-400 font-bold">1.50 m</span></div>
+                        <div class="flex justify-between text-xs"><span class="text-slate-400">Tension \(T(x)\):</span> <span id="telemetry-tx" class="font-mono text-cyan-400 font-bold">12.25 N</span></div>
+                        <div class="flex justify-between text-xs"><span class="text-slate-400">Local density \(\lambda(x)\):</span> <span id="telemetry-density" class="font-mono text-emerald-400 font-bold">0.50 kg/m</span></div>
+                    </div>
+                </div>
+                
+                <div class="border-r border-slate-800/50 pr-4 pl-0 md:pl-2">
+                    <h4 class="text-[10px] tracking-wider text-slate-500 uppercase font-bold mb-1">Macroscopic Weight Below</h4>
+                    <p class="text-xs text-slate-400 mb-1">Total weight of the segment hanging below point \(x\):</p>
+                    <div class="text-center bg-slate-900/50 p-1.5 rounded border border-slate-800">
+                        <span class="text-slate-400 text-xs">\(W_{\text{below}} = M_{\text{below}} g = \) </span>
+                        <span id="telemetry-wbelow" class="font-mono text-amber-400 font-bold text-xs">12.25 N</span>
+                    </div>
+                </div>
+
+                <div class="pl-0 md:pl-2 flex flex-col justify-between">
+                    <h4 class="text-[10px] tracking-wider text-slate-500 uppercase font-bold mb-1">FBD Balance at \(x\)</h4>
+                    <div class="text-[11px] text-slate-300 bg-indigo-950/20 border border-indigo-950 p-2 rounded flex flex-col gap-0.5 justify-center">
+                        <div class="flex justify-between"><span>Force Upwards:</span> <span id="fbd-up" class="text-cyan-400 font-mono">\(T(x) = 12.25\text{ N}\)</span></div>
+                        <div class="flex justify-between"><span>Forces Downward:</span> <span id="fbd-down" class="text-rose-400 font-mono">\(T(x+dx) + dm\,g\)</span></div>
+                    </div>
+                </div>
+            </div>
+
+        </section>
+
+        <!-- Right Side: Step-by-Step Educational Panel (5 cols) -->
+        <section class="lg:col-span-5 flex flex-col bg-slate-950 border border-slate-800 rounded-xl overflow-hidden shadow-xl h-full min-h-[500px]">
+            
+            <!-- Tab Headers -->
+            <div class="flex border-b border-slate-800 bg-slate-900/50">
+                <button id="tab-physics" class="flex-1 py-3 text-xs font-semibold tracking-wider uppercase border-b-2 border-cyan-500 text-cyan-400" onclick="switchTab('physics')">
+                    1. Physics Calculus
+                </button>
+                <button id="tab-algorithm" class="flex-1 py-3 text-xs font-semibold tracking-wider uppercase border-b-2 border-transparent text-slate-400 hover:text-slate-200" onclick="switchTab('algorithm')">
+                    2. Computational Solver
+                </button>
+            </div>
+
+            <!-- Tab Content Wrapper (Scrollable) -->
+            <div class="flex-1 p-5 overflow-y-auto custom-scrollbar space-y-4">
+                
+                <!-- Tab: Physics Derivation -->
+                <div id="content-physics" class="space-y-4 text-xs leading-relaxed text-slate-300">
+                    <h3 class="text-sm font-bold text-slate-100 flex items-center gap-2">
+                        <span class="text-cyan-400">■</span> Continuous Mathematical Derivation
+                    </h3>
+                    
+                    <p>
+                        To find the tension $T(x)$ at an arbitrary distance $x$ measured downwards from the ceiling, we establish a coordinate system where $x \in [0, L]$.
+                    </p>
+
+                    <div class="bg-slate-900 p-3 rounded-lg border border-slate-800/80">
+                        <h4 class="font-bold text-slate-200 mb-1">1. Macroscopic Equilibrium Method</h4>
+                        <p class="mb-2">
+                            For a segment cut at point $x$, the remaining portion below has length $L - x$. Assuming a uniform mass density $\lambda = M/L$:
+                        </p>
+                        <p class="font-mono text-center text-cyan-400 py-1">
+                            $$M_{\text{below}}(x) = \frac{L - x}{L} M$$
+                        </p>
+                        <p>
+                            For the isolated portion to remain stationary, upward tension $T(x)$ must balance gravity acting on $M_{\text{below}}$:
+                        </p>
+                        <p class="font-mono text-center text-cyan-400 py-1">
+                            $$T(x) = M_{\text{below}} g = M g \left(1 - \frac{x}{L}\right)$$
+                        </p>
+                    </div>
+
+                    <div class="bg-slate-900 p-3 rounded-lg border border-slate-800/80 space-y-2">
+                        <h4 class="font-bold text-slate-200 mb-1">2. Differential Analysis Method</h4>
+                        <p>
+                            Consider an infinitesimal slice of rope of thickness $dx$ situated at position $x$. We analyze the three forces acting upon it to maintain equilibrium:
+                        </p>
+                        <ul class="list-disc pl-4 space-y-1">
+                            <li>An upward tension $T(x)$ exerted by the rope above it.</li>
+                            <li>A downward tension $T(x + dx)$ pulling from below.</li>
+                            <li>A downward gravity force acting on its mass element $dm = \lambda(x) dx$.</li>
+                        </ul>
+                        
+                        <p>Applying Newton's Second Law ($\Sigma F_x = 0$ in the downward direction):</p>
+                        <p class="font-mono text-center text-cyan-400 py-1">
+                            $$T(x + dx) + dm \cdot g - T(x) = 0$$
+                        </p>
+                        
+                        <p>Rearranging and substituting $dm = \lambda(x) dx$:</p>
+                        <p class="font-mono text-center text-cyan-400 py-1">
+                            $$\frac{T(x + dx) - T(x)}{dx} = -\lambda(x) g$$
+                        </p>
+                        
+                        <p>Taking the mathematical limit as $dx \to 0$ yields the continuous ordinary differential equation (ODE):</p>
+                        <p class="font-mono text-center text-cyan-400 py-1">
+                            $$\frac{dT}{dx} = -\lambda(x) g$$
+                        </p>
+
+                        <p>
+                            This dynamic differential system is integrated from position $x$ to the bottom boundary of the rope at $x=L$, where the boundary condition dictates tension must vanish ($T(L) = 0$):
+                        </p>
+                        <p class="font-mono text-center text-cyan-400 py-1">
+                            $$\int_{T(x)}^{T(L)} dT' = \int_{x}^{L} -\lambda(x') g \, dx'$$
+                        </p>
+                        <p class="font-mono text-center text-cyan-400 py-1">
+                            $$T(x) = g \int_{x}^{L} \lambda(x') \, dx'$$
+                        </p>
+                    </div>
+                </div>
+
+                <!-- Tab: Computational Algorithm -->
+                <div id="content-algorithm" class="hidden space-y-4 text-xs leading-relaxed text-slate-300">
+                    <h3 class="text-sm font-bold text-slate-100 flex items-center gap-2">
+                        <span class="text-indigo-400">■</span> Discretization & Numerical Integration
+                    </h3>
+                    
+                    <p>
+                        How does our computer program calculate tension in real time, especially for non-uniform clumpy distributions? It translates the continuous calculus differential equation into a discrete numerical sum.
+                    </p>
+
+                    <div class="bg-slate-900 p-3 rounded-lg border border-slate-800/80 space-y-2">
+                        <h4 class="font-bold text-slate-200">The Computational Mesh</h4>
+                        <p>
+                            We divide the rope of length $L$ into $N$ equal discrete steps of size:
+                        </p>
+                        <p class="font-mono text-center text-indigo-400 py-1">
+                            $$\Delta x = \frac{L}{N}$$
+                        </p>
+                        <p>
+                            This turns the continuous position $x$ into a series of $N+1$ discrete grid coordinates: $x_i = i \cdot \Delta x$ for $i \in [0, N]$.
+                        </p>
+                    </div>
+
+                    <div class="bg-slate-900 p-3 rounded-lg border border-slate-800/80 space-y-2">
+                        <h4 class="font-bold text-slate-200">Backward Euler Summation Algorithm</h4>
+                        <p>
+                            Our boundary state begins at the bottom free end $i = N$ where $T[N] = 0$.
+                        </p>
+                        <p>
+                            To solve the differential equation backward up to the ceiling, we rewrite $\frac{dT}{dx} = -\lambda(x)g$ as a difference equation:
+                        </p>
+                        <p class="font-mono text-center text-indigo-400 py-1">
+                            $$\frac{T[i+1] - T[i]}{\Delta x} = -\lambda(x_i) g$$
+                        </p>
+                        <p>Solving for $T[i]$, we obtain our stepping recurrence relation:</p>
+                        <p class="font-mono text-center text-indigo-400 py-1">
+                            $$T[i] = T[i+1] + \lambda(x_i) \cdot g \cdot \Delta x$$
+                        </p>
+                        <p class="text-[11px] text-slate-400 italic">
+                            Observe the sync: Reduce parameter $N$ on the left and see how the coarse stepping visualizes this accumulation approximation!
+                        </p>
+                    </div>
+
+                    <!-- Pseudocode Display -->
+                    <div class="bg-slate-900 p-3 rounded-lg border border-slate-800/80">
+                        <h4 class="font-bold text-slate-200 mb-1">Solver Loop Execution (JavaScript)</h4>
+                        <pre class="bg-slate-950 p-2 rounded text-[11px] font-mono text-emerald-400 overflow-x-auto custom-scrollbar">
+// 1. Initialize boundary condition at bottom
+let T = new Array(N + 1);
+T[N] = 0.0;
+let dx = L / N;
+
+// 2. Loop backwards from bottom up to ceiling
+for (let i = N - 1; i >= 0; i--) {
+    let x_i = i * dx;
+    let localDensity = getDensity(x_i);
+    let dm = localDensity * dx;
+    
+    // Euler Step
+    T[i] = T[i + 1] + dm * g;
+}</pre>
+                    </div>
+                </div>
+
+            </div>
+            
+            <!-- Quick Math Context Card -->
+            <div class="p-4 bg-slate-900 border-t border-slate-800">
+                <div class="flex items-center justify-between text-[11px] text-slate-400">
+                    <span>Active Integration Variable:</span>
+                    <span class="font-mono bg-slate-800 px-1.5 py-0.5 rounded text-cyan-400">dx' \to \Delta x</span>
+                </div>
+            </div>
+        </section>
+
+    </main>
+
+    <!-- JS Integration for Canvas and Math -->
+    <script>
+        // DOM Elements
+        const canvas = document.getElementById('ropeCanvas');
+        const ctx = canvas.getContext('2d');
+        const plotsCtx = document.getElementById('plotsCanvas').getContext('2d');
+
+        // Parameter Sliders & Value indicators
+        const slideMass = document.getElementById('slide-mass');
+        const slideLength = document.getElementById('slide-length');
+        const slideGravity = document.getElementById('slide-gravity');
+        const slideSteps = document.getElementById('slide-steps');
+
+        const valMass = document.getElementById('val-mass');
+        const valLength = document.getElementById('val-length');
+        const valGravity = document.getElementById('val-gravity');
+        const valSteps = document.getElementById('val-steps');
+
+        // Telemetry DOM
+        const telX = document.getElementById('telemetry-x');
+        const telTx = document.getElementById('telemetry-tx');
+        const telDensity = document.getElementById('telemetry-density');
+        const telWbelow = document.getElementById('telemetry-wbelow');
+        const fbdUp = document.getElementById('fbd-up');
+        const fbdDown = document.getElementById('fbd-down');
+
+        // Simulation State
+        let config = {
+            M: 2.0,      // kg
+            L: 4.0,      // meters
+            g: 9.8,      // m/s^2
+            N: 50,       // points
+            profile: 'uniform', // density model
+            selectedX: 1.5, // currently highlighted x position on rope
+            clumpCount: 3,  // frequency of clumpy bumps
+            clumpAmp: 0.6   // size of clumpy density deviations
+        };
+
+        // Numerical arrays
+        let xArr = [];
+        let densityArr = [];
+        let tensionArr = [];
+        let chartInstance = null;
+
+        // Interaction state
+        let isHovering = false;
+        let isClickDragging = false;
+
+        // Handle profile toggle UI styling
+        function setProfile(profileName) {
+            config.profile = profileName;
+            
+            // Toggle active styles
+            const profiles = ['uniform', 'tapered', 'clumpy'];
+            profiles.forEach(p => {
+                const btn = document.getElementById(`btn-profile-${p}`);
+                if (p === profileName) {
+                    btn.className = "px-3 py-2 text-xs rounded-lg border font-medium transition duration-200 bg-cyan-500/20 border-cyan-500 text-cyan-200";
+                } else {
+                    btn.className = "px-3 py-2 text-xs rounded-lg border border-slate-800 bg-slate-900 text-slate-400 hover:border-slate-700 hover:text-slate-200 transition duration-200";
+                }
+            });
+
+            recalculateAndRender();
+        }
+
+        // Switch panel tabs
+        function switchTab(tabId) {
+            const tabs = ['physics', 'algorithm'];
+            tabs.forEach(t => {
+                const tabBtn = document.getElementById(`tab-${t}`);
+                const tabContent = document.getElementById(`content-${t}`);
+                if (t === tabId) {
+                    tabBtn.className = "flex-1 py-3 text-xs font-semibold tracking-wider uppercase border-b-2 border-cyan-500 text-cyan-400";
+                    tabContent.classList.remove('hidden');
+                } else {
+                    tabBtn.className = "flex-1 py-3 text-xs font-semibold tracking-wider uppercase border-b-2 border-transparent text-slate-400 hover:text-slate-200";
+                    tabContent.classList.add('hidden');
+                }
+            });
+        }
+
+        // Calculate continuous mass density lambda at position x
+        function getDensityAt(x) {
+            const L = config.L;
+            const M = config.M;
+            const avgDensity = M / L;
+
+            if (config.profile === 'uniform') {
+                return avgDensity;
+            } else if (config.profile === 'tapered') {
+                // Thicker at the ceiling (x=0) and thinner at the bottom (x=L)
+                // Integral of density from 0 to L must still equal M
+                // lambda(x) = c * (2 - 2x/L) => integral is c * L = M => c = M/L
+                // Let lambda(x) = (M/L) * (1.5 - x/L)
+                return avgDensity * (1.6 - 1.2 * (x / L));
+            } else if (config.profile === 'clumpy') {
+                // Sinusoidal clumps
+                // Must integrate to M over L, so we add a sine term with 0 mean
+                const amp = config.clumpAmp;
+                const freq = config.clumpCount;
+                return avgDensity * (1.0 + amp * Math.sin(2 * Math.PI * freq * (x / L)));
+            }
+            return avgDensity;
+        }
+
+        // Recalculate physics systems based on updated sliding components
+        function updateParameters() {
+            config.M = parseFloat(slideMass.value);
+            config.L = parseFloat(slideLength.value);
+            config.g = parseFloat(slideGravity.value);
+            config.N = parseInt(slideSteps.value);
+
+            // Bounds check for selected probe position x
+            if (config.selectedX > config.L) {
+                config.selectedX = config.L;
+            }
+
+            // Update UI readout numbers
+            valMass.innerText = `${config.M.toFixed(1)} kg`;
+            valLength.innerText = `${config.L.toFixed(1)} m`;
+            valGravity.innerText = `${config.g.toFixed(1)} m/s²`;
+            valSteps.innerText = config.N;
+
+            recalculateAndRender();
+        }
+
+        // Core Mathematical Solver: Discrete Backward Euler
+        function solveTension() {
+            const N = config.N;
+            const L = config.L;
+            const g = config.g;
+            const dx = L / N;
+
+            xArr = [];
+            densityArr = [];
+            tensionArr = new Array(N + 1);
+
+            // Precompute spatial mesh and density profiles
+            for (let i = 0; i <= N; i++) {
+                let x = i * dx;
+                xArr.push(x);
+                densityArr.push(getDensityAt(x));
+            }
+
+            // Boundary Condition: Tension at bottom is zero
+            tensionArr[N] = 0.0;
+
+            // Backward Euler numerical loop:
+            // T[i] = T[i+1] + dm * g
+            for (let i = N - 1; i >= 0; i--) {
+                const dm = densityArr[i] * dx;
+                tensionArr[i] = tensionArr[i + 1] + dm * g;
+            }
+        }
+
+        // Get exact interpolated properties at selected hovering point
+        function getPropertiesAt(targetX) {
+            const N = config.N;
+            const L = config.L;
+            const dx = L / N;
+            
+            // Constrain point
+            const x = Math.max(0, Math.min(L, targetX));
+            
+            // Find bounding indices
+            const indexFloat = x / dx;
+            const idxLower = Math.floor(indexFloat);
+            const idxUpper = Math.min(N, idxLower + 1);
+            const alpha = indexFloat - idxLower;
+
+            // Interpolate values
+            const tension = tensionArr[idxLower] * (1 - alpha) + tensionArr[idxUpper] * alpha;
+            const density = densityArr[idxLower] * (1 - alpha) + densityArr[idxUpper] * alpha;
+
+            // Estimate macroscopic mass below via discrete trapz sum of remaining density
+            let massBelow = 0;
+            // Integrate from targetX to L using fine slices
+            const slices = 100;
+            const subDx = (L - x) / slices;
+            for (let k = 0; k < slices; k++) {
+                const sampleX = x + (k + 0.5) * subDx;
+                massBelow += getDensityAt(sampleX) * subDx;
+            }
+
+            return {
+                x: x,
+                tension: tension,
+                density: density,
+                weightBelow: massBelow * config.g
+            };
+        }
+
+        // Main synchronization render routine
+        function recalculateAndRender() {
+            solveTension();
+            updateChart();
+            updateTelemetry();
+            drawRopeVisualization();
+        }
+
+        // Update real-time textual diagnostics
+        function updateTelemetry() {
+            const data = getPropertiesAt(config.selectedX);
+            telX.innerText = `${data.x.toFixed(2)} m`;
+            telTx.innerText = `${data.tension.toFixed(2)} N`;
+            telDensity.innerText = `${data.density.toFixed(2)} kg/m`;
+            telWbelow.innerText = `${data.weightBelow.toFixed(2)} N`;
+
+            // FBD values
+            const deltaX = config.L / config.N;
+            const localDM = data.density * deltaX;
+            const gravityOnDM = localDM * config.g;
+            const tensionBelow = Math.max(0, data.tension - gravityOnDM);
+
+            fbdUp.innerHTML = `T(x) = <span class="text-cyan-400 font-bold">${data.tension.toFixed(2)} N</span>`;
+            fbdDown.innerHTML = `<span class="text-rose-400 font-bold">${tensionBelow.toFixed(2)} N</span> [T(x+dx)] + <span class="text-emerald-400 font-bold">${gravityOnDM.toFixed(2)} N</span> [dm g]`;
+        }
+
+        // Setup chart visual configuration
+        function initChart() {
+            chartInstance = new Chart(plotsCtx, {
+                type: 'line',
+                data: {
+                    labels: xArr,
+                    datasets: [
+                        {
+                            label: 'Tension T(x) (N)',
+                            data: tensionArr,
+                            borderColor: '#6366f1',
+                            backgroundColor: 'rgba(99, 102, 241, 0.1)',
+                            borderWidth: 3,
+                            fill: true,
+                            tension: 0.1,
+                            yAxisID: 'y'
+                        },
+                        {
+                            label: 'Density λ(x) (kg/m)',
+                            data: densityArr,
+                            borderColor: '#10b981',
+                            backgroundColor: 'rgba(16, 185, 129, 0.05)',
+                            borderWidth: 2,
+                            borderDash: [5, 5],
+                            fill: false,
+                            tension: 0.2,
+                            yAxisID: 'y1'
+                        }
+                    ]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    scales: {
+                        x: {
+                            title: {
+                                display: true,
+                                text: 'Position along rope (x) [m]',
+                                color: '#94a3b8',
+                                font: { size: 10 }
+                            },
+                            grid: { color: '#334155' },
+                            ticks: { color: '#94a3b8' }
+                        },
+                        y: {
+                            title: {
+                                display: true,
+                                text: 'Tension [Newtons]',
+                                color: '#6366f1',
+                                font: { size: 10 }
+                            },
+                            grid: { color: '#334155' },
+                            ticks: { color: '#94a3b8' }
+                        },
+                        y1: {
+                            position: 'right',
+                            title: {
+                                display: true,
+                                text: 'Linear Density [kg/m]',
+                                color: '#10b981',
+                                font: { size: 10 }
+                            },
+                            grid: { drawOnChartArea: false },
+                            ticks: { color: '#94a3b8' }
+                        }
+                    },
+                    plugins: {
+                        legend: { display: false }
+                    }
+                }
+            });
+        }
+
+        // Redraw dynamic values into plotting system
+        function updateChart() {
+            if (!chartInstance) return;
+            chartInstance.data.labels = xArr.map(x => x.toFixed(2));
+            chartInstance.data.datasets[0].data = tensionArr;
+            chartInstance.data.datasets[1].data = densityArr;
+            chartInstance.update();
+        }
+
+        // Render detailed HTML5 canvas graphics representing physical components
+        function drawRopeVisualization() {
+            // Resize handler to match screen layout
+            const rect = canvas.parentNode.getBoundingClientRect();
+            canvas.width = rect.width;
+            canvas.height = rect.height;
+
+            const width = canvas.width;
+            const height = canvas.height;
+            
+            ctx.clearRect(0, 0, width, height);
+
+            // Ceiling boundary styling
+            ctx.fillStyle = '#475569';
+            ctx.fillRect(0, 0, width, 12);
+            ctx.strokeStyle = '#64748b';
+            ctx.lineWidth = 2;
+            ctx.beginPath();
+            ctx.moveTo(0, 12);
+            ctx.lineTo(width, 12);
+            ctx.stroke();
+
+            // Set geometric boundaries for rope vertical layout
+            const topY = 12;
+            const bottomY = height - 30;
+            const ropeHeight = bottomY - topY;
+            const centerX = width / 2;
+
+            // Generate geometry coordinates matching N steps
+            const N = config.N;
+            const dy = ropeHeight / N;
+            
+            // Render the segmented rope structure
+            for (let i = 0; i < N; i++) {
+                const segmentTopY = topY + i * dy;
+                const segmentBottomY = segmentTopY + dy;
+                const centerSegmentY = segmentTopY + dy / 2;
+                
+                // Get local properties mapped to spatial dimensions
+                const xVal = (i / N) * config.L;
+                const localDensity = densityArr[i];
+                const localTension = tensionArr[i];
+                
+                // Determine rope thickness based on physical density profile
+                const avgD = config.M / config.L;
+                const normalizedThickness = localDensity / avgD;
+                const baseWidth = 8;
+                const drawWidth = baseWidth * normalizedThickness;
+
+                // Color-code the rope segments based on internal tension
+                // Gradient mapping: High tension at ceiling = bright crimson (red-orange)
+                // Low tension at free end = cool cyan-blue
+                const maxTension = config.M * config.g;
+                const intensity = maxTension > 0 ? Math.min(1.0, localTension / maxTension) : 0;
+                
+                // Red channels scale up with tension, green/blue components scale down
+                const red = Math.floor(100 + 155 * intensity);
+                const green = Math.floor(180 - 100 * intensity);
+                const blue = Math.floor(255 - 185 * intensity);
+                
+                ctx.fillStyle = `rgb(${red}, ${green}, ${blue})`;
+                
+                // Highlight active step selection
+                const targetYSelected = topY + (config.selectedX / config.L) * ropeHeight;
+                const isSegmentSelected = (targetYSelected >= segmentTopY && targetYSelected <= segmentBottomY);
+
+                if (isSegmentSelected) {
+                    ctx.strokeStyle = '#f59e0b';
+                    ctx.lineWidth = 3;
+                    // Draw outer selection glow
+                    ctx.shadowBlur = 10;
+                    ctx.shadowColor = '#f59e0b';
+                    ctx.fillRect(centerX - drawWidth/2 - 2, segmentTopY, drawWidth + 4, dy);
+                    ctx.shadowBlur = 0; // reset
+                } else {
+                    ctx.fillRect(centerX - drawWidth/2, segmentTopY, drawWidth, dy);
+                }
+            }
+
+            // Draw interaction probe horizontal indicator
+            const probeY = topY + (config.selectedX / config.L) * ropeHeight;
+            
+            // Probe line
+            ctx.strokeStyle = '#f59e0b';
+            ctx.lineWidth = 1.5;
+            ctx.setLineDash([4, 4]);
+            ctx.beginPath();
+            ctx.moveTo(centerX - 80, probeY);
+            ctx.lineTo(centerX + 80, probeY);
+            ctx.stroke();
+            ctx.setLineDash([]); // reset
+
+            // Probe intersection label handle
+            ctx.fillStyle = '#f59e0b';
+            ctx.beginPath();
+            ctx.arc(centerX, probeY, 5, 0, Math.PI * 2);
+            ctx.fill();
+
+            // Render a mini FBD popup beside the rope at the probe position
+            drawFBDInCanvas(centerX + 30, probeY);
+
+            // Label Ceiling and Base point references on canvas
+            ctx.fillStyle = '#94a3b8';
+            ctx.font = 'bold 9px monospace';
+            ctx.fillText('CEILING: x = 0', centerX - 90, 24);
+            ctx.fillText('BOTTOM: x = L', centerX - 90, bottomY + 15);
+        }
+
+        // Draw overlay vectors modeling the local FBD on selected segment
+        function drawFBDInCanvas(originX, originY) {
+            // Anchor container spacing
+            const arrowLength = 35;
+            ctx.shadowBlur = 2;
+            ctx.shadowColor = 'black';
+
+            // Vector arrow pointing up: Tension T(x)
+            drawVectorArrow(originX, originY - 5, originX, originY - 5 - arrowLength, '#22d3ee', 'T(x)');
+            
+            // Vector arrow pointing down: Gravity force dm*g
+            drawVectorArrow(originX + 15, originY + 5, originX + 15, originY + 5 + arrowLength/1.5, '#10b981', 'dm g');
+
+            // Vector arrow pointing down: Tension T(x+dx)
+            drawVectorArrow(originX - 5, originY + 5, originX - 5, originY + 5 + arrowLength, '#f87171', 'T(x+dx)');
+
+            ctx.shadowBlur = 0; // reset
+        }
+
+        // Canvas utility arrow renderer
+        function drawVectorArrow(fromX, fromY, toX, toY, color, labelText) {
+            const headLength = 6;
+            const angle = Math.atan2(toY - fromY, toX - fromX);
+            
+            ctx.strokeStyle = color;
+            ctx.lineWidth = 2.5;
+            ctx.beginPath();
+            ctx.moveTo(fromX, fromY);
+            ctx.lineTo(toX, toY);
+            ctx.stroke();
+
+            // Draw head
+            ctx.fillStyle = color;
+            ctx.beginPath();
+            ctx.moveTo(toX, toY);
+            ctx.lineTo(toX - headLength * Math.cos(angle - Math.PI / 6), toY - headLength * Math.sin(angle - Math.PI / 6));
+            ctx.lineTo(toX - headLength * Math.cos(angle + Math.PI / 6), toY - headLength * Math.sin(angle + Math.PI / 6));
+            ctx.fill();
+
+            // Label overlay placement
+            ctx.fillStyle = '#cbd5e1';
+            ctx.font = 'bold 8px system-ui';
+            const offsetLabelY = toY > fromY ? toY + 10 : toY - 5;
+            ctx.fillText(labelText, toX + 5, offsetLabelY);
+        }
+
+        // Determine exact mathematical mapping from pointer inputs
+        function handleRopeSelection(event) {
+            const rect = canvas.getBoundingClientRect();
+            const clientY = event.clientY - rect.top;
+            
+            const topY = 12;
+            const bottomY = canvas.height - 30;
+            const ropeHeight = bottomY - topY;
+
+            // Map mouse vertical pixel range directly to rope length
+            const relativeY = clientY - topY;
+            const ratio = relativeY / ropeHeight;
+            const targetX = ratio * config.L;
+
+            config.selectedX = Math.max(0, Math.min(config.L, targetX));
+            recalculateAndRender();
+        }
+
+        // Interaction event bindings
+        canvas.addEventListener('mousedown', (event) => {
+            isClickDragging = true;
+            handleRopeSelection(event);
+        });
+
+        canvas.addEventListener('mousemove', (event) => {
+            if (isClickDragging) {
+                handleRopeSelection(event);
+            } else {
+                // Temporary highlighting checks
+                handleRopeSelection(event);
+            }
+        });
+
+        window.addEventListener('mouseup', () => {
+            isClickDragging = false;
+        });
+
+        // Initialize simulation execution on viewport setup
+        window.addEventListener('load', () => {
+            solveTension();
+            initChart();
+            drawRopeVisualization();
+            
+            // Render MathJax values explicitly inside documentation
+            if (window.MathJax && MathJax.typesetPromise) {
+                MathJax.typesetPromise();
+            }
+        });
+
+        // Dynamic resize window adapter
+        window.addEventListener('resize', () => {
+            drawRopeVisualization();
+        });
+    </script>
+</body>
+</html>

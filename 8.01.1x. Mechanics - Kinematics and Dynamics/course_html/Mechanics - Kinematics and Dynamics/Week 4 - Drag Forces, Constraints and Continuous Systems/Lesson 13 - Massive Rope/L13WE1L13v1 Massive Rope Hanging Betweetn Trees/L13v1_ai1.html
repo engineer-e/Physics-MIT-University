@@ -1,0 +1,1015 @@
+<!DOCTYPE html>
+<html lang="en" class="h-full">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Hammock Physics Simulator & Solver</title>
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- FontAwesome for beautiful icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <!-- Google Fonts: Inter -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=Fira+Code:wght@400;500&display=swap" rel="stylesheet">
+    <style>
+        body {
+            font-family: 'Inter', sans-serif;
+        }
+        .code-font {
+            font-family: 'Fira Code', monospace;
+        }
+        /* Custom scrollbar */
+        ::-webkit-scrollbar {
+            width: 6px;
+            height: 6px;
+        }
+        ::-webkit-scrollbar-track {
+            background: #1e293b;
+        }
+        ::-webkit-scrollbar-thumb {
+            background: #475569;
+            border-radius: 3px;
+        }
+        ::-webkit-scrollbar-thumb:hover {
+            background: #64748b;
+        }
+    </style>
+</head>
+<body class="bg-slate-950 text-slate-100 min-h-full flex flex-col overflow-x-hidden">
+
+<!-- Interactive Header -->
+<header class="border-b border-slate-800 bg-slate-900/80 backdrop-blur sticky top-0 z-50 px-6 py-4">
+    <div class="max-w-7xl mx-auto flex flex-col md:flex-row justify-between items-center gap-4">
+        <div class="flex items-center gap-3">
+            <div class="bg-indigo-600 p-2.5 rounded-xl text-white shadow-lg shadow-indigo-500/20">
+                <i class="fa-solid fa-layer-group text-xl"></i>
+            </div>
+            <div>
+                <h1 class="text-xl font-extrabold tracking-tight bg-gradient-to-r from-indigo-400 via-sky-400 to-emerald-400 bg-clip-text text-transparent">
+                    Hammock Mechanics Simulator
+                </h1>
+                <p class="text-xs text-slate-400 font-medium">Static Equilibrium & Discrete Computational Physics Sync</p>
+            </div>
+        </div>
+        <div class="flex items-center gap-3">
+            <span class="flex h-2 w-2 relative">
+                <span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>
+                <span class="relative inline-flex rounded-full h-2 w-2 bg-emerald-500"></span>
+            </span>
+            <span id="simulation-badge" class="text-xs font-semibold px-2.5 py-1 rounded-full bg-slate-800 text-slate-300 border border-slate-700">
+                Verlet Solver Active
+            </span>
+        </div>
+    </div>
+</header>
+
+<main class="flex-1 max-w-7xl w-full mx-auto px-4 py-6 grid grid-cols-1 lg:grid-cols-12 gap-6">
+    
+    <!-- Left Column: Simulator Canvas & Dynamic Parameters (7 Cols) -->
+    <section class="lg:col-span-7 flex flex-col gap-6">
+        <!-- Interactive Canvas Card -->
+        <div class="bg-slate-900 border border-slate-800 rounded-2xl overflow-hidden shadow-2xl relative flex flex-col">
+            <!-- Canvas Controls Overlay -->
+            <div class="absolute top-4 left-4 z-10 flex flex-wrap gap-2">
+                <button id="btn-toggle-fbd" class="px-3 py-1.5 rounded-lg text-xs font-semibold bg-indigo-600 hover:bg-indigo-500 text-white shadow-md transition-all flex items-center gap-1.5">
+                    <i class="fa-solid fa-vector-square"></i> Toggle FBD Analysis
+                </button>
+                <button id="btn-toggle-person" class="px-3 py-1.5 rounded-lg text-xs font-semibold bg-slate-800 hover:bg-slate-700 text-slate-200 border border-slate-700 transition-all flex items-center gap-1.5">
+                    <i class="fa-solid fa-user"></i> Add Person
+                </button>
+                <button id="btn-toggle-mode" class="px-3 py-1.5 rounded-lg text-xs font-semibold bg-emerald-600/20 hover:bg-emerald-600/30 text-emerald-400 border border-emerald-500/30 transition-all flex items-center gap-1.5">
+                    <i class="fa-solid fa-gears"></i> Multi-Segment Rope
+                </button>
+            </div>
+            
+            <div class="absolute top-4 right-4 z-10">
+                <span class="px-2.5 py-1 rounded bg-slate-950/80 backdrop-blur border border-slate-800 text-[10px] text-slate-400 font-mono">
+                    Real-time Stress Heatmap Active
+                </span>
+            </div>
+
+            <!-- The Physics Canvas -->
+            <div class="w-full h-[400px] bg-gradient-to-b from-slate-950 via-slate-950 to-slate-900 relative">
+                <canvas id="physics-canvas" class="w-full h-full block"></canvas>
+            </div>
+
+            <!-- Real-time Mathematical Readout Bar -->
+            <div class="grid grid-cols-3 border-t border-slate-800 bg-slate-950/60 p-4 divide-x divide-slate-800 text-center">
+                <div>
+                    <p class="text-[10px] text-slate-400 font-medium uppercase tracking-wider">Angle &theta; (with vertical)</p>
+                    <p id="readout-theta" class="text-lg font-bold text-sky-400 mt-0.5">35.0°</p>
+                </div>
+                <div>
+                    <p class="text-[10px] text-slate-400 font-medium uppercase tracking-wider">Midpoint Tension (T<sub>mid</sub>)</p>
+                    <p id="readout-tmid" class="text-lg font-bold text-indigo-400 mt-0.5">49.0 N</p>
+                </div>
+                <div>
+                    <p class="text-[10px] text-slate-400 font-medium uppercase tracking-wider">Anchor Tension (T<sub>end</sub>)</p>
+                    <p id="readout-tend" class="text-lg font-bold text-pink-400 mt-0.5">85.4 N</p>
+                </div>
+            </div>
+        </div>
+
+        <!-- Controls Panel Card -->
+        <div class="bg-slate-900 border border-slate-800 rounded-2xl p-6 shadow-xl">
+            <h3 class="text-sm font-bold text-slate-200 uppercase tracking-wider mb-4 flex items-center gap-2">
+                <i class="fa-solid fa-sliders text-indigo-400"></i> Adjust Physical Parameters
+            </h3>
+            
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <!-- Sag Depth / Target Tension (theta controller) -->
+                <div>
+                    <div class="flex justify-between text-xs font-semibold text-slate-300 mb-2">
+                        <span>Sag Angle &theta;</span>
+                        <span id="val-theta" class="text-sky-400">45°</span>
+                    </div>
+                    <input type="range" id="slider-theta" min="15" max="85" value="45" class="w-full accent-indigo-500 h-1.5 bg-slate-800 rounded-lg cursor-pointer">
+                    <p class="text-[10px] text-slate-500 mt-1">Controls the slope/closeness to tree horizontal. As &theta; &rarr; 90&deg;, Tension &rarr; &infin;!</p>
+                </div>
+
+                <!-- Rope/Hammock Mass -->
+                <div>
+                    <div class="flex justify-between text-xs font-semibold text-slate-300 mb-2">
+                        <span>Rope Mass (m)</span>
+                        <span id="val-mass" class="text-indigo-400">10 kg</span>
+                    </div>
+                    <input type="range" id="slider-mass" min="2" max="50" value="10" class="w-full accent-indigo-500 h-1.5 bg-slate-800 rounded-lg cursor-pointer">
+                    <p class="text-[10px] text-slate-500 mt-1">Weight of the rope. FBD uses half rope (m/2) to analyze forces.</p>
+                </div>
+
+                <!-- Person Mass (Optional Load) -->
+                <div>
+                    <div class="flex justify-between text-xs font-semibold text-slate-300 mb-2">
+                        <span>Occupant Mass (M)</span>
+                        <span id="val-occupant-mass" class="text-emerald-400">0 kg</span>
+                    </div>
+                    <input type="range" id="slider-occupant-mass" min="0" max="100" value="0" class="w-full accent-indigo-500 h-1.5 bg-slate-800 rounded-lg cursor-pointer" disabled>
+                    <p class="text-[10px] text-slate-500 mt-1">Enable "Add Person" above to place an occupant at center node.</p>
+                </div>
+
+                <!-- Gravity (g) -->
+                <div>
+                    <div class="flex justify-between text-xs font-semibold text-slate-300 mb-2">
+                        <span>Gravitational Field (g)</span>
+                        <span id="val-gravity" class="text-pink-400">9.8 m/s²</span>
+                    </div>
+                    <input type="range" id="slider-gravity" min="1.6" max="25" step="0.1" value="9.8" class="w-full accent-indigo-500 h-1.5 bg-slate-800 rounded-lg cursor-pointer">
+                    <p class="text-[10px] text-slate-500 mt-1">Simulate on Earth (9.8), Moon (1.6), or Jupiter (24.8).</p>
+                </div>
+            </div>
+
+            <!-- Mathematical Insight Alert -->
+            <div class="mt-4 p-3.5 bg-indigo-950/40 border border-indigo-800/30 rounded-xl flex gap-3 items-start">
+                <i class="fa-solid fa-circle-info text-indigo-400 mt-0.5"></i>
+                <div>
+                    <h4 class="text-xs font-bold text-indigo-300">The Infinite Tension Paradox</h4>
+                    <p class="text-[11px] text-slate-400 mt-0.5 leading-relaxed">
+                        Notice how the tension sky-rockets when you push the angle close to 90° (perfectly straight). It is mathematically impossible to have a perfectly horizontal rope because cos(90°) = 0, meaning an infinite force would be required to support even an extremely light rope!
+                    </p>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Right Column: Interactive Derivation & Code Panel (5 Cols) -->
+    <section class="lg:col-span-5 flex flex-col gap-6">
+        
+        <!-- Tab Switches -->
+        <div class="bg-slate-900 p-1.5 rounded-xl border border-slate-800 flex gap-1">
+            <button id="tab-deriv" class="flex-1 py-2 text-xs font-bold rounded-lg bg-indigo-600 text-white shadow transition-all flex items-center justify-center gap-1.5">
+                <i class="fa-solid fa-book-open"></i> Mathematical Analysis
+            </button>
+            <button id="tab-algo" class="flex-1 py-2 text-xs font-bold rounded-lg hover:bg-slate-800 text-slate-400 hover:text-slate-200 transition-all flex items-center justify-center gap-1.5">
+                <i class="fa-solid fa-laptop-code"></i> Computational Loop
+            </button>
+        </div>
+
+        <!-- Tab Content 1: Derivation & Interactive Player -->
+        <div id="panel-deriv" class="bg-slate-900 border border-slate-800 rounded-2xl p-6 shadow-xl flex-1 flex flex-col gap-4">
+            <div class="flex justify-between items-center">
+                <h3 class="text-sm font-bold text-slate-200 uppercase tracking-wider flex items-center gap-2">
+                    <i class="fa-solid fa-graduation-cap text-indigo-400"></i> Derivation Player
+                </h3>
+                <div class="flex items-center gap-1">
+                    <button id="btn-prev-step" class="p-1.5 rounded bg-slate-800 hover:bg-slate-700 text-slate-300 hover:text-white transition-all">
+                        <i class="fa-solid fa-chevron-left text-xs"></i>
+                    </button>
+                    <span id="step-indicator" class="text-xs font-mono font-bold bg-slate-950 px-2 py-1 rounded border border-slate-800">
+                        Step 1/5
+                    </span>
+                    <button id="btn-next-step" class="p-1.5 rounded bg-slate-800 hover:bg-slate-700 text-slate-300 hover:text-white transition-all">
+                        <i class="fa-solid fa-chevron-right text-xs"></i>
+                    </button>
+                </div>
+            </div>
+
+            <!-- Dynamic Lecture Screen -->
+            <div class="bg-slate-950 rounded-xl p-4 border border-slate-800 flex-1 flex flex-col justify-between min-h-[300px]">
+                <div id="lecture-speech" class="text-xs text-slate-300 leading-relaxed italic mb-4">
+                    <!-- Dynamic Text will go here -->
+                </div>
+
+                <!-- Math Equation Highlight Board -->
+                <div class="bg-slate-900/50 p-4 rounded-lg border border-slate-800 flex flex-col justify-center items-center min-h-[140px]">
+                    <div id="equation-display" class="w-full flex flex-col items-center gap-3">
+                        <!-- Dynamic Equation Graphic with Live Values -->
+                    </div>
+                </div>
+
+                <div class="mt-3 flex justify-between items-center text-[10px] text-slate-500">
+                    <span>*Values update in real-time with sliders</span>
+                    <span id="active-component" class="font-mono text-indigo-400">Active Element: Free Body Diagram</span>
+                </div>
+            </div>
+
+            <!-- Lecture Step Overview Cards -->
+            <div class="flex flex-col gap-2 max-h-[180px] overflow-y-auto pr-1">
+                <div id="step-card-0" class="p-2.5 rounded-lg border border-slate-800 bg-slate-950 cursor-pointer transition-all flex items-start gap-2 text-xs">
+                    <span class="font-bold text-slate-500">1.</span>
+                    <div>
+                        <p class="font-semibold text-slate-200">The Half-Rope Cut</p>
+                        <p class="text-[10px] text-slate-400">We make an imaginary midpoint slice to inspect tension balancing.</p>
+                    </div>
+                </div>
+                <div id="step-card-1" class="p-2.5 rounded-lg border border-slate-800 bg-slate-950 cursor-pointer transition-all flex items-start gap-2 text-xs">
+                    <span class="font-bold text-slate-500">2.</span>
+                    <div>
+                        <p class="font-semibold text-slate-200">Horizontal Force (X-Axis)</p>
+                        <p class="text-[10px] text-slate-400">Apply &Sigma;F_x = 0 to establish the ratio: T_mid = T_end * sin(&theta;)</p>
+                    </div>
+                </div>
+                <div id="step-card-2" class="p-2.5 rounded-lg border border-slate-800 bg-slate-950 cursor-pointer transition-all flex items-start gap-2 text-xs">
+                    <span class="font-bold text-slate-500">3.</span>
+                    <div>
+                        <p class="font-semibold text-slate-200">Vertical Force (Y-Axis)</p>
+                        <p class="text-[10px] text-slate-400">Apply &Sigma;F_y = 0 balancing gravitational force (m/2)*g with T_end * cos(&theta;)</p>
+                    </div>
+                </div>
+                <div id="step-card-3" class="p-2.5 rounded-lg border border-slate-800 bg-slate-950 cursor-pointer transition-all flex items-start gap-2 text-xs">
+                    <span class="font-bold text-slate-500">4.</span>
+                    <div>
+                        <p class="font-semibold text-slate-200">Resolve Anchor Tension (T_end)</p>
+                        <p class="text-[10px] text-slate-400">T_end = (m/2)*g / cos(&theta;). Resolves the force pulling on the tree hook.</p>
+                    </div>
+                </div>
+                <div id="step-card-4" class="p-2.5 rounded-lg border border-slate-800 bg-slate-950 cursor-pointer transition-all flex items-start gap-2 text-xs">
+                    <span class="font-bold text-slate-500">5.</span>
+                    <div>
+                        <p class="font-semibold text-slate-200">Resolve Midpoint Tension (T_mid)</p>
+                        <p class="text-[10px] text-slate-400">Combine equations to yield T_mid = (mg/2) * tan(&theta;).</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Tab Content 2: Computational Engine Details -->
+        <div id="panel-algo" class="bg-slate-900 border border-slate-800 rounded-2xl p-6 shadow-xl flex-1 flex flex-col gap-4 hidden">
+            <h3 class="text-sm font-bold text-slate-200 uppercase tracking-wider flex items-center gap-2">
+                <i class="fa-solid fa-gears text-indigo-400"></i> Numerical Engine (Verlet Chain Relaxer)
+            </h3>
+            
+            <p class="text-xs text-slate-400 leading-relaxed">
+                While human analysis is neat, a computer models the rope as a continuous elastic catenary. We achieve this using a <span class="text-emerald-400 font-semibold">Verlet Constraint Solver</span>.
+            </p>
+
+            <!-- Interactive Code Window -->
+            <div class="bg-slate-950 rounded-xl overflow-hidden border border-slate-800 flex-1 flex flex-col">
+                <div class="bg-slate-900 px-4 py-2 flex justify-between items-center border-b border-slate-800">
+                    <span class="text-[11px] font-mono text-indigo-400 font-bold">verlet_relaxer.js</span>
+                    <span class="text-[10px] bg-slate-800 text-slate-300 px-2 py-0.5 rounded">Active Loop</span>
+                </div>
+                <!-- Interactive live highlights -->
+                <div class="code-font text-[11px] text-slate-300 p-4 overflow-y-auto space-y-1.5 leading-normal flex-1">
+                    <div><span class="text-emerald-500">// 1. Apply Gravitational Forces</span></div>
+                    <div id="code-line-1" class="p-0.5 rounded transition-all"><span class="text-pink-500">node.pos.y</span> += gravity * dt * dt;</div>
+                    <div><span class="text-emerald-500">// 2. Relaxation Loop (Distance Constraint Solver)</span></div>
+                    <div id="code-line-2" class="p-0.5 rounded transition-all"><span class="text-indigo-400">let</span> dx = p2.x - p1.x, dy = p2.y - p1.y;</div>
+                    <div id="code-line-3" class="p-0.5 rounded transition-all"><span class="text-indigo-400">let</span> distance = Math.sqrt(dx * dx + dy * dy);</div>
+                    <div id="code-line-4" class="p-0.5 rounded transition-all"><span class="text-indigo-400">let</span> error = targetLength - distance;</div>
+                    <div id="code-line-5" class="p-0.5 rounded transition-all"><span class="text-indigo-400">let</span> correction = (error / distance) * 0.5;</div>
+                    <div id="code-line-6" class="p-0.5 rounded transition-all">p1.subtract(correction); p2.add(correction);</div>
+                    <div><span class="text-emerald-500">// 3. Calculate Node Tension forces</span></div>
+                    <div id="code-line-7" class="p-0.5 rounded transition-all">local_tension = spring_k * error;</div>
+                </div>
+            </div>
+
+            <!-- Real-time Diagnostic Telemetry -->
+            <div class="grid grid-cols-2 gap-3 bg-slate-950 p-3 rounded-xl border border-slate-800">
+                <div>
+                    <span class="text-[10px] text-slate-500 uppercase font-bold">Solver Iterations</span>
+                    <p class="text-sm font-bold text-slate-200 mt-0.5">32 steps / frame</p>
+                </div>
+                <div>
+                    <span class="text-[10px] text-slate-500 uppercase font-bold">System Convergence Error</span>
+                    <p id="telemetry-error" class="text-sm font-bold text-emerald-400 mt-0.5">0.00032%</p>
+                </div>
+                <div>
+                    <span class="text-[10px] text-slate-500 uppercase font-bold">Active Degrees of Freedom</span>
+                    <p id="telemetry-dof" class="text-sm font-bold text-slate-200 mt-0.5">42 coordinates</p>
+                </div>
+                <div>
+                    <span class="text-[10px] text-slate-500 uppercase font-bold">Stiffness Constant (k)</span>
+                    <p class="text-sm font-bold text-sky-400 mt-0.5">1200 N/m</p>
+                </div>
+            </div>
+        </div>
+    </section>
+</main>
+
+<footer class="border-t border-slate-800 bg-slate-900/40 py-4 text-center mt-auto">
+    <p class="text-xs text-slate-500">
+        Created for Physics & Computational Mechanics Curriculums. Drag, slide, and dissect mechanics on the fly.
+    </p>
+</footer>
+
+<script>
+// Main Configuration Elements
+const canvas = document.getElementById('physics-canvas');
+const ctx = canvas.getContext('2d');
+
+let systemMode = 'multisegment'; // 'analytical' (2 rigid pieces) vs 'multisegment' (relaxed chain)
+let showFBD = false;
+let hasPerson = false;
+let activeTab = 'deriv';
+
+// Physics State Variables
+let mass = 10;          // Rope mass (kg)
+let gravity = 9.8;      // Gravity m/s^2
+let occupantMass = 0;   // Person mass (kg)
+let targetTheta = 45;   // Target Angle (deg with vertical)
+
+// Step Player Lecture Scripts
+const lectureSteps = [
+    {
+        speech: "Let's lay in our hammock on a hot summer day. We have ropes hanging between two solid trees. In this first step, let's construct our Free Body Diagram (FBD) by conceptually slicing the hammock exactly in the middle! We isolate the left half.",
+        activeVar: "Free Body Diagram Split",
+        highlightType: "fbd-split"
+    },
+    {
+        speech: "Next, let's apply Newton's second law on the x-axis (&Sigma;F_x = 0). The midpoint tension (T_mid) pulls perfectly to the left. The tree anchor tension (T_end) pulls up-right at angle &theta;. Thus, T_mid - T_end * sin(&theta;) = 0.",
+        activeVar: "T_mid - T_end * sin(\u03b8) = 0",
+        highlightType: "f-x"
+    },
+    {
+        speech: "Now we look at vertical forces (&Sigma;F_y = 0). Since we only analyzed HALF the rope, we only consider half the rope's mass (m/2) acting downwards. T_end's vertical projection must counteract gravity: T_end * cos(&theta;) - (m/2)*g = 0.",
+        activeVar: "T_end * cos(\u03b8) - (m/2)*g = 0",
+        highlightType: "f-y"
+    },
+    {
+        speech: "Solving the y-axis equation is straightforward. We isolate T_end to find the tension pulling on the trees: T_end = (m/2)*g / cos(&theta;). Watch how T_end grows dynamically if you slide gravity or mass up!",
+        activeVar: "T_end = (mg/2) / cos(\u03b8)",
+        highlightType: "solve-tend"
+    },
+    {
+        speech: "Lastly, we substitute T_end back into our x-axis equation: T_mid = [ (mg)/(2 cos&theta;) ] * sin&theta;. This simplifies beautifully to T_mid = (mg/2) * tan(&theta;). Now you have solved both major stresses on the system!",
+        activeVar: "T_mid = (mg/2) * tan(\u03b8)",
+        highlightType: "solve-tmid"
+    }
+];
+let currentStep = 0;
+
+// Node Structs for Verlet Chain Solver
+class Node {
+    constructor(x, y) {
+        this.x = x;
+        this.y = y;
+        this.oldX = x;
+        this.oldY = y;
+        this.vx = 0;
+        this.vy = 0;
+        this.isFixed = false;
+        this.mass = 1.0;
+    }
+}
+
+let nodes = [];
+const numNodes = 21; // Number of discretization points for catenary curve simulation
+let fixedLeft = { x: 100, y: 150 };
+let fixedRight = { x: 500, y: 150 };
+
+function initChain() {
+    nodes = [];
+    const stepX = (fixedRight.x - fixedLeft.x) / (numNodes - 1);
+    const stepY = 0; // Start horizontal
+    
+    // Calculate custom rope length based on current targetTheta to match catenary shape visually
+    let dist = fixedRight.x - fixedLeft.x;
+    // Length formula based on a simplified approximation of Catenary slack
+    let rad = (targetTheta * Math.PI) / 180;
+    let ropeLength = dist / Math.sin(rad) * 0.95; 
+    if(ropeLength < dist + 10) ropeLength = dist + 10;
+
+    const restLength = ropeLength / (numNodes - 1);
+
+    for (let i = 0; i < numNodes; i++) {
+        let n = new Node(fixedLeft.x + i * stepX, fixedLeft.y + i * stepY);
+        if (i === 0 || i === numNodes - 1) {
+            n.isFixed = true;
+        }
+        // Assign masses (central point gets human load if present)
+        n.mass = mass / numNodes; 
+        nodes.push(n);
+    }
+}
+
+function solvePhysics() {
+    const dt = 0.16; // Fixed timestep simulation
+    const subSteps = 32; // Iteration solver for stiff rope constraints
+
+    // 1. Accumulate Gravitational Forces
+    for (let i = 0; i < numNodes; i++) {
+        let n = nodes[i];
+        if (!n.isFixed) {
+            // Check if center node has occupant
+            let nodeMass = n.mass;
+            if (hasPerson && i === Math.floor(numNodes / 2)) {
+                nodeMass += occupantMass;
+            }
+            // Simple Verlet force step
+            let tempX = n.x;
+            let tempY = n.y;
+            
+            let ax = 0;
+            let ay = gravity; 
+
+            n.x += (n.x - n.oldX) * 0.98 + ax * dt * dt;
+            n.y += (n.y - n.oldY) * 0.98 + ay * dt * dt;
+
+            n.oldX = tempX;
+            n.oldY = tempY;
+        }
+    }
+
+    // Dynamic Rope Catenary length matching targets
+    let dist = fixedRight.x - fixedLeft.x;
+    let rad = (targetTheta * Math.PI) / 180;
+    let ropeLength = dist / Math.sin(rad) * 0.94;
+    const restLength = ropeLength / (numNodes - 1);
+
+    // 2. Relax constraints (Distance verification)
+    let totalError = 0;
+    for (let step = 0; step < subSteps; step++) {
+        // Force bounds (trees must be locked down)
+        nodes[0].x = fixedLeft.x;
+        nodes[0].y = fixedLeft.y;
+        nodes[numNodes - 1].x = fixedRight.x;
+        nodes[numNodes - 1].y = fixedRight.y;
+
+        for (let i = 0; i < numNodes - 1; i++) {
+            let n1 = nodes[i];
+            let n2 = nodes[i + 1];
+
+            let dx = n2.x - n1.x;
+            let dy = n2.y - n1.y;
+            let d = Math.sqrt(dx * dx + dy * dy);
+            let error = restLength - d;
+            totalError += Math.abs(error);
+
+            if (d === 0) continue;
+            let percent = (error / d) * 0.5;
+            let ox = dx * percent;
+            let oy = dy * percent;
+
+            if (!n1.isFixed) {
+                n1.x -= ox;
+                n1.y -= oy;
+            }
+            if (!n2.isFixed) {
+                n2.x += ox;
+                n2.y += oy;
+            }
+        }
+    }
+    
+    // Update Telemetry Panel
+    document.getElementById('telemetry-error').innerText = `${(totalError / numNodes * 100).toFixed(5)}%`;
+}
+
+function getCalculations() {
+    // Total downward force acting on system
+    let activeG = gravity;
+    let totalMass = parseFloat(mass) + (hasPerson ? parseFloat(occupantMass) : 0);
+    
+    // Convert current selected angle to Radian
+    let thetaRad = (targetTheta * Math.PI) / 180;
+
+    // FBD values
+    let T_end = (totalMass * activeG) / (2 * Math.cos(thetaRad));
+    let T_mid = (totalMass * activeG * Math.tan(thetaRad)) / 2;
+
+    return {
+        t_end: T_end,
+        t_mid: T_mid,
+        totalMass: totalMass,
+        activeG: activeG,
+        thetaRad: thetaRad
+    };
+}
+
+function draw() {
+    // Clear Canvas
+    ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+    // Grab math readings
+    const data = getCalculations();
+    
+    // Responsive Canvas dimensions update
+    const canvasWidth = canvas.clientWidth;
+    const canvasHeight = canvas.clientHeight;
+    if (canvas.width !== canvasWidth || canvas.height !== canvasHeight) {
+        canvas.width = canvasWidth;
+        canvas.height = canvasHeight;
+        // Dynamically shift Trees to fit sizes
+        fixedLeft = { x: 80, y: 150 };
+        fixedRight = { x: canvas.width - 80, y: 150 };
+        initChain();
+    }
+
+    // Draw sky/background details
+    ctx.fillStyle = '#0f172a';
+    ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+    // Draw ground level
+    ctx.fillStyle = '#020617';
+    ctx.beginPath();
+    ctx.ellipse(canvas.width / 2, canvas.height + 100, canvas.width * 0.7, 180, 0, 0, Math.PI * 2);
+    ctx.fill();
+
+    // Draw Trees
+    drawTree(fixedLeft.x - 20, fixedLeft.y - 50, fixedLeft.y + 180, 'left');
+    drawTree(fixedRight.x + 20, fixedRight.y - 50, fixedRight.y + 180, 'right');
+
+    // Handle physics loop if multisegment active
+    if (systemMode === 'multisegment') {
+        solvePhysics();
+    }
+
+    // DRAW THE HAMMOCK / ROPE (Check mode style)
+    if (showFBD) {
+        drawFBDMode(data);
+    } else {
+        drawFullHammockMode(data);
+    }
+
+    // Render step-specific vector outlines
+    renderStepOverlays(data);
+
+    requestAnimationFrame(draw);
+}
+
+function drawFBDMode(data) {
+    // Cut Mode focuses on left side of rope
+    const midIdx = Math.floor(numNodes / 2);
+    
+    // Draw Ghost Right Half
+    ctx.strokeStyle = 'rgba(71, 85, 105, 0.15)';
+    ctx.lineWidth = 2;
+    ctx.setLineDash([5, 5]);
+    ctx.beginPath();
+    ctx.moveTo(nodes[midIdx].x, nodes[midIdx].y);
+    for (let i = midIdx; i < numNodes; i++) {
+        ctx.lineTo(nodes[i].x, nodes[i].y);
+    }
+    ctx.stroke();
+    ctx.setLineDash([]); // Reset
+
+    // Draw Real Left Half (Colored by tension stress)
+    ctx.lineWidth = 4;
+    for (let i = 0; i < midIdx; i++) {
+        let n1 = nodes[i];
+        let n2 = nodes[i+1];
+        
+        // Calculate tension gradient (stress visualization)
+        let percent = i / midIdx; // Higher near anchor point
+        let stressColor = `rgb(${Math.floor(100 + percent * 155)}, ${Math.floor(120 - percent * 60)}, ${Math.floor(255 - percent * 100)})`;
+        
+        ctx.strokeStyle = stressColor;
+        ctx.beginPath();
+        ctx.moveTo(n1.x, n1.y);
+        ctx.lineTo(n2.x, n2.y);
+        ctx.stroke();
+    }
+
+    // Highlight Mid-point cut plane
+    const midX = nodes[midIdx].x;
+    const midY = nodes[midIdx].y;
+    
+    ctx.strokeStyle = '#f43f5e';
+    ctx.lineWidth = 1.5;
+    ctx.setLineDash([4, 4]);
+    ctx.beginPath();
+    ctx.moveTo(midX, midY - 30);
+    ctx.lineTo(midX, midY + 30);
+    ctx.stroke();
+    ctx.setLineDash([]);
+
+    // Label Cut line
+    ctx.fillStyle = '#f43f5e';
+    ctx.font = 'bold 9px monospace';
+    ctx.fillText("IMAGINARY CUT", midX - 35, midY - 38);
+
+    // Draw Vector forces on Left Segment (Tmid, Tend, gravity force)
+    const startX = nodes[0].x;
+    const startY = nodes[0].y;
+
+    // 1. T_end anchor vector (Pointing top-left towards tree attachment point)
+    let angleRad = Math.atan2(startY - nodes[1].y, nodes[1].x - startX);
+    let arrowLength = Math.min(60 + data.t_end * 0.3, 110);
+    let tEndVectorX = startX + Math.cos(angleRad) * arrowLength;
+    let tEndVectorY = startY + Math.sin(angleRad) * arrowLength;
+    
+    drawArrow(startX, startY, startX - (startX - nodes[2].x)*3.5, startY - (startY - nodes[2].y)*3.5, '#ec4899', 'T_end (' + data.t_end.toFixed(1) + ' N)');
+
+    // 2. T_mid vector pulling to the right (at the cut center)
+    drawArrow(midX, midY, midX + 60, midY, '#6366f1', 'T_mid (' + data.t_mid.toFixed(1) + ' N)');
+
+    // 3. Gravity acting on isolated half mass (m/2) at center of gravity
+    const cgX = (startX + midX) / 2;
+    const cgY = (startY + midY) / 2 + 15;
+    let gravValue = (data.totalMass / 2) * data.activeG;
+    drawArrow(cgX, cgY, cgX, cgY + 50, '#10b981', 'W = (m/2)g (' + gravValue.toFixed(1) + ' N)');
+
+    // Draw reference horizontal/vertical lines for theta angles
+    ctx.strokeStyle = '#475569';
+    ctx.lineWidth = 1;
+    ctx.setLineDash([3, 3]);
+    ctx.beginPath();
+    ctx.moveTo(startX, startY);
+    ctx.lineTo(startX, startY + 60); // vertical drop
+    ctx.stroke();
+    ctx.setLineDash([]);
+
+    // Draw theta arc
+    ctx.strokeStyle = '#38bdf8';
+    ctx.lineWidth = 1.5;
+    ctx.beginPath();
+    ctx.arc(startX, startY, 30, Math.PI / 2, Math.PI / 2 + (targetTheta * Math.PI)/180);
+    ctx.stroke();
+    ctx.fillStyle = '#38bdf8';
+    ctx.font = 'bold 11px sans-serif';
+    ctx.fillText("θ", startX + 10, startY + 45);
+}
+
+function drawFullHammockMode(data) {
+    // Render Complete rope chain
+    ctx.lineWidth = 4.5;
+    for (let i = 0; i < numNodes - 1; i++) {
+        let n1 = nodes[i];
+        let n2 = nodes[i+1];
+        
+        // Dynamic Stress Color heatmap (Stress grows near tree connections)
+        let centerDist = Math.abs(i - numNodes / 2);
+        let stress = centerDist / (numNodes / 2); // 0 at middle, 1 at ends
+        let ropeColor = `rgb(${Math.floor(100 + stress * 140)}, ${Math.floor(140 - stress * 80)}, ${Math.floor(255 - stress * 150)})`;
+        
+        ctx.strokeStyle = ropeColor;
+        ctx.beginPath();
+        ctx.moveTo(n1.x, n1.y);
+        ctx.lineTo(n2.x, n2.y);
+        ctx.stroke();
+    }
+
+    // Render human occupant in center node if active
+    if (hasPerson) {
+        const midIdx = Math.floor(numNodes / 2);
+        const occupantX = nodes[midIdx].x;
+        const occupantY = nodes[midIdx].y;
+        
+        // Draw elegant stylized figure
+        ctx.fillStyle = '#10b981';
+        ctx.strokeStyle = '#10b981';
+        ctx.lineWidth = 3;
+        
+        // Body (head)
+        ctx.beginPath();
+        ctx.arc(occupantX, occupantY - 25, 10, 0, Math.PI * 2);
+        ctx.fill();
+        // Torso/Limbs
+        ctx.beginPath();
+        ctx.moveTo(occupantX, occupantY - 15);
+        ctx.lineTo(occupantX, occupantY + 5);
+        // Arms extending to hammock
+        ctx.moveTo(occupantX - 15, occupantY - 5);
+        ctx.lineTo(occupantX + 15, occupantY - 5);
+        ctx.stroke();
+        
+        // Glow effect
+        ctx.shadowColor = '#10b981';
+        ctx.shadowBlur = 15;
+        ctx.strokeStyle = '#10b981';
+        ctx.stroke();
+        ctx.shadowBlur = 0; // reset
+    }
+}
+
+function drawTree(x, y, h, type) {
+    // Draw wood bark
+    ctx.fillStyle = '#451a03';
+    ctx.beginPath();
+    ctx.roundRect(x, y, 40, h, 8);
+    ctx.fill();
+
+    // Leaves / foliage accent
+    ctx.fillStyle = '#064e3b';
+    ctx.beginPath();
+    ctx.arc(x + 20, y - 20, 50, 0, Math.PI * 2);
+    ctx.fill();
+
+    // Connection loop hook
+    ctx.fillStyle = '#64748b';
+    ctx.beginPath();
+    let hookX = type === 'left' ? x + 40 : x;
+    ctx.arc(hookX, y + 50, 6, 0, Math.PI * 2);
+    ctx.fill();
+}
+
+function drawArrow(fromx, fromy, tox, toy, color, text) {
+    let headlen = 10; // length of head in pixels
+    let dx = tox - fromx;
+    let dy = toy - fromy;
+    let angle = Math.atan2(dy, dx);
+
+    ctx.strokeStyle = color;
+    ctx.lineWidth = 3;
+    ctx.beginPath();
+    ctx.moveTo(fromx, fromy);
+    ctx.lineTo(tox, toy);
+    ctx.stroke();
+
+    // Draw arrow tips
+    ctx.fillStyle = color;
+    ctx.beginPath();
+    ctx.moveTo(tox, toy);
+    ctx.lineTo(tox - headlen * Math.cos(angle - Math.PI / 6), toy - headlen * Math.sin(angle - Math.PI / 6));
+    ctx.lineTo(tox - headlen * Math.cos(angle + Math.PI / 6), toy - headlen * Math.sin(angle + Math.PI / 6));
+    ctx.fill();
+
+    // Render text label
+    if (text) {
+        ctx.fillStyle = '#ffffff';
+        ctx.font = '10px monospace';
+        ctx.fillText(text, tox + 5, toy + (dy < 0 ? -5 : 10));
+    }
+}
+
+function renderStepOverlays(data) {
+    const stepObj = lectureSteps[currentStep];
+    const midIdx = Math.floor(numNodes / 2);
+    
+    switch(stepObj.highlightType) {
+        case "fbd-split":
+            // Circle the split midpoint
+            ctx.strokeStyle = '#f43f5e';
+            ctx.lineWidth = 1.5;
+            ctx.beginPath();
+            ctx.arc(nodes[midIdx].x, nodes[midIdx].y, 25, 0, Math.PI*2);
+            ctx.stroke();
+            break;
+        case "f-x":
+            // Highlight T_mid and dynamic Tend components
+            ctx.shadowColor = '#6366f1';
+            ctx.shadowBlur = 10;
+            ctx.strokeStyle = '#6366f1';
+            ctx.stroke();
+            ctx.shadowBlur = 0;
+            break;
+    }
+}
+
+function syncGUIAndEquations() {
+    const data = getCalculations();
+    
+    // Readout cards inside standard views
+    document.getElementById('readout-theta').innerText = `${targetTheta.toFixed(1)}°`;
+    document.getElementById('readout-tmid').innerText = `${data.t_mid.toFixed(1)} N`;
+    document.getElementById('readout-tend').innerText = `${data.t_end.toFixed(1)} N`;
+
+    // Highlight Step Overview cards
+    for(let i=0; i<5; i++) {
+        let card = document.getElementById(`step-card-${i}`);
+        if(i === currentStep) {
+            card.classList.add('bg-indigo-950/60', 'border-indigo-500/50');
+            card.classList.remove('bg-slate-950', 'border-slate-800');
+        } else {
+            card.classList.remove('bg-indigo-950/60', 'border-indigo-500/50');
+            card.classList.add('bg-slate-950', 'border-slate-800');
+        }
+    }
+
+    // Dynamic LaTeX visual formulas updated using customized HTML blocks
+    const stepObj = lectureSteps[currentStep];
+    document.getElementById('lecture-speech').innerText = stepObj.speech;
+    document.getElementById('active-component').innerText = `Sync Value: ${stepObj.activeVar}`;
+    
+    const eqDiv = document.getElementById('equation-display');
+    
+    // Select correct custom rendered block
+    let activeGStr = data.activeG.toFixed(1);
+    let halfMassStr = (data.totalMass / 2).toFixed(1);
+    let totalMassStr = data.totalMass.toFixed(1);
+
+    switch(currentStep) {
+        case 0: // Setup / FBD
+            eqDiv.innerHTML = `
+                <div class="text-center">
+                    <p class="text-[11px] text-slate-400 mb-2">FREE BODY DIAGRAM RATIOS</p>
+                    <div class="flex gap-4 items-center">
+                        <span class="text-xs px-2.5 py-1 bg-slate-800 text-indigo-300 rounded-md">Half Rope Mass: ${halfMassStr} kg</span>
+                        <span class="text-xs px-2.5 py-1 bg-slate-800 text-sky-300 rounded-md">&theta; = ${targetTheta}°</span>
+                    </div>
+                </div>
+            `;
+            break;
+        case 1: // Sum forces x
+            eqDiv.innerHTML = `
+                <div class="text-center">
+                    <p class="text-[11px] text-slate-400 mb-2">HORIZONTAL STATIC EQUILIBRIUM (&Sigma;F_x = 0)</p>
+                    <p class="text-lg font-bold text-slate-100">T<sub>mid</sub> - T<sub>end</sub> &sdot; sin(${targetTheta}°) = 0</p>
+                    <p class="text-xs text-indigo-400 mt-2 font-mono">T<sub>mid</sub> = T<sub>end</sub> &sdot; ${(Math.sin(data.thetaRad)).toFixed(3)}</p>
+                </div>
+            `;
+            break;
+        case 2: // Sum forces y
+            eqDiv.innerHTML = `
+                <div class="text-center">
+                    <p class="text-[11px] text-slate-400 mb-2">VERTICAL STATIC EQUILIBRIUM (&Sigma;F_y = 0)</p>
+                    <p class="text-lg font-bold text-slate-100">T<sub>end</sub> &sdot; cos(${targetTheta}°) - (${halfMassStr} &sdot; ${activeGStr}) = 0</p>
+                    <p class="text-xs text-pink-400 mt-2 font-mono">Upward Anchor Lift = ${(halfMassStr * data.activeG).toFixed(1)} N</p>
+                </div>
+            `;
+            break;
+        case 3: // Solve Tend
+            eqDiv.innerHTML = `
+                <div class="text-center">
+                    <p class="text-[11px] text-slate-400 mb-2">SOLVING ANCHOR LOAD (T<sub>end</sub>)</p>
+                    <div class="flex items-center gap-2">
+                        <span class="text-lg font-bold">T<sub>end</sub> =</span>
+                        <div class="inline-flex flex-col items-center justify-center border-l border-r border-slate-700 px-2">
+                            <span class="text-xs font-semibold pb-0.5">${halfMassStr} &sdot; ${activeGStr}</span>
+                            <hr class="w-full border-slate-700">
+                            <span class="text-xs font-semibold pt-0.5">cos(${targetTheta}°)</span>
+                        </div>
+                        <span class="text-lg font-bold text-pink-400"> = ${data.t_end.toFixed(1)} N</span>
+                    </div>
+                </div>
+            `;
+            break;
+        case 4: // Solve Tmid
+            eqDiv.innerHTML = `
+                <div class="text-center">
+                    <p class="text-[11px] text-slate-400 mb-1">SOLVING MIDPOINT RIGIDITY (T<sub>mid</sub>)</p>
+                    <div class="flex flex-col items-center gap-2">
+                        <p class="text-xs font-mono">T<sub>mid</sub> = (m &sdot; g / 2) &sdot; tan(&theta;)</p>
+                        <p class="text-lg font-bold text-indigo-400">${data.t_mid.toFixed(1)} N</p>
+                    </div>
+                </div>
+            `;
+            break;
+    }
+}
+
+// Sliders Interaction Hooks
+document.getElementById('slider-theta').addEventListener('input', (e) => {
+    targetTheta = parseFloat(e.target.value);
+    document.getElementById('val-theta').innerText = `${targetTheta}°`;
+    initChain();
+    syncGUIAndEquations();
+});
+
+document.getElementById('slider-mass').addEventListener('input', (e) => {
+    mass = parseFloat(e.target.value);
+    document.getElementById('val-mass').innerText = `${mass} kg`;
+    initChain();
+    syncGUIAndEquations();
+});
+
+document.getElementById('slider-gravity').addEventListener('input', (e) => {
+    gravity = parseFloat(e.target.value);
+    document.getElementById('val-gravity').innerText = `${gravity} m/s²`;
+    syncGUIAndEquations();
+});
+
+document.getElementById('slider-occupant-mass').addEventListener('input', (e) => {
+    occupantMass = parseFloat(e.target.value);
+    document.getElementById('val-occupant-mass').innerText = `${occupantMass} kg`;
+    syncGUIAndEquations();
+});
+
+// Extra Interaction Buttons
+document.getElementById('btn-toggle-fbd').addEventListener('click', () => {
+    showFBD = !showFBD;
+    let btn = document.getElementById('btn-toggle-fbd');
+    if(showFBD) {
+        btn.classList.add('bg-indigo-700', 'ring-2', 'ring-indigo-500/50');
+        btn.innerHTML = `<i class="fa-solid fa-eye-slash"></i> Hide FBD Model`;
+    } else {
+        btn.classList.remove('bg-indigo-700', 'ring-2', 'ring-indigo-500/50');
+        btn.innerHTML = `<i class="fa-solid fa-vector-square"></i> Toggle FBD Analysis`;
+    }
+});
+
+document.getElementById('btn-toggle-person').addEventListener('click', () => {
+    hasPerson = !hasPerson;
+    let btn = document.getElementById('btn-toggle-person');
+    let slider = document.getElementById('slider-occupant-mass');
+    
+    if(hasPerson) {
+        occupantMass = 60;
+        slider.disabled = false;
+        slider.value = 60;
+        document.getElementById('val-occupant-mass').innerText = `60 kg`;
+        btn.classList.add('bg-emerald-600', 'text-white', 'border-emerald-500');
+        btn.classList.remove('bg-slate-800', 'text-slate-200');
+    } else {
+        occupantMass = 0;
+        slider.disabled = true;
+        slider.value = 0;
+        document.getElementById('val-occupant-mass').innerText = `0 kg`;
+        btn.classList.remove('bg-emerald-600', 'text-white', 'border-emerald-500');
+        btn.classList.add('bg-slate-800', 'text-slate-200');
+    }
+    syncGUIAndEquations();
+});
+
+// Interactive dynamic step selections
+document.getElementById('btn-next-step').addEventListener('click', () => {
+    if(currentStep < lectureSteps.length - 1) {
+        currentStep++;
+        updateStepUI();
+    }
+});
+
+document.getElementById('btn-prev-step').addEventListener('click', () => {
+    if(currentStep > 0) {
+        currentStep--;
+        updateStepUI();
+    }
+});
+
+// Connect Step Cards
+for(let i=0; i<5; i++) {
+    document.getElementById(`step-card-${i}`).addEventListener('click', () => {
+        currentStep = i;
+        updateStepUI();
+    });
+}
+
+function updateStepUI() {
+    document.getElementById('step-indicator').innerText = `Step ${currentStep + 1}/5`;
+    syncGUIAndEquations();
+
+    // Trigger code line highlights when switching steps
+    for(let line=1; line<=7; line++) {
+        document.getElementById(`code-line-${line}`).classList.remove('bg-indigo-500/20', 'text-white');
+    }
+    
+    // Step specific computational highlights
+    if(currentStep === 1) {
+        document.getElementById('code-line-2').classList.add('bg-indigo-500/20', 'text-white');
+    } else if(currentStep === 2) {
+        document.getElementById('code-line-1').classList.add('bg-indigo-500/20', 'text-white');
+    } else if(currentStep >= 3) {
+        document.getElementById('code-line-7').classList.add('bg-indigo-500/20', 'text-white');
+    }
+}
+
+// Tab Switches Implementation
+document.getElementById('tab-deriv').addEventListener('click', () => {
+    activeTab = 'deriv';
+    document.getElementById('tab-deriv').classList.add('bg-indigo-600', 'text-white');
+    document.getElementById('tab-deriv').classList.remove('hover:bg-slate-800', 'text-slate-400');
+    document.getElementById('tab-algo').classList.add('hover:bg-slate-800', 'text-slate-400');
+    document.getElementById('tab-algo').classList.remove('bg-indigo-600', 'text-white');
+
+    document.getElementById('panel-deriv').classList.remove('hidden');
+    document.getElementById('panel-algo').classList.add('hidden');
+});
+
+document.getElementById('tab-algo').addEventListener('click', () => {
+    activeTab = 'algo';
+    document.getElementById('tab-algo').classList.add('bg-indigo-600', 'text-white');
+    document.getElementById('tab-algo').classList.remove('hover:bg-slate-800', 'text-slate-400');
+    document.getElementById('tab-deriv').classList.add('hover:bg-slate-800', 'text-slate-400');
+    document.getElementById('tab-deriv').classList.remove('bg-indigo-600', 'text-white');
+
+    document.getElementById('panel-algo').classList.remove('hidden');
+    document.getElementById('panel-deriv').classList.add('hidden');
+});
+
+// Launch on screen initialization
+window.onload = function() {
+    canvas.width = canvas.clientWidth;
+    canvas.height = canvas.clientHeight;
+    
+    // Dynamic coordinate settings for desktop vs responsive screens
+    fixedLeft = { x: 80, y: 150 };
+    fixedRight = { x: canvas.width - 80, y: 150 };
+
+    initChain();
+    updateStepUI();
+    draw();
+};
+</script>
+</body>
+</html>

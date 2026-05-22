@@ -1,0 +1,817 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Atwood Machine Interactive Physics Simulator</title>
+  <!-- Tailwind CSS for UI styling -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  <!-- FontAwesome for standard icons -->
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  <!-- KaTeX for crisp LaTeX rendering -->
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.8/dist/katex.min.css">
+  <script src="https://cdn.jsdelivr.net/npm/katex@0.16.8/dist/katex.min.js" defer></script>
+  <script src="https://cdn.jsdelivr.net/npm/katex@0.16.8/dist/contrib/auto-render.min.js" defer></script>
+  <style>
+    /* Custom Scrollbar for side panel */
+    ::-webkit-scrollbar {
+      width: 6px;
+    }
+    ::-webkit-scrollbar-track {
+      background: #1e293b;
+    }
+    ::-webkit-scrollbar-thumb {
+      background: #475569;
+      border-radius: 3px;
+    }
+    ::-webkit-scrollbar-thumb:hover {
+      background: #64748b;
+    }
+    /* Pulsing effect for active steps */
+    @keyframes pulse-border {
+      0%, 100% { border-color: rgba(59, 130, 246, 0.5); }
+      50% { border-color: rgba(59, 130, 246, 1); }
+    }
+    .active-step {
+      animation: pulse-border 2s infinite;
+      border-width: 2px;
+    }
+    /* Prevent KaTeX overflow or clipping inside compact flex layouts */
+    .katex-display {
+      margin: 0.5em 0 !important;
+      overflow-x: auto;
+      overflow-y: hidden;
+    }
+  </style>
+</head>
+<body class="bg-slate-950 text-slate-100 min-h-screen flex flex-col font-sans overflow-x-hidden">
+
+  <!-- Header -->
+  <header class="bg-slate-900 border-b border-slate-800 py-4 px-6 flex justify-between items-center shadow-lg shrink-0">
+    <div class="flex items-center space-x-3">
+      <div class="bg-blue-600 p-2 rounded-lg text-white">
+        <i class="fa-solid fa-calculator text-xl"></i>
+      </div>
+      <div>
+        <h1 class="text-xl font-extrabold tracking-tight bg-gradient-to-r from-blue-400 to-indigo-400 bg-clip-text text-transparent">Atwood Machine</h1>
+        <p class="text-xs text-slate-400">Step-by-step Dynamical Solver & Simulator</p>
+      </div>
+    </div>
+    <div class="flex items-center space-x-4">
+      <span class="text-xs px-2.5 py-1 rounded-full bg-blue-900/40 text-blue-300 border border-blue-800/50">
+        <i class="fa-solid fa-graduation-cap mr-1"></i> Expert mode active
+      </span>
+    </div>
+  </header>
+
+  <!-- Main Container -->
+  <div class="flex-1 flex flex-col lg:flex-row min-h-0 w-full overflow-hidden">
+    
+    <!-- Left Sidebar: Controls & Live Variables -->
+    <aside class="w-full lg:w-80 bg-slate-900/60 p-5 border-r border-slate-800 flex flex-col space-y-6 overflow-y-auto shrink-0">
+      
+      <!-- System Controls -->
+      <div>
+        <h2 class="text-xs font-semibold text-slate-400 uppercase tracking-wider mb-3">Simulation Parameters</h2>
+        <div class="space-y-4">
+          <!-- Mass 1 Control -->
+          <div>
+            <div class="flex justify-between items-center mb-1">
+              <label class="text-sm text-slate-300 font-medium">Mass 1 ($m_1$)</label>
+              <span id="m1-val" class="text-sm font-bold text-red-400">15.0 kg</span>
+            </div>
+            <input type="range" id="m1-slider" min="1" max="50" step="0.1" value="15" 
+                   class="w-full h-1.5 bg-slate-800 rounded-lg appearance-none cursor-pointer accent-red-500">
+          </div>
+
+          <!-- Mass 2 Control -->
+          <div>
+            <div class="flex justify-between items-center mb-1">
+              <label class="text-sm text-slate-300 font-medium">Mass 2 ($m_2$)</label>
+              <span id="m2-val" class="text-sm font-bold text-emerald-400">10.0 kg</span>
+            </div>
+            <input type="range" id="m2-slider" min="1" max="50" step="0.1" value="10" 
+                   class="w-full h-1.5 bg-slate-800 rounded-lg appearance-none cursor-pointer accent-emerald-500">
+          </div>
+
+          <!-- Gravity Control -->
+          <div>
+            <div class="flex justify-between items-center mb-1">
+              <label class="text-sm text-slate-300 font-medium">Gravity ($g$)</label>
+              <span id="g-val" class="text-sm font-bold text-blue-400">9.81 m/s²</span>
+            </div>
+            <input type="range" id="g-slider" min="0" max="25" step="0.1" value="9.8" 
+                   class="w-full h-1.5 bg-slate-800 rounded-lg appearance-none cursor-pointer accent-blue-500">
+          </div>
+        </div>
+      </div>
+
+      <!-- Quick Set Presets -->
+      <div>
+        <h2 class="text-xs font-semibold text-slate-400 uppercase tracking-wider mb-2">Presets</h2>
+        <div class="grid grid-cols-2 gap-2">
+          <button onclick="setPreset(15, 10)" class="text-xs py-1.5 px-2 bg-slate-800 hover:bg-slate-700 rounded transition text-left">
+            <i class="fa-solid fa-scale-unbalanced mr-1 text-red-400"></i> $m_1 > m_2$
+          </button>
+          <button onclick="setPreset(10, 15)" class="text-xs py-1.5 px-2 bg-slate-800 hover:bg-slate-700 rounded transition text-left">
+            <i class="fa-solid fa-scale-unbalanced-flip mr-1 text-emerald-400"></i> $m_1 < m_2$
+          </button>
+          <button onclick="setPreset(12, 12)" class="text-xs py-1.5 px-2 bg-slate-800 hover:bg-slate-700 rounded transition text-left">
+            <i class="fa-solid fa-scale-balanced mr-1 text-blue-400"></i> $m_1 = m_2$
+          </button>
+          <button onclick="setPreset(40, 5)" class="text-xs py-1.5 px-2 bg-slate-800 hover:bg-slate-700 rounded transition text-left">
+            <i class="fa-solid fa-meteor mr-1 text-amber-500"></i> Extreme Delta
+          </button>
+        </div>
+      </div>
+
+      <!-- Live Physics Engine Variables -->
+      <div class="bg-slate-900/90 rounded-xl p-4 border border-slate-800">
+        <h3 class="text-xs font-semibold text-slate-400 uppercase tracking-wider mb-3">Live Observables</h3>
+        <div class="space-y-3">
+          <div class="flex justify-between items-center text-sm">
+            <span class="text-slate-400">Acceleration ($a$)</span>
+            <span id="live-accel" class="font-mono font-bold text-yellow-400">-- m/s²</span>
+          </div>
+          <div class="flex justify-between items-center text-sm">
+            <span class="text-slate-400">Tension ($T$)</span>
+            <span id="live-tension" class="font-mono font-bold text-cyan-400">-- N</span>
+          </div>
+          <div class="flex justify-between items-center text-sm">
+            <span class="text-slate-400">Velocity ($v$)</span>
+            <span id="live-velocity" class="font-mono font-bold text-purple-400">0.00 m/s</span>
+          </div>
+          <div class="flex justify-between items-center text-sm">
+            <span class="text-slate-400">Position Delta ($\Delta y$)</span>
+            <span id="live-pos" class="font-mono font-bold text-indigo-400">0.00 m</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- Simulation Action Buttons -->
+      <div class="flex flex-col gap-2 pt-2">
+        <div class="flex gap-2">
+          <button id="btn-play-pause" class="flex-1 py-2 bg-blue-600 hover:bg-blue-500 rounded-lg text-white font-semibold transition flex items-center justify-center gap-2">
+            <i id="play-icon" class="fa-solid fa-play"></i>
+            <span id="play-text">Start</span>
+          </button>
+          <button id="btn-reset" class="py-2 px-3 bg-slate-800 hover:bg-slate-700 rounded-lg text-slate-300 transition flex items-center justify-center">
+            <i class="fa-solid fa-rotate-left"></i>
+          </button>
+        </div>
+        <div class="flex gap-1.5 items-center justify-between text-xs text-slate-500">
+          <span>Boundary Wrap Limit: 1.5m</span>
+          <button onclick="resetPosition()" class="text-blue-400 hover:underline">Reset Pos</button>
+        </div>
+      </div>
+
+    </aside>
+
+    <!-- Center Canvas: Interactive Physics Simulator -->
+    <main class="flex-1 bg-slate-950 flex flex-col p-4 relative overflow-hidden min-h-[350px]">
+      
+      <!-- Interactive Toggle Panels -->
+      <div class="absolute top-6 left-6 z-10 flex gap-2 flex-wrap">
+        <button id="toggle-fbd" class="text-xs px-3 py-1.5 bg-slate-900 border border-slate-700 rounded-full flex items-center gap-1.5 hover:bg-slate-800 text-blue-400">
+          <i class="fa-solid fa-arrows-up-down"></i> Force Diagrams
+        </button>
+        <button id="toggle-vectors" class="text-xs px-3 py-1.5 bg-slate-900 border border-slate-700 rounded-full flex items-center gap-1.5 hover:bg-slate-800 text-purple-400">
+          <i class="fa-solid fa-arrows-to-dot"></i> Coordinate Systems
+        </button>
+        <button id="toggle-ideal" class="text-xs px-3 py-1.5 bg-slate-900 border border-slate-700 rounded-full flex items-center gap-1.5 hover:bg-slate-800 text-emerald-400">
+          <i class="fa-solid fa-circle-check"></i> Ideal Rope/Pulley
+        </button>
+      </div>
+
+      <!-- Real-time Status/System state -->
+      <div class="absolute top-6 right-6 z-10 hidden md:block">
+        <div class="bg-slate-900/80 backdrop-blur-md border border-slate-800 px-3 py-1.5 rounded-lg text-xs text-slate-400">
+          Current State: <span id="sys-state-badge" class="text-emerald-400 font-bold">Stable Equilibrium</span>
+        </div>
+      </div>
+
+      <!-- Simulator Canvas Container -->
+      <div class="flex-1 w-full h-full relative rounded-2xl bg-gradient-to-b from-slate-950 to-slate-900 border border-slate-800 flex items-center justify-center">
+        <canvas id="atwood-canvas" class="w-full h-full absolute inset-0 rounded-2xl"></canvas>
+      </div>
+
+    </main>
+
+    <!-- Right Sidebar: Interactive Step-by-Step Mathematical Solver -->
+    <section class="w-full lg:w-96 bg-slate-900 border-l border-slate-800 flex flex-col overflow-hidden shrink-0">
+      
+      <!-- Tab Header -->
+      <div class="bg-slate-900 border-b border-slate-800 p-4 flex justify-between items-center shrink-0">
+        <div class="flex items-center space-x-2">
+          <i class="fa-solid fa-book-open text-blue-500"></i>
+          <h2 class="font-bold text-sm">Step-by-Step Physics Solver</h2>
+        </div>
+        <span class="text-[10px] bg-slate-800 text-slate-400 px-2 py-0.5 rounded uppercase font-bold tracking-wider">Newtonian</span>
+      </div>
+
+      <!-- Analytical Step Process Container -->
+      <div class="flex-1 overflow-y-auto p-4 space-y-4">
+        
+        <!-- Step 1 -->
+        <div id="step-card-1" class="bg-slate-950/50 rounded-xl p-4 border border-slate-800 hover:border-slate-700 transition">
+          <div class="flex items-center justify-between mb-2">
+            <span class="text-xs font-semibold text-blue-500">Step 1</span>
+            <span class="text-[10px] bg-blue-900/30 text-blue-300 px-1.5 py-0.5 rounded">Frictionless Check</span>
+          </div>
+          <h3 class="text-sm font-semibold text-slate-100 mb-1">State Physical Assumptions</h3>
+          <p class="text-xs text-slate-400 leading-relaxed">
+            Assume rope and pulley are completely frictionless. The pulley remains at static rest ($P = 0$), so we focus strictly on the dynamics of $m_1$ and $m_2$.
+          </p>
+        </div>
+
+        <!-- Step 2 -->
+        <div id="step-card-2" class="bg-slate-950/50 rounded-xl p-4 border border-slate-800 hover:border-slate-700 transition">
+          <div class="flex items-center justify-between mb-2">
+            <span class="text-xs font-semibold text-blue-500">Step 2</span>
+            <span class="text-[10px] bg-indigo-900/30 text-indigo-300 px-1.5 py-0.5 rounded">Action-Reaction Pairs</span>
+          </div>
+          <h3 class="text-sm font-semibold text-slate-100 mb-1">Identify Active Force Fields</h3>
+          <p class="text-xs text-slate-400 leading-relaxed">
+            The tension force vector acting upward from the masses to the rope forms an action-reaction pair matching Newton's Third Law.
+          </p>
+          <div class="mt-2 text-xs font-mono text-cyan-400 bg-slate-900/60 p-2 rounded">
+            $T_{r,1} = T_{1,r} \quad \text{and} \quad T_{r,2} = T_{2,r} = T$
+          </div>
+        </div>
+
+        <!-- Step 3 -->
+        <div id="step-card-3" class="bg-slate-950/50 rounded-xl p-4 border border-slate-800 hover:border-slate-700 transition">
+          <div class="flex items-center justify-between mb-2">
+            <span class="text-xs font-semibold text-blue-500">Step 3</span>
+            <span class="text-[10px] bg-purple-900/30 text-purple-300 px-1.5 py-0.5 rounded">Unit Vectors</span>
+          </div>
+          <h3 class="text-sm font-semibold text-slate-100 mb-1">Assign Coordinate Systems</h3>
+          <p class="text-xs text-slate-400 leading-relaxed">
+            We assign individual unit vectors for each block. To keep acceleration scalars positive when $m_1 > m_2$:
+          </p>
+          <div class="mt-2 text-xs font-mono text-pink-400 bg-slate-900/60 p-2 rounded space-y-1">
+            <div>For $m_1$: $\hat{j}_1$ is downwards.</div>
+            <div>For $m_2$: $\hat{j}_2$ is upwards.</div>
+          </div>
+        </div>
+
+        <!-- Step 4 -->
+        <div id="step-card-4" class="bg-slate-950/50 rounded-xl p-4 border border-slate-800 hover:border-slate-700 transition">
+          <div class="flex items-center justify-between mb-2">
+            <span class="text-xs font-semibold text-blue-500">Step 4</span>
+            <span class="text-[10px] bg-amber-900/30 text-amber-300 px-1.5 py-0.5 rounded">Newton's 2nd Law</span>
+          </div>
+          <h3 class="text-sm font-semibold text-slate-100 mb-1">Setup Dynamical Equations</h3>
+          <p class="text-xs text-slate-400 leading-relaxed mb-2">
+            Applying $\sum F = m a$ along each custom coordinate vector yields:
+          </p>
+          <div class="space-y-1.5">
+            <div id="math-eq1" class="text-xs font-mono text-emerald-400 bg-slate-900/60 p-2 rounded">
+              Block 1: $m_1 g - T = m_1 a$
+            </div>
+            <div id="math-eq2" class="text-xs font-mono text-emerald-400 bg-slate-900/60 p-2 rounded">
+              Block 2: $T - m_2 g = m_2 a$
+            </div>
+          </div>
+        </div>
+
+        <!-- Step 5 -->
+        <div id="step-card-5" class="bg-slate-950/50 rounded-xl p-4 border border-slate-800 hover:border-slate-700 transition">
+          <div class="flex items-center justify-between mb-2">
+            <span class="text-xs font-semibold text-blue-500">Step 5</span>
+            <span class="text-[10px] bg-emerald-900/30 text-emerald-300 px-1.5 py-0.5 rounded">Algebraic Matrix</span>
+          </div>
+          <h3 class="text-sm font-semibold text-slate-100 mb-1">Solve Dynamically</h3>
+          <p class="text-xs text-slate-400 leading-relaxed">
+            By combining both equations to eliminate the Tension scalar ($T$), we solve directly for acceleration ($a$):
+          </p>
+          <div id="math-final-sol" class="mt-2 text-xs font-mono text-yellow-400 bg-slate-900/60 p-2.5 rounded leading-relaxed">
+            $$a = \frac{m_1 - m_2}{m_1 + m_2} g$$
+            $$T = \frac{2 m_1 m_2}{m_1 + m_2} g$$
+          </div>
+        </div>
+
+      </div>
+
+      <!-- Quick Analysis Panel Footer -->
+      <div class="bg-slate-950 p-4 border-t border-slate-800 shrink-0">
+        <h3 class="text-xs font-semibold text-slate-400 uppercase tracking-wider mb-2">Dynamic Checks</h3>
+        <div class="space-y-1.5 text-xs">
+          <div class="flex justify-between">
+            <span class="text-slate-400">Dimensionality:</span>
+            <span class="text-emerald-400 font-semibold font-mono">[L/T²] (Valid)</span>
+          </div>
+          <div class="flex justify-between">
+            <span class="text-slate-400">At equilibrium state?</span>
+            <span id="at-equilibrium" class="font-semibold font-mono">--</span>
+          </div>
+        </div>
+      </div>
+
+    </section>
+
+  </div>
+
+  <!-- Simulation Control Logic Script -->
+  <script>
+    // System variables and state
+    let m1 = 15.0; // mass 1
+    let m2 = 10.0; // mass 2
+    let g = 9.8;   // gravity
+    let T = 0.0;   // Tension (calculated)
+    let a = 0.0;   // acceleration (calculated)
+    
+    // Live Dynamic Variables
+    let yDelta = 0.0; // position displacement
+    let v = 0.0;      // live velocity
+    
+    // UI Visual Toggle options
+    let showFBD = true;
+    let showVectors = true;
+    let isRunning = false;
+    let isIdealRope = true;
+
+    // Simulation Engine Parameters
+    let timeScale = 0.02; // Sim rate mapping
+    const canvas = document.getElementById('atwood-canvas');
+    const ctx = canvas.getContext('2d');
+    
+    // Bind UI inputs
+    const m1Slider = document.getElementById('m1-slider');
+    const m2Slider = document.getElementById('m2-slider');
+    const gSlider = document.getElementById('g-slider');
+    
+    const m1Val = document.getElementById('m1-val');
+    const m2Val = document.getElementById('m2-val');
+    const gVal = document.getElementById('g-val');
+
+    const liveAccel = document.getElementById('live-accel');
+    const liveTension = document.getElementById('live-tension');
+    const liveVelocity = document.getElementById('live-velocity');
+    const livePos = document.getElementById('live-pos');
+    
+    const playPauseBtn = document.getElementById('btn-play-pause');
+    const playIcon = document.getElementById('play-icon');
+    const playText = document.getElementById('play-text');
+    const resetBtn = document.getElementById('btn-reset');
+    
+    const fbdToggle = document.getElementById('toggle-fbd');
+    const vectorsToggle = document.getElementById('toggle-vectors');
+    const idealToggle = document.getElementById('toggle-ideal');
+    const eqBadge = document.getElementById('at-equilibrium');
+    const stateBadge = document.getElementById('sys-state-badge');
+
+    // Setup input listeners
+    m1Slider.addEventListener('input', (e) => { m1 = parseFloat(e.target.value); updatePhysics(); });
+    m2Slider.addEventListener('input', (e) => { m2 = parseFloat(e.target.value); updatePhysics(); });
+    gSlider.addEventListener('input', (e) => { g = parseFloat(e.target.value); updatePhysics(); });
+    
+    playPauseBtn.addEventListener('click', togglePlayPause);
+    resetBtn.addEventListener('click', resetSimulation);
+    
+    fbdToggle.addEventListener('click', () => { showFBD = !showFBD; toggleBtnStyle(fbdToggle, showFBD); });
+    vectorsToggle.addEventListener('click', () => { showVectors = !showVectors; toggleBtnStyle(vectorsToggle, showVectors); });
+    idealToggle.addEventListener('click', () => { isIdealRope = !isIdealRope; toggleBtnStyle(idealToggle, isIdealRope); });
+
+    function toggleBtnStyle(btn, state) {
+      if(state) {
+        btn.classList.remove('opacity-50');
+        btn.classList.add('bg-slate-900', 'border-slate-700');
+      } else {
+        btn.classList.add('opacity-50');
+        btn.classList.remove('bg-slate-900', 'border-slate-700');
+      }
+    }
+
+    function setPreset(val1, val2) {
+      m1 = val1;
+      m2 = val2;
+      m1Slider.value = val1;
+      m2Slider.value = val2;
+      updatePhysics();
+    }
+
+    // Toggle logic
+    function togglePlayPause() {
+      isRunning = !isRunning;
+      if (isRunning) {
+        playIcon.className = "fa-solid fa-pause";
+        playText.innerText = "Pause";
+      } else {
+        playIcon.className = "fa-solid fa-play";
+        playText.innerText = "Resume";
+      }
+    }
+
+    function resetSimulation() {
+      isRunning = false;
+      playIcon.className = "fa-solid fa-play";
+      playText.innerText = "Start";
+      v = 0;
+      yDelta = 0;
+      updatePhysics();
+    }
+
+    function resetPosition() {
+      v = 0;
+      yDelta = 0;
+    }
+
+    // High fidelity physical calculations
+    function updatePhysics() {
+      // Numerical labels
+      m1Val.innerText = `${m1.toFixed(1)} kg`;
+      m2Val.innerText = `${m2.toFixed(1)} kg`;
+      gVal.innerText = `${g.toFixed(1)} m/s²`;
+      
+      // Compute Atwood math
+      const massSum = m1 + m2;
+      const massDiff = m1 - m2;
+      
+      if (massSum > 0) {
+        a = (massDiff / massSum) * g;
+        T = ((2 * m1 * m2) / massSum) * g;
+      } else {
+        a = 0;
+        T = 0;
+      }
+
+      // Update Live Indicators
+      liveAccel.innerText = `${a.toFixed(2)} m/s²`;
+      liveTension.innerText = `${T.toFixed(1)} N`;
+      
+      // Update Step highlights visually
+      updateSolverDisplay();
+    }
+
+    // Render step highlights inside Side Menu based on active dynamics
+    function updateSolverDisplay() {
+      const step4 = document.getElementById('step-card-4');
+      const step5 = document.getElementById('step-card-5');
+      
+      if (Math.abs(m1 - m2) > 0.01) {
+        eqBadge.innerText = "No (Dynamic Acceleration)";
+        eqBadge.className = "font-semibold font-mono text-red-400";
+        stateBadge.innerText = "Accelerating Motion";
+        stateBadge.className = "text-yellow-400 font-bold";
+        
+        step4.classList.add('active-step');
+        step5.classList.add('active-step');
+      } else {
+        eqBadge.innerText = "Yes (Static Balance)";
+        eqBadge.className = "font-semibold font-mono text-emerald-400";
+        stateBadge.innerText = "Stable Equilibrium";
+        stateBadge.className = "text-emerald-400 font-bold";
+        
+        step4.classList.remove('active-step');
+        step5.classList.remove('active-step');
+      }
+
+      // Live LaTeX Update in equations
+      try {
+        if (window.katex) {
+          katex.render(`\\text{Block 1: } m_1 g - T = m_1 a \\implies ${m1.toFixed(1)}(${g.toFixed(1)}) - T = ${m1.toFixed(1)} a`, document.getElementById('math-eq1'));
+          katex.render(`\\text{Block 2: } T - m_2 g = m_2 a \\implies T - ${m2.toFixed(1)}(${g.toFixed(1)}) = ${m2.toFixed(1)} a`, document.getElementById('math-eq2'));
+          
+          const solText = `a = \\frac{${m1.toFixed(1)} - ${m2.toFixed(1)}}{${m1.toFixed(1)} + ${m2.toFixed(1)}} (${g.toFixed(1)}) = ${a.toFixed(2)} \\text{ m/s}^2 \\\\` + 
+                          `T = \\frac{2 \\times ${m1.toFixed(1)} \\times ${m2.toFixed(1)}}{${m1.toFixed(1)} + ${m2.toFixed(1)}} (${g.toFixed(1)}) = ${T.toFixed(1)} \\text{ N}`;
+          katex.render(solText, document.getElementById('math-final-sol'));
+        }
+      } catch(e) {
+        // Safe fallback if KaTeX parsing delay occurs
+      }
+    }
+
+    // Window size responsive Canvas adjustment
+    function resizeCanvas() {
+      const container = canvas.parentElement;
+      canvas.width = container.clientWidth;
+      canvas.height = container.clientHeight;
+    }
+    window.addEventListener('resize', resizeCanvas);
+    resizeCanvas();
+
+    // Primary Animation Loop
+    function animate() {
+      // Clear with elegant futuristic backdrop grid
+      ctx.fillStyle = '#020617';
+      ctx.fillRect(0, 0, canvas.width, canvas.height);
+      
+      // Draw standard grid
+      ctx.strokeStyle = 'rgba(30, 41, 59, 0.4)';
+      ctx.lineWidth = 1;
+      const gridSize = 40;
+      for (let x = 0; x < canvas.width; x += gridSize) {
+        ctx.beginPath();
+        ctx.moveTo(x, 0);
+        ctx.lineTo(x, canvas.height);
+        ctx.stroke();
+      }
+      for (let y = 0; y < canvas.height; y += gridSize) {
+        ctx.beginPath();
+        ctx.moveTo(0, y);
+        ctx.lineTo(canvas.width, y);
+        ctx.stroke();
+      }
+
+      // Process Physics Frame Integrator
+      if (isRunning) {
+        // Verlet numerical integration style
+        v += a * timeScale;
+        yDelta += v * timeScale;
+        
+        // Wrap boundaries inside 1.5 meter threshold logic
+        if (Math.abs(yDelta) > 15) {
+          v = -v * 0.2; // slight elastic boundary bounce
+          yDelta = Math.sign(yDelta) * 15;
+        }
+      }
+
+      // Update live labels
+      liveVelocity.innerText = `${v.toFixed(2)} m/s`;
+      livePos.innerText = `${yDelta.toFixed(2)} m`;
+
+      // Set Coordinate Anchors
+      const centerX = canvas.width / 2;
+      const pulleyY = canvas.height * 0.3;
+      const pulleyR = Math.min(canvas.width * 0.08, 55);
+      
+      // Left and right cord coordinates
+      const leftCordX = centerX - pulleyR;
+      const rightCordX = centerX + pulleyR;
+      
+      // Baseline height values
+      const initialHeight = canvas.height * 0.35;
+      const scaleFactor = 10; // Scaling displacement to pixels
+      
+      // Dynamic vertical positions of both blocks
+      const leftBlockY = pulleyY + initialHeight + (yDelta * scaleFactor);
+      const rightBlockY = pulleyY + initialHeight - (yDelta * scaleFactor);
+
+      // 1. Draw Pulley support bar connected to top wall
+      ctx.strokeStyle = '#475569';
+      ctx.lineWidth = 6;
+      ctx.beginPath();
+      ctx.moveTo(centerX, 0);
+      ctx.lineTo(centerX, pulleyY);
+      ctx.stroke();
+
+      // Top Support Mount Plate (Chassis mount look)
+      ctx.fillStyle = '#334155';
+      ctx.fillRect(centerX - 15, pulleyY - 10, 30, 10);
+
+      // 2. Draw Rope/Cables over pulley
+      ctx.strokeStyle = '#94a3b8';
+      ctx.lineWidth = 3;
+      
+      // Left vertical line
+      ctx.beginPath();
+      ctx.moveTo(leftCordX, leftBlockY);
+      ctx.lineTo(leftCordX, pulleyY);
+      ctx.stroke();
+      
+      // Right vertical line
+      ctx.beginPath();
+      ctx.moveTo(rightCordX, rightBlockY);
+      ctx.lineTo(rightCordX, pulleyY);
+      ctx.stroke();
+
+      // Arc wrap around pulley top
+      ctx.beginPath();
+      ctx.arc(centerX, pulleyY, pulleyR, Math.PI, 2 * Math.PI);
+      ctx.stroke();
+
+      // 3. Draw Main Pulley Wheels
+      ctx.save();
+      ctx.translate(centerX, pulleyY);
+      
+      // Rotate the physical pulley to show rotational sync
+      const rotationAngle = (yDelta * scaleFactor) / pulleyR;
+      ctx.rotate(rotationAngle);
+
+      // Outer pulley hub Ring
+      ctx.strokeStyle = '#64748b';
+      ctx.lineWidth = 8;
+      ctx.fillStyle = '#1e293b';
+      ctx.beginPath();
+      ctx.arc(0, 0, pulleyR, 0, 2 * Math.PI);
+      ctx.fill();
+      ctx.stroke();
+
+      // Pulley internal visual spoke details
+      ctx.strokeStyle = '#475569';
+      ctx.lineWidth = 3;
+      for (let i = 0; i < 4; i++) {
+        ctx.beginPath();
+        ctx.moveTo(0, 0);
+        ctx.lineTo(Math.cos(i * Math.PI / 2) * (pulleyR - 5), Math.sin(i * Math.PI / 2) * (pulleyR - 5));
+        ctx.stroke();
+      }
+
+      // Core metal center pivot
+      ctx.fillStyle = '#cbd5e1';
+      ctx.beginPath();
+      ctx.arc(0, 0, 8, 0, 2 * Math.PI);
+      ctx.fill();
+      ctx.restore();
+
+      // Label Pulley
+      ctx.fillStyle = '#ffffff';
+      ctx.font = 'bold 13px sans-serif';
+      ctx.textAlign = 'center';
+      ctx.fillText('P', centerX, pulleyY - pulleyR - 10);
+
+      // 4. Draw Mass Block 1 (Red Accent Theme)
+      const m1Width = 45 + Math.min(m1 * 0.8, 30);
+      const m1Height = 45 + Math.min(m1 * 0.8, 30);
+      
+      ctx.fillStyle = '#ef4444';
+      ctx.strokeStyle = '#b91c1c';
+      ctx.lineWidth = 3;
+      
+      // Draw Box
+      ctx.beginPath();
+      ctx.roundRect(leftCordX - m1Width/2, leftBlockY, m1Width, m1Height, 8);
+      ctx.fill();
+      ctx.stroke();
+      
+      // Core Label block 1
+      ctx.fillStyle = '#ffffff';
+      ctx.font = 'bold 14px sans-serif';
+      ctx.textAlign = 'center';
+      ctx.fillText('1', leftCordX, leftBlockY + m1Height/2 + 5);
+      
+      // Mass label
+      ctx.fillStyle = '#94a3b8';
+      ctx.font = '11px sans-serif';
+      ctx.fillText(`${m1.toFixed(1)} kg`, leftCordX, leftBlockY + m1Height + 15);
+
+      // 5. Draw Mass Block 2 (Emerald Accent Theme)
+      const m2Width = 45 + Math.min(m2 * 0.8, 30);
+      const m2Height = 45 + Math.min(m2 * 0.8, 30);
+      
+      ctx.fillStyle = '#10b981';
+      ctx.strokeStyle = '#047857';
+      ctx.lineWidth = 3;
+      
+      // Draw Box
+      ctx.beginPath();
+      ctx.roundRect(rightCordX - m2Width/2, rightBlockY, m2Width, m2Height, 8);
+      ctx.fill();
+      ctx.stroke();
+      
+      // Core Label block 2
+      ctx.fillStyle = '#ffffff';
+      ctx.font = 'bold 14px sans-serif';
+      ctx.textAlign = 'center';
+      ctx.fillText('2', rightCordX, rightBlockY + m2Height/2 + 5);
+      
+      // Mass label
+      ctx.fillStyle = '#94a3b8';
+      ctx.font = '11px sans-serif';
+      ctx.fillText(`${m2.toFixed(1)} kg`, rightCordX, rightBlockY + m2Height + 15);
+
+      // 6. Force Body Diagrams Overlay (Step 4 details)
+      if (showFBD) {
+        // Vector lines settings
+        ctx.lineWidth = 2.5;
+
+        // Block 1 Forces
+        // Gravity Vector (m1 * g)
+        const gForce1Length = Math.min(m1 * g * 0.6, 90);
+        if (gForce1Length > 0) {
+          drawArrow(ctx, leftCordX, leftBlockY + m1Height, leftCordX, leftBlockY + m1Height + gForce1Length, '#ef4444');
+          ctx.fillStyle = '#f87171';
+          ctx.font = 'bold 11px monospace';
+          ctx.fillText('m₁g', leftCordX - 25, leftBlockY + m1Height + gForce1Length + 12);
+        }
+
+        // Tension Vector (T)
+        const tForce1Length = Math.min(T * 0.6, 90);
+        if (tForce1Length > 0) {
+          drawArrow(ctx, leftCordX, leftBlockY, leftCordX, leftBlockY - tForce1Length, '#38bdf8');
+          ctx.fillStyle = '#38bdf8';
+          ctx.font = 'bold 11px monospace';
+          ctx.fillText('T', leftCordX - 15, leftBlockY - tForce1Length - 8);
+        }
+
+        // Block 2 Forces
+        // Gravity Vector (m2 * g)
+        const gForce2Length = Math.min(m2 * g * 0.6, 90);
+        if (gForce2Length > 0) {
+          drawArrow(ctx, rightCordX, rightBlockY + m2Height, rightCordX, rightBlockY + m2Height + gForce2Length, '#10b981');
+          ctx.fillStyle = '#34d399';
+          ctx.font = 'bold 11px monospace';
+          ctx.fillText('m₂g', rightCordX + 25, rightBlockY + m2Height + gForce2Length + 12);
+        }
+
+        // Tension Vector (T)
+        const tForce2Length = Math.min(T * 0.6, 90);
+        if (tForce2Length > 0) {
+          drawArrow(ctx, rightCordX, rightBlockY, rightCordX, rightBlockY - tForce2Length, '#38bdf8');
+          ctx.fillStyle = '#38bdf8';
+          ctx.font = 'bold 11px monospace';
+          ctx.fillText('T', rightCordX + 15, rightBlockY - tForce2Length - 8);
+        }
+      }
+
+      // 7. Coordinate Unit Vectors overlay (Step 3 details)
+      if (showVectors) {
+        ctx.lineWidth = 1.5;
+        
+        // Block 1 Expect Unit Coordinate System
+        // Downward expectation when m1 > m2
+        const block1VectorDir = m1 >= m2 ? 1 : -1;
+        ctx.strokeStyle = '#f472b6';
+        ctx.fillStyle = '#f472b6';
+        ctx.setLineDash([4, 3]);
+        
+        // Draw coordinate line on the side of Block 1
+        ctx.beginPath();
+        ctx.moveTo(leftCordX - m1Width - 10, leftBlockY);
+        ctx.lineTo(leftCordX - m1Width - 10, leftBlockY + (50 * block1VectorDir));
+        ctx.stroke();
+        ctx.setLineDash([]); // clear dash
+        
+        // draw arrow tip
+        drawArrowTip(ctx, leftCordX - m1Width - 10, leftBlockY + (50 * block1VectorDir), block1VectorDir === 1 ? 'down' : 'up', '#f472b6');
+        ctx.font = 'italic bold 11px sans-serif';
+        ctx.fillText('j₁ (coord)', leftCordX - m1Width - 35, leftBlockY + (25 * block1VectorDir));
+
+        // Block 2 Expect Unit Coordinate System
+        // Upward expectation when m1 > m2
+        const block2VectorDir = m1 >= m2 ? -1 : 1;
+        ctx.strokeStyle = '#f472b6';
+        ctx.fillStyle = '#f472b6';
+        ctx.setLineDash([4, 3]);
+        
+        // Draw coordinate line on the side of Block 2
+        ctx.beginPath();
+        ctx.moveTo(rightCordX + m2Width + 10, rightBlockY);
+        ctx.lineTo(rightCordX + m2Width + 10, rightBlockY + (50 * block2VectorDir));
+        ctx.stroke();
+        ctx.setLineDash([]); // clear dash
+        
+        // draw arrow tip
+        drawArrowTip(ctx, rightCordX + m2Width + 10, rightBlockY + (50 * block2VectorDir), block2VectorDir === 1 ? 'down' : 'up', '#f472b6');
+        ctx.font = 'italic bold 11px sans-serif';
+        ctx.fillText('j₂ (coord)', rightCordX + m2Width + 35, rightBlockY + (25 * block2VectorDir));
+      }
+
+      requestAnimationFrame(animate);
+    }
+
+    // Helper: draw arrow lines
+    function drawArrow(context, fromX, fromY, toX, toY, color) {
+      context.strokeStyle = color;
+      context.beginPath();
+      context.moveTo(fromX, fromY);
+      context.lineTo(toX, toY);
+      context.stroke();
+      
+      const angle = Math.atan2(toY - fromY, toX - fromX);
+      context.fillStyle = color;
+      context.beginPath();
+      context.moveTo(toX, toY);
+      context.lineTo(toX - 8 * Math.cos(angle - Math.PI / 6), toY - 8 * Math.sin(angle - Math.PI / 6));
+      context.lineTo(toX - 8 * Math.cos(angle + Math.PI / 6), toY - 8 * Math.sin(angle + Math.PI / 6));
+      context.closePath();
+      context.fill();
+    }
+
+    // Helper: draw direction indicators
+    function drawArrowTip(context, x, y, direction, color) {
+      context.fillStyle = color;
+      context.beginPath();
+      if (direction === 'up') {
+        context.moveTo(x, y);
+        context.lineTo(x - 5, y + 8);
+        context.lineTo(x + 5, y + 8);
+      } else {
+        context.moveTo(x, y);
+        context.lineTo(x - 5, y - 8);
+        context.lineTo(x + 5, y - 8);
+      }
+      context.closePath();
+      context.fill();
+    }
+
+    // Run Engine Initializations after the DOM structure is fully parsed and evaluated.
+    window.addEventListener('DOMContentLoaded', () => {
+      if (typeof renderMathInElement === 'function') {
+        renderMathInElement(document.body, {
+          delimiters: [
+            {left: '$$', right: '$$', display: true},
+            {left: '$', right: '$', display: false},
+            {left: '\\(', right: '\\)', display: false},
+            {left: '\\[', right: '\\]', display: true}
+          ],
+          throwOnError: false
+        });
+      }
+      updatePhysics();
+      animate();
+    });
+  </script>
+</body>
+</html>

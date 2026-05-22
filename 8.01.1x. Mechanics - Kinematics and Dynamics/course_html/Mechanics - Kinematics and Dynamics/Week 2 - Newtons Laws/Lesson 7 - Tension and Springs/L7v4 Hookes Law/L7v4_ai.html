@@ -1,0 +1,1151 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Hooke's Law & Computational Solver Masterclass</title>
+  <!-- Tailwind CSS for modern premium dashboard design -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  <!-- Google Fonts: Inter & JetBrains Mono -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500;700&display=swap" rel="stylesheet">
+  <!-- KaTeX for math typesetting -->
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.8/dist/katex.min.css">
+  <script src="https://cdn.jsdelivr.net/npm/katex@0.16.8/dist/katex.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/katex@0.16.8/dist/contrib/auto-render.min.js"></script>
+  <style>
+    body {
+      font-family: 'Inter', sans-serif;
+    }
+    .mono-font {
+      font-family: 'JetBrains Mono', monospace;
+    }
+    /* Custom thin scrollbar */
+    ::-webkit-scrollbar {
+      width: 6px;
+      height: 6px;
+    }
+    ::-webkit-scrollbar-track {
+      background: #1e293b;
+    }
+    ::-webkit-scrollbar-thumb {
+      background: #475569;
+      border-radius: 3px;
+    }
+    ::-webkit-scrollbar-thumb:hover {
+      background: #64748b;
+    }
+  </style>
+</head>
+<body class="bg-slate-950 text-slate-100 min-h-screen flex flex-col overflow-x-hidden selection:bg-emerald-500 selection:text-slate-900">
+
+  <!-- Main Navigation Header -->
+  <header class="border-b border-slate-800 bg-slate-900/80 backdrop-blur-md sticky top-0 z-50 px-6 py-4 flex flex-wrap justify-between items-center gap-4">
+    <div class="flex items-center gap-3">
+      <div class="bg-gradient-to-tr from-emerald-500 to-cyan-500 p-2 rounded-lg text-slate-950 shadow-lg shadow-emerald-500/20">
+        <!-- SVG Spring Icon -->
+        <svg class="w-6 h-6 stroke-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+          <path stroke-linecap="round" stroke-linejoin="round" d="M19.114 5.636a9 9 0 010 12.728M16.463 8.288a5.25 5.25 0 010 7.424M6.75 8.25l4.72-4.72a.75.75 0 011.28.53v15.88a.75.75 0 01-1.28.53l-4.72-4.72H4.51c-.88 0-1.704-.507-1.938-1.354A9.01 9.01 0 012.25 12c0-.83.112-1.633.322-2.396C2.806 8.756 3.63 8.25 4.51 8.25H6.75z" />
+          <path stroke-linecap="round" stroke-linejoin="round" d="M12 3v18M3 12h18" />
+        </svg>
+      </div>
+      <div>
+        <h1 class="text-xl font-bold tracking-tight bg-gradient-to-r from-emerald-400 via-cyan-400 to-blue-400 bg-clip-text text-transparent">
+          Hooke's Law & Computational Solver Masterclass
+        </h1>
+        <p class="text-xs text-slate-400">Interactive Dynamic Mechanics & Numerical Sync Engine</p>
+      </div>
+    </div>
+    
+    <div class="flex items-center gap-3">
+      <span class="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-xs font-medium bg-emerald-500/10 text-emerald-400 border border-emerald-500/20">
+        <span class="w-2 h-2 rounded-full bg-emerald-400 animate-pulse"></span>
+        Live Physics Engine Active
+      </span>
+      <button onclick="resetToDefaults()" class="px-3 py-1.5 text-xs font-semibold text-slate-300 hover:text-white bg-slate-800 hover:bg-slate-700 rounded-lg transition-all border border-slate-700">
+        Reset System
+      </button>
+    </div>
+  </header>
+
+  <!-- Interactive Dashboard Grid -->
+  <main class="flex-1 grid grid-cols-1 xl:grid-cols-12 gap-6 p-6 max-w-7-and-a-half-xl mx-auto w-full">
+    
+    <!-- LEFT PANEL: Dynamic Physics Simulation Viewport (Col span 7) -->
+    <div class="xl:col-span-7 flex flex-col gap-6">
+      
+      <!-- MAIN CANVAS CONTAINER -->
+      <div class="bg-slate-900 border border-slate-800 rounded-2xl shadow-2xl overflow-hidden flex flex-col relative group">
+        <!-- Top Status Bar -->
+        <div class="bg-slate-950/80 border-b border-slate-800/80 px-4 py-3 flex items-center justify-between text-xs text-slate-400">
+          <div class="flex items-center gap-2">
+            <span class="font-semibold text-slate-200">INTERACTIVE VIEWPORT</span>
+            <span class="text-slate-600">|</span>
+            <span>Drag the mass block to set initial extension ($x_0$)</span>
+          </div>
+          <div class="flex items-center gap-4">
+            <div>Time: <span id="val-time" class="mono-font text-emerald-400">0.00s</span></div>
+            <div>Step: <span id="val-step" class="mono-font text-cyan-400">0</span></div>
+          </div>
+        </div>
+
+        <!-- Canvas Frame -->
+        <div class="relative bg-slate-950/60 flex-1 min-h-[340px] flex items-center justify-center p-4">
+          <canvas id="physics-canvas" class="w-full h-full cursor-grab active:cursor-grabbing max-h-[380px]"></canvas>
+          
+          <!-- UI Overlay: Drag notification indicator -->
+          <div id="drag-hint" class="absolute bottom-4 left-1/2 -translate-x-1/2 bg-slate-900/90 border border-slate-800 text-xs px-3 py-1.5 rounded-full pointer-events-none transition-opacity duration-300 shadow-lg text-slate-300 flex items-center gap-2">
+            <svg class="w-3.5 h-3.5 text-emerald-400 animate-bounce" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M7 11.5V14m0-2.5v-6a1.5 1.5 0 113 0m-3 6a1.5 1.5 0 00-3 0v2a7.5 7.5 0 0015 0v-5a1.5 1.5 0 00-3 0m-6-3V11m0-5.5a1.5 1.5 0 013 0v4.5"></path></svg>
+            Click and drag block to extend/compress
+          </div>
+        </div>
+
+        <!-- Vector & Variable Real-time Monitoring Dock -->
+        <div class="grid grid-cols-2 sm:grid-cols-4 border-t border-slate-800 bg-slate-900 text-xs text-slate-300">
+          <div class="p-3 border-r border-slate-800/50 flex flex-col justify-between">
+            <span class="text-[10px] text-slate-500 uppercase font-semibold">Position $x(t)$</span>
+            <span id="mon-x" class="text-sm font-bold mono-font text-sky-400 mt-1">0.00 m</span>
+          </div>
+          <div class="p-3 border-r border-slate-800/50 flex flex-col justify-between">
+            <span class="text-[10px] text-slate-500 uppercase font-semibold">Velocity $v(t)$</span>
+            <span id="mon-v" class="text-sm font-bold mono-font text-amber-400 mt-1">0.00 m/s</span>
+          </div>
+          <div class="p-3 border-r border-slate-800/50 flex flex-col justify-between">
+            <span class="text-[10px] text-slate-500 uppercase font-semibold">Spring Force $\vec{F}$</span>
+            <span id="mon-force" class="text-sm font-bold mono-font text-rose-400 mt-1">0.00 N</span>
+          </div>
+          <div class="p-3 flex flex-col justify-between bg-emerald-950/10">
+            <span class="text-[10px] text-emerald-400/70 uppercase font-semibold">Total Energy $E_{tot}$</span>
+            <span id="mon-energy" class="text-sm font-bold mono-font text-emerald-400 mt-1">0.00 J</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- SIMULATOR CONTROL DASHBOARD -->
+      <div class="bg-slate-900 border border-slate-800 rounded-2xl p-6 flex flex-col gap-6">
+        <h3 class="text-sm font-bold text-slate-200 flex items-center gap-2">
+          <span class="w-2 h-2 rounded-full bg-cyan-500"></span> ENGINE CONFIGURATION & PARAMETERS
+        </h3>
+
+        <!-- Dual Column Controls -->
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+          
+          <!-- Physics Constants -->
+          <div class="space-y-4">
+            <div>
+              <div class="flex justify-between text-xs font-semibold mb-1">
+                <span class="text-slate-300">Spring Constant $k$ (Stiffness)</span>
+                <span id="lbl-k" class="mono-font text-emerald-400">15.0 N/m</span>
+              </div>
+              <input id="slider-k" type="range" min="1" max="50" step="0.5" value="15.0" class="w-full h-1.5 bg-slate-800 rounded-lg appearance-none cursor-pointer accent-emerald-500">
+            </div>
+
+            <div>
+              <div class="flex justify-between text-xs font-semibold mb-1">
+                <span class="text-slate-300">Mass $m$</span>
+                <span id="lbl-m" class="mono-font text-cyan-400">2.0 kg</span>
+              </div>
+              <input id="slider-m" type="range" min="0.2" max="10.0" step="0.1" value="2.0" class="w-full h-1.5 bg-slate-800 rounded-lg appearance-none cursor-pointer accent-cyan-500">
+            </div>
+
+            <div>
+              <div class="flex justify-between text-xs font-semibold mb-1">
+                <span class="text-slate-300">Damping Coefficient $b$ (Friction)</span>
+                <span id="lbl-b" class="mono-font text-amber-400">0.00 kg/s</span>
+              </div>
+              <input id="slider-b" type="range" min="0.0" max="2.0" step="0.05" value="0.00" class="w-full h-1.5 bg-slate-800 rounded-lg appearance-none cursor-pointer accent-amber-500">
+            </div>
+          </div>
+
+          <!-- Solver Engine Params -->
+          <div class="space-y-4">
+            <div>
+              <div class="flex justify-between text-xs font-semibold mb-1">
+                <span class="text-slate-300">Numerical Solver Algorithm</span>
+                <span class="text-emerald-400 text-[10px] font-bold">STABILITY COMPARATOR</span>
+              </div>
+              <select id="select-solver" class="w-full bg-slate-950 border border-slate-800 text-slate-200 rounded-lg p-2 text-xs focus:ring-2 focus:ring-emerald-500 focus:outline-none">
+                <option value="rk4" selected>Runge-Kutta 4th Order (RK4 - Most Accurate)</option>
+                <option value="verlet">Verlet Integration (Symplectic / Energy Conserving)</option>
+                <option value="euler">Euler Method (Explicit / Standard Linear)</option>
+              </select>
+            </div>
+
+            <div>
+              <div class="flex justify-between text-xs font-semibold mb-1">
+                <span class="text-slate-300">Solver Step Size $dt$ (Time-step)</span>
+                <span id="lbl-dt" class="mono-font text-violet-400">0.05 s</span>
+              </div>
+              <input id="slider-dt" type="range" min="0.01" max="0.3" step="0.01" value="0.05" class="w-full h-1.5 bg-slate-800 rounded-lg appearance-none cursor-pointer accent-violet-500">
+              <span class="text-[10px] text-slate-500 block mt-1">Warning: Large $dt$ (> 0.2s) causes Euler method to diverge dramatically!</span>
+            </div>
+
+            <!-- Simulation Controls -->
+            <div class="flex items-center gap-3 pt-2">
+              <button id="btn-play" class="flex-1 py-2 px-4 rounded-xl font-bold text-xs bg-emerald-500 hover:bg-emerald-400 text-slate-950 transition-all flex items-center justify-center gap-2 shadow-lg shadow-emerald-500/10">
+                <svg id="svg-play" class="w-4 h-4 fill-current" viewBox="0 0 24 24"><path d="M8 5v14l11-7z"/></svg>
+                <span id="txt-play">Run Simulation</span>
+              </button>
+              <button id="btn-step" class="py-2 px-3 rounded-xl font-semibold text-xs bg-slate-800 hover:bg-slate-700 text-slate-200 transition-all border border-slate-700 flex items-center justify-center gap-1.5">
+                <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><path d="M13 5l7 7-7 7M5 5l7 7-7 7"/></svg>
+                Step Solver
+              </button>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- ENERGY & PHASE PORTRAIT PLOTS (Real-time Canvas-based plotters) -->
+      <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+        <!-- Live Waveform Diagram -->
+        <div class="bg-slate-900 border border-slate-800 rounded-2xl p-4 flex flex-col h-[220px]">
+          <h4 class="text-xs font-bold text-slate-400 mb-2 uppercase tracking-wider flex justify-between items-center">
+            <span>Waveform ($x(t)$ vs Time)</span>
+            <span class="text-sky-400 text-[10px] lowercase">live tracer</span>
+          </h4>
+          <div class="flex-1 relative bg-slate-950 rounded-lg overflow-hidden border border-slate-850">
+            <canvas id="waveform-canvas" class="w-full h-full"></canvas>
+          </div>
+        </div>
+
+        <!-- Live Phase Space Portrait -->
+        <div class="bg-slate-900 border border-slate-800 rounded-2xl p-4 flex flex-col h-[220px]">
+          <h4 class="text-xs font-bold text-slate-400 mb-2 uppercase tracking-wider flex justify-between items-center">
+            <span>Phase Portrait ($v$ vs $x$)</span>
+            <span class="text-purple-400 text-[10px] lowercase">momentum loop</span>
+          </h4>
+          <div class="flex-1 relative bg-slate-950 rounded-lg overflow-hidden border border-slate-850">
+            <canvas id="phase-canvas" class="w-full h-full"></canvas>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- RIGHT PANEL: Expert Pedagogical Guide & Algorithm Engine Sync (Col span 5) -->
+    <div class="xl:col-span-5 flex flex-col gap-6">
+      
+      <!-- EXPLANATORY CARD: STEP-BY-STEP SYNC -->
+      <div class="bg-slate-900 border border-slate-800 rounded-2xl p-6 flex flex-col gap-6">
+        <div class="flex items-center gap-2 border-b border-slate-800 pb-4">
+          <span class="bg-indigo-500/10 text-indigo-400 text-xs px-2.5 py-1 rounded-full border border-indigo-500/20 font-bold">Pedagogy</span>
+          <h2 class="text-md font-bold text-slate-100">Hooke's Law Step-By-Step Masterclass</h2>
+        </div>
+
+        <!-- Masterclass Stage Selection Tabs -->
+        <div class="grid grid-cols-4 gap-1 bg-slate-950 p-1 rounded-xl text-[11px] font-semibold text-slate-400">
+          <button id="tab-1" onclick="switchStage(1)" class="py-1.5 text-center rounded-lg transition-all text-slate-100 bg-slate-800">1. Force Law</button>
+          <button id="tab-2" onclick="switchStage(2)" class="py-1.5 text-center rounded-lg transition-all">2. Differential</button>
+          <button id="tab-3" onclick="switchStage(3)" class="py-1.5 text-center rounded-lg transition-all">3. Discrete</button>
+          <button id="tab-4" onclick="switchStage(4)" class="py-1.5 text-center rounded-lg transition-all">4. Solver Sync</button>
+        </div>
+
+        <!-- Stage Content Area -->
+        <div class="min-h-[360px] flex flex-col justify-between">
+          
+          <!-- STAGE 1: HOOKE'S FORCE LAW -->
+          <div id="stage-1" class="space-y-4 text-xs text-slate-300 leading-relaxed">
+            <p>
+              An <strong>idealized spring</strong> acts as a source of a linear restoring force. The physical behavior is governed by <strong>Hooke's Law</strong>:
+            </p>
+            <div class="bg-slate-950 p-3 rounded-lg border border-slate-850 flex items-center justify-center my-2 min-h-[48px]">
+              <div id="math-hookes-eq" class="text-sm font-bold text-emerald-400"></div>
+            </div>
+            <ul class="space-y-2 list-disc list-inside">
+              <li>
+                <strong class="text-slate-100">$x$:</strong> The extension (for $x > 0$) or compression (for $x < 0$) from the equilibrium position ($x = 0$).
+              </li>
+              <li>
+                <strong class="text-slate-100">The Negative Sign ($-k$):</strong> Acts as a <em>restoring agent</em>. It pulls the mass in the direction opposite to its displacement, always returning it to equilibrium.
+              </li>
+              <li>
+                <strong class="text-slate-100">Spring Constant $k$:</strong> Measures the stiffness of the spring. Measured in <strong class="text-cyan-400">Newtons per meter (N/m)</strong>.
+              </li>
+            </ul>
+            <div class="bg-blue-950/20 border border-blue-900/30 p-3 rounded-xl">
+              <h5 class="font-bold text-blue-400 mb-1">Interactive Experiment:</h5>
+              <p>Observe the force vector arrows in the live viewport. When you pull the block right (positive), the force arrow points left. When you compress it left, the arrow reverses instantly!</p>
+            </div>
+          </div>
+
+          <!-- STAGE 2: THE DIFFERENTIAL EQUATION -->
+          <div id="stage-2" class="space-y-4 text-xs text-slate-300 leading-relaxed hidden">
+            <p>
+              By combining Hooke's Law with <strong>Newton's Second Law of Motion</strong> ($\vec{F} = m\vec{a}$), we construct the governing equation of motion:
+            </p>
+            <div class="bg-slate-950 p-3 rounded-lg border border-slate-850 flex flex-col gap-2 items-center justify-center my-2 text-center min-h-[80px]">
+              <div id="math-ode-1" class="text-sm font-bold text-sky-400"></div>
+              <div id="math-ode-2" class="text-xs text-violet-400"></div>
+            </div>
+            <p>
+              The solution to this homogeneous second-order linear differential equation is a pure sinusoidal wave with natural frequency <strong class="text-cyan-400">$\omega_0 = \sqrt{k/m}$</strong>:
+            </p>
+            <div class="bg-slate-950/60 p-3 rounded-lg border border-slate-850 text-center mono-font text-[11px]">
+              $x(t) = A \cos(\omega_0 t + \phi)$
+            </div>
+            <p>
+              This forms the foundation of all harmonic motion. If we introduce dampening/friction, a damping force term $-b \dot{x}$ is added, transitioning the path from a perfect cyclic orbit to a decaying spiral!
+            </p>
+          </div>
+
+          <!-- STAGE 3: CHOOSE THE DISCRETIZATION ALGORITHM -->
+          <div id="stage-3" class="space-y-4 text-xs text-slate-300 leading-relaxed hidden">
+            <p>
+              Computers cannot solve continuous differential equations directly; instead, they discretize time into tiny increments $dt$ and solve them step-by-step. Let's compare our options:
+            </p>
+            
+            <div class="space-y-3">
+              <div class="bg-slate-950 p-3 rounded-lg border border-slate-850">
+                <h5 class="font-semibold text-rose-400 text-[11px] mb-1">1. Explicit Euler (Linear Approximation)</h5>
+                <p class="text-[10px] text-slate-400">
+                  Calculates next position using *current* velocity. It adds non-physical energy to the system at every timestep, causing the simulation to blow up if $dt$ is large.
+                </p>
+              </div>
+
+              <div class="bg-slate-950 p-3 rounded-lg border border-slate-850">
+                <h5 class="font-semibold text-sky-400 text-[11px] mb-1">2. Verlet Integration (Symplectic)</h5>
+                <p class="text-[10px] text-slate-400">
+                  Tracks momentum conservation. It is highly stable for physical systems because it preserves total mechanical energy ($E_{tot} = K + U$) perfectly over time.
+                </p>
+              </div>
+
+              <div class="bg-slate-950 p-3 rounded-lg border border-slate-850">
+                <h5 class="font-semibold text-emerald-400 text-[11px] mb-1">3. Runge-Kutta 4th Order (RK4)</h5>
+                <p class="text-[10px] text-slate-400">
+                  Samples four distinct derivatives across the timestep interval to find a weighted average trajectory. The gold standard for precision.
+                </p>
+              </div>
+            </div>
+          </div>
+
+          <!-- STAGE 4: SYNC ENGINE / INTERACTIVE INTERPRETER -->
+          <div id="stage-4" class="space-y-3 text-xs text-slate-300 leading-relaxed hidden">
+            <p class="text-slate-400">
+              The panel below highlights the actual mathematical formulas executed in memory during this simulation. Use the "Step Solver" button above to run them line-by-line!
+            </p>
+
+            <div class="bg-slate-950 rounded-lg p-3 border border-slate-850 text-[11px] space-y-2 mono-font">
+              <div class="text-[10px] uppercase font-bold text-slate-500 mb-1 border-b border-slate-800 pb-1 flex justify-between">
+                <span>Active Code Execution</span>
+                <span id="active-method-tag" class="text-emerald-400">RK4 Solver</span>
+              </div>
+              <div id="code-line-1" class="p-1 rounded transition-colors duration-200">1. Compute Acceleration: $a(t) = \frac{-k \cdot x(t) - b \cdot v(t)}{m}$</div>
+              <div id="code-line-2" class="p-1 rounded transition-colors duration-200">2. Evaluate Solver Integrator steps ($dt$)</div>
+              <div id="code-line-3" class="p-1 rounded transition-colors duration-200">3. Update system variables: $x_{new}$ & $v_{new}$</div>
+              <div id="code-line-4" class="p-1 rounded transition-colors duration-200">4. Advance time: $t = t + dt$</div>
+            </div>
+
+            <div class="bg-emerald-950/20 border border-emerald-900/30 p-2.5 rounded-xl flex items-center justify-between text-[11px]">
+              <div>
+                <span class="text-slate-400 block">Mechanical Equilibrium:</span>
+                <span class="font-bold text-emerald-400" id="equilibrium-check">Dynamic State Active</span>
+              </div>
+              <span id="energy-stability" class="px-2 py-0.5 rounded-full font-bold bg-emerald-500/10 text-emerald-400 border border-emerald-500/20 text-[10px]">CONSERVATIVE</span>
+            </div>
+          </div>
+
+          <!-- Navigation Arrow Controls -->
+          <div class="flex items-center justify-between border-t border-slate-850 pt-4 mt-4">
+            <button id="btn-prev-stage" onclick="prevStage()" class="px-3 py-1 bg-slate-800 hover:bg-slate-750 text-slate-300 rounded text-xs transition-colors flex items-center gap-1">
+              &larr; Prev
+            </button>
+            <span class="text-xs text-slate-500 font-medium">Stage <span id="current-stage-text">1</span> of 4</span>
+            <button id="btn-next-stage" onclick="nextStage()" class="px-3 py-1 bg-indigo-600 hover:bg-indigo-500 text-white rounded text-xs transition-colors flex items-center gap-1">
+              Next &rarr;
+            </button>
+          </div>
+        </div>
+      </div>
+
+      <!-- EXPLAINER: PHYSICAL MODEL SCHEMATICS -->
+      <div class="bg-slate-900 border border-slate-800 rounded-2xl p-6 space-y-4">
+        <h4 class="text-xs font-bold text-slate-400 uppercase tracking-wider">Dynamic Forces Blueprint</h4>
+        <div class="grid grid-cols-2 gap-4 text-xs text-slate-300">
+          <div class="bg-slate-950 p-3 rounded-xl border border-slate-850 flex flex-col justify-between">
+            <span class="font-bold text-emerald-400 text-[11px] block mb-1">$\vec{F}_{spring} = -k x \hat{i}$</span>
+            <span class="text-slate-400 text-[10px] leading-snug">The restoring force vector is strictly directed towards equilibrium ($x=0$).</span>
+          </div>
+          <div class="bg-slate-950 p-3 rounded-xl border border-slate-850 flex flex-col justify-between">
+            <span class="font-bold text-violet-400 text-[11px] block mb-1">$\text{Energy} = U_{spring} + K_{mass}$</span>
+            <span class="text-slate-400 text-[10px] leading-snug">Total Energy $E = \frac{1}{2}kx^2 + \frac{1}{2}mv^2$. Conserved perfectly unless Damping $b > 0$.</span>
+          </div>
+        </div>
+      </div>
+    </div>
+
+  </main>
+
+  <!-- Interactive Simulator Footer / Status -->
+  <footer class="border-t border-slate-800/80 bg-slate-900/40 p-4 text-center text-xs text-slate-500">
+    Designed for physics classrooms and computing algorithms. Drag the block horizontally to begin.
+  </footer>
+
+  <!-- CORE SIMULATOR CODE & MATHEMATICAL SOLVERS -->
+  <script>
+    // System Variables
+    let k = 15.0;     // Spring constant (stiffness)
+    let m = 2.0;      // Mass
+    let b = 0.00;     // Damping constant
+    let dt = 0.05;    // Solver time step
+    let solver = 'rk4'; // Active solver integration routine
+
+    // Simulation State
+    let x = 1.8;      // Current displacement (meters from 0)
+    let v = 0.0;      // Current velocity (m/s)
+    let t = 0.0;      // Current time (seconds)
+    let stepCount = 0;
+    let isRunning = false;
+    let isDragging = false;
+    let selectedStage = 1;
+
+    // Plot Histories
+    const maxHistory = 150;
+    let historyX = [];
+    let historyV = [];
+    let historyT = [];
+
+    // UI/DOM Elements
+    const canvas = document.getElementById('physics-canvas');
+    const ctx = canvas.getContext('2d');
+    const waveCanvas = document.getElementById('waveform-canvas');
+    const waveCtx = waveCanvas.getContext('2d');
+    const phaseCanvas = document.getElementById('phase-canvas');
+    const phaseCtx = phaseCanvas.getContext('2d');
+
+    const dragHint = document.getElementById('drag-hint');
+
+    // Setup KaTeX renderer safely for static elements
+    function renderMath() {
+      try {
+        if (typeof renderMathInElement !== 'undefined') {
+          renderMathInElement(document.body, {
+            delimiters: [
+              {left: '$$', right: '$$', display: true},
+              {left: '$', right: '$', display: false}
+            ],
+            throwOnError: false
+          });
+        }
+      } catch (err) {
+        console.error("Math rendering error: ", err);
+      }
+    }
+
+    // Dynamic LaTeX programmatic renderer (fixes un-rendered formulas)
+    function setLatexContent() {
+      try {
+        const hookesEq = document.getElementById('math-hookes-eq');
+        if (hookesEq && typeof katex !== 'undefined') {
+          katex.render("\\vec{F} = -k x \\hat{i}", hookesEq, {
+            displayMode: true,
+            throwOnError: false
+          });
+        }
+        
+        const ode1 = document.getElementById('math-ode-1');
+        if (ode1 && typeof katex !== 'undefined') {
+          katex.render("m \\frac{d^2x}{dt^2} + b \\frac{dx}{dt} + k x = 0", ode1, {
+            displayMode: true,
+            throwOnError: false
+          });
+        }
+
+        const ode2 = document.getElementById('math-ode-2');
+        if (ode2 && typeof katex !== 'undefined') {
+          katex.render("\\text{Or without friction: } \\ddot{x} + \\omega_0^2 x = 0", ode2, {
+            displayMode: false,
+            throwOnError: false
+          });
+        }
+      } catch (err) {
+        console.error("Direct KaTeX rendering error: ", err);
+      }
+    }
+
+    // Init Page Load
+    window.onload = function() {
+      setLatexContent(); // Render dynamic elements programmatically
+      renderMath();      // Safely auto-render the static mathematical notation
+      resizeCanvases();
+      resetSystem();
+      animate();
+    }
+
+    window.addEventListener('resize', () => {
+      resizeCanvases();
+    });
+
+    function resizeCanvases() {
+      // Fit Canvas to parent grid width dynamically
+      const dpr = window.devicePixelRatio || 1;
+      
+      // Main physics display
+      const rect = canvas.getBoundingClientRect();
+      canvas.width = rect.width * dpr;
+      canvas.height = rect.height * dpr;
+      ctx.scale(dpr, dpr);
+
+      // Graphs
+      const waveRect = waveCanvas.getBoundingClientRect();
+      waveCanvas.width = waveRect.width * dpr;
+      waveCanvas.height = waveRect.height * dpr;
+      waveCtx.scale(dpr, dpr);
+
+      const phaseRect = phaseCanvas.getBoundingClientRect();
+      phaseCanvas.width = phaseRect.width * dpr;
+      phaseCanvas.height = phaseRect.height * dpr;
+      phaseCtx.scale(dpr, dpr);
+    }
+
+    // Mathematical Solver Routines
+    // Returns acceleration for current x and v
+    function getAcc(posX, velX) {
+      return (-k * posX - b * velX) / m;
+    }
+
+    // 1. Explicit Euler Method
+    function stepEuler() {
+      const a = getAcc(x, v);
+      // Explicit position step is calculated before velocity is stepped
+      x = x + v * dt;
+      v = v + a * dt;
+    }
+
+    // 2. Verlet / Velocity Verlet Integration
+    function stepVerlet() {
+      const a1 = getAcc(x, v);
+      // Symplectic approach for energy conservation
+      x = x + v * dt + 0.5 * a1 * dt * dt;
+      const a2 = getAcc(x, v);
+      v = v + 0.5 * (a1 + a2) * dt;
+    }
+
+    // 3. Runge-Kutta 4th Order Integrator
+    function stepRK4() {
+      // k1
+      const x1 = x;
+      const v1 = v;
+      const a1 = getAcc(x1, v1);
+
+      // k2
+      const x2 = x + 0.5 * dt * v1;
+      const v2 = v + 0.5 * dt * a1;
+      const a2 = getAcc(x2, v2);
+
+      // k3
+      const x3 = x + 0.5 * dt * v2;
+      const v3 = v + 0.5 * dt * a2;
+      const a3 = getAcc(x3, v3);
+
+      // k4
+      const x4 = x + dt * v3;
+      const v4 = v + dt * a3;
+      const a4 = getAcc(x4, v4);
+
+      // Update position and velocity with weighted average derivatives
+      x = x + (dt / 6.0) * (v1 + 2 * v2 + 2 * v3 + v4);
+      v = v + (dt / 6.0) * (a1 + 2 * a2 + 2 * a3 + a4);
+    }
+
+    // Trigger one discrete state-update iteration
+    function stepSimulation() {
+      if (isDragging) return; // Freeze dynamic update if currently modifying state manually
+
+      // Apply the selected Integration solver algorithm
+      if (solver === 'euler') {
+        stepEuler();
+      } else if (solver === 'verlet') {
+        stepVerlet();
+      } else {
+        stepRK4();
+      }
+
+      t += dt;
+      stepCount++;
+
+      // Update trace histories
+      historyX.push(x);
+      historyV.push(v);
+      historyT.push(t);
+      if (historyX.length > maxHistory) {
+        historyX.shift();
+        historyV.shift();
+        historyT.shift();
+      }
+
+      // Sync active state indicators
+      updateSystemTelemetry();
+    }
+
+    // Real-time GUI Feedback
+    function updateSystemTelemetry() {
+      document.getElementById('val-time').innerText = t.toFixed(2) + 's';
+      document.getElementById('val-step').innerText = stepCount;
+
+      document.getElementById('mon-x').innerText = x.toFixed(3) + ' m';
+      document.getElementById('mon-v').innerText = v.toFixed(3) + ' m/s';
+
+      // Restoring force F = -kx
+      const fSpring = -k * x;
+      document.getElementById('mon-force').innerText = fSpring.toFixed(2) + ' N';
+
+      // Kinetic Energy K = 0.5 * m * v^2
+      // Potential Energy U = 0.5 * k * x^2
+      const kineticE = 0.5 * m * v * v;
+      const potentialE = 0.5 * k * x * x;
+      const totalE = kineticE + potentialE;
+      document.getElementById('mon-energy').innerText = totalE.toFixed(3) + ' J';
+
+      // Highlight active code lines in Stage 4 tab for visualization
+      updateCodeSyncHighlights(fSpring, totalE);
+    }
+
+    function updateCodeSyncHighlights(force, totalEnergy) {
+      const activeMethodTag = document.getElementById('active-method-tag');
+      if (activeMethodTag) {
+        if (solver === 'euler') activeMethodTag.innerText = 'Euler Method';
+        else if (solver === 'verlet') activeMethodTag.innerText = 'Verlet Solver';
+        else activeMethodTag.innerText = 'RK4 Solver';
+      }
+
+      const eqCheck = document.getElementById('equilibrium-check');
+      if (eqCheck) {
+        if (Math.abs(x) < 0.01 && Math.abs(v) < 0.01) {
+          eqCheck.innerText = "Equilibrium Reached";
+          eqCheck.className = "font-bold text-teal-400";
+        } else {
+          eqCheck.innerText = "Oscillating Dynamics";
+          eqCheck.className = "font-bold text-indigo-400";
+        }
+      }
+
+      const stability = document.getElementById('energy-stability');
+      if (stability) {
+        if (solver === 'euler') {
+          if (totalEnergy > 100) {
+            stability.innerText = "ENERGY DIVERGING / CRITICAL";
+            stability.className = "px-2 py-0.5 rounded-full font-bold bg-rose-500/10 text-rose-400 border border-rose-500/20 text-[10px] animate-pulse";
+          } else {
+            stability.innerText = "UNSTABLE / ACCUMULATING";
+            stability.className = "px-2 py-0.5 rounded-full font-bold bg-amber-500/10 text-amber-400 border border-amber-500/20 text-[10px]";
+          }
+        } else if (b > 0) {
+          stability.innerText = "DAMPED ENERGY DECAY";
+          stability.className = "px-2 py-0.5 rounded-full font-bold bg-blue-500/10 text-blue-400 border border-blue-500/20 text-[10px]";
+        } else {
+          stability.innerText = "CONSERVATIVE SYMPLECTIC";
+          stability.className = "px-2 py-0.5 rounded-full font-bold bg-emerald-500/10 text-emerald-400 border border-emerald-500/20 text-[10px]";
+        }
+      }
+    }
+
+    // Step-by-Step Pedagogy Controller
+    function switchStage(stageNum) {
+      selectedStage = stageNum;
+      
+      // Toggle stages visibility
+      for (let i = 1; i <= 4; i++) {
+        const stageEl = document.getElementById(`stage-${i}`);
+        const tabEl = document.getElementById(`tab-${i}`);
+        if (stageEl && tabEl) {
+          if (i === stageNum) {
+            stageEl.classList.remove('hidden');
+            tabEl.classList.add('bg-slate-800', 'text-slate-100');
+          } else {
+            stageEl.classList.add('hidden');
+            tabEl.classList.remove('bg-slate-800', 'text-slate-100');
+          }
+        }
+      }
+
+      document.getElementById('current-stage-text').innerText = stageNum;
+    }
+
+    // Trigger next masterclass card stage
+    function nextStage() {
+      if (selectedStage < 4) {
+        switchStage(selectedStage + 1);
+      }
+    }
+
+    // Trigger previous masterclass card stage
+    function prevStage() {
+      if (selectedStage > 1) {
+        switchStage(selectedStage - 1);
+      }
+    }
+
+    // Reset simulator constants to natural states
+    function resetToDefaults() {
+      k = 15.0;
+      m = 2.0;
+      b = 0.00;
+      dt = 0.05;
+      solver = 'rk4';
+      
+      document.getElementById('slider-k').value = 15.0;
+      document.getElementById('slider-m').value = 2.0;
+      document.getElementById('slider-b').value = 0.00;
+      document.getElementById('slider-dt').value = 0.05;
+      document.getElementById('select-solver').value = 'rk4';
+
+      document.getElementById('lbl-k').innerText = "15.0 N/m";
+      document.getElementById('lbl-m').innerText = "2.0 kg";
+      document.getElementById('lbl-b').innerText = "0.00 kg/s";
+      document.getElementById('lbl-dt').innerText = "0.05 s";
+
+      resetSystem();
+    }
+
+    function resetSystem() {
+      x = 1.8;
+      v = 0.0;
+      t = 0.0;
+      stepCount = 0;
+      historyX = [];
+      historyV = [];
+      historyT = [];
+      updateSystemTelemetry();
+    }
+
+    // Handle Play / Pause Toggle
+    document.getElementById('btn-play').addEventListener('click', () => {
+      isRunning = !isRunning;
+      const playBtnText = document.getElementById('txt-play');
+      const playBtnSvg = document.getElementById('svg-play');
+      const playBtn = document.getElementById('btn-play');
+
+      if (isRunning) {
+        playBtnText.innerText = "Pause Engine";
+        playBtnSvg.innerHTML = `<path d="M6 19h4V5H6v14zm8-14v14h4V5h-4z"/>`;
+        playBtn.className = "flex-1 py-2 px-4 rounded-xl font-bold text-xs bg-rose-500 hover:bg-rose-400 text-slate-950 transition-all flex items-center justify-center gap-2 shadow-lg shadow-rose-500/10";
+      } else {
+        playBtnText.innerText = "Run Simulation";
+        playBtnSvg.innerHTML = `<path d="M8 5v14l11-7z"/>`;
+        playBtn.className = "flex-1 py-2 px-4 rounded-xl font-bold text-xs bg-emerald-500 hover:bg-emerald-400 text-slate-950 transition-all flex items-center justify-center gap-2 shadow-lg shadow-emerald-500/10";
+      }
+    });
+
+    document.getElementById('btn-step').addEventListener('click', () => {
+      isRunning = false;
+      
+      const playBtnText = document.getElementById('txt-play');
+      const playBtnSvg = document.getElementById('svg-play');
+      const playBtn = document.getElementById('btn-play');
+      playBtnText.innerText = "Run Simulation";
+      playBtnSvg.innerHTML = `<path d="M8 5v14l11-7z"/>`;
+      playBtn.className = "flex-1 py-2 px-4 rounded-xl font-bold text-xs bg-emerald-500 hover:bg-emerald-400 text-slate-950 transition-all flex items-center justify-center gap-2 shadow-lg shadow-emerald-500/10";
+
+      // Instantly advance solver by 1 step
+      stepSimulation();
+    });
+
+    // Control Sliders Inputs
+    document.getElementById('slider-k').addEventListener('input', (e) => {
+      k = parseFloat(e.target.value);
+      document.getElementById('lbl-k').innerText = k.toFixed(1) + " N/m";
+    });
+
+    document.getElementById('slider-m').addEventListener('input', (e) => {
+      m = parseFloat(e.target.value);
+      document.getElementById('lbl-m').innerText = m.toFixed(1) + " kg";
+    });
+
+    document.getElementById('slider-b').addEventListener('input', (e) => {
+      b = parseFloat(e.target.value);
+      document.getElementById('lbl-b').innerText = b.toFixed(2) + " kg/s";
+    });
+
+    document.getElementById('slider-dt').addEventListener('input', (e) => {
+      dt = parseFloat(e.target.value);
+      document.getElementById('lbl-dt').innerText = dt.toFixed(2) + " s";
+    });
+
+    document.getElementById('select-solver').addEventListener('change', (e) => {
+      solver = e.target.value;
+    });
+
+    // Canvas Physics Drag System Implementation
+    let isMouseOverBlock = false;
+    
+    // Scale transformations between Canvas coordinate systems & Physics coordinate space
+    function physicsToCanvasX(px, w) {
+      // 0 in physics is at center-left offset of viewport (e.g. 1/3 of the width)
+      const originX = w * 0.35;
+      const scaleX = w * 0.25; // 1 meter = 25% of canvas width
+      return originX + px * scaleX;
+    }
+
+    function canvasToPhysicsX(cx, w) {
+      const originX = w * 0.35;
+      const scaleX = w * 0.25;
+      return (cx - originX) / scaleX;
+    }
+
+    // Interaction Events
+    function getMousePos(evt) {
+      const rect = canvas.getBoundingClientRect();
+      const scaleX = canvas.width / rect.width;
+      const scaleY = canvas.height / rect.height;
+      return {
+        x: (evt.clientX - rect.left) * (rect.width / canvas.width),
+        y: (evt.clientY - rect.top) * (rect.height / canvas.height)
+      };
+    }
+
+    function getTouchPos(evt) {
+      if (evt.touches.length === 0) return null;
+      const touch = evt.touches[0];
+      const rect = canvas.getBoundingClientRect();
+      return {
+        x: (touch.clientX - rect.left),
+        y: (touch.clientY - rect.top)
+      };
+    }
+
+    function startDrag(clientX, clientY) {
+      const rect = canvas.getBoundingClientRect();
+      const normX = clientX - rect.left;
+      const w = rect.width;
+      const blockCanvasX = physicsToCanvasX(x, w);
+
+      // Check if mouse hits target block (approx boundary)
+      const blockSize = 50;
+      if (Math.abs(normX - blockCanvasX) < blockSize) {
+        isDragging = true;
+        isRunning = false;
+        v = 0.0; // Reset velocity on drag release
+        dragHint.classList.add('opacity-0');
+      }
+    }
+
+    // Drag move updates
+    function updateDrag(clientX) {
+      if (!isDragging) return;
+      const rect = canvas.getBoundingClientRect();
+      const normX = clientX - rect.left;
+      const w = rect.width;
+      
+      // Limit bounds
+      let physX = canvasToPhysicsX(normX, w);
+      if (physX < -1.1) physX = -1.1; // Maximum spring compression boundary
+      if (physX > 2.2) physX = 2.2;   // Maximum extension boundary
+      
+      x = physX;
+      v = 0.0; // Velocity remains 0 during active drag
+      updateSystemTelemetry();
+    }
+
+    function endDrag() {
+      isDragging = false;
+    }
+
+    canvas.addEventListener('mousedown', (e) => startDrag(e.clientX, e.clientY));
+    window.addEventListener('mousemove', (e) => updateDrag(e.clientX));
+    window.addEventListener('mouseup', () => endDrag());
+
+    // Mobile Touch Alternatives
+    canvas.addEventListener('touchstart', (e) => {
+      const touch = getTouchPos(e);
+      if (touch) startDrag(e.touches[0].clientX, e.touches[0].clientY);
+    });
+    window.addEventListener('touchmove', (e) => {
+      if (isDragging) {
+        updateDrag(e.touches[0].clientX);
+        e.preventDefault(); // Prevent page scrolling during drag manipulation
+      }
+    });
+    window.addEventListener('touchend', () => endDrag());
+
+
+    // MAIN LOOP: DRAWING ENGINE
+    function animate() {
+      if (isRunning) {
+        stepSimulation();
+      }
+
+      drawViewport();
+      drawPlots();
+
+      requestAnimationFrame(animate);
+    }
+
+    // Dynamic Viewport Render Core
+    function drawViewport() {
+      const w = canvas.width / (window.devicePixelRatio || 1);
+      const h = canvas.height / (window.devicePixelRatio || 1);
+      
+      ctx.clearRect(0, 0, w, h);
+
+      // 1. Draw Ground (Frictionless Floor)
+      const floorY = h * 0.7;
+      ctx.strokeStyle = '#334155';
+      ctx.lineWidth = 3;
+      ctx.beginPath();
+      ctx.moveTo(0, floorY);
+      ctx.lineTo(w, floorY);
+      ctx.stroke();
+
+      // Slanted line shadows on floor to demonstrate solid boundary
+      ctx.strokeStyle = '#1e293b';
+      ctx.lineWidth = 1;
+      for (let i = 0; i < w; i += 15) {
+        ctx.beginPath();
+        ctx.moveTo(i, floorY);
+        ctx.lineTo(i - 10, floorY + 10);
+        ctx.stroke();
+      }
+
+      // 2. Draw Anchor Wall
+      const wallX = w * 0.08;
+      ctx.strokeStyle = '#64748b';
+      ctx.lineWidth = 6;
+      ctx.beginPath();
+      ctx.moveTo(wallX, floorY - 120);
+      ctx.lineTo(wallX, floorY);
+      ctx.stroke();
+
+      // Slanted line shadows on wall
+      ctx.strokeStyle = '#1e293b';
+      ctx.lineWidth = 2;
+      for (let j = floorY - 120; j < floorY; j += 15) {
+        ctx.beginPath();
+        ctx.moveTo(wallX, j);
+        ctx.lineTo(wallX - 10, j - 10);
+        ctx.stroke();
+      }
+
+      // 3. Draw Equilibrium Benchmark Line (x=0)
+      const originCanvasX = physicsToCanvasX(0, w);
+      ctx.strokeStyle = '#475569';
+      ctx.lineWidth = 1.5;
+      ctx.setLineDash([5, 5]);
+      ctx.beginPath();
+      ctx.moveTo(originCanvasX, floorY - 130);
+      ctx.lineTo(originCanvasX, floorY + 30);
+      ctx.stroke();
+      ctx.setLineDash([]);
+
+      // Label equilibrium
+      ctx.fillStyle = '#94a3b8';
+      ctx.font = '10px "JetBrains Mono", monospace';
+      ctx.fillText('x = 0 (Equilibrium)', originCanvasX - 55, floorY - 140);
+
+      // 4. Draw Spring
+      // Start of spring coil from wall to box center
+      const boxWidth = 55;
+      const boxHeight = 55;
+      const blockX = physicsToCanvasX(x, w) - boxWidth/2;
+      const blockY = floorY - boxHeight;
+
+      const springStartX = wallX;
+      const springEndX = blockX;
+      const springY = floorY - boxHeight / 2;
+      const springLength = springEndX - springStartX;
+
+      // Draw standard coiled spring dynamically
+      ctx.strokeStyle = '#38bdf8'; // Glowing Cyan
+      ctx.lineWidth = 3;
+      ctx.lineJoin = 'round';
+      ctx.beginPath();
+      ctx.moveTo(springStartX, springY);
+      
+      const numCoils = 16;
+      const leadLength = 15; // Straight lines at endpoints of spring
+      const coilWidth = springLength - 2 * leadLength;
+      
+      ctx.lineTo(springStartX + leadLength, springY);
+      
+      for (let i = 0; i <= numCoils; i++) {
+        const percent = i / numCoils;
+        const cx = springStartX + leadLength + percent * coilWidth;
+        let cy = springY;
+        if (i > 0 && i < numCoils) {
+          cy += (i % 2 === 0 ? -1 : 1) * 16; // Coil displacement offset height
+        }
+        ctx.lineTo(cx, cy);
+      }
+      ctx.lineTo(springEndX, springY);
+      ctx.stroke();
+
+      // 5. Draw Mass Block
+      ctx.fillStyle = isDragging ? '#10b981' : '#1e293b'; // Turns emerald green when grabbed
+      ctx.strokeStyle = isDragging ? '#34d399' : '#475569';
+      ctx.lineWidth = 2.5;
+      ctx.beginPath();
+      ctx.roundRect(blockX, blockY, boxWidth, boxHeight, 6);
+      ctx.fill();
+      ctx.stroke();
+
+      // Draw label inside mass
+      ctx.fillStyle = '#f8fafc';
+      ctx.font = 'bold 12px sans-serif';
+      ctx.textAlign = 'center';
+      ctx.fillText(`${m.toFixed(1)}kg`, blockX + boxWidth / 2, blockY + boxHeight / 2 + 4);
+
+      // 6. Draw Direction and Unit Vectors (Frictionless surface indicator, i hat, Force)
+      // i hat unit vector
+      const vectorBaselineY = floorY + 40;
+      ctx.strokeStyle = '#94a3b8';
+      ctx.lineWidth = 1.5;
+      ctx.beginPath();
+      ctx.moveTo(w * 0.75, vectorBaselineY);
+      ctx.lineTo(w * 0.85, vectorBaselineY);
+      ctx.stroke();
+      // Arrowhead
+      ctx.beginPath();
+      ctx.moveTo(w * 0.85, vectorBaselineY);
+      ctx.lineTo(w * 0.83, vectorBaselineY - 4);
+      ctx.lineTo(w * 0.83, vectorBaselineY + 4);
+      ctx.fill();
+      ctx.fillStyle = '#94a3b8';
+      ctx.font = 'italic 11px sans-serif';
+      ctx.fillText('î', w * 0.86, vectorBaselineY + 4);
+
+      // Force Vector: F = -kx (Green when pushing back, rose when resisting tension)
+      const fSpring = -k * x;
+      if (Math.abs(fSpring) > 0.05) {
+        const arrowOriginX = blockX + boxWidth / 2;
+        const arrowOriginY = blockY - 15;
+        const maxArrowLength = 90;
+        // Limit visually to scale
+        const arrowLength = Math.max(-maxArrowLength, Math.min(maxArrowLength, fSpring * 3.5)); 
+        
+        ctx.strokeStyle = arrowLength > 0 ? '#34d399' : '#f87171';
+        ctx.fillStyle = arrowLength > 0 ? '#34d399' : '#f87171';
+        ctx.lineWidth = 3.5;
+        
+        ctx.beginPath();
+        ctx.moveTo(arrowOriginX, arrowOriginY);
+        ctx.lineTo(arrowOriginX + arrowLength, arrowOriginY);
+        ctx.stroke();
+
+        // Arrow head
+        const headSize = 6;
+        ctx.beginPath();
+        ctx.moveTo(arrowOriginX + arrowLength, arrowOriginY);
+        if (arrowLength > 0) {
+          ctx.lineTo(arrowOriginX + arrowLength - headSize, arrowOriginY - headSize);
+          ctx.lineTo(arrowOriginX + arrowLength - headSize, arrowOriginY + headSize);
+        } else {
+          ctx.lineTo(arrowOriginX + arrowLength + headSize, arrowOriginY - headSize);
+          ctx.lineTo(arrowOriginX + arrowLength + headSize, arrowOriginY + headSize);
+        }
+        ctx.fill();
+
+        ctx.font = 'bold 10px "JetBrains Mono", monospace';
+        ctx.fillText(`F = ${fSpring.toFixed(1)} N`, arrowOriginX + arrowLength/2, arrowOriginY - 8);
+      }
+
+      // Displacement Vector Arrow [x(t)]
+      if (Math.abs(x) > 0.05) {
+        const dispY = floorY + 20;
+        ctx.strokeStyle = '#38bdf8';
+        ctx.fillStyle = '#38bdf8';
+        ctx.lineWidth = 1.5;
+        
+        ctx.beginPath();
+        ctx.moveTo(originCanvasX, dispY);
+        ctx.lineTo(blockX + boxWidth/2, dispY);
+        ctx.stroke();
+
+        ctx.beginPath();
+        ctx.arc(originCanvasX, dispY, 3, 0, Math.PI * 2);
+        ctx.fill();
+
+        // Arrowhead at mass center
+        ctx.beginPath();
+        ctx.moveTo(blockX + boxWidth/2, dispY);
+        if (x > 0) {
+          ctx.lineTo(blockX + boxWidth/2 - 5, dispY - 4);
+          ctx.lineTo(blockX + boxWidth/2 - 5, dispY + 4);
+        } else {
+          ctx.lineTo(blockX + boxWidth/2 + 5, dispY - 4);
+          ctx.lineTo(blockX + boxWidth/2 + 5, dispY + 4);
+        }
+        ctx.fill();
+
+        ctx.font = 'bold 10px sans-serif';
+        ctx.fillText(`x(t) = ${x.toFixed(2)}m`, (originCanvasX + blockX + boxWidth/2)/2, dispY + 12);
+      }
+    }
+
+    // Secondary canvases renders
+    function drawPlots() {
+      // 1. Draw Waveform Plots
+      const ww = waveCanvas.width / (window.devicePixelRatio || 1);
+      const wh = waveCanvas.height / (window.devicePixelRatio || 1);
+      waveCtx.clearRect(0, 0, ww, wh);
+
+      // Draw Grid
+      waveCtx.strokeStyle = '#1e293b';
+      waveCtx.lineWidth = 1;
+      waveCtx.beginPath();
+      // Center reference Line (x=0)
+      waveCtx.moveTo(0, wh / 2);
+      waveCtx.lineTo(ww, wh / 2);
+      waveCtx.stroke();
+
+      if (historyX.length > 1) {
+        waveCtx.strokeStyle = '#38bdf8';
+        waveCtx.lineWidth = 2.5;
+        waveCtx.beginPath();
+        for (let i = 0; i < historyX.length; i++) {
+          const px = (i / maxHistory) * ww;
+          // Scale x to vertical height. Maximum displacement assumed is ~2.5m
+          const py = wh / 2 - (historyX[i] / 2.5) * (wh * 0.4);
+          if (i === 0) waveCtx.moveTo(px, py);
+          else waveCtx.lineTo(px, py);
+        }
+        waveCtx.stroke();
+      }
+
+      // 2. Draw Phase Space Plot (Velocity vs Position)
+      const pw = phaseCanvas.width / (window.devicePixelRatio || 1);
+      const ph = phaseCanvas.height / (window.devicePixelRatio || 1);
+      phaseCtx.clearRect(0, 0, pw, ph);
+
+      // Draw Grid Axises
+      phaseCtx.strokeStyle = '#1e293b';
+      phaseCtx.lineWidth = 1;
+      phaseCtx.beginPath();
+      // Vert Axix
+      phaseCtx.moveTo(pw / 2, 0);
+      phaseCtx.lineTo(pw / 2, ph);
+      // Horiz Axis
+      phaseCtx.moveTo(0, ph / 2);
+      phaseCtx.lineTo(pw, ph / 2);
+      phaseCtx.stroke();
+
+      // Axis labels
+      phaseCtx.fillStyle = '#475569';
+      phaseCtx.font = '9px sans-serif';
+      phaseCtx.fillText('v (velocity)', pw / 2 + 5, 12);
+      phaseCtx.fillText('x (position)', pw - 55, ph / 2 - 5);
+
+      if (historyX.length > 1) {
+        phaseCtx.strokeStyle = '#c084fc'; // Purple Orbit
+        phaseCtx.lineWidth = 2.0;
+        phaseCtx.beginPath();
+        for (let i = 0; i < historyX.length; i++) {
+          // Horizontal axis: position x, Vertical axis: velocity v
+          // Max limits: x is ~2.5m, v is ~5m/s
+          const px = pw / 2 + (historyX[i] / 2.5) * (pw * 0.4);
+          const py = ph / 2 - (historyV[i] / 5.0) * (ph * 0.4);
+          if (i === 0) phaseCtx.moveTo(px, py);
+          else phaseCtx.lineTo(px, py);
+        }
+        phaseCtx.stroke();
+
+        // Draw active state dot
+        const currentPx = pw / 2 + (x / 2.5) * (pw * 0.4);
+        const currentPy = ph / 2 - (v / 5.0) * (ph * 0.4);
+        phaseCtx.fillStyle = '#e9d5ff';
+        phaseCtx.beginPath();
+        phaseCtx.arc(currentPx, currentPy, 4.5, 0, Math.PI * 2);
+        phaseCtx.fill();
+      }
+    }
+  </script>
+</body>
+</html>

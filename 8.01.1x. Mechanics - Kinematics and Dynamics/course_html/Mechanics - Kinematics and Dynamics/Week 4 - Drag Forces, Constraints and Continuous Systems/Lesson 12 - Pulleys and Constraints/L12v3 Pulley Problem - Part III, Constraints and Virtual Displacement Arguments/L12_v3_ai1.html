@@ -1,0 +1,1480 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Virtual Displacement & Pulley Kinematics Simulator</title>
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- MathJax for LaTeX Rendering -->
+    <script src="https://polyfill.io/v3/polyfill.min.js?features=es6"></script>
+    <script id="MathJax-script" async src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=Fira+Code:wght@400;500&display=swap');
+        body {
+            font-family: 'Inter', sans-serif;
+        }
+        .code-font {
+            font-family: 'Fira Code', monospace;
+        }
+        /* Custom scrollbar */
+        ::-webkit-scrollbar {
+            width: 6px;
+            height: 6px;
+        }
+        ::-webkit-scrollbar-track {
+            background: #1e293b;
+        }
+        ::-webkit-scrollbar-thumb {
+            background: #475569;
+            border-radius: 3px;
+        }
+        ::-webkit-scrollbar-thumb:hover {
+            background: #64748b;
+        }
+    </style>
+</head>
+
+<body class="bg-slate-950 text-slate-100 min-h-screen flex flex-col overflow-x-hidden">
+
+    <!-- Header -->
+    <header class="border-b border-slate-800 bg-slate-900/80 backdrop-blur sticky top-0 z-50 px-6 py-4 flex flex-col md:flex-row items-center justify-between gap-4">
+        <div class="flex items-center gap-3">
+            <div class="bg-indigo-600 text-white p-2 rounded-lg shadow-lg shadow-indigo-500/30">
+                <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19.428 15.428a2 2 0 00-1.022-.547l-2.387-.477a6 6 0 00-3.86.517l-.318.158a6 6 0 01-3.86.517L6.05 15.21a2 2 0 00-1.806.547M8 4h8l-1 1v5.172a2 2 0 00.586 1.414l5 5c1.26 1.26.367 3.414-1.415 3.414H4.828c-1.782 0-2.674-2.154-1.414-3.414l5-5A2 2 0 009 10.172V5L8 4z"></path></svg>
+            </div>
+            <div>
+                <h1 class="font-bold text-lg md:text-xl tracking-tight text-white flex items-center gap-2">
+                    Pulley Constraints & Dynamics Masterclass
+                </h1>
+                <p class="text-xs text-slate-400">Interactive Simulator & Live Algorithm Sync</p>
+            </div>
+        </div>
+        <div class="flex items-center gap-2">
+            <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-emerald-500/10 text-emerald-400 border border-emerald-500/20">
+                <span class="w-1.5 h-1.5 mr-1.5 rounded-full bg-emerald-400 animate-pulse"></span>
+                Active Solver Engine
+            </span>
+        </div>
+    </header>
+
+    <!-- Main Container -->
+    <main class="flex-1 grid grid-cols-1 lg:grid-cols-12 gap-6 p-4 md:p-6 max-w-[1600px] mx-auto w-full">
+        
+        <!-- Left Side: Simulation & Controls (7 Cols on large screen) -->
+        <section class="lg:col-span-7 flex flex-col gap-6">
+            
+            <!-- Canvas Simulation Container -->
+            <div class="bg-slate-900 border border-slate-800 rounded-2xl overflow-hidden shadow-xl flex flex-col relative">
+                <!-- Top HUD -->
+                <div class="px-4 py-3 bg-slate-950/50 border-b border-slate-800 flex justify-between items-center text-xs">
+                    <span class="font-semibold text-slate-300 flex items-center gap-1.5">
+                        <span class="w-2 h-2 rounded-full bg-indigo-500"></span>
+                        INTERACTIVE PHYSICS SPACE
+                    </span>
+                    <div class="flex items-center gap-4 text-slate-400">
+                        <div>$y_1$: <span id="hud-y1" class="text-indigo-400 font-mono font-bold">0.00</span> m</div>
+                        <div>$y_2$: <span id="hud-y2" class="text-emerald-400 font-mono font-bold">0.00</span> m</div>
+                        <div>Ratio: <span class="text-amber-400 font-mono font-bold">1 : -2</span></div>
+                    </div>
+                </div>
+
+                <!-- Simulation Canvas -->
+                <div class="relative flex-1 bg-slate-950 flex items-center justify-center min-h-[420px] max-h-[500px]">
+                    <canvas id="physics-canvas" class="w-full h-full block cursor-grab active:cursor-grabbing"></canvas>
+                    
+                    <!-- Dynamic Overlay Label / Virtual Guide -->
+                    <div id="virtual-overlay-info" class="absolute bottom-4 left-4 bg-slate-900/95 border border-slate-800 rounded-xl p-3 text-xs shadow-xl max-w-xs transition-all duration-300 hidden">
+                        <p class="font-semibold text-amber-400 mb-1 flex items-center gap-1">
+                            <span>🔍</span> Virtual Displacement Active
+                        </p>
+                        <p class="text-slate-300">Drag either block or pull the slider to see how a change of <span class="text-emerald-400 font-mono">Δy₂</span> forces exactly <span class="text-indigo-400 font-mono">-2Δy₂</span> displacement in Block 1.</p>
+                    </div>
+                </div>
+
+                <!-- Live Parameters HUD -->
+                <div class="p-4 bg-slate-950/50 border-t border-slate-800 grid grid-cols-2 sm:grid-cols-4 gap-4 text-xs">
+                    <div>
+                        <div class="text-slate-400 mb-0.5">Accel $a_1$</div>
+                        <div id="hud-a1" class="font-mono font-bold text-lg text-indigo-400">-0.00 m/s²</div>
+                    </div>
+                    <div>
+                        <div class="text-slate-400 mb-0.5">Accel $a_2$</div>
+                        <div id="hud-a2" class="font-mono font-bold text-lg text-emerald-400">0.00 m/s²</div>
+                    </div>
+                    <div>
+                        <div class="text-slate-400 mb-0.5">Tension $T$</div>
+                        <div id="hud-tension" class="font-mono font-bold text-lg text-amber-400">0.00 N</div>
+                    </div>
+                    <div>
+                        <div class="text-slate-400 mb-0.5">State</div>
+                        <div id="hud-status" class="font-mono font-bold text-lg text-blue-400">Stopped</div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Controls Board -->
+            <div class="bg-slate-900 border border-slate-800 rounded-2xl p-5 shadow-xl flex flex-col gap-5">
+                <!-- Action Controls -->
+                <div class="flex flex-wrap items-center justify-between gap-4">
+                    <div class="flex items-center gap-2">
+                        <button id="btn-play" class="px-5 py-2.5 bg-indigo-600 hover:bg-indigo-500 active:scale-95 text-white font-semibold text-sm rounded-xl transition shadow-lg shadow-indigo-600/20 flex items-center gap-2">
+                            <svg class="w-4 h-4" fill="currentColor" viewBox="0 0 24 24"><path d="M8 5v14l11-7z"></path></svg>
+                            <span>Run Physics</span>
+                        </button>
+                        <button id="btn-pause" class="hidden px-5 py-2.5 bg-amber-600 hover:bg-amber-500 active:scale-95 text-white font-semibold text-sm rounded-xl transition shadow-lg shadow-amber-600/20 flex items-center gap-2">
+                            <svg class="w-4 h-4" fill="currentColor" viewBox="0 0 24 24"><path d="M6 19h4V5H6v14zm8-14v14h4V5h-4z"></path></svg>
+                            <span>Pause</span>
+                        </button>
+                        <button id="btn-step" class="p-2.5 bg-slate-800 hover:bg-slate-700 text-slate-300 rounded-xl transition active:scale-95" title="Step Frame Forward">
+                            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 5l7 7-7 7M5 5l7 7-7 7"></path></svg>
+                        </button>
+                        <button id="btn-reset" class="px-4 py-2.5 bg-slate-800 hover:bg-slate-700 active:scale-95 text-slate-300 font-semibold text-sm rounded-xl transition flex items-center gap-2">
+                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 1121.21 15H19"></path></svg>
+                            Reset
+                        </button>
+                    </div>
+
+                    <div class="flex items-center gap-2">
+                        <button id="btn-equilibrium" class="px-3.5 py-2 bg-emerald-500/10 hover:bg-emerald-500/20 border border-emerald-500/30 text-emerald-400 font-medium text-xs rounded-xl transition" title="Sets m2 = 2 * m1 for static equilibrium">
+                            Set Equilibrium ($m_2 = 2m_1$)
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Sliders Section -->
+                <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-5 border-t border-slate-800 pt-5">
+                    <!-- Mass 1 Control -->
+                    <div class="space-y-2">
+                        <div class="flex justify-between text-xs">
+                            <span class="text-slate-400 font-medium">Mass $m_1$ (Block 1)</span>
+                            <span id="label-m1" class="text-indigo-400 font-mono font-bold">2.0 kg</span>
+                        </div>
+                        <input type="range" id="input-m1" min="0.5" max="10.0" step="0.1" value="2.0" class="w-full h-1.5 bg-slate-800 rounded-lg appearance-none cursor-pointer accent-indigo-500">
+                    </div>
+
+                    <!-- Mass 2 Control -->
+                    <div class="space-y-2">
+                        <div class="flex justify-between text-xs">
+                            <span class="text-slate-400 font-medium">Mass $m_2$ (Block 2)</span>
+                            <span id="label-m2" class="text-emerald-400 font-mono font-bold">5.0 kg</span>
+                        </div>
+                        <input type="range" id="input-m2" min="0.5" max="15.0" step="0.1" value="5.0" class="w-full h-1.5 bg-slate-800 rounded-lg appearance-none cursor-pointer accent-emerald-500">
+                    </div>
+
+                    <!-- Gravity Control -->
+                    <div class="space-y-2">
+                        <div class="flex justify-between text-xs">
+                            <span class="text-slate-400 font-medium">Gravity $g$</span>
+                            <span id="label-g" class="text-amber-500 font-mono font-bold">9.8 m/s²</span>
+                        </div>
+                        <input type="range" id="input-g" min="0" max="25" step="0.1" value="9.8" class="w-full h-1.5 bg-slate-800 rounded-lg appearance-none cursor-pointer accent-amber-500">
+                    </div>
+
+                    <!-- Rope Length Control -->
+                    <div class="space-y-2">
+                        <div class="flex justify-between text-xs">
+                            <span class="text-slate-400 font-medium">Rope Length ($L_{\text{rope}}$)</span>
+                            <span id="label-rope" class="text-slate-300 font-mono font-bold">7.0 m</span>
+                        </div>
+                        <input type="range" id="input-rope" min="5.0" max="10.0" step="0.1" value="7.0" class="w-full h-1.5 bg-slate-800 rounded-lg appearance-none cursor-pointer accent-slate-400">
+                    </div>
+
+                    <!-- Damping / Friction Control -->
+                    <div class="space-y-2">
+                        <div class="flex justify-between text-xs">
+                            <span class="text-slate-400 font-medium">Damping (Friction)</span>
+                            <span id="label-damping" class="text-slate-300 font-mono font-bold">0.05</span>
+                        </div>
+                        <input type="range" id="input-damping" min="0" max="0.5" step="0.01" value="0.05" class="w-full h-1.5 bg-slate-800 rounded-lg appearance-none cursor-pointer accent-slate-400">
+                    </div>
+
+                    <!-- Virtual Shift Manual Slider -->
+                    <div class="space-y-2">
+                        <div class="flex justify-between text-xs">
+                            <span class="text-slate-400 font-medium">Manual Virtual Shift ($y_2$)</span>
+                            <span id="label-shift" class="text-slate-300 font-mono font-bold">2.00 m</span>
+                        </div>
+                        <input type="range" id="input-shift" min="1.3" max="3.3" step="0.01" value="2.0" class="w-full h-1.5 bg-slate-800 rounded-lg appearance-none cursor-pointer accent-amber-500">
+                    </div>
+                </div>
+            </div>
+
+            <!-- Trajectory Tracking Canvas Plot -->
+            <div class="bg-slate-900 border border-slate-800 rounded-2xl p-5 shadow-xl flex flex-col gap-3">
+                <div class="flex justify-between items-center">
+                    <h3 class="text-sm font-semibold text-slate-300 uppercase tracking-wider">Dynamic Phase Space Graph ($y_1$ vs $y_2$)</h3>
+                    <button id="btn-clear-plot" class="text-xs text-slate-400 hover:text-white transition">Clear Graph</button>
+                </div>
+                <div class="h-32 bg-slate-950 rounded-xl relative overflow-hidden border border-slate-800/80">
+                    <canvas id="graph-canvas" class="w-full h-full block"></canvas>
+                    <div class="absolute top-2 left-2 flex gap-4 text-[10px] text-slate-400 bg-slate-950/80 px-2 py-1 rounded">
+                        <span class="flex items-center gap-1"><span class="w-2 h-0.5 bg-indigo-500 inline-block"></span> Block 1 Position ($y_1$)</span>
+                        <span class="flex items-center gap-1"><span class="w-2 h-0.5 bg-emerald-500 inline-block"></span> Block 2 Position ($y_2$)</span>
+                    </div>
+                </div>
+            </div>
+
+        </section>
+
+        <!-- Right Side: Masterclass Theoretical/Computational Panel (5 Cols) -->
+        <section class="lg:col-span-5 flex flex-col gap-6">
+            
+            <!-- Masterclass Chapter Card -->
+            <div class="bg-slate-900 border border-slate-800 rounded-2xl p-6 shadow-xl flex flex-col h-full justify-between min-h-[600px]">
+                
+                <!-- Stepper Progress Header -->
+                <div class="mb-6">
+                    <div class="flex items-center justify-between text-xs text-slate-400 mb-3">
+                        <span class="font-semibold uppercase tracking-wider text-indigo-400" id="chapter-number">Chapter 1 of 5</span>
+                        <span id="chapter-completion">20% Mastered</span>
+                    </div>
+                    <!-- Visual Progress Steps -->
+                    <div class="flex gap-1.5 h-1 bg-slate-800 rounded-full overflow-hidden">
+                        <div id="step-bar-1" class="h-full bg-indigo-500 flex-1 transition-colors duration-300"></div>
+                        <div id="step-bar-2" class="h-full bg-slate-800 flex-1 transition-colors duration-300"></div>
+                        <div id="step-bar-3" class="h-full bg-slate-800 flex-1 transition-colors duration-300"></div>
+                        <div id="step-bar-4" class="h-full bg-slate-800 flex-1 transition-colors duration-300"></div>
+                        <div id="step-bar-5" class="h-full bg-slate-800 flex-1 transition-colors duration-300"></div>
+                    </div>
+                </div>
+
+                <!-- Active Chapter Details Section -->
+                <div class="flex-1 flex flex-col justify-start">
+                    <h2 id="chapter-title" class="text-xl font-bold text-white mb-4">Coordinate System Setup</h2>
+                    
+                    <!-- Content Box containing description & TeX representations -->
+                    <div id="chapter-content" class="text-sm text-slate-300 space-y-4 leading-relaxed">
+                        <!-- Content dynamically loaded from JS -->
+                    </div>
+
+                    <!-- Dynamic Active Variable Sandbox Inspector -->
+                    <div id="chapter-sandbox" class="mt-6 p-4 bg-slate-950 rounded-xl border border-slate-800 text-xs">
+                        <!-- Interactive calculations load here based on step -->
+                    </div>
+                </div>
+
+                <!-- Navigation Buttons -->
+                <div class="flex items-center justify-between pt-6 border-t border-slate-800 mt-6">
+                    <button id="btn-prev-step" class="px-4 py-2 bg-slate-800 hover:bg-slate-700 disabled:opacity-30 disabled:pointer-events-none text-slate-300 font-semibold text-sm rounded-xl transition flex items-center gap-1.5">
+                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"></path></svg>
+                        Previous
+                    </button>
+                    <button id="btn-next-step" class="px-5 py-2 bg-indigo-600 hover:bg-indigo-500 text-white font-semibold text-sm rounded-xl transition flex items-center gap-1.5">
+                        Next Chapter
+                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"></path></svg>
+                    </button>
+                </div>
+
+            </div>
+
+            <!-- Algorithm Code Inspector Viewer -->
+            <div class="bg-slate-900 border border-slate-800 rounded-2xl overflow-hidden shadow-xl">
+                <div class="px-4 py-3 bg-slate-950/50 border-b border-slate-800 flex justify-between items-center text-xs">
+                    <span class="font-mono text-indigo-400">ENGINE_ALGORITHM_SOLVER.js</span>
+                    <span class="bg-slate-800 px-2 py-0.5 rounded text-[10px] text-slate-400 font-mono">Run Loop</span>
+                </div>
+                <div class="p-4 bg-slate-950 code-font text-xs text-indigo-300 leading-relaxed overflow-x-auto whitespace-pre">
+<span class="text-slate-500">// Numerical integration using Verlet-Euler Constraint Solver</span>
+<span class="text-pink-400">const</span> <span class="text-blue-400">a2</span> = ((m2 - <span class="text-emerald-400">2</span> * m1) * g) / (m2 + <span class="text-emerald-400">4</span> * m1);
+<span class="text-blue-400">v2</span> += a2 * dt;
+<span class="text-blue-400">y2</span> += v2 * dt;
+
+<span class="text-slate-500">// Kinematic Constraint Resolutions</span>
+<span class="text-pink-400">const</span> <span class="text-blue-400">y1</span> = ropeLength - <span class="text-emerald-400">2</span> * y2;
+<span class="text-pink-400">const</span> <span class="text-blue-400">v1</span> = -<span class="text-emerald-400">2</span> * v2;
+<span class="text-pink-400">const</span> <span class="text-blue-400">a1</span> = -<span class="text-emerald-400">2</span> * a2;
+                </div>
+            </div>
+
+        </section>
+
+    </main>
+
+    <!-- Footer -->
+    <footer class="border-t border-slate-900 bg-slate-950 py-4 text-center text-xs text-slate-500">
+        Created for interactive educational demonstrations. Fully physics-compliant visual engine.
+    </footer>
+
+     <!-- Configure MathJax BEFORE loading the main script to enable $ as inline delimiter -->
+    <script type="text/javascript">
+        window.MathJax = {
+            tex: {
+                inlineMath: [['$', '$'], ['\\(', '\\)']],
+                displayMath: [['$$', '$$'], ['\\[', '\\]']],
+                processEscapes: true
+            },
+            options: {
+                skipHtmlTags: ['script', 'noscript', 'style', 'textarea', 'pre', 'code']
+            },
+            startup: {
+                pageReady: () => {
+                    return MathJax.startup.defaultPageReady().then(() => {
+                        // Global initial typeset once MathJax is fully loaded
+                        if (window.MathJax && typeof window.MathJax.typesetPromise === 'function') {
+                            window.MathJax.typesetPromise();
+                        }
+                    });
+                }
+            }
+        };
+    </script>
+    <!-- MathJax Library Loader -->
+    <script type="text/javascript" id="MathJax-script" async
+      src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js">
+    </script>
+    
+
+    <script>
+        // Global Simulation State
+        const state = {
+            m1: 2.0,            // Mass of block 1 (kg)
+            m2: 5.0,            // Mass of block 2 (kg)
+            g: 9.8,             // Gravity (m/s^2)
+            ropeLength: 7.0,    // Total system rope constraint length (m)
+            damping: 0.05,      // System damping factor
+            
+            // Dynamics Variables (Unified System tracking movable pulley/Block 2)
+            y2: 2.0,            // Position of block 2 / Movable Pulley B from ceiling (m)
+            v2: 0.0,            // Velocity of block 2 (m/s)
+            a2: 0.0,            // Acceleration of block 2 (m/s^2)
+            
+            // Constrained Values (Dynamically computed from constraints)
+            y1: 3.0,            // Position of Block 1 from ceiling (m)
+            v1: 0.0,            // Velocity of Block 1 (m/s)
+            a1: 0.0,            // Acceleration of Block 1 (m/s^2)
+            tension: 0.0,       // Tension in rope segment (N)
+
+            // Sim control variables
+            isRunning: false,
+            isDraggingBlock1: false,
+            isDraggingBlock2: false,
+            activeStep: 0,      // Masterclass chapter index (0 - 4)
+            time: 0.0,
+            
+            // Visual Engine configuration
+            scale: 120,         // Scale: 120 pixels represents 1 meter
+            originY: 80,        // Y-coordinate of ceiling on canvas
+            canvasWidth: 600,
+            canvasHeight: 480
+        };
+
+        // Graph data queue
+        let graphData = [];
+        const MAX_GRAPH_POINTS = 200;
+
+        // Visual Setup
+        const canvas = document.getElementById('physics-canvas');
+        const ctx = canvas.getContext('2d');
+        const graphCanvas = document.getElementById('graph-canvas');
+        const graphCtx = graphCanvas.getContext('2d');
+
+        // Masterclass Chapter content DB
+        const chapters = [
+            {
+                title: "1. Defining the Coordinate System",
+                completion: "20% Mastered",
+                content: `
+                    <p>To analyze this system mathematically, we must first establish a rigorous reference frame. We define the horizontal <strong>ceiling as our origin ($y = 0$)</strong>.</p>
+                    <p>Both coordinate vectors $\\vec{y}_1$ (position of Block 1) and $\\vec{y}_2$ (position of Block 2 / Pulley B) are directed <span class="text-indigo-400 font-semibold">downwards</span> in the direction of gravity.</p>
+                    <p>This means down is the positive direction! Consequently, moving down increases $y$, while moving up decreases $y$. This is the standard physics sign convention for pulley analytical setups.</p>
+                `,
+                getSandbox: () => `
+                    <div class="flex justify-between mb-1">
+                        <span>Origin Baseline (Ceiling):</span>
+                        <span class="font-mono text-slate-300">y = 0.00 m</span>
+                    </div>
+                    <div class="flex justify-between mb-1">
+                        <span>Block 1 Downward Vector:</span>
+                        <span class="font-mono text-indigo-400 font-bold">${state.y1.toFixed(3)} m</span>
+                    </div>
+                    <div class="flex justify-between">
+                        <span>Block 2 Downward Vector:</span>
+                        <span class="font-mono text-emerald-400 font-bold">${state.y2.toFixed(3)} m</span>
+                    </div>
+                `
+            },
+            {
+                title: "2. The Rigid Rope Constraint",
+                completion: "40% Mastered",
+                content: `
+                    <p>A single inextensible, rigid rope connects the system. The rope starts at a fixed ceiling anchor, loops down under Pulley B (holding Block 2), loops back up over the fixed ceiling pulley, and extends down to Block 1.</p>
+                    <p>Mathematically, summing up the active vertical rope lengths:</p>
+                    <div class="my-3 py-2 px-3 bg-slate-950/60 rounded border border-slate-800 text-center font-mono text-amber-300">
+                        L = y₂ + y₂ + y₁ = 2y₂ + y₁
+                    </div>
+                    <p>Since the total length $L$ must remain constant at all times, this is our <strong>Kinematic Constraint Equation</strong>.</p>
+                `,
+                getSandbox: () => `
+                    <div class="flex justify-between mb-1">
+                        <span>Constant Rope Length (L):</span>
+                        <span class="font-mono text-amber-300 font-bold">${state.ropeLength.toFixed(2)} m</span>
+                    </div>
+                    <div class="flex justify-between mb-1">
+                        <span>Rope Segment Left (Ceiling to B):</span>
+                        <span class="font-mono text-slate-400">${state.y2.toFixed(2)} m</span>
+                    </div>
+                    <div class="flex justify-between mb-1">
+                        <span>Rope Segment Middle (B to Fixed C):</span>
+                        <span class="font-mono text-slate-400">${state.y2.toFixed(2)} m</span>
+                    </div>
+                    <div class="flex justify-between">
+                        <span>Rope Segment Right (C to Block 1):</span>
+                        <span class="font-mono text-slate-400">${state.y1.toFixed(2)} m</span>
+                    </div>
+                    <div class="border-t border-slate-800 mt-2 pt-2 text-center text-[10px] text-slate-500">
+                        Verification: 2 * ${state.y2.toFixed(2)} + ${state.y1.toFixed(2)} = ${(2*state.y2 + state.y1).toFixed(2)} m
+                    </div>
+                `
+            },
+            {
+                title: "3. Virtual Displacement Principle",
+                completion: "60% Mastered",
+                content: `
+                    <p>Imagine the movable Pulley B (and Block 2) is displaced downwards by a virtual increment <span class="text-emerald-400 font-semibold">$\\Delta y_2$</span>.</p>
+                    <p>For Pulley B to move down, the rope loops must extend on <strong>both sides</strong> of the pulley by $\\Delta y_2$, consuming a total of <span class="text-slate-300 font-semibold">$2\\Delta y_2$</span> rope.</p>
+                    <p>Since the total rope is inelastic, this rope can only be gathered from the right side, forcing Block 1 to move <strong>upward</strong> by that exact amount:</p>
+                    <div class="my-3 py-2 px-3 bg-slate-950/60 rounded border border-slate-800 text-center font-mono text-amber-300">
+                        Δy₁ = -2 * Δy₂
+                    </div>
+                    <p>Notice the negative sign: when Block 2 goes down, Block 1 moves up! Use the manual slider or drag the blocks to visualize this live.</p>
+                `,
+                getSandbox: () => {
+                    const deltaY2 = state.y2 - 2.0; // using 2.0 as baseline reference
+                    const deltaY1 = state.y1 - 3.0;
+                    return `
+                        <div class="text-[11px] text-slate-400 mb-2 font-semibold">Lifting & Sinking Sync (Relative to Baseline):</div>
+                        <div class="flex justify-between mb-1">
+                            <span>Pulley B Displacement (Δy₂):</span>
+                            <span class="font-mono text-emerald-400 font-bold">${deltaY2 >= 0 ? '+' : ''}${deltaY2.toFixed(3)} m</span>
+                        </div>
+                        <div class="flex justify-between">
+                            <span>Block 1 Displacement (Δy₁):</span>
+                            <span class="font-mono text-indigo-400 font-bold">${deltaY1 >= 0 ? '+' : ''}${deltaY1.toFixed(3)} m</span>
+                        </div>
+                        <div class="border-t border-slate-800 mt-2 pt-2 text-center text-amber-300 font-bold">
+                            Ratio Check: ${deltaY2 === 0 ? '1.000' : (deltaY1 / deltaY2).toFixed(3)} (Expected: -2.000)
+                        </div>
+                    `;
+                }
+            },
+            {
+                title: "4. Kinematic Constraint Derivations",
+                completion: "80% Mastered",
+                content: `
+                    <p>To find the velocity and acceleration relationships, we differentiate our position constraint equation $2y_2 + y_1 = L$ with respect to time.</p>
+                    <p><strong>First Derivative (Velocities):</strong></p>
+                    <p class="font-mono text-center text-indigo-400 my-1">2 * (dy₂/dt) + (dy₁/dt) = 0 &rArr; v₁ = -2 * v₂</p>
+                    <p><strong>Second Derivative (Accelerations):</strong></p>
+                    <p class="font-mono text-center text-emerald-400 my-1">2 * (d²y₂/dt²) + (d²y₁/dt²) = 0 &rArr; a₁ = -2 * a₂</p>
+                    <p>This tells us the acceleration of Block 1 is always exactly twice that of Block 2 in magnitude, but in the opposite direction.</p>
+                `,
+                getSandbox: () => `
+                    <div class="flex justify-between mb-1">
+                        <span>Block 2 Vel ($v_2$):</span>
+                        <span class="font-mono text-emerald-400">${state.v2.toFixed(3)} m/s</span>
+                    </div>
+                    <div class="flex justify-between mb-2">
+                        <span>Block 1 Vel ($v_1$):</span>
+                        <span class="font-mono text-indigo-400">${state.v1.toFixed(3)} m/s</span>
+                    </div>
+                    <div class="border-t border-slate-800 pt-2 flex justify-between">
+                        <span>Acceleration ($a_1$ vs $a_2$):</span>
+                        <span class="font-mono text-amber-400 font-bold">${state.a1.toFixed(2)} = -2 * (${state.a2.toFixed(2)})</span>
+                    </div>
+                `
+            },
+            {
+                title: "5. Newtonian FBD & Solving Dynamics",
+                completion: "100% Fully Mastered",
+                content: `
+                    <p>Let's derive the exact mathematical forces. Applying Newton's Second Law ($\Sigma F = ma$) on our free body diagrams:</p>
+                    <p>&bull; <strong>Block 1:</strong> $m_1 g - T = m_1 a_1$</p>
+                    <p>&bull; <strong>Block 2 + Pulley (massless):</strong> $m_2 g - 2T = m_2 a_2$</p>
+                    <p>Substituting $a_1 = -2 a_2$ and solving for $a_2$ and Tension $T$ yields:</p>
+                    <div class="my-3 py-2 px-3 bg-slate-950/60 rounded border border-slate-800 text-xs font-mono text-amber-300">
+                        a₂ = (m₂ - 2m₁)g / (m₂ + 4m₁)<br>
+                        T = 3m₁m₂g / (m₂ + 4m₁)
+                    </div>
+                `,
+                getSandbox: () => {
+                    const totalT = state.tension;
+                    return `
+                        <div class="flex justify-between mb-1">
+                            <span>Gravity Pull on m₁ ($m_1 g$):</span>
+                            <span class="font-mono text-slate-300">${(state.m1 * state.g).toFixed(2)} N</span>
+                        </div>
+                        <div class="flex justify-between mb-1">
+                            <span>Tension Force ($T$):</span>
+                            <span class="font-mono text-amber-400 font-bold">${totalT.toFixed(2)} N</span>
+                        </div>
+                        <div class="flex justify-between mb-1">
+                            <span>Gravity Pull on m₂ ($m_2 g$):</span>
+                            <span class="font-mono text-slate-300">${(state.m2 * state.g).toFixed(2)} N</span>
+                        </div>
+                        <div class="flex justify-between mb-1">
+                            <span>Net Pull on Pulley (2T):</span>
+                            <span class="font-mono text-indigo-400 font-bold">${(2 * totalT).toFixed(2)} N</span>
+                        </div>
+                        <div class="border-t border-slate-800 mt-1 pt-1 flex justify-between">
+                            <span>Computed system a₂:</span>
+                            <span class="font-mono text-emerald-400 font-bold">${state.a2.toFixed(3)} m/s²</span>
+                        </div>
+                    `;
+                }
+            }
+        ];
+
+        // Control references
+        const btnPlay = document.getElementById('btn-play');
+        const btnPause = document.getElementById('btn-pause');
+        const btnStep = document.getElementById('btn-step');
+        const btnReset = document.getElementById('btn-reset');
+        const btnEquilibrium = document.getElementById('btn-equilibrium');
+        const btnClearPlot = document.getElementById('btn-clear-plot');
+
+        const inputM1 = document.getElementById('input-m1');
+        const labelM1 = document.getElementById('label-m1');
+        const inputM2 = document.getElementById('input-m2');
+        const labelM2 = document.getElementById('label-m2');
+        const inputG = document.getElementById('input-g');
+        const labelG = document.getElementById('label-g');
+        const inputRope = document.getElementById('input-rope');
+        const labelRope = document.getElementById('label-rope');
+        const inputDamping = document.getElementById('input-damping');
+        const labelDamping = document.getElementById('label-damping');
+        const inputShift = document.getElementById('input-shift');
+        const labelShift = document.getElementById('label-shift');
+
+        // Masterclass components
+        const btnPrevStep = document.getElementById('btn-prev-step');
+        const btnNextStep = document.getElementById('btn-next-step');
+        const chapterNumberText = document.getElementById('chapter-number');
+        const chapterCompletionText = document.getElementById('chapter-completion');
+        const chapterTitleText = document.getElementById('chapter-title');
+        const chapterContentText = document.getElementById('chapter-content');
+        const chapterSandboxText = document.getElementById('chapter-sandbox');
+
+        // HUD outputs
+        const hudY1 = document.getElementById('hud-y1');
+        const hudY2 = document.getElementById('hud-y2');
+        const hudA1 = document.getElementById('hud-a1');
+        const hudA2 = document.getElementById('hud-a2');
+        const hudTension = document.getElementById('hud-tension');
+        const hudStatus = document.getElementById('hud-status');
+        const virtualOverlay = document.getElementById('virtual-overlay-info');
+
+        function initEvents() {
+            // Simulator basic buttons
+            btnPlay.addEventListener('click', () => {
+                state.isRunning = true;
+                btnPlay.classList.add('hidden');
+                btnPause.classList.remove('hidden');
+                hudStatus.textContent = "Running";
+                hudStatus.className = "font-mono font-bold text-lg text-emerald-400 animate-pulse";
+            });
+
+            btnPause.addEventListener('click', () => {
+                state.isRunning = false;
+                btnPause.classList.add('hidden');
+                btnPlay.classList.remove('hidden');
+                hudStatus.textContent = "Paused";
+                hudStatus.className = "font-mono font-bold text-lg text-amber-400";
+            });
+
+            btnStep.addEventListener('click', () => {
+                if (!state.isRunning) {
+                    stepPhysics(0.016);
+                    draw();
+                }
+            });
+
+            btnReset.addEventListener('click', resetSimulation);
+
+            btnEquilibrium.addEventListener('click', () => {
+                // To maintain static equilibrium: m2 = 2 * m1
+                state.m2 = 2 * state.m1;
+                inputM2.value = state.m2;
+                labelM2.textContent = `${state.m2.toFixed(1)} kg`;
+                resetVelocities();
+                recalculateDerived();
+                draw();
+            });
+
+            btnClearPlot.addEventListener('click', () => {
+                graphData = [];
+                drawGraph();
+            });
+
+            // Sliders updating model state variables
+            inputM1.addEventListener('input', (e) => {
+                state.m1 = parseFloat(e.target.value);
+                labelM1.textContent = `${state.m1.toFixed(1)} kg`;
+                recalculateDerived();
+                draw();
+            });
+
+            inputM2.addEventListener('input', (e) => {
+                state.m2 = parseFloat(e.target.value);
+                labelM2.textContent = `${state.m2.toFixed(1)} kg`;
+                recalculateDerived();
+                draw();
+            });
+
+            inputG.addEventListener('input', (e) => {
+                state.g = parseFloat(e.target.value);
+                labelG.textContent = `${state.g.toFixed(1)} m/s²`;
+                recalculateDerived();
+                draw();
+            });
+
+            inputRope.addEventListener('input', (e) => {
+                state.ropeLength = parseFloat(e.target.value);
+                labelRope.textContent = `${state.ropeLength.toFixed(1)} m`;
+                
+                // Readjust y1 based on rope length & limit checks
+                state.y1 = state.ropeLength - 2 * state.y2;
+                if (state.y1 < 0.5) {
+                    state.y1 = 0.5;
+                    state.y2 = (state.ropeLength - state.y1) / 2;
+                }
+                recalculateDerived();
+                draw();
+            });
+
+            inputDamping.addEventListener('input', (e) => {
+                state.damping = parseFloat(e.target.value);
+                labelDamping.textContent = state.damping.toFixed(2);
+            });
+
+            // Active Chapter Steps (Virtual Shift manual handle)
+            inputShift.addEventListener('input', (e) => {
+                const manualY2 = parseFloat(e.target.value);
+                updateSystemPositions(manualY2);
+                resetVelocities();
+                recalculateDerived();
+                draw();
+            });
+
+            // Stepper buttons for right side content
+            btnNextStep.addEventListener('click', () => {
+                if (state.activeStep < chapters.length - 1) {
+                    setActiveChapter(state.activeStep + 1);
+                } else {
+                    // Reset to beginning
+                    setActiveChapter(0);
+                }
+            });
+
+            btnPrevStep.addEventListener('click', () => {
+                if (state.activeStep > 0) {
+                    setActiveChapter(state.activeStep - 1);
+                }
+            });
+
+            // Handle window resize dynamically to fit canvas size correctly
+            window.addEventListener('resize', resizeCanvas);
+            
+            // Mouse Drag interaction
+            initDragHandling();
+        }
+
+        function resizeCanvas() {
+            const container = canvas.parentElement;
+            state.canvasWidth = container.clientWidth;
+            // Let canvas have a reasonable aspect ratio
+            state.canvasHeight = Math.max(420, Math.min(500, container.clientHeight));
+            
+            // Scale dynamically for higher pixel densities (Retina screens)
+            const dpr = window.devicePixelRatio || 1;
+            canvas.width = state.canvasWidth * dpr;
+            canvas.height = state.canvasHeight * dpr;
+            ctx.scale(dpr, dpr);
+            
+            // Adjust canvas styling width/height
+            canvas.style.width = `${state.canvasWidth}px`;
+            canvas.style.height = `${state.canvasHeight}px`;
+
+            // Adjust graph canvas sizing
+            const graphContainer = graphCanvas.parentElement;
+            graphCanvas.width = graphContainer.clientWidth * dpr;
+            graphCanvas.height = graphContainer.clientHeight * dpr;
+            graphCtx.scale(dpr, dpr);
+            graphCanvas.style.width = `${graphContainer.clientWidth}px`;
+            graphCanvas.style.height = `${graphContainer.clientHeight}px`;
+
+            draw();
+            drawGraph();
+        }
+
+        // Force the physical coordinates to obey mathematical constraint
+        function updateSystemPositions(newY2) {
+            state.y2 = newY2;
+            
+            // Apply hard safety boundaries for Pulley B (avoid hitting ceiling/floor)
+            if (state.y2 < 1.0) state.y2 = 1.0;
+            if (state.y2 > 3.5) state.y2 = 3.5;
+            
+            // Compute constrained Block 1 position: y1 = L - 2 * y2
+            state.y1 = state.ropeLength - 2 * state.y2;
+            
+            // Safety boundaries for Block 1 (avoid hitting fixed pulley/floor)
+            if (state.y1 < 0.5) {
+                state.y1 = 0.5;
+                state.y2 = (state.ropeLength - state.y1) / 2;
+            }
+            if (state.y1 > 5.5) {
+                state.y1 = 5.5;
+                state.y2 = (state.ropeLength - state.y1) / 2;
+            }
+
+            // Sync manual slider values visually
+            inputShift.value = state.y2;
+            labelShift.textContent = `${state.y2.toFixed(2)} m`;
+        }
+
+        function resetVelocities() {
+            state.v2 = 0;
+            state.v1 = 0;
+            state.a2 = 0;
+            state.a1 = 0;
+        }
+
+        function resetSimulation() {
+            state.isRunning = false;
+            btnPause.classList.add('hidden');
+            btnPlay.classList.remove('hidden');
+            hudStatus.textContent = "Stopped";
+            hudStatus.className = "font-mono font-bold text-lg text-blue-400";
+            
+            updateSystemPositions(2.0); // Reset to baseline y2 = 2.0m
+            resetVelocities();
+            state.time = 0.0;
+            graphData = [];
+            
+            recalculateDerived();
+            draw();
+            drawGraph();
+        }
+
+        // Calculate acceleration and tension mathematically using solved systems
+        function recalculateDerived() {
+            const num = (state.m2 - 2 * state.m1) * state.g;
+            const den = state.m2 + 4 * state.m1;
+            
+            // Solve dynamics acceleration for Pulley B / Block 2
+            state.a2 = num / den;
+            
+            // Solve constraint for Block 1 acceleration
+            state.a1 = -2 * state.a2;
+
+            // Solve exact tension in rope: T = 3 * m1 * m2 * g / (m2 + 4 * m1)
+            state.tension = (3 * state.m1 * state.m2 * state.g) / (state.m2 + 4 * state.m1);
+
+            // If we are paused, show zero kinetic variables in HUD except calculated acceleration potential
+            if (state.isRunning) {
+                state.v1 = -2 * state.v2;
+            } else {
+                state.v1 = 0;
+                state.v2 = 0;
+            }
+
+            // Render HUD metrics
+            hudY1.textContent = state.y1.toFixed(2);
+            hudY2.textContent = state.y2.toFixed(2);
+            hudA1.textContent = `${state.a1 >= 0 ? '+' : ''}${state.a1.toFixed(2)} m/s²`;
+            hudA2.textContent = `${state.a2 >= 0 ? '+' : ''}${state.a2.toFixed(2)} m/s²`;
+            hudTension.textContent = `${state.tension.toFixed(1)} N`;
+
+            // Reload active sandbox content
+            updateSandboxText();
+        }
+
+        // Euler-Cromer integration step
+        function stepPhysics(dt) {
+            if (state.isDraggingBlock1 || state.isDraggingBlock2) {
+                // Do not integrate when user is manually manipulating positions
+                return;
+            }
+
+            // Compute physics acceleration
+            recalculateDerived();
+
+            // Apply dampening forces (friction modeling) to steady the simulation
+            const dampAcceleration = -state.damping * state.v2;
+            
+            // Update velocity of Block 2
+            state.v2 += (state.a2 + dampAcceleration) * dt;
+            
+            // Update position of Block 2
+            const targetY2 = state.y2 + state.v2 * dt;
+
+            // Collision boundary triggers
+            const oldY2 = state.y2;
+            updateSystemPositions(targetY2);
+
+            // Check if bounds forced velocity reduction to 0 (bounce limit)
+            if (state.y2 === oldY2 || state.y2 <= 1.0 || state.y2 >= 3.5 || state.y1 <= 0.5 || state.y1 >= 5.5) {
+                state.v2 = 0.0;
+                state.v1 = 0.0;
+            } else {
+                state.v1 = -2 * state.v2;
+            }
+
+            state.time += dt;
+
+            // Push state variables into graphing queue
+            graphData.push({
+                time: state.time,
+                y1: state.y1,
+                y2: state.y2
+            });
+            if (graphData.length > MAX_GRAPH_POINTS) {
+                graphData.shift();
+            }
+        }
+
+        function draw() {
+            ctx.clearRect(0, 0, state.canvasWidth, state.canvasHeight);
+
+            // Render physical components coordinates transformation
+            // Conversion to pixel units: Position Y(px) = originY + Y(m) * scale
+            const xCeiling = state.originY;
+            
+            // Horizontal positions on visual canvas
+            const xFixedAnchor = state.canvasWidth * 0.3; // Rope Anchor point at ceiling
+            const xMovablePulley = state.canvasWidth * 0.45; // Movable Pulley B path
+            const xFixedPulley = state.canvasWidth * 0.7; // Fixed Pulley C at ceiling
+            
+            // Radius values
+            const rPulley = 22;
+
+            // Compute pixel height positions
+            const yPulleyB = xCeiling + state.y2 * state.scale;
+            const yBlock2 = yPulleyB + 50; // Mass offset below movable pulley
+            const yBlock1 = xCeiling + state.y1 * state.scale;
+
+            // --- 1. DRAW BACKGROUND REFERENCE GRID ---
+            ctx.strokeStyle = '#1e293b';
+            ctx.lineWidth = 1;
+            for (let y = xCeiling; y < state.canvasHeight; y += 40) {
+                ctx.beginPath();
+                ctx.moveTo(0, y);
+                ctx.lineTo(state.canvasWidth, y);
+                ctx.stroke();
+            }
+            // Vertical coordinates reference ruler
+            ctx.strokeStyle = '#334155';
+            ctx.beginPath();
+            ctx.moveTo(40, xCeiling);
+            ctx.lineTo(40, state.canvasHeight - 20);
+            ctx.stroke();
+            
+            // Draw coordinate labels on ruler
+            ctx.fillStyle = '#64748b';
+            ctx.font = '10px Inter';
+            for (let m = 0; m <= 5; m++) {
+                const y_px = xCeiling + m * state.scale;
+                ctx.beginPath();
+                ctx.moveTo(35, y_px);
+                ctx.lineTo(45, y_px);
+                ctx.stroke();
+                ctx.fillText(`${m}m`, 15, y_px + 3);
+            }
+
+            // --- 2. DRAW CEILING ORIGIN ---
+            ctx.fillStyle = '#334155';
+            ctx.fillRect(50, xCeiling - 10, state.canvasWidth - 100, 10);
+            ctx.fillStyle = '#475569';
+            // Hatching lines on ceiling structure
+            for (let i = 60; i < state.canvasWidth - 60; i += 15) {
+                ctx.beginPath();
+                ctx.moveTo(i, xCeiling - 10);
+                ctx.lineTo(i + 10, xCeiling);
+                ctx.strokeStyle = '#475569';
+                ctx.lineWidth = 2;
+                ctx.stroke();
+            }
+
+            // --- 3. DRAW CEILING FIXED ANCHOR AND ROPE ---
+            // Draw ceiling bracket for anchor
+            ctx.fillStyle = '#64748b';
+            ctx.fillRect(xFixedAnchor - 6, xCeiling, 12, 10);
+
+            // --- 4. DRAW ROPES ---
+            ctx.strokeStyle = '#f59e0b'; // Gold-orange rope representing high-strength string
+            ctx.lineWidth = 4;
+            ctx.lineCap = 'round';
+            ctx.lineJoin = 'round';
+
+            // Left side rope segment (Anchor ceiling to left side of Pulley B)
+            ctx.beginPath();
+            ctx.moveTo(xFixedAnchor, xCeiling);
+            ctx.lineTo(xMovablePulley - rPulley, yPulleyB);
+            ctx.stroke();
+
+            // Right side rope segment (Right side of Pulley B up to Left side of Fixed Pulley C)
+            ctx.beginPath();
+            ctx.moveTo(xMovablePulley + rPulley, yPulleyB);
+            ctx.lineTo(xFixedPulley - rPulley, xCeiling);
+            ctx.stroke();
+
+            // Rope Wrap under Pulley B
+            ctx.beginPath();
+            ctx.arc(xMovablePulley, yPulleyB, rPulley, 0, Math.PI, false);
+            ctx.stroke();
+
+            // Rope Wrap over Fixed Pulley C
+            ctx.beginPath();
+            ctx.arc(xFixedPulley, xCeiling, rPulley, Math.PI, 0, false);
+            ctx.stroke();
+
+            // Rope hanging down to Block 1 (Right side of Fixed Pulley C down to Block 1)
+            ctx.beginPath();
+            ctx.moveTo(xFixedPulley + rPulley, xCeiling);
+            ctx.lineTo(xFixedPulley + rPulley, yBlock1);
+            ctx.stroke();
+
+            // Bar connecting Pulley B to Block 2
+            ctx.strokeStyle = '#cbd5e1';
+            ctx.lineWidth = 6;
+            ctx.beginPath();
+            ctx.moveTo(xMovablePulley, yPulleyB);
+            ctx.lineTo(xMovablePulley, yBlock2);
+            ctx.stroke();
+
+            // --- 5. DRAW THE PULLEYS (WITH SPOKES SPINNING) ---
+            drawPulley(xMovablePulley, yPulleyB, rPulley, state.y2 * 2.5, "Pulley B");
+            drawPulley(xFixedPulley, xCeiling, rPulley, -state.y1 * 2.5, "Fixed C");
+
+            // --- 6. DRAW MASS BLOCKS ---
+            // Draw Block 1 (Suspended mass)
+            drawMassBlock(xFixedPulley + rPulley, yBlock1, state.m1, "m₁", "#6366f1", state.isDraggingBlock1);
+            
+            // Draw Block 2 (Suspended mass below B)
+            drawMassBlock(xMovablePulley, yBlock2, state.m2, "m₂", "#10b981", state.isDraggingBlock2);
+
+            // --- 7. DYNAMIC ANNOTATIONS BASED ON THE ACTIVE TUTORIAL STEP ---
+            drawInteractiveTutorialOverlays(xFixedPulley + rPulley, yBlock1, xMovablePulley, yPulleyB, yBlock2);
+        }
+
+        // Drawing Pulleys
+        function drawPulley(x, y, r, rotation, label) {
+            ctx.save();
+            ctx.translate(x, y);
+            ctx.rotate(rotation);
+
+            // Outer ring
+            ctx.strokeStyle = '#475569';
+            ctx.fillStyle = '#334155';
+            ctx.lineWidth = 4;
+            ctx.beginPath();
+            ctx.arc(0, 0, r, 0, Math.PI * 2);
+            ctx.fill();
+            ctx.stroke();
+
+            // Inner design (Spokes for motion feedback)
+            ctx.strokeStyle = '#94a3b8';
+            ctx.lineWidth = 2;
+            for (let i = 0; i < 4; i++) {
+                ctx.rotate(Math.PI / 2);
+                ctx.beginPath();
+                ctx.moveTo(0, 0);
+                ctx.lineTo(0, r - 3);
+                ctx.stroke();
+            }
+
+            // Hub center axle pin
+            ctx.fillStyle = '#0f172a';
+            ctx.beginPath();
+            ctx.arc(0, 0, 5, 0, Math.PI * 2);
+            ctx.fill();
+            ctx.strokeStyle = '#94a3b8';
+            ctx.lineWidth = 1;
+            ctx.stroke();
+
+            ctx.restore();
+
+            // Outer tag label text
+            ctx.fillStyle = '#cbd5e1';
+            ctx.font = '9px font-mono';
+            ctx.textAlign = 'center';
+            ctx.fillText(label, x, y - r - 6);
+        }
+
+        // Drawing Mass blocks (boxes)
+        function drawMassBlock(x, y, mass, label, color, isHighlighted) {
+            // Determine box dimensions proportional to mass cube root
+            const size = Math.max(30, Math.min(65, 30 + (mass - 0.5) * 3));
+            
+            ctx.save();
+            ctx.translate(x, y);
+
+            // Fill shadow
+            ctx.shadowColor = '#000000';
+            ctx.shadowBlur = 10;
+            ctx.shadowOffsetY = 4;
+
+            // Box shape border highlight
+            ctx.fillStyle = color;
+            ctx.strokeStyle = isHighlighted ? '#f59e0b' : '#1e293b';
+            ctx.lineWidth = isHighlighted ? 3 : 1;
+            
+            // Rounded rectangle block
+            const r = 4;
+            ctx.beginPath();
+            ctx.moveTo(-size/2 + r, 0);
+            ctx.arcTo(size/2, 0, size/2, size, r);
+            ctx.arcTo(size/2, size, -size/2, size, r);
+            ctx.arcTo(-size/2, size, -size/2, 0, r);
+            ctx.arcTo(-size/2, 0, size/2, 0, r);
+            ctx.closePath();
+            ctx.fill();
+            ctx.stroke();
+
+            // Remove shadows for overlay labels
+            ctx.shadowBlur = 0;
+            ctx.shadowOffsetY = 0;
+
+            // Label
+            ctx.fillStyle = '#ffffff';
+            ctx.font = 'bold 11px Inter';
+            ctx.textAlign = 'center';
+            ctx.fillText(label, 0, size / 2 - 2);
+
+            ctx.fillStyle = '#e2e8f0';
+            ctx.font = '9px font-mono';
+            ctx.fillText(`${mass.toFixed(1)} kg`, 0, size / 2 + 10);
+
+            ctx.restore();
+        }
+
+        function drawInteractiveTutorialOverlays(x1, y1, x2, yPulleyB, y2) {
+            ctx.save();
+
+            // Chapter 1: Coordinate system vertical reference axes
+            if (state.activeStep === 0) {
+                // Vector Axis down on m1
+                drawMeasurementVector(x1 + 45, state.originY, x1 + 45, y1, '#6366f1', 'y₁ (downwards)');
+                // Vector Axis down on m2
+                drawMeasurementVector(x2 - 45, state.originY, x2 - 45, yPulleyB, '#10b981', 'y₂ (downwards)');
+            }
+
+            // Chapter 2: Highlighting rope segmented constraint lines
+            else if (state.activeStep === 1) {
+                // We draw thick highlighting behind segments to indicate 2*y2 + y1
+                ctx.strokeStyle = 'rgba(245, 158, 11, 0.25)';
+                ctx.lineWidth = 14;
+                ctx.lineCap = 'round';
+                
+                // Segment 1
+                ctx.beginPath(); ctx.moveTo(state.canvasWidth * 0.3, state.originY); ctx.lineTo(x2 - 22, yPulleyB); ctx.stroke();
+                // Segment 2
+                ctx.beginPath(); ctx.moveTo(x2 + 22, yPulleyB); ctx.lineTo(state.canvasWidth * 0.7 - 22, state.originY); ctx.stroke();
+                // Segment 3
+                ctx.beginPath(); ctx.moveTo(state.canvasWidth * 0.7 + 22, state.originY); ctx.lineTo(state.canvasWidth * 0.7 + 22, y1); ctx.stroke();
+
+                // Onscreen equation label
+                ctx.fillStyle = '#f59e0b';
+                ctx.font = 'bold 12px font-mono';
+                ctx.fillText(`L = 2y₂ + y₁ = ${state.ropeLength.toFixed(2)}m`, state.canvasWidth * 0.45, state.originY - 20);
+            }
+
+            // Chapter 3: Virtual displacement guide overlay
+            else if (state.activeStep === 2) {
+                // Draw historical/virtual baseline indicator (set to baseline y2=2m, y1=3m)
+                const virtualBaseY2 = state.originY + 2.0 * state.scale;
+                const virtualBaseY1 = state.originY + 3.0 * state.scale;
+
+                ctx.strokeStyle = '#475569';
+                ctx.setLineDash([5, 5]);
+                ctx.lineWidth = 1.5;
+                
+                // Baseline pulley path B
+                ctx.beginPath();
+                ctx.arc(x2, virtualBaseY2, 22, 0, Math.PI * 2);
+                ctx.stroke();
+
+                // Baseline Block 1 line
+                ctx.beginPath();
+                ctx.moveTo(x1 - 30, virtualBaseY1);
+                ctx.lineTo(x1 + 30, virtualBaseY1);
+                ctx.stroke();
+
+                ctx.setLineDash([]); // clear dash
+
+                // Render delta displacement vectors
+                const dy2 = state.y2 - 2.0;
+                const dy1 = state.y1 - 3.0;
+
+                if (Math.abs(dy2) > 0.02) {
+                    // Draw displacement arrow for B
+                    drawDisplacementArrow(x2 - 35, virtualBaseY2, x2 - 35, yPulleyB, '#10b981', 'Δy₂');
+                    // Draw displacement arrow for Block 1
+                    drawDisplacementArrow(x1 + 35, virtualBaseY1, x1 + 35, y1, '#6366f1', 'Δy₁ = -2Δy₂');
+                }
+            }
+
+            // Chapter 4: Velocity and Acceleration direction indicators
+            else if (state.activeStep === 3) {
+                // If moving or simulated gravity is not zero, show relative motion directions
+                if (Math.abs(state.v2) > 0.01) {
+                    drawMeasurementVector(x2 - 40, y2, x2 - 40, y2 + state.v2 * 40, '#10b981', `v₂: ${state.v2.toFixed(2)} m/s`);
+                    drawMeasurementVector(x1 + 40, y1, x1 + 40, y1 + state.v1 * 40, '#6366f1', `v₁: ${state.v1.toFixed(2)} m/s`);
+                } else {
+                    // Just show potential acceleration direction arrow based on calculations
+                    drawMeasurementVector(x2 - 40, y2 + 25, x2 - 40, y2 + 25 + state.a2 * 30, '#10b981', `a₂`);
+                    drawMeasurementVector(x1 + 40, y1 + 25, x1 + 40, y1 + 25 + state.a1 * 30, '#6366f1', `a₁`);
+                }
+            }
+
+            // Chapter 5: Free-Body Diagram (Forces vectors)
+            else if (state.activeStep === 4) {
+                const forceScale = 2.5; // conversion factor: 1 Newton = 2.5 pixels length
+
+                // Block 1 FBD: Tension up, Gravity down
+                const t1_px = state.tension * forceScale;
+                const g1_px = state.m1 * state.g * forceScale;
+                drawForceArrow(x1, y1 + 15, x1, y1 + 15 - t1_px, '#f59e0b', 'T');
+                drawForceArrow(x1, y1 + 15, x1, y1 + 15 + g1_px, '#ef4444', 'm₁g');
+
+                // Block 2 FBD: Gravity down, Dual Tension up
+                const t2_px = state.tension * 2 * forceScale; // double tension pulling pulley up
+                const g2_px = state.m2 * state.g * forceScale;
+                drawForceArrow(x2, yPulleyB, x2, yPulleyB - t2_px, '#f59e0b', '2T');
+                drawForceArrow(x2, y2, x2, y2 + g2_px, '#ef4444', 'm₂g');
+            }
+
+            ctx.restore();
+        }
+
+        // Helper vector draws
+        function drawMeasurementVector(xStart, yStart, xEnd, yEnd, color, text) {
+            ctx.strokeStyle = color;
+            ctx.fillStyle = color;
+            ctx.lineWidth = 1.5;
+
+            // Main shaft line
+            ctx.beginPath();
+            ctx.moveTo(xStart, yStart);
+            ctx.lineTo(xEnd, yEnd);
+            ctx.stroke();
+
+            // Arrow tip
+            const angle = Math.atan2(yEnd - yStart, xEnd - xStart);
+            const rTip = 6;
+            ctx.beginPath();
+            ctx.moveTo(xEnd, yEnd);
+            ctx.lineTo(xEnd - rTip * Math.cos(angle - Math.PI / 6), yEnd - rTip * Math.sin(angle - Math.PI / 6));
+            ctx.lineTo(xEnd - rTip * Math.cos(angle + Math.PI / 6), yEnd - rTip * Math.sin(angle + Math.PI / 6));
+            ctx.fill();
+
+            // Bracket bars
+            ctx.beginPath(); ctx.moveTo(xStart - 5, yStart); ctx.lineTo(xStart + 5, yStart); ctx.stroke();
+
+            // Dynamic textual label placement
+            ctx.font = '9px font-mono';
+            ctx.textAlign = 'left';
+            ctx.fillText(text, Math.max(xStart, xEnd) + 8, (yStart + yEnd) / 2 + 3);
+        }
+
+        function drawDisplacementArrow(xStart, yStart, xEnd, yEnd, color, label) {
+            ctx.strokeStyle = color;
+            ctx.fillStyle = color;
+            ctx.lineWidth = 2;
+
+            // Draw shaft line
+            ctx.beginPath();
+            ctx.moveTo(xStart, yStart);
+            ctx.lineTo(xEnd, yEnd);
+            ctx.stroke();
+
+            // Draw arrowhead
+            const angle = Math.atan2(yEnd - yStart, xEnd - xStart);
+            const rTip = 6;
+            ctx.beginPath();
+            ctx.moveTo(xEnd, yEnd);
+            ctx.lineTo(xEnd - rTip * Math.cos(angle - Math.PI / 6), yEnd - rTip * Math.sin(angle - Math.PI / 6));
+            ctx.lineTo(xEnd - rTip * Math.cos(angle + Math.PI / 6), yEnd - rTip * Math.sin(angle + Math.PI / 6));
+            ctx.fill();
+
+            // Label text offset side
+            ctx.font = 'bold 10px font-mono';
+            ctx.fillText(label, Math.max(xStart, xEnd) + 6, (yStart + yEnd) / 2 + 3);
+        }
+
+        function drawForceArrow(xStart, yStart, xEnd, yEnd, color, label) {
+            ctx.strokeStyle = color;
+            ctx.fillStyle = color;
+            ctx.lineWidth = 2.5;
+
+            // Draw arrow shaft line
+            ctx.beginPath();
+            ctx.moveTo(xStart, yStart);
+            ctx.lineTo(xEnd, yEnd);
+            ctx.stroke();
+
+            // Draw pointer tip
+            const angle = Math.atan2(yEnd - yStart, xEnd - xStart);
+            const rTip = 8;
+            ctx.beginPath();
+            ctx.moveTo(xEnd, yEnd);
+            ctx.lineTo(xEnd - rTip * Math.cos(angle - Math.PI / 6), yEnd - rTip * Math.sin(angle - Math.PI / 6));
+            ctx.lineTo(xEnd - rTip * Math.cos(angle + Math.PI / 6), yEnd - rTip * Math.sin(angle + Math.PI / 6));
+            ctx.fill();
+
+            // Force label representation
+            ctx.font = 'bold 10px Inter';
+            ctx.fillText(label, xEnd + 8, yEnd + (angle > 0 ? 0 : 5));
+        }
+
+        function drawGraph() {
+            graphCtx.clearRect(0, 0, graphCanvas.width, graphCanvas.height);
+
+            const width = graphCanvas.width / (window.devicePixelRatio || 1);
+            const height = graphCanvas.height / (window.devicePixelRatio || 1);
+
+            // Left baseline coordinates grid
+            graphCtx.strokeStyle = '#1e293b';
+            graphCtx.lineWidth = 1;
+            graphCtx.beginPath();
+            graphCtx.moveTo(40, 0);
+            graphCtx.lineTo(40, height);
+            graphCtx.stroke();
+
+            // Label coordinates axis ticks
+            graphCtx.fillStyle = '#64748b';
+            graphCtx.font = '8px font-mono';
+            graphCtx.fillText('5m', 15, 20);
+            graphCtx.fillText('0m', 15, height - 10);
+
+            if (graphData.length < 2) return;
+
+            // Trace trajectory mapping path
+            const paddingLeft = 40;
+            const stepX = (width - paddingLeft) / MAX_GRAPH_POINTS;
+
+            // Max coordinate reference values
+            const maxMetersRange = 6.0;
+
+            // Draw Block 1 curve (Indigo color)
+            graphCtx.strokeStyle = '#6366f1';
+            graphCtx.lineWidth = 2;
+            graphCtx.beginPath();
+            for (let i = 0; i < graphData.length; i++) {
+                const x = paddingLeft + i * stepX;
+                // Position inverse map (0m at bottom, 5m at top visual boundary)
+                const y = height - (graphData[i].y1 / maxMetersRange) * height;
+                if (i === 0) graphCtx.moveTo(x, y);
+                else graphCtx.lineTo(x, y);
+            }
+            graphCtx.stroke();
+
+            // Draw Block 2 curve (Emerald color)
+            graphCtx.strokeStyle = '#10b981';
+            graphCtx.lineWidth = 2;
+            graphCtx.beginPath();
+            for (let i = 0; i < graphData.length; i++) {
+                const x = paddingLeft + i * stepX;
+                const y = height - (graphData[i].y2 / maxMetersRange) * height;
+                if (i === 0) graphCtx.moveTo(x, y);
+                else graphCtx.lineTo(x, y);
+            }
+            graphCtx.stroke();
+        }
+
+        function initDragHandling() {
+            let startMouseY = 0;
+            let startY2 = 0;
+            let startY1 = 0;
+
+            canvas.addEventListener('mousedown', handleStart);
+            canvas.addEventListener('touchstart', handleStart, { passive: false });
+
+            function handleStart(e) {
+                // Determine pointer vertical position coordinate relative to canvas top
+                const rect = canvas.getBoundingClientRect();
+                const clientY = e.touches ? e.touches[0].clientY : e.clientY;
+                const clientX = e.touches ? e.touches[0].clientX : e.clientX;
+
+                const mouseY = clientY - rect.top;
+                const mouseX = clientX - rect.left;
+
+                // Transformed variables positions
+                const xMovablePulley = state.canvasWidth * 0.45;
+                const xFixedPulley = state.canvasWidth * 0.7;
+                const rPulley = 22;
+
+                const yPulleyB = state.originY + state.y2 * state.scale;
+                const yBlock2 = yPulleyB + 50;
+                const yBlock1 = state.originY + state.y1 * state.scale;
+
+                const sizeB1 = Math.max(30, Math.min(65, 30 + (state.m1 - 0.5) * 3));
+                const sizeB2 = Math.max(30, Math.min(65, 30 + (state.m2 - 0.5) * 3));
+
+                // Hit Detection bounds check
+                // Check if user clicked on Block 1 box
+                const isHitBlock1 = (
+                    mouseX >= (xFixedPulley + rPulley - sizeB1/2) &&
+                    mouseX <= (xFixedPulley + rPulley + sizeB1/2) &&
+                    mouseY >= yBlock1 &&
+                    mouseY <= (yBlock1 + sizeB1)
+                );
+
+                // Check if user clicked on Block 2 box
+                const isHitBlock2 = (
+                    mouseX >= (xMovablePulley - sizeB2/2) &&
+                    mouseX <= (xMovablePulley + sizeB2/2) &&
+                    mouseY >= yBlock2 &&
+                    mouseY <= (yBlock2 + sizeB2)
+                );
+
+                if (isHitBlock1) {
+                    state.isDraggingBlock1 = true;
+                    state.isRunning = false; // pause physics during interaction
+                    startMouseY = mouseY;
+                    startY1 = state.y1;
+                    e.preventDefault();
+                } else if (isHitBlock2) {
+                    state.isDraggingBlock2 = true;
+                    state.isRunning = false;
+                    startMouseY = mouseY;
+                    startY2 = state.y2;
+                    e.preventDefault();
+                }
+
+                if (state.isDraggingBlock1 || state.isDraggingBlock2) {
+                    btnPause.classList.add('hidden');
+                    btnPlay.classList.remove('hidden');
+                    hudStatus.textContent = "Manual Drag";
+                    hudStatus.className = "font-mono font-bold text-lg text-amber-500 animate-pulse";
+                }
+            }
+
+            window.addEventListener('mousemove', handleMove);
+            window.addEventListener('touchmove', handleMove, { passive: false });
+
+            function handleMove(e) {
+                if (!state.isDraggingBlock1 && !state.isDraggingBlock2) return;
+
+                const rect = canvas.getBoundingClientRect();
+                const clientY = e.touches ? e.touches[0].clientY : e.clientY;
+                const mouseY = clientY - rect.top;
+
+                // Diff distance in meters
+                const deltaMeters = (mouseY - startMouseY) / state.scale;
+
+                if (state.isDraggingBlock1) {
+                    const targetY1 = startY1 + deltaMeters;
+                    // Enforce constraints backwards from 1
+                    const targetY2 = (state.ropeLength - targetY1) / 2;
+                    updateSystemPositions(targetY2);
+                } else if (state.isDraggingBlock2) {
+                    const targetY2 = startY2 + deltaMeters;
+                    updateSystemPositions(targetY2);
+                }
+
+                resetVelocities();
+                recalculateDerived();
+                draw();
+                
+                // Clear any bubble behaviors on screen if active drag
+                e.preventDefault();
+            }
+
+            window.addEventListener('mouseup', handleEnd);
+            window.addEventListener('touchend', handleEnd);
+
+            function handleEnd() {
+                if (state.isDraggingBlock1 || state.isDraggingBlock2) {
+                    state.isDraggingBlock1 = false;
+                    state.isDraggingBlock2 = false;
+                    hudStatus.textContent = "Stopped";
+                    hudStatus.className = "font-mono font-bold text-lg text-blue-400";
+                    draw();
+                }
+            }
+        }
+
+        function setActiveChapter(index) {
+            state.activeStep = index;
+
+            // Show chapter tracker metrics
+            chapterNumberText.textContent = `Chapter ${index + 1} of ${chapters.length}`;
+            chapterCompletionText.textContent = chapters[index].completion;
+            chapterTitleText.textContent = chapters[index].title;
+            chapterContentText.innerHTML = chapters[index].content;
+
+            // Trigger chapter progress state bars colors
+            for (let i = 0; i < chapters.length; i++) {
+                const bar = document.getElementById(`step-bar-${i + 1}`);
+                if (i <= index) {
+                    bar.className = "h-full bg-indigo-500 flex-1 transition-all duration-300";
+                } else {
+                    bar.className = "h-full bg-slate-800 flex-1 transition-all duration-300";
+                }
+            }
+
+            // Sync prev/next buttons
+            if (index === 0) {
+                btnPrevStep.disabled = true;
+            } else {
+                btnPrevStep.disabled = false;
+            }
+
+            if (index === chapters.length - 1) {
+                btnNextStep.innerHTML = `Restart Masterclass <svg class="w-4 h-4 ml-1" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 1121.21 15H19"></path></svg>`;
+            } else {
+                btnNextStep.innerHTML = `Next Chapter <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"></path></svg>`;
+            }
+
+            // Show or hide Virtual Shift Manual sliders/alerts if step 3 is selected
+            if (index === 2) {
+                virtualOverlay.classList.remove('hidden');
+            } else {
+                virtualOverlay.classList.add('hidden');
+            }
+
+            updateSandboxText();
+            // Re-render LaTeX math
+            if (window.MathJax) {
+                MathJax.typesetPromise();
+            }
+            draw();
+        }
+
+        function updateSandboxText() {
+            chapterSandboxText.innerHTML = chapters[state.activeStep].getSandbox();
+            // Re-render LaTeX math in sandbox
+            if (window.MathJax) {
+                MathJax.typesetPromise();
+            }
+        }
+
+        let lastTime = performance.now();
+        function mainLoop(timestamp) {
+            const dt = Math.min(0.05, (timestamp - lastTime) / 1000); // capped delta to prevent coordinate explosions
+            lastTime = timestamp;
+
+            if (state.isRunning) {
+                stepPhysics(dt);
+                draw();
+                drawGraph();
+            }
+
+            requestAnimationFrame(mainLoop);
+        }
+
+        // Initialize App on load
+        window.onload = function() {
+            initEvents();
+            resizeCanvas();
+            setActiveChapter(0);
+            resetSimulation();
+
+            // Trigger physics frame request animation loop
+            requestAnimationFrame(mainLoop);
+        };
+    </script>
+</body>
+</html>

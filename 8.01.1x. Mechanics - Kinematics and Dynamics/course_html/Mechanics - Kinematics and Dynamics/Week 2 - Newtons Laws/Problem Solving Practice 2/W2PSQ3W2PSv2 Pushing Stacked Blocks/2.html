@@ -1,0 +1,1125 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Two-Block Friction Stack Simulator</title>
+    <!-- Tailwind CSS for modern responsive styling -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Google Fonts for premium typography -->
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=Fira+Code:wght@400;500&display=swap" rel="stylesheet">
+    <!-- Chart.js for real-time telemetry plotting -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <!-- FontAwesome for icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    
+    <!-- KaTeX for premium math rendering -->
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.8/dist/katex.min.css">
+    <script src="https://cdn.jsdelivr.net/npm/katex@0.16.8/dist/katex.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/katex@0.16.8/dist/contrib/auto-render.min.js"></script>
+
+    <style>
+        body {
+            font-family: 'Inter', sans-serif;
+        }
+        .code-font {
+            font-family: 'Fira Code', monospace;
+        }
+    </style>
+</head>
+<body class="bg-slate-900 text-slate-100 min-h-screen flex flex-col selection:bg-indigo-500 selection:text-white">
+
+    <!-- Top Navigation / Header -->
+    <header class="border-b border-slate-800 bg-slate-950/80 backdrop-blur sticky top-0 z-50 px-6 py-4">
+        <div class="max-w-7xl mx-auto flex flex-col md:flex-row items-center justify-between gap-4">
+            <div class="flex items-center gap-3">
+                <div class="p-2 bg-indigo-600 rounded-lg text-white shadow-lg shadow-indigo-500/20">
+                    <i class="fa-solid fa-layer-group text-xl animate-pulse"></i>
+                </div>
+                <div>
+                    <h1 class="text-xl font-bold tracking-tight bg-gradient-to-r from-indigo-400 via-purple-400 to-pink-400 bg-clip-text text-transparent">
+                        Friction Stack Simulator
+                    </h1>
+                    <p class="text-xs text-slate-400 font-medium">Step-by-Step Computational Dynamics & slipping Thresholds</p>
+                </div>
+            </div>
+            
+            <div class="flex flex-wrap items-center gap-2">
+                <button onclick="setScenario('standard')" class="px-3 py-1.5 text-xs font-semibold bg-slate-800 hover:bg-slate-700 rounded-md transition border border-slate-700">
+                    <i class="fa-solid fa-graduation-cap text-indigo-400 mr-1.5"></i> Standard Setup
+                </button>
+                <button onclick="setScenario('heavy_top')" class="px-3 py-1.5 text-xs font-semibold bg-slate-800 hover:bg-slate-700 rounded-md transition border border-slate-700">
+                    <i class="fa-solid fa-weight-hanging text-amber-400 mr-1.5"></i> Heavy Top Block
+                </button>
+                <button onclick="setScenario('ice')" class="px-3 py-1.5 text-xs font-semibold bg-slate-800 hover:bg-slate-700 rounded-md transition border border-slate-700">
+                    <i class="fa-solid fa-snowflake text-sky-400 mr-1.5"></i> Low Ground Friction
+                </button>
+                <button onclick="setScenario('high_force')" class="px-3 py-1.5 text-xs font-semibold bg-slate-800 hover:bg-slate-700 rounded-md transition border border-slate-700">
+                    <i class="fa-solid fa-bolt text-rose-400 mr-1.5"></i> Instant Slip
+                </button>
+            </div>
+        </div>
+    </header>
+
+    <!-- Main Content Grid -->
+    <main class="flex-grow max-w-7xl w-full mx-auto p-4 md:p-6 grid grid-cols-1 lg:grid-cols-12 gap-6">
+        
+        <!-- Left Panel: Controls & Parameter Modifiers (4 cols) -->
+        <section class="lg:col-span-4 flex flex-col gap-6">
+            <!-- Parameter Control Card -->
+            <div class="bg-slate-950/40 border border-slate-800 rounded-2xl p-5 shadow-xl backdrop-blur-md">
+                <div class="flex items-center justify-between mb-4 border-b border-slate-800/80 pb-3">
+                    <h2 class="font-bold text-slate-200 flex items-center gap-2">
+                        <i class="fa-solid fa-sliders text-indigo-500"></i> Simulation Parameters
+                    </h2>
+                    <span class="text-xs bg-indigo-950/80 text-indigo-400 border border-indigo-800/60 px-2 py-0.5 rounded-full font-semibold">Config</span>
+                </div>
+
+                <div class="space-y-5">
+                    <!-- Mass 1 (Bottom Block) -->
+                    <div>
+                        <div class="flex justify-between text-xs font-medium mb-1.5 items-center">
+                            <span class="text-slate-400">Mass of Bottom Block ($m_1$)</span>
+                            <span class="text-indigo-400 font-semibold" id="label-m1">5.0 kg</span>
+                        </div>
+                        <input type="range" id="param-m1" min="1" max="15" step="0.5" value="5" 
+                            class="w-full h-1.5 bg-slate-800 rounded-lg appearance-none cursor-pointer accent-indigo-500">
+                    </div>
+
+                    <!-- Mass 2 (Top Block) -->
+                    <div>
+                        <div class="flex justify-between text-xs font-medium mb-1.5 items-center">
+                            <span class="text-slate-400">Mass of Top Block ($m_2$)</span>
+                            <span class="text-purple-400 font-semibold" id="label-m2">2.0 kg</span>
+                        </div>
+                        <input type="range" id="param-m2" min="1" max="10" step="0.5" value="2" 
+                            class="w-full h-1.5 bg-slate-800 rounded-lg appearance-none cursor-pointer accent-purple-500">
+                    </div>
+
+                    <!-- Static Friction Coefficient -->
+                    <div>
+                        <div class="flex justify-between text-xs font-medium mb-1.5 items-center">
+                            <span class="text-slate-400">Static Friction ($\mu_s$) <span class="text-slate-600">Interface</span></span>
+                            <span class="text-amber-400 font-semibold" id="label-mus">0.40</span>
+                        </div>
+                        <input type="range" id="param-mus" min="0.05" max="1.0" step="0.05" value="0.4" 
+                            class="w-full h-1.5 bg-slate-800 rounded-lg appearance-none cursor-pointer accent-amber-500">
+                    </div>
+
+                    <!-- Kinetic Friction Coefficient (Interface) -->
+                    <div>
+                        <div class="flex justify-between text-xs font-medium mb-1.5 items-center">
+                            <span class="text-slate-400">Kinetic Friction ($\mu_k$) <span class="text-slate-600">Interface</span></span>
+                            <span class="text-orange-400 font-semibold" id="label-muk">0.30</span>
+                        </div>
+                        <input type="range" id="param-muk" min="0.01" max="1.0" step="0.05" value="0.3" 
+                            class="w-full h-1.5 bg-slate-800 rounded-lg appearance-none cursor-pointer accent-orange-500">
+                    </div>
+
+                    <!-- Kinetic Friction Ground Coefficient -->
+                    <div>
+                        <div class="flex justify-between text-xs font-medium mb-1.5 items-center">
+                            <span class="text-slate-400">Ground Friction ($\mu_g$)</span>
+                            <span class="text-emerald-400 font-semibold" id="label-mug">0.20</span>
+                        </div>
+                        <input type="range" id="param-mug" min="0.0" max="0.8" step="0.05" value="0.2" 
+                            class="w-full h-1.5 bg-slate-800 rounded-lg appearance-none cursor-pointer accent-emerald-500">
+                    </div>
+
+                    <!-- Applied Force (F) -->
+                    <div class="pt-3 border-t border-slate-800/60">
+                        <div class="flex justify-between text-xs font-medium mb-1.5 items-center">
+                            <span class="text-slate-300 font-bold">Applied Force ($F$)</span>
+                            <span class="text-rose-400 font-bold" id="label-F">25.0 N</span>
+                        </div>
+                        <input type="range" id="param-F" min="0" max="80" step="1" value="25" 
+                            class="w-full h-2 bg-slate-800 rounded-lg appearance-none cursor-pointer accent-rose-500">
+                    </div>
+
+                    <!-- Auto-Ramp Option -->
+                    <div class="flex items-center justify-between bg-slate-900/60 p-3 rounded-xl border border-slate-800">
+                        <div class="flex flex-col">
+                            <span class="text-xs font-semibold text-slate-300">Auto-Ramp Applied Force</span>
+                            <span class="text-[10px] text-slate-500">Slowly increases $F$ to demonstrate slip transition</span>
+                        </div>
+                        <label class="relative inline-flex items-center cursor-pointer">
+                            <input type="checkbox" id="param-autoramp" class="sr-only peer">
+                            <div class="w-9 h-5 bg-slate-800 rounded-full peer peer-checked:after:translate-x-full after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-slate-300 after:border-slate-300 after:border after:rounded-full after:h-4 after:w-4 after:transition-all peer-checked:bg-indigo-600"></div>
+                        </label>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Mathematical Threshold Calculations Card -->
+            <div class="bg-slate-950/40 border border-slate-800 rounded-2xl p-5 shadow-xl backdrop-blur-md flex-grow">
+                <div class="flex items-center justify-between mb-4 border-b border-slate-800/80 pb-3">
+                    <h2 class="font-bold text-slate-200 flex items-center gap-2">
+                        <i class="fa-solid fa-calculator text-emerald-500"></i> Mathematical Limits
+                    </h2>
+                    <span class="text-xs bg-emerald-950/80 text-emerald-400 border border-emerald-800/60 px-2 py-0.5 rounded-full font-semibold">Live</span>
+                </div>
+
+                <div class="space-y-4 text-sm font-medium">
+                    <div class="flex justify-between py-1.5 border-b border-slate-900 items-center">
+                        <span class="text-slate-400">Normal Interface Force ($N$)</span>
+                        <span class="text-slate-200" id="calc-N"></span>
+                    </div>
+                    <div class="flex justify-between py-1.5 border-b border-slate-900 items-center">
+                        <span class="text-slate-400">Max Static Friction ($f_{s,\max}$)</span>
+                        <span class="text-amber-400 font-bold" id="calc-fsmax"></span>
+                    </div>
+                    <div class="flex justify-between py-1.5 border-b border-slate-900 items-center">
+                        <span class="text-slate-400">Ground Friction ($f_{k,\text{ground}}$)</span>
+                        <span class="text-emerald-400" id="calc-fkg"></span>
+                    </div>
+                    <div class="bg-indigo-950/20 border border-indigo-900/60 p-3 rounded-xl">
+                        <div class="flex justify-between items-center mb-1">
+                            <span class="text-xs text-indigo-400 font-bold uppercase tracking-wider">Slipping Threshold Force</span>
+                            <span class="text-indigo-300 font-extrabold text-base" id="calc-Fmax"></span>
+                        </div>
+                        <p class="text-[10px] text-indigo-400/80 leading-relaxed font-normal">
+                            If applied force $F > F_{\max}$, block 2 will break static friction limit and slide backwards relative to block 1.
+                        </p>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Center Panel: Live Physical Simulator & Graphing (8 cols) -->
+        <section class="lg:col-span-8 flex flex-col gap-6">
+            
+            <!-- Visualizer Card -->
+            <div class="bg-slate-950/40 border border-slate-800 rounded-2xl p-5 shadow-xl backdrop-blur-md relative overflow-hidden flex flex-col">
+                <!-- Status Bar -->
+                <div class="flex items-center justify-between mb-4 z-10">
+                    <div class="flex items-center gap-2">
+                        <span class="inline-block w-2.5 h-2.5 rounded-full bg-indigo-500 animate-ping"></span>
+                        <h2 class="font-bold text-slate-200">Interactive Canvas Visualizer</h2>
+                    </div>
+                    
+                    <!-- Dynamic State Indicator -->
+                    <div class="flex items-center gap-2">
+                        <span id="state-badge" class="px-3 py-1 rounded-full text-xs font-bold tracking-wide uppercase transition-colors shadow">
+                            Stationary
+                        </span>
+                    </div>
+                </div>
+
+                <!-- Simulation Canvas Wrapper -->
+                <div class="relative bg-slate-900/80 rounded-xl border border-slate-800 overflow-hidden h-[260px] flex items-center justify-center">
+                    <canvas id="simCanvas" class="w-full h-full block cursor-crosshair"></canvas>
+                    
+                    <!-- Digital Telemetry HUD Overlay -->
+                    <div class="absolute bottom-3 left-3 bg-slate-950/90 border border-slate-800 px-3 py-2 rounded-lg text-[10px] code-font space-y-1 text-slate-300 min-w-[160px] pointer-events-none">
+                        <div class="text-slate-400 font-bold border-b border-slate-800 pb-1 mb-1 flex justify-between">
+                            <span>TELEMETRY</span>
+                            <span class="text-indigo-400 font-normal">60 FPS</span>
+                        </div>
+                        <div class="flex justify-between"><span>x₁ (Bottom):</span> <span id="hud-x1">0.00 m</span></div>
+                        <div class="flex justify-between"><span>v₁ (Bottom):</span> <span id="hud-v1" class="text-indigo-400">0.00 m/s</span></div>
+                        <div class="flex justify-between"><span>a₁ (Bottom):</span> <span id="hud-a1" class="text-indigo-400">0.00 m/s²</span></div>
+                        <div class="flex justify-between border-t border-slate-800/80 mt-1 pt-1"><span>x₂ (Top):</span> <span id="hud-x2">0.00 m</span></div>
+                        <div class="flex justify-between"><span>y₂ (Top):</span> <span id="hud-y2" class="text-purple-400">0.00 m</span></div>
+                        <div class="flex justify-between"><span>v₂ (Top):</span> <span id="hud-v2" class="text-purple-400">0.00 m/s</span></div>
+                        <div class="flex justify-between"><span>a₂ (Top):</span> <span id="hud-a2" class="text-purple-400">0.00 m/s²</span></div>
+                    </div>
+
+                    <!-- Canvas Action Controls -->
+                    <div class="absolute bottom-3 right-3 flex items-center gap-1">
+                        <button onclick="toggleSimulation()" id="btn-play" class="p-2.5 bg-indigo-600 hover:bg-indigo-500 rounded-lg text-white font-semibold text-xs shadow-lg transition flex items-center gap-1.5">
+                            <i class="fa-solid fa-play"></i> <span id="btn-play-text">Start</span>
+                        </button>
+                        <button onclick="resetSimulation()" class="p-2.5 bg-slate-800 hover:bg-slate-700 rounded-lg text-slate-300 font-semibold text-xs transition border border-slate-700">
+                            <i class="fa-solid fa-arrow-rotate-left"></i> Reset
+                        </button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Live Plotting and Dynamics Telemetry Grid -->
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <!-- Live Forces Chart -->
+                <div class="bg-slate-950/40 border border-slate-800 rounded-2xl p-4 shadow-xl backdrop-blur-md">
+                    <h3 class="text-xs font-bold text-slate-400 mb-3 flex items-center gap-1.5 uppercase tracking-wide">
+                        <i class="fa-solid fa-chart-line text-rose-500"></i> Dynamic Forces History
+                    </h3>
+                    <div class="h-44">
+                        <canvas id="forcesChart"></canvas>
+                    </div>
+                </div>
+
+                <!-- Live Acceleration Chart -->
+                <div class="bg-slate-950/40 border border-slate-800 rounded-2xl p-4 shadow-xl backdrop-blur-md">
+                    <h3 class="text-xs font-bold text-slate-400 mb-3 flex items-center gap-1.5 uppercase tracking-wide">
+                        <i class="fa-solid fa-chart-line text-purple-500"></i> Accelerations ($a_1$ vs $a_2$)
+                    </h3>
+                    <div class="h-44">
+                        <canvas id="accelChart"></canvas>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Expert Derivation and Algorithmic Sync Block -->
+            <div class="bg-slate-950/40 border border-slate-800 rounded-2xl p-6 shadow-xl backdrop-blur-md">
+                <div class="flex items-center justify-between mb-4 border-b border-slate-800/80 pb-3">
+                    <h2 class="font-bold text-slate-200 flex items-center gap-2">
+                        <i class="fa-solid fa-chalkboard-user text-indigo-400"></i> Expert Step-by-Step Computational Derivation
+                    </h2>
+                    <span class="text-xs bg-slate-800 text-slate-400 px-3 py-1 rounded-full font-medium">Lecture Synced</span>
+                </div>
+
+                <div class="space-y-6 text-sm text-slate-300 leading-relaxed">
+                    <!-- Tab Navigation -->
+                    <div class="flex border-b border-slate-800 gap-4">
+                        <button onclick="switchTab('fbd')" id="tab-btn-fbd" class="pb-2 text-indigo-400 border-b-2 border-indigo-500 font-bold text-xs uppercase tracking-wider">1. FBD & Normal Forces</button>
+                        <button onclick="switchTab('threshold')" id="tab-btn-threshold" class="pb-2 text-slate-500 hover:text-slate-300 font-bold text-xs uppercase tracking-wider">2. Acceleration Limits</button>
+                        <button onclick="switchTab('alg')" id="tab-btn-alg" class="pb-2 text-slate-500 hover:text-slate-300 font-bold text-xs uppercase tracking-wider">3. Computational Algorithm</button>
+                    </div>
+
+                    <!-- FBD Tab -->
+                    <div id="tab-content-fbd" class="space-y-4 transition-all">
+                        <p>
+                            Consider two stacked blocks with applied force $F$ on the bottom block $m_1$. We model all physical interactions via Newton's Second Law:
+                        </p>
+                        <div class="bg-slate-900/60 border border-slate-800 p-4 rounded-xl space-y-3">
+                            <div class="flex items-start gap-3">
+                                <span class="px-2 py-0.5 bg-indigo-950 text-indigo-400 border border-indigo-800 text-xs rounded font-bold code-font">M₂</span>
+                                <div>
+                                    <p class="font-semibold text-slate-200">Top Block $m_2$ (Bound only by Interface Friction):</p>
+                                    <p class="text-xs text-slate-400 mt-1">Normal Force: $N_{\text{inter}} = m_2 \cdot g$</p>
+                                    <p class="text-xs text-slate-400">Static friction force required to prevent sliding: $f_s = m_2 \cdot a$</p>
+                                </div>
+                            </div>
+                            <div class="flex items-start gap-3 border-t border-slate-800/60 pt-3">
+                                <span class="px-2 py-0.5 bg-indigo-950 text-indigo-400 border border-indigo-800 text-xs rounded font-bold code-font">M₁</span>
+                                <div>
+                                    <p class="font-semibold text-slate-200">Bottom Block $m_1$ (Driven by applied force $F$):</p>
+                                    <p class="text-xs text-slate-400 mt-1">Ground Normal Force: $N_{\text{ground}} = (m_1 + m_2) \cdot g$</p>
+                                    <p class="text-xs text-slate-400">Kinetic Ground Friction: $f_{k,\text{ground}} = \mu_g \cdot (m_1 + m_2) \cdot g$</p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Threshold Tab -->
+                    <div id="tab-content-threshold" class="hidden space-y-4">
+                        <p>
+                            When the blocks go together (Unified Motion), their accelerations are the same: $a_1 = a_2 = a$.
+                        </p>
+                        <p>
+                            The maximum acceleration of Block 2 is bounded by the static friction threshold:
+                            <span class="block bg-slate-900/60 border border-slate-800 p-3 rounded-xl code-font text-center text-amber-400 font-bold my-2">
+                                $$f_{s,\max} = \mu_s \cdot m_2 \cdot g \implies a_{\max} = \frac{f_{s,\max}}{m_2} = \mu_s \cdot g$$
+                            </span>
+                            If the system accelerates faster than $a_{\max}$, the static friction limit is exceeded, and the blocks begin to slip relative to each other.
+                        </p>
+                        <p>
+                            Substituting this maximum acceleration condition back into our bottom block's equation gives the maximum applied force threshold $F_{\max}$:
+                        </p>
+                        <div class="bg-slate-900/60 border border-slate-800 p-4 rounded-xl space-y-2 text-xs">
+                            <p class="text-slate-400 font-semibold">Step-by-step substitution:</p>
+                            <div class="space-y-1 font-mono text-indigo-300">
+                                <div>$$F_{\max} = f_{k,\text{ground}} + f_{s,\max} + m_1 \cdot a_{\max}$$</div>
+                                <div>$$F_{\max} = f_{k,\text{ground}} + f_{s,\max} + m_1 \cdot \left(\frac{f_{s,\max}}{m_2}\right)$$</div>
+                                <div class="text-indigo-400 font-bold text-sm mt-1">$$F_{\max} = f_{k,\text{ground}} + f_{s,\max} \left(1 + \frac{m_1}{m_2}\right)$$</div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Algorithm Tab -->
+                    <div id="tab-content-alg" class="hidden space-y-4">
+                        <p>
+                            To computationally model this dynamic state transition, the simulator implements a <strong>Stick-Slip State Machine</strong>:
+                        </p>
+                        <div class="bg-slate-950 border border-slate-800 p-4 rounded-xl text-xs space-y-2 font-mono overflow-x-auto text-emerald-400">
+                            <div><span class="text-pink-500">// Check state inside numerical integration loop</span></div>
+                            <div>if (state === 'unified') {</div>
+                            <div class="pl-4">let total_m = m₁ + m₂;</div>
+                            <div class="pl-4">let accel = (F - f_k,ground) / total_m;</div>
+                            <div class="pl-4">let required_fs = m₂ * accel;</div>
+                            <div class="pl-4">if (Math.abs(required_fs) > f_s_max) {</div>
+                            <div class="pl-8 text-rose-400">state = 'slipping'; // Exceeded threshold!</div>
+                            <div class="pl-4">} else {</div>
+                            <div class="pl-8 text-indigo-400">a₁ = a₂ = accel;</div>
+                            <div class="pl-4">}</div>
+                            <div>} else if (state === 'slipping') {</div>
+                            <div class="pl-4"><span class="text-pink-500">// Relative slipping uses kinetic friction</span></div>
+                            <div class="pl-4">let f_kinetic_inter = μk * m₂ * g;</div>
+                            <div class="pl-4">a₂ = f_kinetic_inter / m₂;</div>
+                            <div class="pl-4">a₁ = (F - f_k,ground - f_kinetic_inter) / m₁;</div>
+                            <div>}</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+    </main>
+
+    <!-- Footer -->
+    <footer class="bg-slate-950 border-t border-slate-800/60 py-6 text-center text-xs text-slate-500 mt-auto">
+        <div class="max-w-7xl mx-auto px-6 flex flex-col md:flex-row justify-between items-center gap-4">
+            <p>© 2026 Physics Stack Laboratory. Designed for Web & Touch Interactivity.</p>
+            <div class="flex gap-4">
+                <span class="hover:text-slate-400 transition cursor-help"><i class="fa-solid fa-book mr-1"></i> Interactive Physics</span>
+                <span class="hover:text-slate-400 transition cursor-help"><i class="fa-solid fa-microchip mr-1"></i> Gemini Live Guided</span>
+            </div>
+        </div>
+    </footer>
+
+    <script>
+        // --- PHYSICAL PARAMETERS & STATE ---
+        const g = 9.81; // m/s^2
+        let m1 = 5.0; // bottom block
+        let m2 = 2.0; // top block
+        let mu_s = 0.4; // static friction block 1-2
+        let mu_k = 0.3; // kinetic friction block 1-2
+        let mu_g = 0.2; // ground kinetic friction
+        let F = 25.0; // applied force
+
+        // State Machine variables
+        let x1 = 0.5, v1 = 0, a1 = 0;
+        let x2 = 0.5, v2 = 0, a2 = 0;
+        let isFallen = false; // flag indicating top block has slipped off the bottom block
+        let y2_offset = 0;   // vertical fall offset in meters
+        let vy2 = 0;         // vertical velocity in m/s
+        let simState = 'stationary'; // 'stationary', 'unified', 'slipping'
+        let isRunning = false;
+        let autoRamp = false;
+
+        // Visual properties
+        let scale = 120; // px per meter
+        let particles = [];
+
+        // Dynamic limits
+        let N_i = 0;
+        let N_g = 0;
+        let f_s_max = 0;
+        let f_k_g = 0;
+        let F_max = 0;
+
+        // Setup Canvas elements
+        const canvas = document.getElementById('simCanvas');
+        const ctx = canvas.getContext('2d');
+
+        // Setup UI references
+        const labelM1 = document.getElementById('label-m1');
+        const labelM2 = document.getElementById('label-m2');
+        const labelMus = document.getElementById('label-mus');
+        const labelMuk = document.getElementById('label-muk');
+        const labelMug = document.getElementById('label-mug');
+        const labelF = document.getElementById('label-F');
+        const checkboxRamp = document.getElementById('param-autoramp');
+
+        const calcN = document.getElementById('calc-N');
+        const calcFsmax = document.getElementById('calc-fsmax');
+        const calcFkg = document.getElementById('calc-fkg');
+        const calcFmax = document.getElementById('calc-Fmax');
+
+        const hudX1 = document.getElementById('hud-x1');
+        const hudV1 = document.getElementById('hud-v1');
+        const hudA1 = document.getElementById('hud-a1');
+        const hudX2 = document.getElementById('hud-x2');
+        const hudV2 = document.getElementById('hud-v2');
+        const hudA2 = document.getElementById('hud-a2');
+
+        const stateBadge = document.getElementById('state-badge');
+
+        // Chart Historial Data Limits
+        const maxHistoryLen = 150;
+        let timeHistory = [];
+        let appliedFHistory = [];
+        let frictionHistory = [];
+        let limitFsMaxHistory = [];
+        let a1History = [];
+        let a2History = [];
+        let chartTime = 0;
+
+        // Initialize Chart.js
+        let forcesChart, accelChart;
+
+        function initCharts() {
+            const ctxForces = document.getElementById('forcesChart').getContext('2d');
+            const ctxAccel = document.getElementById('accelChart').getContext('2d');
+
+            forcesChart = new Chart(ctxForces, {
+                type: 'line',
+                data: {
+                    labels: timeHistory,
+                    datasets: [
+                        { label: 'Applied Force F (N)', data: appliedFHistory, borderColor: '#f43f5e', borderWidth: 2, pointRadius: 0, fill: false },
+                        { label: 'Interface Friction f (N)', data: frictionHistory, borderColor: '#3b82f6', borderWidth: 2, pointRadius: 0, fill: false },
+                        { label: 'Max Static Limit fs,max (N)', data: limitFsMaxHistory, borderColor: '#f59e0b', borderWidth: 1.5, borderDash: [4, 4], pointRadius: 0, fill: false }
+                    ]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    animation: false,
+                    plugins: { legend: { labels: { color: '#94a3b8', boxWidth: 10, font: { size: 10 } } } },
+                    scales: {
+                        x: { display: false },
+                        y: { 
+                            grid: { color: '#334155' }, 
+                            ticks: { color: '#94a3b8', font: { size: 9 } },
+                            title: { display: true, text: 'Force (N)', color: '#94a3b8', font: { size: 10 } }
+                        }
+                    }
+                }
+            });
+
+            accelChart = new Chart(ctxAccel, {
+                type: 'line',
+                data: {
+                    labels: timeHistory,
+                    datasets: [
+                        { label: 'Bottom a₁ (m/s²)', data: a1History, borderColor: '#818cf8', borderWidth: 2, pointRadius: 0, fill: false },
+                        { label: 'Top a₂ (m/s²)', data: a2History, borderColor: '#c084fc', borderWidth: 2, pointRadius: 0, fill: false }
+                    ]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    animation: false,
+                    plugins: { legend: { labels: { color: '#94a3b8', boxWidth: 10, font: { size: 10 } } } },
+                    scales: {
+                        x: { display: false },
+                        y: { 
+                            grid: { color: '#334155' }, 
+                            ticks: { color: '#94a3b8', font: { size: 9 } },
+                            title: { display: true, text: 'Acceleration (m/s²)', color: '#94a3b8', font: { size: 10 } }
+                        }
+                    }
+                }
+            });
+        }
+
+        function syncInputs() {
+            m1 = parseFloat(document.getElementById('param-m1').value);
+            m2 = parseFloat(document.getElementById('param-m2').value);
+            mu_s = parseFloat(document.getElementById('param-mus').value);
+            mu_k = parseFloat(document.getElementById('param-muk').value);
+            mu_g = parseFloat(document.getElementById('param-mug').value);
+            F = parseFloat(document.getElementById('param-F').value);
+            autoRamp = checkboxRamp.checked;
+
+            // Enforce realistic physical condition: static friction is always >= kinetic
+            if (mu_k > mu_s) {
+                mu_k = mu_s;
+                document.getElementById('param-muk').value = mu_k;
+            }
+
+            // Update label readings
+            labelM1.innerText = `${m1.toFixed(1)} kg`;
+            labelM2.innerText = `${m2.toFixed(1)} kg`;
+            labelMus.innerText = mu_s.toFixed(2);
+            labelMuk.innerText = mu_k.toFixed(2);
+            labelMug.innerText = mu_g.toFixed(2);
+            labelF.innerText = `${F.toFixed(1)} N`;
+
+            calculateMathLimits();
+        }
+
+        function calculateMathLimits() {
+            N_i = m2 * g;
+            N_g = (m1 + m2) * g;
+            f_s_max = mu_s * N_i;
+            f_k_g = mu_g * N_g;
+            F_max = f_k_g + f_s_max * (1 + m1/m2);
+
+            // Dynamically Render computations using KaTeX
+            if (typeof katex !== 'undefined') {
+                try {
+                    katex.render(`${N_i.toFixed(1)}\\text{ N}`, calcN);
+                    katex.render(`${f_s_max.toFixed(1)}\\text{ N}`, calcFsmax);
+                    katex.render(`${f_k_g.toFixed(1)}\\text{ N}`, calcFkg);
+                    katex.render(`${F_max.toFixed(1)}\\text{ N}`, calcFmax);
+                } catch (e) {
+                    console.error("KaTeX render error:", e);
+                }
+            } else {
+                calcN.innerText = `${N_i.toFixed(1)} N`;
+                calcFsmax.innerText = `${f_s_max.toFixed(1)} N`;
+                calcFkg.innerText = `${f_k_g.toFixed(1)} N`;
+                calcFmax.innerText = `${F_max.toFixed(1)} N`;
+            }
+        }
+
+        function setScenario(preset) {
+            if (preset === 'standard') {
+                document.getElementById('param-m1').value = 5.0;
+                document.getElementById('param-m2').value = 2.0;
+                document.getElementById('param-mus').value = 0.40;
+                document.getElementById('param-muk').value = 0.30;
+                document.getElementById('param-mug').value = 0.20;
+                document.getElementById('param-F').value = 25.0;
+                checkboxRamp.checked = false;
+            } else if (preset === 'heavy_top') {
+                document.getElementById('param-m1').value = 4.0;
+                document.getElementById('param-m2').value = 6.0; // High mass top block
+                document.getElementById('param-mus').value = 0.50;
+                document.getElementById('param-muk').value = 0.40;
+                document.getElementById('param-mug').value = 0.15;
+                document.getElementById('param-F').value = 35.0;
+                checkboxRamp.checked = false;
+            } else if (preset === 'ice') {
+                document.getElementById('param-m1').value = 5.0;
+                document.getElementById('param-m2').value = 2.0;
+                document.getElementById('param-mus').value = 0.35;
+                document.getElementById('param-muk').value = 0.25;
+                document.getElementById('param-mug').value = 0.00; // Ice - zero ground friction
+                document.getElementById('param-F').value = 15.0;
+                checkboxRamp.checked = false;
+            } else if (preset === 'high_force') {
+                document.getElementById('param-m1').value = 5.0;
+                document.getElementById('param-m2').value = 2.0;
+                document.getElementById('param-mus').value = 0.40;
+                document.getElementById('param-muk').value = 0.30;
+                document.getElementById('param-mug').value = 0.20;
+                document.getElementById('param-F').value = 65.0; // Exceeds threshold immediately
+                checkboxRamp.checked = false;
+            }
+            syncInputs();
+            resetSimulation();
+        }
+
+        // Tab Switching
+        function switchTab(tabId) {
+            const tabs = ['fbd', 'threshold', 'alg'];
+            tabs.forEach(t => {
+                const btn = document.getElementById(`tab-btn-${t}`);
+                const content = document.getElementById(`tab-content-${t}`);
+                if (t === tabId) {
+                    btn.className = "pb-2 text-indigo-400 border-b-2 border-indigo-500 font-bold text-xs uppercase tracking-wider";
+                    content.classList.remove('hidden');
+                } else {
+                    btn.className = "pb-2 text-slate-500 hover:text-slate-300 font-bold text-xs uppercase tracking-wider";
+                    content.classList.add('hidden');
+                }
+            });
+        }
+
+        function spawnSpark(x, y, vx, vy) {
+            particles.push({
+                x: x,
+                y: y,
+                vx: vx,
+                vy: vy,
+                life: 1.0, // starting energy
+                size: Math.random() * 2 + 1.5
+            });
+        }
+
+        function updateSparks(dt) {
+            for (let i = particles.length - 1; i >= 0; i--) {
+                const p = particles[i];
+                p.x += p.vx * dt;
+                p.y += p.vy * dt;
+                p.life -= dt * 2.5; // lifespan decay
+                if (p.life <= 0) {
+                    particles.splice(i, 1);
+                }
+            }
+        }
+
+        function drawSparks(ctx) {
+            particles.forEach(p => {
+                ctx.fillStyle = `rgba(244, 63, 94, ${p.life})`; // rose red
+                ctx.beginPath();
+                ctx.arc(p.x, p.y, p.size, 0, Math.PI * 2);
+                ctx.fill();
+            });
+        }
+
+        function toggleSimulation() {
+            isRunning = !isRunning;
+            const btnText = document.getElementById('btn-play-text');
+            const btnPlay = document.getElementById('btn-play');
+            
+            if (isRunning) {
+                btnPlay.classList.replace('bg-indigo-600', 'bg-amber-600');
+                btnPlay.classList.replace('hover:bg-indigo-500', 'hover:bg-amber-500');
+                btnText.innerText = "Pause";
+                lastTime = performance.now();
+                requestAnimationFrame(loop);
+            } else {
+                btnPlay.classList.replace('bg-amber-600', 'bg-indigo-600');
+                btnPlay.classList.replace('hover:bg-amber-500', 'hover:bg-indigo-500');
+                btnText.innerText = "Resume";
+            }
+        }
+
+        function resetSimulation() {
+            x1 = 0.5; v1 = 0; a1 = 0;
+            x2 = 0.5; v2 = 0; a2 = 0;
+            isFallen = false;
+            y2_offset = 0;
+            vy2 = 0;
+            simState = 'stationary';
+            particles = [];
+            timeHistory.length = 0;
+            appliedFHistory.length = 0;
+            frictionHistory.length = 0;
+            limitFsMaxHistory.length = 0;
+            a1History.length = 0;
+            a2History.length = 0;
+            chartTime = 0;
+
+            if (forcesChart && accelChart) {
+                forcesChart.update();
+                accelChart.update();
+            }
+
+            updateUIReadouts();
+            draw();
+        }
+
+        let lastTime = 0;
+        function loop(timestamp) {
+            if (!isRunning) return;
+
+            let dt = (timestamp - lastTime) / 1000;
+            if (dt > 0.1) dt = 0.1; // limit frame lag jumps
+            lastTime = timestamp;
+
+            // Auto Ramp logic
+            if (autoRamp) {
+                F += dt * 4.5; // increase by 4.5 N per second
+                if (F > 80) F = 0; // reset loop
+                document.getElementById('param-F').value = F;
+                document.getElementById('label-F').innerText = `${F.toFixed(1)} N`;
+                calculateMathLimits();
+            }
+
+            // High Precision Sub-stepping for physical integration stability
+            const subSteps = 10;
+            const subDt = dt / subSteps;
+            
+            let activeFriction = 0;
+            const b1W = 150; // Bottom block width (px)
+            const b1H = 60;  // Bottom block height (px)
+
+            for (let i = 0; i < subSteps; i++) {
+                // Determine if Block 2 has fallen off Block 1's physical boundary
+                const halfSupport = (b1W / 2) / scale; // Visual half-width in meters
+                if (!isFallen && Math.abs(x2 - x1) > halfSupport) {
+                    isFallen = true;
+                    vy2 = 0; // Start with no vertical velocity
+                }
+
+                let totalMass = m1 + m2;
+                let groundNormal, interfaceNormal;
+                let limitFs, limitFkGround, limitFkInter;
+
+                if (!isFallen) {
+                    // Standard Unified/Slipping Dynamics Setup
+                    groundNormal = totalMass * g;
+                    interfaceNormal = m2 * g;
+                    
+                    limitFs = mu_s * interfaceNormal;
+                    limitFkGround = mu_g * groundNormal;
+                    limitFkInter = mu_k * interfaceNormal;
+
+                    // Ground friction force evaluation
+                    let groundFriction = 0;
+                    if (v1 > 0.001) {
+                        groundFriction = limitFkGround;
+                    } else {
+                        groundFriction = Math.min(Math.abs(F), limitFkGround);
+                    }
+
+                    // Core Stick-Slip Friction State Machine
+                    if (simState === 'slipping') {
+                        let relVel = v2 - v1; // Relative velocity
+                        
+                        if (Math.abs(relVel) < 0.005) {
+                            // Re-stick assessment
+                            let unifiedAccel = 0;
+                            if (v1 > 0.001) {
+                                unifiedAccel = (F - limitFkGround) / totalMass;
+                            } else {
+                                unifiedAccel = Math.max(0, F - limitFkGround) / totalMass;
+                            }
+                            
+                            let requiredFs = m2 * unifiedAccel;
+                            
+                            if (Math.abs(requiredFs) <= limitFs) {
+                                simState = 'unified';
+                                v2 = v1; // synchronise velocities
+                                activeFriction = requiredFs;
+                                continue;
+                            }
+                        }
+
+                        // Opposing relative velocity
+                        let direction = relVel > 0 ? -1 : 1;
+                        activeFriction = direction * limitFkInter;
+
+                        // Update Accelerations independently
+                        a2 = activeFriction / m2;
+                        a1 = (F - (v1 > 0.001 ? limitFkGround : Math.min(F, limitFkGround)) - activeFriction) / m1;
+
+                        // Particle Generator at sliding boundary
+                        if (Math.abs(relVel) > 0.1 && Math.random() < 0.4) {
+                            spawnSpark(
+                                Math.random() * 120 + (canvas.width / 4 + (x1 - 0.5) * scale), 
+                                canvas.height - 60 - b1H, 
+                                (v1 - v2) * 4 + (Math.random() - 0.5) * 5, 
+                                -(Math.random() * 3 + 1)
+                            );
+                        }
+
+                    } else {
+                        // Unified or Stationary motion
+                        let accel = 0;
+                        if (v1 > 0.001) {
+                            accel = (F - limitFkGround) / totalMass;
+                        } else {
+                            if (F > limitFkGround) {
+                                accel = (F - limitFkGround) / totalMass;
+                                simState = 'unified';
+                            } else {
+                                accel = 0;
+                                simState = 'stationary';
+                            }
+                        }
+
+                        let requiredFs = m2 * accel;
+
+                        // Slip evaluation threshold
+                        if (Math.abs(requiredFs) > limitFs) {
+                            simState = 'slipping';
+                        } else {
+                            a1 = accel;
+                            a2 = accel;
+                            activeFriction = requiredFs;
+                        }
+                    }
+
+                    // Integrate velocities
+                    v1 += a1 * subDt;
+                    v2 += a2 * subDt;
+
+                } else {
+                    // Fallen State Physics Mode
+                    // Block 1 is completely freed of Block 2's load
+                    groundNormal = m1 * g;
+                    limitFkGround = mu_g * groundNormal;
+
+                    let groundFriction = (v1 > 0.001) ? limitFkGround : Math.min(Math.abs(F), limitFkGround);
+                    a1 = (F - groundFriction) / m1;
+                    v1 += a1 * subDt;
+
+                    // Block 2 falls under standard free fall until it lands on the track
+                    const heightLimit = b1H / scale; // visual fall depth in meters (0.5m)
+                    if (y2_offset < heightLimit) {
+                        vy2 += g * subDt;
+                        y2_offset += vy2 * subDt;
+                        a2 = 0; // No horizontal force inside the falling gap
+                        if (y2_offset >= heightLimit) {
+                            y2_offset = heightLimit;
+                            vy2 = 0; // Landed
+                        }
+                    } else {
+                        // Sliding on the track under ground friction
+                        y2_offset = heightLimit;
+                        vy2 = 0;
+                        if (v2 > 0.01) {
+                            a2 = -mu_g * g;
+                        } else {
+                            a2 = 0;
+                            v2 = 0;
+                        }
+                    }
+                    v2 += a2 * subDt;
+                    activeFriction = 0;
+                }
+
+                // Stop boundary friction limits
+                if (v1 < 0) { v1 = 0; a1 = 0; }
+                if (v2 < 0) { v2 = 0; a2 = 0; }
+
+                x1 += v1 * subDt;
+                x2 += v2 * subDt;
+            }
+
+            // Spark simulation update
+            updateSparks(dt);
+
+            // Time scaling and Chart updates
+            chartTime += dt;
+            if (timeHistory.length > maxHistoryLen) {
+                timeHistory.shift();
+                appliedFHistory.shift();
+                frictionHistory.shift();
+                limitFsMaxHistory.shift();
+                a1History.shift();
+                a2History.shift();
+            }
+
+            timeHistory.push(chartTime.toFixed(1));
+            appliedFHistory.push(F);
+            frictionHistory.push(Math.abs(activeFriction));
+            limitFsMaxHistory.push(f_s_max);
+            a1History.push(a1);
+            a2History.push(a2);
+
+            if (forcesChart && accelChart) {
+                forcesChart.update();
+                accelChart.update();
+            }
+
+            // Wrap simulation viewport on excessive displacement of bottom block
+            if (x1 > 2.5) {
+                let offset = x1 - 0.5;
+                x1 -= offset;
+                x2 -= offset;
+            }
+
+            updateUIReadouts();
+            draw();
+
+            requestAnimationFrame(loop);
+        }
+
+        function updateUIReadouts() {
+            hudX1.innerText = `${x1.toFixed(2)} m`;
+            hudV1.innerText = `${v1.toFixed(2)} m/s`;
+            hudA1.innerText = `${a1.toFixed(2)} m/s²`;
+            hudX2.innerText = `${x2.toFixed(2)} m`;
+            document.getElementById('hud-y2').innerText = `${y2_offset.toFixed(2)} m`;
+            hudV2.innerText = `${v2.toFixed(2)} m/s`;
+            hudA2.innerText = `${a2.toFixed(2)} m/s²`;
+
+            // Style Badge depending on state
+            if (isFallen) {
+                stateBadge.innerText = "Fallen / Sliding";
+                stateBadge.className = "px-3 py-1 rounded-full text-xs font-bold tracking-wide uppercase transition-colors shadow bg-rose-950/80 text-rose-500 border border-rose-800/60";
+            } else if (simState === 'slipping') {
+                stateBadge.innerText = "Slipping";
+                stateBadge.className = "px-3 py-1 rounded-full text-xs font-bold tracking-wide uppercase transition-colors shadow bg-rose-950/80 text-rose-400 border border-rose-800/60";
+            } else if (simState === 'unified') {
+                stateBadge.innerText = "Unified Motion";
+                stateBadge.className = "px-3 py-1 rounded-full text-xs font-bold tracking-wide uppercase transition-colors shadow bg-indigo-950/80 text-indigo-400 border border-indigo-800/60";
+            } else {
+                stateBadge.innerText = "Stationary";
+                stateBadge.className = "px-3 py-1 rounded-full text-xs font-bold tracking-wide uppercase transition-colors shadow bg-slate-800 text-slate-400 border border-slate-700";
+            }
+        }
+
+        function draw() {
+            // High DPI support scaling
+            const dpr = window.devicePixelRatio || 1;
+            const rect = canvas.getBoundingClientRect();
+            canvas.width = rect.width * dpr;
+            canvas.height = rect.height * dpr;
+            ctx.scale(dpr, dpr);
+
+            const w = rect.width;
+            const h = rect.height;
+
+            // Background
+            ctx.fillStyle = "#0f172a"; // slate-900
+            ctx.fillRect(0, 0, w, h);
+
+            // Draw Ground Line
+            ctx.strokeStyle = "#334155"; // slate-700
+            ctx.lineWidth = 4;
+            ctx.beginPath();
+            ctx.moveTo(0, h - 60);
+            ctx.lineTo(w, h - 60);
+            ctx.stroke();
+
+            // Hash Marks below ground line
+            ctx.strokeStyle = "#1e293b";
+            ctx.lineWidth = 2;
+            for (let i = 0; i < w; i += 15) {
+                ctx.beginPath();
+                ctx.moveTo(i, h - 60);
+                ctx.lineTo(i - 8, h - 50);
+                ctx.stroke();
+            }
+
+            // Draw Blocks Setup
+            const groundY = h - 60;
+            const b1W = 150, b1H = 60;
+            const b2W = 100, b2H = 45;
+
+            // Compute Horizontal Visual Center offset by displacement x1 and x2
+            const visualCX1 = w/2 + (x1 - 0.5) * scale - b1W / 2;
+            const visualCY1 = groundY - b1H;
+
+            const visualCX2 = w/2 + (x2 - 0.5) * scale - b2W / 2;
+            // Vertically fall using y2_offset scale
+            const visualCY2 = visualCY1 - b2H + (y2_offset * scale);
+
+            // DRAW BLOCK 1 (Bottom)
+            let b1Grad = ctx.createLinearGradient(visualCX1, visualCY1, visualCX1, visualCY1 + b1H);
+            b1Grad.addColorStop(0, '#4f46e5'); // indigo-600
+            b1Grad.addColorStop(1, '#312e81'); // indigo-900
+            ctx.fillStyle = b1Grad;
+            ctx.strokeStyle = '#818cf8'; // border-indigo-400
+            ctx.lineWidth = 2;
+            drawRoundedRect(ctx, visualCX1, visualCY1, b1W, b1H, 8, true, true);
+
+            // Draw Block 1 Label text
+            ctx.fillStyle = "#ffffff";
+            ctx.font = "bold 11px Inter";
+            ctx.textAlign = "center";
+            ctx.fillText(`Bottom Block m₁`, visualCX1 + b1W/2, visualCY1 + 25);
+            ctx.fillStyle = "#a5b4fc";
+            ctx.fillText(`${m1.toFixed(1)} kg`, visualCX1 + b1W/2, visualCY1 + 42);
+
+            // DRAW BLOCK 2 (Top)
+            let b2Grad = ctx.createLinearGradient(visualCX2, visualCY2, visualCX2, visualCY2 + b2H);
+            b2Grad.addColorStop(0, '#a855f7'); // purple-500
+            b2Grad.addColorStop(1, '#581c87'); // purple-900
+            ctx.fillStyle = b2Grad;
+            ctx.strokeStyle = '#c084fc'; // border-purple-400
+            ctx.lineWidth = 2;
+            drawRoundedRect(ctx, visualCX2, visualCY2, b2W, b2H, 8, true, true);
+
+            // Draw Block 2 Label text
+            ctx.fillStyle = "#ffffff";
+            ctx.font = "bold 11px Inter";
+            ctx.fillText(`Top Block m₂`, visualCX2 + b2W/2, visualCY2 + 20);
+            ctx.fillStyle = "#e9d5ff";
+            ctx.fillText(`${m2.toFixed(1)} kg`, visualCX2 + b2W/2, visualCY2 + 35);
+
+            // DRAW VECTORS & ARROWS WITH LABELS
+            ctx.lineWidth = 3;
+
+            // Applied Force F (Applied on bottom block, drawn pointing out to the right)
+            if (F > 0) {
+                let arrowLen = Math.min(20 + F * 1.5, 120);
+                drawArrow(ctx, visualCX1 + b1W, visualCY1 + b1H/2, visualCX1 + b1W + arrowLen, visualCY1 + b1H/2, '#f43f5e'); // rose-500
+                ctx.fillStyle = '#f43f5e';
+                ctx.font = "bold 10px Fira Code";
+                ctx.textAlign = "left";
+                ctx.fillText(`F = ${F.toFixed(0)}N`, visualCX1 + b1W + arrowLen + 5, visualCY1 + b1H/2 + 3);
+            }
+
+            // Kinetic Ground Friction on Block 1 (Pointing back-left)
+            let groundFVal = 0;
+            if (isFallen) {
+                let limitFkGround1 = mu_g * m1 * g;
+                groundFVal = v1 > 0.001 ? limitFkGround1 : Math.min(F, limitFkGround1);
+            } else {
+                let limitFkGroundAll = mu_g * (m1 + m2) * g;
+                groundFVal = v1 > 0.001 ? limitFkGroundAll : Math.min(F, limitFkGroundAll);
+            }
+            if (groundFVal > 0) {
+                let arrowLen = Math.min(20 + groundFVal * 1.5, 120);
+                drawArrow(ctx, visualCX1, visualCY1 + b1H - 10, visualCX1 - arrowLen, visualCY1 + b1H - 10, '#10b981'); // emerald-500
+                ctx.fillStyle = '#10b981';
+                ctx.font = "bold 10px Fira Code";
+                ctx.textAlign = "right";
+                ctx.fillText(`f_ground = ${groundFVal.toFixed(0)}N`, visualCX1 - arrowLen - 5, visualCY1 + b1H - 7);
+            }
+
+            // Interface Friction Force (Rendered on top and bottom boundary if not fallen)
+            if (!isFallen) {
+                let interfaceNormal = m2 * g;
+                let activeFriction = (simState === 'slipping') ? -Math.sign(v2 - v1) * mu_k * interfaceNormal : m2 * a1;
+
+                if (Math.abs(activeFriction) > 0.05) {
+                    let arrowLen = Math.min(20 + Math.abs(activeFriction) * 1.5, 100);
+                    
+                    // Friction acting ON Block 2 (Top block, accelerated forward by friction)
+                    if (activeFriction > 0) {
+                        drawArrow(ctx, visualCX2, visualCY2 + b2H - 8, visualCX2 + arrowLen, visualCY2 + b2H - 8, '#f59e0b'); // amber-500
+                        ctx.fillStyle = '#f59e0b';
+                        ctx.font = "bold 10px Fira Code";
+                        ctx.textAlign = "left";
+                        ctx.fillText(`f_s = ${Math.abs(activeFriction).toFixed(0)}N`, visualCX2 + arrowLen + 5, visualCY2 + b2H - 5);
+                    } else {
+                        // sliding kinetic friction opposing
+                        drawArrow(ctx, visualCX2 + b2W, visualCY2 + b2H - 8, visualCX2 + b2W - arrowLen, visualCY2 + b2H - 8, '#ef4444'); // red-500
+                        ctx.fillStyle = '#ef4444';
+                        ctx.font = "bold 10px Fira Code";
+                        ctx.textAlign = "right";
+                        ctx.fillText(`f_k = ${Math.abs(activeFriction).toFixed(0)}N`, visualCX2 + b2W - arrowLen - 5, visualCY2 + b2H - 5);
+                    }
+                }
+            } else {
+                // If fallen on the ground, render Block 2's own ground kinetic friction back-left
+                const heightLimit = b1H / scale;
+                if (y2_offset >= heightLimit && v2 > 0.01) {
+                    let f_ground2 = mu_g * m2 * g;
+                    let arrowLen = Math.min(20 + f_ground2 * 1.5, 100);
+                    drawArrow(ctx, visualCX2, visualCY2 + b2H - 8, visualCX2 - arrowLen, visualCY2 + b2H - 8, '#10b981'); // emerald-500
+                    ctx.fillStyle = '#10b981';
+                    ctx.font = "bold 10px Fira Code";
+                    ctx.textAlign = "right";
+                    ctx.fillText(`f_ground = ${f_ground2.toFixed(0)}N`, visualCX2 - arrowLen - 5, visualCY2 + b2H - 5);
+                }
+            }
+
+            // Render sparks particle layer
+            drawSparks(ctx);
+        }
+
+        // --- HELPER DRAWING UTILITIES ---
+        function drawRoundedRect(ctx, x, y, width, height, radius, fill, stroke) {
+            ctx.beginPath();
+            ctx.moveTo(x + radius, y);
+            ctx.lineTo(x + width - radius, y);
+            ctx.quadraticCurveTo(x + width, y, x + width, y + radius);
+            ctx.lineTo(x + width, y + height - radius);
+            ctx.quadraticCurveTo(x + width, y + height, x + width - radius, y + height);
+            ctx.lineTo(x + radius, y + height);
+            ctx.quadraticCurveTo(x, y + height, x, y + height - radius);
+            ctx.lineTo(x, y + radius);
+            ctx.quadraticCurveTo(x, y, x + radius, y);
+            ctx.closePath();
+            if (fill) ctx.fill();
+            if (stroke) ctx.stroke();
+        }
+
+        function drawArrow(ctx, fromx, fromy, tox, toy, color) {
+            ctx.strokeStyle = color;
+            ctx.fillStyle = color;
+            ctx.beginPath();
+            ctx.moveTo(fromx, fromy);
+            ctx.lineTo(tox, toy);
+            ctx.stroke();
+
+            // arrow head size
+            let headlen = 8;
+            let angle = Math.atan2(toy - fromy, tox - fromx);
+            ctx.beginPath();
+            ctx.moveTo(tox, toy);
+            ctx.lineTo(tox - headlen * Math.cos(angle - Math.PI / 6), toy - headlen * Math.sin(angle - Math.PI / 6));
+            ctx.lineTo(tox - headlen * Math.cos(angle + Math.PI / 6), toy - headlen * Math.sin(angle + Math.PI / 6));
+            ctx.fill();
+        }
+
+        // Attach interactive event listeners
+        document.getElementById('param-m1').addEventListener('input', syncInputs);
+        document.getElementById('param-m2').addEventListener('input', syncInputs);
+        document.getElementById('param-mus').addEventListener('input', syncInputs);
+        document.getElementById('param-muk').addEventListener('input', syncInputs);
+        document.getElementById('param-mug').addEventListener('input', syncInputs);
+        document.getElementById('param-F').addEventListener('input', syncInputs);
+        checkboxRamp.addEventListener('change', syncInputs);
+
+        // Resize behavior
+        window.addEventListener('resize', draw);
+
+        // Start initialization
+        window.onload = function() {
+            syncInputs();
+            initCharts();
+            draw();
+            // Automatically initialize static LaTeX formatting once DOM content loads
+            if (typeof renderMathInElement !== 'undefined') {
+                renderMathInElement(document.body, {
+                    delimiters: [
+                        {left: '$$', right: '$$', display: true},
+                        {left: '$', right: '$', display: false}
+                    ]
+                });
+            }
+        }
+    </script>
+</body>
+</html>

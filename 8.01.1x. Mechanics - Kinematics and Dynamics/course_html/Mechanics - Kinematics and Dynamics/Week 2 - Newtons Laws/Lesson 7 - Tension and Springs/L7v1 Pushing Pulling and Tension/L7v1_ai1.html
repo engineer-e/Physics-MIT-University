@@ -1,0 +1,1224 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Newtonian Tension & Internal Forces Simulator</title>
+  
+  <!-- Tailwind CSS CDN -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  
+  <!-- KaTeX CSS & JS CDNs -->
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.8/dist/katex.min.css" crossorigin="anonymous">
+  <script src="https://cdn.jsdelivr.net/npm/katex@0.16.8/dist/katex.min.js" crossorigin="anonymous"></script>
+
+  <style>
+    /* Custom track styling for range inputs */
+    input[type="range"] {
+      -webkit-appearance: none;
+      appearance: none;
+      background: #020617; /* slate-950 */
+    }
+    input[type="range"]::-webkit-slider-thumb {
+      -webkit-appearance: none;
+      appearance: none;
+      width: 16px;
+      height: 16px;
+      border-radius: 50%;
+      background: #6366f1; /* indigo-500 */
+      cursor: pointer;
+      transition: background 0.15s ease-in-out;
+    }
+    input[type="range"]::-webkit-slider-thumb:hover {
+      background: #4f46e5; /* indigo-600 */
+    }
+  </style>
+</head>
+<body class="min-h-screen bg-slate-950 text-slate-100 flex flex-col font-sans selection:bg-indigo-500 selection:text-white">
+
+  <!-- Header Banner -->
+  <header class="border-b border-slate-800 bg-slate-900/80 backdrop-blur sticky top-0 z-50 px-6 py-4 flex flex-col md:flex-row items-center justify-between gap-4">
+    <div class="flex items-center gap-3">
+      <div class="p-2.5 bg-indigo-600 rounded-xl text-white shadow-lg shadow-indigo-500/30">
+        <!-- SVG inline for CPU Icon -->
+        <svg class="w-6 h-6 animate-pulse" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+          <rect x="4" y="4" width="16" height="16" rx="2" />
+          <path d="M9 9h6v6H9z" />
+          <path d="M9 1v3M15 1v3M9 20v3M15 20v3M20 9h3M20 15h3M1 9h3M1 15h3" />
+        </svg>
+      </div>
+      <div>
+        <h1 class="text-xl font-extrabold tracking-tight text-white flex items-center gap-2">
+          Newtonian Tension &amp; Internal Forces
+          <span class="text-xs bg-indigo-500/20 text-indigo-400 font-semibold px-2 py-0.5 rounded border border-indigo-500/30">Interactive Simulator</span>
+        </h1>
+        <p class="text-xs text-slate-400">
+          Exploring Newton's Third Law, Tension profiles <span id="header-tension-math"></span>, and mass-pulley dynamics
+        </p>
+      </div>
+    </div>
+
+    <!-- Tab Selection -->
+    <div class="flex bg-slate-950 p-1.5 rounded-xl border border-slate-800">
+      <button onclick="setActiveTab('simulator')" id="tab-simulator" class="tab-btn px-4 py-2 rounded-lg text-xs font-semibold tracking-wide transition-all bg-indigo-600 text-white shadow-md">
+        Interactive Workspace
+      </button>
+      <button onclick="setActiveTab('infographic')" id="tab-infographic" class="tab-btn px-4 py-2 rounded-lg text-xs font-semibold tracking-wide transition-all text-slate-400 hover:text-white">
+        Visual Infographic
+      </button>
+      <button onclick="setActiveTab('algorithm')" id="tab-algorithm" class="tab-btn px-4 py-2 rounded-lg text-xs font-semibold tracking-wide transition-all text-slate-400 hover:text-white">
+        Computational Model
+      </button>
+    </div>
+  </header>
+
+  <!-- Main Layout Container (Full Width Optimized) -->
+  <main class="flex-1 max-w-5xl w-full mx-auto p-4 lg:p-6 flex flex-col gap-6">
+    
+    <!-- TAB 1: SIMULATOR WORKSPACE -->
+    <div id="panel-simulator" class="tab-panel flex flex-col gap-6">
+      
+      <!-- Simulation Workspace Panel (Live Laboratory) -->
+      <div class="bg-slate-900 border border-slate-850 rounded-2xl overflow-hidden shadow-2xl">
+        <!-- Simulator Tab / Mode Selector -->
+        <div class="bg-slate-900/90 border-b border-slate-800 px-5 py-3.5 flex flex-wrap items-center justify-between gap-3">
+          <div class="flex items-center gap-2.5">
+            <span class="w-2.5 h-2.5 rounded-full bg-emerald-500 animate-pulse"></span>
+            <span class="text-xs font-extrabold text-slate-300 uppercase tracking-widest">Live Laboratory</span>
+          </div>
+          <div class="flex bg-slate-950 p-1 rounded-lg border border-slate-800">
+            <button onclick="setSimMode('push_pull')" id="mode-push_pull" class="mode-btn px-3 py-1.5 rounded-md text-[11px] font-bold transition-all text-slate-400 hover:text-white">
+              Push &amp; Pull Force
+            </button>
+            <button onclick="setSimMode('rope_cut')" id="mode-rope_cut" class="mode-btn px-3 py-1.5 rounded-md text-[11px] font-bold transition-all text-slate-400 hover:text-white">
+              Imaginary Rope Cut
+            </button>
+            <button onclick="setSimMode('pulley')" id="mode-pulley" class="mode-btn px-3 py-1.5 rounded-md text-[11px] font-bold transition-all text-slate-400 hover:text-white">
+              Pulley Dynamics
+            </button>
+          </div>
+        </div>
+
+        <!-- Physics Interactive Render Window -->
+        <div class="p-6 bg-slate-950 relative border-b border-slate-850 h-[320px] flex items-center justify-center">
+          
+          <!-- MODE 1: PUSH & PULL -->
+          <div id="render-push_pull" class="sim-view w-full h-full hidden flex-col justify-between">
+            <div class="text-center">
+              <span id="push_pull-status" class="text-xs text-indigo-400 font-mono"></span>
+            </div>
+            
+            <!-- SVG Render -->
+            <svg class="w-full h-44 select-none" viewBox="0 0 600 160">
+              <!-- Floor plane -->
+              <line x1="50" y1="110" x2="550" y2="110" stroke="#475569" stroke-width="4" />
+              <g opacity="0.3" id="push_pull-floor-ticks"></g>
+
+              <!-- Rigid Block object -->
+              <rect x="250" y="50" width="100" height="60" rx="4" fill="#1e1e38" stroke="#6366f1" stroke-width="3" />
+              <text x="300" y="85" fill="#e2e8f0" font-size="14" font-weight="bold" text-anchor="middle">BLOCK</text>
+
+              <!-- Dynamic Force Vectors -->
+              <g id="push_pull-vectors"></g>
+
+              <!-- Markers def -->
+              <defs>
+                <marker id="arrow-right" viewBox="0 0 10 10" refX="5" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
+                  <path d="M 0 0 L 10 5 L 0 10 z" fill="#38bdf8" />
+                </marker>
+                <marker id="arrow-push" viewBox="0 0 10 10" refX="5" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
+                  <path d="M 0 0 L 10 5 L 0 10 z" fill="#f43f5e" />
+                </marker>
+              </defs>
+            </svg>
+
+            <div class="text-center text-xs text-slate-500">
+              *A rigid body translates identically under pulling from point B or pushing from point A if force collinearity is maintained.
+            </div>
+          </div>
+
+          <!-- MODE 2: ROPE IMAGINARY CUT (TUG OF WAR) -->
+          <div id="render-rope_cut" class="sim-view w-full h-full hidden flex-col justify-between">
+            <div class="flex items-center justify-between text-xs px-2">
+              <span class="text-sky-400 font-mono" id="rope_cut-fL-label">Left Pull force: 60 N</span>
+              <div class="flex items-center gap-1.5 bg-slate-900 border border-slate-800 px-3 py-1 rounded-full text-indigo-400 font-semibold font-mono">
+                Tension at x=<span id="tension-x-percent">50</span>%: <span id="tension-val">60</span> N
+              </div>
+              <span class="text-emerald-400 font-mono" id="rope_cut-fR-label">Right Pull force: 60 N</span>
+            </div>
+
+            <!-- Interactive SVG Slicing -->
+            <svg class="w-full h-44 select-none" viewBox="0 0 600 160" id="rope-svg">
+              <!-- Visual markers -->
+              <defs>
+                <marker id="arrow-left-green" viewBox="0 0 10 10" refX="5" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
+                  <path d="M 0 0 L 10 5 L 0 10 z" fill="#38bdf8" />
+                </marker>
+                <marker id="arrow-right-green" viewBox="0 0 10 10" refX="5" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
+                  <path d="M 0 0 L 10 5 L 0 10 z" fill="#10b981" />
+                </marker>
+                <marker id="internal-blue-left" viewBox="0 0 10 10" refX="5" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
+                  <path d="M 0 0 L 10 5 L 0 10 z" fill="#6366f1" />
+                </marker>
+                <marker id="internal-purple-right" viewBox="0 0 10 10" refX="5" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
+                  <path d="M 0 0 L 10 5 L 0 10 z" fill="#a855f7" />
+                </marker>
+              </defs>
+
+              <!-- Floor base line representing x coordinate mapping -->
+              <line x1="50" y1="130" x2="550" y2="130" stroke="#334155" stroke-width="2" stroke-dasharray="3 3" />
+              <text x="50" y="145" fill="#475569" font-size="10" class="font-mono" text-anchor="middle">x=0</text>
+              <text x="300" y="145" fill="#475569" font-size="10" class="font-mono" text-anchor="middle">x=L/2</text>
+              <text x="550" y="145" fill="#475569" font-size="10" class="font-mono" text-anchor="middle">x=L</text>
+
+              <!-- Cut Position Line (Vertical Guideline) -->
+              <line id="cut-guideline" x1="300" y1="20" x2="300" y2="130" stroke="#ef4444" stroke-width="1.5" stroke-dasharray="4 2" />
+              <text id="cut-guideline-text" x="300" y="15" fill="#ef4444" font-size="10" class="font-bold font-mono" text-anchor="middle">Imaginary Cut Line</text>
+
+              <!-- Group for rope drawing, injected dynamically -->
+              <g id="rope-graphic-group"></g>
+            </svg>
+
+            <div class="flex justify-between items-center text-[11px] text-slate-400 bg-slate-900 px-4 py-2 rounded-xl border border-slate-800">
+              <span class="flex items-center gap-1">
+                <!-- Scissors SVG Icon -->
+                <svg class="w-3.5 h-3.5 text-rose-500" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                  <path stroke-linecap="round" stroke-linejoin="round" d="M14.121 14.121L19 19m-7-7l7-7m-7 7l-2.879 2.879M12 12L9.121 9.121m0 5.758a3 3 0 11-4.243 4.243 3 3 0 014.243-4.243zm0-5.758a3 3 0 11-4.243-4.243 3 3 0 014.243 4.243z" />
+                </svg>
+                Drag Cut position to evaluate internal dynamics.
+              </span>
+              <span class="font-mono text-purple-400 bg-slate-950 px-2.5 py-1 rounded border border-slate-800/80" id="rope-tension-equation-render">
+                <!-- Typeset mathematically -->
+              </span>
+            </div>
+          </div>
+
+          <!-- MODE 3: MASS-PULLEY SYSTEM DYNAMICS -->
+          <div id="render-pulley" class="sim-view w-full h-full hidden flex-col justify-between">
+            <!-- Dynamics Header HUD -->
+            <div class="flex items-center justify-between text-[11px] font-mono border-b border-slate-900 pb-1.5">
+              <span class="text-amber-400">Mass Block: <span id="hud-M">5.0</span> kg</span>
+              <span class="text-sky-400">Tension T: <span id="hud-T">0.00</span> N</span>
+              <span class="text-rose-400 font-bold">Acc a: <span id="hud-acc">0.00</span> m/s²</span>
+              <span class="text-teal-400 font-bold">Vel v: <span id="hud-vel">0.00</span> m/s</span>
+            </div>
+
+            <!-- Canvas Area (SVG Simulator) -->
+            <svg class="w-full h-44 select-none mt-2" viewBox="0 0 600 160">
+              <defs>
+                <marker id="force-acc" viewBox="0 0 10 10" refX="5" refY="5" markerWidth="5" markerHeight="5" orient="auto">
+                  <path d="M 0 0 L 10 5 L 0 10 z" fill="#f43f5e" />
+                </marker>
+                <marker id="arrow-left-sky" viewBox="0 0 10 10" refX="5" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
+                  <path d="M 0 0 L 10 5 L 0 10 z" fill="#38bdf8" />
+                </marker>
+                <marker id="arrow-right-sky" viewBox="0 0 10 10" refX="5" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
+                  <path d="M 0 0 L 10 5 L 0 10 z" fill="#38bdf8" />
+                </marker>
+              </defs>
+
+              <!-- Flat Table platform -->
+              <line x1="50" y1="100" x2="350" y2="100" stroke="#475569" stroke-width="4" />
+              <line x1="350" y1="100" x2="350" y2="150" stroke="#475569" stroke-width="4" />
+              <path d="M 330 100 L 350 120 M 310 100 L 330 120 M 290 100 L 310 120" stroke="#475569" stroke-width="2" />
+
+              <!-- Pulley Wheel -->
+              <circle cx="350" cy="100" r="12" fill="#334155" stroke="#94a3b8" stroke-width="2" />
+              <circle cx="350" cy="100" r="3" fill="#cbd5e1" />
+
+              <!-- Strings and Blocks dynamically rendered inside this group -->
+              <g id="pulley-dynamic-elements"></g>
+            </svg>
+
+            <!-- Simulation Controls Footer -->
+            <div class="flex items-center justify-between border-t border-slate-900 pt-3">
+              <div class="flex gap-2">
+                <button id="pulley-play-btn" onclick="togglePlayPulley()" class="px-4 py-1.5 rounded-lg text-xs font-bold bg-emerald-600 hover:bg-emerald-500 text-white flex items-center gap-1.5">
+                  <!-- Play Icon -->
+                  <svg class="w-3.5 h-3.5 fill-current" viewBox="0 0 24 24"><path d="M8 5v14l11-7z"/></svg>
+                  <span>Run Simulation</span>
+                </button>
+                <button onclick="resetPulley()" class="p-1.5 rounded-lg bg-slate-900 border border-slate-800 text-slate-400 hover:text-white">
+                  <!-- Reset Icon -->
+                  <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                    <path stroke-linecap="round" stroke-linejoin="round" d="M4 4v5h.582m15.356 2A8.001 8.001 0 1121.21 15.07M20 15h-5.581M4 9h5.581M4 9V4" />
+                  </svg>
+                </button>
+              </div>
+              <span id="friction-warning" class="hidden text-[10px] text-rose-400 bg-rose-950/40 px-3 py-1 rounded-full border border-rose-900/40 flex items-center gap-1">
+                <!-- Info Icon -->
+                <svg class="w-3 h-3 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                  <path stroke-linecap="round" stroke-linejoin="round" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                </svg>
+                Friction exceeds gravity: Block remains stationary!
+              </span>
+            </div>
+          </div>
+
+        </div>
+
+        <!-- Controller Settings & Value Sliders Panel -->
+        <div class="p-5 bg-slate-900/60 flex flex-col gap-4">
+          <div class="flex items-center justify-between">
+            <h3 class="text-xs font-bold text-white uppercase tracking-wider flex items-center gap-1.5">
+              <!-- Layers Icon -->
+              <svg class="w-4 h-4 text-indigo-400" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                <path stroke-linecap="round" stroke-linejoin="round" d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10" />
+              </svg>
+              Adjust Physics Model Constraints
+            </h3>
+            <span class="text-[10px] text-indigo-400 bg-indigo-950/50 border border-indigo-900 px-2 py-0.5 rounded font-mono font-semibold">
+              Real-Time Calculation Enabled
+            </span>
+          </div>
+
+          <!-- Mode 1 Sliders -->
+          <div id="sliders-push_pull" class="slider-group hidden space-y-4">
+            <div>
+              <div class="flex justify-between text-xs mb-1">
+                <span class="text-slate-400 flex items-center gap-1">
+                  Applied External Force magnitude (<span id="slider-fa-math"></span>)
+                </span>
+                <span id="label-fa" class="font-bold font-mono text-sky-400">40 N (Pull)</span>
+              </div>
+              <input type="range" id="input-fa" min="-100" max="100" value="40" class="w-full accent-indigo-500 bg-slate-950 h-2 rounded-lg cursor-pointer" oninput="onFaChange(this.value)">
+            </div>
+          </div>
+
+          <!-- Mode 2 Sliders -->
+          <div id="sliders-rope_cut" class="slider-group hidden grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div class="space-y-3">
+              <div>
+                <div class="flex justify-between text-xs mb-1">
+                  <span class="text-slate-400">Left Pull Endforce (<span id="slider-fl-math"></span>)</span>
+                  <span id="label-fl" class="text-sky-400 font-bold font-mono">60 N</span>
+                </div>
+                <input type="range" id="input-fl" min="10" max="150" value="60" class="w-full accent-indigo-500 bg-slate-950 h-1.5 rounded-lg cursor-pointer" oninput="onFlChange(this.value)">
+              </div>
+              <div class="flex items-center gap-3">
+                <button id="toggle-cut-btn" onclick="toggleCutState()" class="w-full py-2 rounded-xl text-xs font-semibold border transition-all flex items-center justify-center gap-1.5 bg-indigo-950/50 text-indigo-300 border-indigo-900/40">
+                  <svg class="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                    <path stroke-linecap="round" stroke-linejoin="round" d="M14.121 14.121L19 19m-7-7l7-7m-7 7l-2.879 2.879M12 12L9.121 9.121m0 5.758a3 3 0 11-4.243 4.243 3 3 0 014.243-4.243zm0-5.758a3 3 0 11-4.243-4.243 3 3 0 014.243 4.243z" />
+                  </svg>
+                  <span id="toggle-cut-text">Slice with Imaginary Cut</span>
+                </button>
+              </div>
+            </div>
+
+            <div class="space-y-3">
+              <div>
+                <div class="flex justify-between text-xs mb-1">
+                  <span class="text-slate-400">Position of cut (<span id="slider-x-math"></span>)</span>
+                  <span id="label-cutX" class="text-purple-400 font-bold font-mono">50% of Length</span>
+                </div>
+                <input type="range" id="input-cutX" min="5" max="95" value="50" class="w-full accent-indigo-500 bg-slate-950 h-1.5 rounded-lg cursor-pointer disabled:opacity-20" oninput="onCutXChange(this.value)">
+              </div>
+              <div class="text-[10px] text-slate-400 leading-relaxed bg-slate-950 p-2.5 rounded-xl border border-slate-800/80">
+                <!-- Info Icon Inline -->
+                <svg class="w-3 h-3 text-indigo-400 inline mr-1" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                  <path stroke-linecap="round" stroke-linejoin="round" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                </svg>
+                <strong>Ideal String:</strong> Even at <span id="rope_cut-warning-math"></span>, tension remains completely uniform (<span id="rope_cut-tension-num-warning"></span>) since string mass is 0.
+              </div>
+            </div>
+          </div>
+
+          <!-- Mode 3 Sliders -->
+          <div id="sliders-pulley" class="slider-group hidden grid grid-cols-1 md:grid-cols-3 gap-4">
+            <div>
+              <div class="flex justify-between text-xs mb-1">
+                <span class="text-slate-400">Block Mass (<span id="slider-m1-math"></span>)</span>
+                <span id="label-massBlock" class="text-indigo-400 font-bold font-mono">5 kg</span>
+              </div>
+              <input type="range" id="input-massBlock" min="1" max="20" step="0.5" value="5.0" class="w-full accent-indigo-500 bg-slate-950 h-1.5 rounded-lg cursor-pointer" oninput="onMassBlockChange(this.value)">
+            </div>
+            
+            <div>
+              <div class="flex justify-between text-xs mb-1">
+                <span class="text-slate-400">Hanging Mass (<span id="slider-m2-math"></span>)</span>
+                <span id="label-massHanging" class="text-emerald-400 font-bold font-mono">3 kg</span>
+              </div>
+              <input type="range" id="input-massHanging" min="0.5" max="15" step="0.5" value="3.0" class="w-full accent-indigo-500 bg-slate-950 h-1.5 rounded-lg cursor-pointer" oninput="onMassHangingChange(this.value)">
+            </div>
+
+            <div>
+              <div class="flex justify-between text-xs mb-1">
+                <span class="text-slate-400">Surface Friction (<span id="slider-friction-math"></span>)</span>
+                <span id="label-frictionCoeff" class="text-rose-400 font-bold font-mono">0.2</span>
+              </div>
+              <input type="range" id="input-friction" min="0" max="0.9" step="0.05" value="0.2" class="w-full accent-indigo-500 bg-slate-950 h-1.5 rounded-lg cursor-pointer" oninput="onFrictionChange(this.value)">
+            </div>
+          </div>
+
+        </div>
+      </div>
+
+      <!-- Guided Learning Pathway (NOW POSITIONED BELOW THE LIVE LABORATORY) -->
+      <div class="bg-slate-900 border border-slate-800 rounded-2xl p-5 flex flex-col gap-4 shadow-xl">
+        <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b border-slate-800 pb-3">
+          <div class="flex items-center gap-2 text-indigo-400 text-xs font-bold tracking-wider uppercase">
+            <!-- Book Icon SVG -->
+            <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+              <path stroke-linecap="round" stroke-linejoin="round" d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253" />
+            </svg>
+            <span>Guided Learning Pathway</span>
+          </div>
+          <div class="flex items-center gap-2">
+            <button onclick="prevStep()" id="prev-btn" class="px-2.5 py-1 rounded bg-slate-800 hover:bg-slate-700 border border-slate-700 text-slate-300 text-xs font-semibold disabled:opacity-40 disabled:pointer-events-none">
+              Prev
+            </button>
+            <span id="step-counter-text" class="text-xs text-slate-400 font-mono">Step 1 of 5</span>
+            <button onclick="nextStep()" id="next-btn" class="px-2.5 py-1 rounded bg-indigo-600 hover:bg-indigo-500 text-white text-xs font-semibold flex items-center gap-1 disabled:opacity-40 disabled:pointer-events-none">
+              Next
+              <svg class="w-3 h-3" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5">
+                <path stroke-linecap="round" stroke-linejoin="round" d="M9 5l7 7-7 7" />
+              </svg>
+            </button>
+          </div>
+        </div>
+        <div>
+          <h2 class="text-base font-bold text-white mb-1">Step-by-Step Concepts</h2>
+          <p class="text-slate-400 text-xs">
+            Follow this sequence to dynamically synchronize the visual simulator and trace how Newton's laws synthesize tension formulas.
+          </p>
+        </div>
+        <!-- Steps grid rendering -->
+        <div id="step-container" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3">
+          <!-- Dynamically populated step cards -->
+        </div>
+      </div>
+
+      <!-- Instant Numerical Feed (Data Readings) -->
+      <div class="bg-slate-900/40 p-5 rounded-2xl border border-slate-800 grid grid-cols-2 md:grid-cols-4 gap-4">
+        <div class="space-y-1">
+          <span class="text-[10px] text-slate-500 font-bold uppercase tracking-wider">Dynamic Equilibrium</span>
+          <div id="data-equilibrium" class="text-lg font-bold text-white flex items-center gap-1.5 font-mono">Static</div>
+        </div>
+        <div class="space-y-1 border-l border-slate-800 pl-4">
+          <span class="text-[10px] text-slate-500 font-bold uppercase tracking-wider">Tension <span id="data-tension-math"></span></span>
+          <div id="data-tension" class="text-lg font-bold text-sky-400 font-mono">60 N</div>
+        </div>
+        <div class="space-y-1 border-l border-slate-800 pl-4">
+          <span class="text-[10px] text-slate-500 font-bold uppercase tracking-wider">Net System Mass</span>
+          <div id="data-net-mass" class="text-lg font-bold text-emerald-400 font-mono">0 kg (Ideal)</div>
+        </div>
+        <div class="space-y-1 border-l border-slate-800 pl-4">
+          <span class="text-[10px] text-slate-500 font-bold uppercase tracking-wider">System Acc</span>
+          <div id="data-acc" class="text-lg font-bold text-rose-400 font-mono">0.00 m/s²</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- TAB 2: VISUAL INFOGRAPHIC -->
+    <div id="panel-infographic" class="tab-panel flex flex-col gap-6 hidden">
+      <div class="bg-slate-900 border border-slate-800 rounded-2xl p-6 space-y-8">
+        <div class="border-b border-slate-800 pb-4">
+          <h3 class="text-lg font-extrabold text-white flex items-center gap-2">
+            <!-- Help Circle Icon -->
+            <svg class="w-5 h-5 text-indigo-400" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+              <path stroke-linecap="round" stroke-linejoin="round" d="M8.228 9c.549-1.165 2.03-2 3.772-2 2.21 0 4 1.343 4 3 0 1.4-1.278 2.575-3.006 2.907-.542.104-.994.54-.994 1.093m0 3h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+            </svg>
+            Physics Infographic: Decoding String Tension
+          </h3>
+          <p class="text-xs text-slate-400 mt-1">
+            How a humble rope acts as a dynamic force-transmitting conduit governed by Newton's Laws.
+          </p>
+        </div>
+
+        <!-- Graphic Layout Grid -->
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+          <!-- Visual Block 1: The Massless Approximation -->
+          <div class="bg-slate-950 p-5 rounded-xl border border-slate-800 space-y-3">
+            <span class="text-[10px] bg-indigo-950 text-indigo-300 font-mono font-bold px-2.5 py-1 rounded">
+              THE MASSLESS ROPE MYTH (<span id="info-massless-math"></span>)
+            </span>
+            <h4 class="text-sm font-bold text-white">Why Tension is Uniform</h4>
+            <p class="text-xs text-slate-400 leading-relaxed">
+              If we apply Newton's second law (<span id="info-newton-second-math"></span>) to any arbitrary sub-segment of string of mass <span id="info-submass-math"></span>:
+            </p>
+            <div class="bg-slate-900 p-3 rounded-lg text-center font-mono text-xs text-indigo-300">
+              <div id="info-eq1"></div>
+            </div>
+            <p class="text-xs text-slate-400 leading-relaxed">
+              If the rope is massless (<span id="info-eq2"></span>), then:
+            </p>
+            <div class="bg-slate-900 p-3 rounded-lg text-center font-mono text-xs text-emerald-400 font-bold">
+              <div id="info-eq3"></div>
+            </div>
+            <p class="text-xs text-slate-500 italic">
+              Hence, tension <span id="info-tension-math"></span> is identical everywhere along the rope, even if the system is accelerating at supersonic speeds!
+            </p>
+          </div>
+
+          <!-- Visual Block 2: The Physical Mechanism -->
+          <div class="bg-slate-950 p-5 rounded-xl border border-slate-800 space-y-3">
+            <span class="text-[10px] bg-emerald-950 text-emerald-300 font-mono font-bold px-2.5 py-1 rounded">
+              MOLECULAR ORIGINS OF TENSION
+            </span>
+            <h4 class="text-sm font-bold text-white">Microscopic Springs</h4>
+            <p class="text-xs text-slate-400 leading-relaxed">
+              When we pull on a rope externally, what creates tension internally?
+            </p>
+            <ul class="text-xs text-slate-400 list-disc list-inside space-y-2">
+              <li>Chemical bonds act as tiny atomic-scale electromagnetic spring coils.</li>
+              <li>Slight structural stretching of polymer fibers generates restoring forces.</li>
+              <li>These internal restoring forces pull backward towards the center of each sliced segment.</li>
+            </ul>
+            <div class="bg-slate-900/60 p-3 rounded-xl border border-slate-800 text-[10px] text-slate-400">
+              <strong>Note:</strong> Extreme forces can stretch ropes beyond their elastic limits, changing molecular structures (yielding) and violating the rigid string model.
+            </div>
+          </div>
+
+          <!-- Visual Block 3: Force Transmission via Pulley -->
+          <div class="bg-slate-950 p-5 rounded-xl border border-slate-800 space-y-3 col-span-1 md:col-span-2">
+            <span class="text-[10px] bg-amber-950 text-amber-300 font-mono font-bold px-2.5 py-1 rounded">
+              CONDUITS OF DYNAMIC FORCE
+            </span>
+            <h4 class="text-sm font-bold text-white">How Pulleys Redirect Tension</h4>
+            <p class="text-xs text-slate-400 leading-relaxed">
+              An ideal, frictionless, massless pulley redirects the direction of the tension vector without modifying its absolute magnitude <span id="info-tension-pulley-math"></span>.
+            </p>
+            
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-3">
+              <div class="bg-slate-900 p-3 rounded-lg space-y-1 border border-slate-800">
+                <h5 class="text-xs font-bold text-white">Horizontal Component</h5>
+                <p class="text-[11px] text-slate-400 flex flex-col gap-1">
+                  <span>For the horizontal block <span id="info-pulley-m-math"></span>:</span>
+                  <span class="text-indigo-400 font-mono bg-slate-950 px-1.5 py-1 rounded text-center border border-slate-800/40" id="info-component-h"></span>
+                </p>
+              </div>
+              <div class="bg-slate-900 p-3 rounded-lg space-y-1 border border-slate-800">
+                <h5 class="text-xs font-bold text-white">Vertical Component</h5>
+                <p class="text-[11px] text-slate-400 flex flex-col gap-1">
+                  <span>For the hanging mass <span id="info-pulley-m-hanging-math"></span>:</span>
+                  <span class="text-emerald-400 font-mono bg-slate-950 px-1.5 py-1 rounded text-center border border-slate-800/40" id="info-component-v"></span>
+                </p>
+              </div>
+              <div class="bg-slate-900 p-3 rounded-lg space-y-1 border border-slate-800">
+                <h5 class="text-xs font-bold text-white">System Synthesis</h5>
+                <p class="text-[11px] text-slate-400 flex flex-col gap-1">
+                  <span>Combined System:</span>
+                  <span class="text-rose-400 font-mono bg-slate-950 px-1.5 py-1 rounded text-center border border-slate-800/40" id="info-component-s"></span>
+                </p>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- TAB 3: COMPUTATIONAL MODEL ALGORITHM -->
+    <div id="panel-algorithm" class="tab-panel flex flex-col gap-6 hidden">
+      <div class="bg-slate-900 border border-slate-800 rounded-2xl p-6 space-y-6">
+        <div class="border-b border-slate-800 pb-4">
+          <h3 class="text-lg font-extrabold text-white flex items-center gap-2">
+            <!-- Cpu Icon -->
+            <svg class="w-5 h-5 text-indigo-400" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+              <rect x="4" y="4" width="16" height="16" rx="2" />
+              <path d="M9 9h6v6H9z" />
+              <path d="M9 1v3M15 1v3M9 20v3M15 20v3M20 9h3M20 15h3M1 9h3M1 15h3" />
+            </svg>
+            Computational Model &amp; State Integration
+          </h3>
+          <p class="text-xs text-slate-400 mt-1">
+            The step-by-step mathematical algorithm and Euler-integration state-machine logic running this simulation.
+          </p>
+        </div>
+
+        <div class="space-y-4">
+          <div class="bg-slate-950 rounded-xl p-5 border border-slate-850 space-y-4">
+            <h4 class="text-xs font-bold text-white uppercase tracking-wider">Step 1: Dynamics Resolution (Algebraic Solver)</h4>
+            <p class="text-xs text-slate-400 leading-relaxed">
+              Prior to animating, the engine calculates state variables analytically. We must check if the hanging mass has enough gravitational load to overcome the maximum static friction limit of the sliding block:
+            </p>
+            <div class="bg-slate-900 p-3.5 rounded-lg font-mono text-xs text-indigo-300 flex flex-col items-center gap-2 border border-slate-800">
+              <div id="alg-eq1"></div>
+              <div id="alg-eq2"></div>
+            </div>
+            
+            <h4 class="text-xs font-bold text-white uppercase tracking-wider pt-2">Step 2: State Flow Control Tree</h4>
+            <pre class="text-[11px] font-mono text-slate-300 bg-slate-900 p-4 rounded-xl overflow-x-auto border border-slate-800 leading-relaxed">
+if (F_gravity <= f_static_max) {
+    // SYSTEM IN STATIC EQUILIBRIUM
+    acceleration = 0;
+    velocity = 0;
+    tension = F_gravity; // Tension perfectly balances hanging gravity
+    friction = F_gravity; 
+} else {
+    // SYSTEM IN ACCELERATION (KINETIC)
+    f_kinetic = mu_k * M * g;
+    acceleration = (m * g - f_kinetic) / (M + m);
+    tension = m * (g - acceleration);
+    friction = f_kinetic;
+}</pre>
+
+            <h4 class="text-xs font-bold text-white uppercase tracking-wider pt-2">Step 3: State-Space Discrete Euler Integration</h4>
+            <p class="text-xs text-slate-400 leading-relaxed">
+              During active dynamic states, physical positions are resolved using numerical Euler-integration inside an animation loop keyed to the high-resolution system timestamp delta ($\Delta t$):
+            </p>
+            <pre class="text-[11px] font-mono text-indigo-300 bg-slate-900 p-4 rounded-xl overflow-x-auto border border-slate-800 leading-relaxed">
+// Numerical update per time step dt
+velocity_new = velocity_old + acceleration * dt;
+position_x_new = position_x_old + velocity_new * dt;
+position_y_new = position_y_old + velocity_new * dt;
+
+// Check Boundary Conditions
+if (position_x_new >= LIMIT_X) {
+    velocity = 0;
+    acceleration = 0;
+    is_playing = false;
+}</pre>
+          </div>
+        </div>
+      </div>
+    </div>
+
+  </main>
+
+  <!-- Page Footer -->
+  <footer class="border-t border-slate-900 bg-slate-950 py-5 text-center text-xs text-slate-500 mt-8">
+    Designed for visual clarity using high-resolution vector representations. Built on rigorous Newtonian dynamic state algorithms.
+  </footer>
+
+  <script>
+    // State Variables
+    let activeTab = 'simulator';
+    let simMode = 'rope_cut';
+    let currentStep = 0;
+
+    // Simulation states
+    let pushPullForce = 40;
+    let tugForceL = 60;
+    let tugForceR = 60;
+    let cutX = 50;
+    let isCutSeparated = true;
+
+    // Pulley system parameters
+    let massBlock = 5.0;
+    let massHanging = 3.0;
+    let frictionCoeff = 0.2;
+    let pulleyX = 150;
+    let pulleyY = 120;
+    let pulleyVel = 0;
+    let pulleyAcc = 0;
+    let pulleyTension = 0;
+    let isPlaying = false;
+    let showFrictionLimitWarning = false;
+
+    // Animation frames ref
+    let animationFrameId = null;
+    let previousTime = null;
+
+    // Guide Steps configurations
+    const guideSteps = [
+      {
+        title: "1. Push and Pull Forces",
+        mode: "push_pull",
+        description: "Any external force can be categorized fundamentally. We can either push a body (directed towards it) or pull a body (directed away from it). Both produce the same translational acceleration on a rigid block.",
+        math: "\\vec{F}_{\\text{push}} \\text{ vs } \\vec{F}_{\\text{pull}}",
+        action: () => {
+          setSimMode('push_pull');
+          pushPullForce = 50;
+          document.getElementById('input-fa').value = 50;
+        }
+      },
+      {
+        title: "2. The Tug of War (External Equilibrium)",
+        mode: "rope_cut",
+        description: "When opposing forces pull on opposite ends of a rope, the rope is put into a state of structural stress. If $F_L = F_R$, the rope is in static equilibrium, yet internal forces are highly active.",
+        math: "\\sum \\vec{F} = 0 \\implies F_L = F_R",
+        action: () => {
+          setSimMode('rope_cut');
+          tugForceL = 60;
+          tugForceR = 60;
+          isCutSeparated = false;
+          document.getElementById('input-fl').value = 60;
+        }
+      },
+      {
+        title: "3. The Imaginary Cut & Newton's Third Law",
+        mode: "rope_cut",
+        description: "If we slice the rope conceptually at any coordinate $x$, the left piece pulls the right piece with force $\\vec{F}_{LR}$ and the right piece pulls the left piece with force $\\vec{F}_{RL}$. By Newton's Third Law, these internal action-reaction pairs must be equal and opposite.",
+        math: "\\vec{F}_{RL} = -\\vec{F}_{LR}",
+        action: () => {
+          setSimMode('rope_cut');
+          tugForceL = 75;
+          tugForceR = 75;
+          cutX = 45;
+          isCutSeparated = true;
+          document.getElementById('input-fl').value = 75;
+          document.getElementById('input-cutX').value = 45;
+        }
+      },
+      {
+        title: "4. Defining Rope Tension",
+        mode: "rope_cut",
+        description: "Tension $T(x)$ is defined as the magnitude of these opposing internal forces at position $x$. For an ideal, massless rope, the tension is completely uniform and equal to the external pulling force throughout its entire length.",
+        math: "T(x) \\equiv |\\vec{F}_{RL}(x)| = |\\vec{F}_{LR}(x)|",
+        action: () => {
+          setSimMode('rope_cut');
+          tugForceL = 80;
+          tugForceR = 80;
+          cutX = 60;
+          isCutSeparated = true;
+          document.getElementById('input-fl').value = 80;
+          document.getElementById('input-cutX').value = 60;
+        }
+      },
+      {
+        title: "5. Real-World Pulley & Dynamic Tension",
+        mode: "pulley",
+        description: "In a dynamic system with a block ($M$) and a hanging weight ($m$), the tension in the string links their dynamics. Gravity acts on the hanging mass, but static or kinetic friction opposes the block's motion.",
+        math: "a = \\frac{m g - \\mu_k M g}{M + m}, \\quad T = m(g - a)",
+        action: () => {
+          setSimMode('pulley');
+          resetPulley();
+        }
+      }
+    ];
+
+    // Safe Math render parser helper
+    function typeset(id, tex, display = false) {
+      const el = document.getElementById(id);
+      if (el && window.katex) {
+        window.katex.render(tex, el, {
+          displayMode: display,
+          throwOnError: false
+        });
+      }
+    }
+
+    // Parse blocks of text containing $inline math$
+    function parseTextWithMath(text) {
+      if (!text) return "";
+      const parts = text.split('$');
+      return parts.map((part, index) => {
+        if (index % 2 === 1) {
+          const tempSpan = document.createElement('span');
+          window.katex.render(part, tempSpan, { throwOnError: false });
+          return tempSpan.outerHTML;
+        }
+        return part;
+      }).join('');
+    }
+
+    // Document Initialization
+    window.onload = function() {
+      // Warm up typesettings
+      typeset('header-tension-math', 'T(x)');
+      typeset('slider-fa-math', 'F_a');
+      typeset('slider-fl-math', 'F_L');
+      typeset('slider-x-math', 'x');
+      typeset('slider-m1-math', 'M');
+      typeset('slider-m2-math', 'm');
+      typeset('slider-friction-math', '\\mu');
+      typeset('data-tension-math', 'T');
+
+      // Static typesettings for algorithm/infographic tabs
+      typeset('info-massless-math', 'm_{\\text{rope}} = 0');
+      typeset('info-newton-second-math', '\\Sigma F = m \\cdot a');
+      typeset('info-submass-math', 'm_s');
+      typeset('info-eq1', 'T_{\\text{right}} - T_{\\text{left}} = m_s \\cdot a');
+      typeset('info-eq2', 'm_s = 0');
+      typeset('info-eq3', 'T_{\\text{right}} = T_{\\text{left}} = T(x)');
+      typeset('info-tension-math', 'T');
+      typeset('info-tension-pulley-math', 'T');
+      typeset('info-pulley-m-math', 'M');
+      typeset('info-pulley-m-hanging-math', 'm');
+      typeset('info-component-h', 'T - \\mu M g = M a');
+      typeset('info-component-v', 'm g - T = m a');
+      typeset('info-component-s', 'a = g \\frac{m - \\mu M}{M + m}');
+
+      typeset('alg-eq1', 'F_{\\text{gravity}} = m \\cdot g');
+      typeset('alg-eq2', 'f_{\\text{static max}} = \\mu_s \\cdot M \\cdot g');
+
+      // Populate interactive step cards
+      buildStepsUI();
+      // Initialize first step
+      handleStepChange(0);
+      updateUI();
+    };
+
+    // UI Tab Navigation
+    function setActiveTab(tab) {
+      activeTab = tab;
+      
+      // Update buttons
+      document.querySelectorAll('.tab-btn').forEach(btn => {
+        btn.classList.remove('bg-indigo-600', 'text-white', 'shadow-md');
+        btn.classList.add('text-slate-400', 'hover:text-white');
+      });
+      const activeBtn = document.getElementById(`tab-${tab}`);
+      if (activeBtn) {
+        activeBtn.classList.remove('text-slate-400', 'hover:text-white');
+        activeBtn.classList.add('bg-indigo-600', 'text-white', 'shadow-md');
+      }
+
+      // Show/Hide Panels
+      document.querySelectorAll('.tab-panel').forEach(panel => panel.classList.add('hidden'));
+      document.getElementById(`panel-${tab}`).classList.remove('hidden');
+
+      if (tab === 'simulator') {
+        updateUI();
+      }
+    }
+
+    // Populate the step Cards
+    function buildStepsUI() {
+      const container = document.getElementById('step-container');
+      container.innerHTML = '';
+      guideSteps.forEach((step, idx) => {
+        const card = document.createElement('button');
+        card.id = `step-card-${idx}`;
+        card.onclick = () => handleStepChange(idx);
+        card.className = "w-full text-left p-3.5 rounded-xl border text-xs transition-all flex flex-col justify-between relative bg-slate-900 border-slate-800 text-slate-400 hover:border-slate-700 hover:bg-slate-800/50 h-full";
+        
+        // Math identifier container
+        const mathId = `card-math-${idx}`;
+        
+        card.innerHTML = `
+          <div class="flex items-start gap-3 w-full">
+            <span class="step-num-badge w-5 h-5 flex items-center justify-center rounded-full text-[10px] font-bold shrink-0 bg-slate-800 text-slate-500">
+              ${idx + 1}
+            </span>
+            <div class="space-y-1.5 w-full">
+              <div class="font-bold flex items-center gap-2 text-white">
+                ${step.title}
+              </div>
+              <p class="text-[11px] leading-relaxed text-slate-400">
+                ${parseTextWithMath(step.description)}
+              </p>
+            </div>
+          </div>
+          <div class="mt-3 bg-slate-950 px-2 py-1 rounded text-indigo-300 inline-block font-mono text-[11px] border border-slate-800/50 self-start">
+            <span id="${mathId}"></span>
+          </div>
+        `;
+        container.appendChild(card);
+        typeset(mathId, step.math);
+      });
+    }
+
+    // Step navigation
+    function handleStepChange(index) {
+      currentStep = index;
+      
+      // Call visual modifications triggered by steps
+      guideSteps[index].action();
+
+      // UI Active classes update
+      document.querySelectorAll('[id^="step-card-"]').forEach((card, idx) => {
+        card.className = "w-full text-left p-3.5 rounded-xl border text-xs transition-all flex flex-col justify-between relative bg-slate-900 border-slate-800 text-slate-400 hover:border-slate-700 hover:bg-slate-800/50 h-full";
+        const badge = card.querySelector('.step-num-badge');
+        badge.className = "step-num-badge w-5 h-5 flex items-center justify-center rounded-full text-[10px] font-bold shrink-0 bg-slate-800 text-slate-500";
+        
+        // Remove left boundary accent line if any
+        const accent = card.querySelector('.card-accent');
+        if (accent) accent.remove();
+      });
+
+      const activeCard = document.getElementById(`step-card-${index}`);
+      if (activeCard) {
+        activeCard.className = "w-full text-left p-3.5 rounded-xl border text-xs transition-all flex flex-col justify-between relative bg-indigo-950/40 border-indigo-500 text-white shadow-lg h-full";
+        const badge = activeCard.querySelector('.step-num-badge');
+        badge.className = "step-num-badge w-5 h-5 flex items-center justify-center rounded-full text-[10px] font-bold shrink-0 bg-indigo-600 text-white";
+        
+        // Add left boundary accent line
+        const accentLine = document.createElement('span');
+        accentLine.className = "card-accent absolute left-0 top-0 bottom-0 w-1 bg-indigo-500 rounded-l-md";
+        activeCard.appendChild(accentLine);
+      }
+
+      // Update counter texts & states of next/prev buttons
+      document.getElementById('step-counter-text').innerText = `Step ${index + 1} of ${guideSteps.length}`;
+      document.getElementById('prev-btn').disabled = (index === 0);
+      document.getElementById('next-btn').disabled = (index === guideSteps.length - 1);
+
+      updateUI();
+    }
+
+    function prevStep() {
+      if (currentStep > 0) handleStepChange(currentStep - 1);
+    }
+
+    function nextStep() {
+      if (currentStep < guideSteps.length - 1) handleStepChange(currentStep + 1);
+    }
+
+    // Simulator Modes Updates
+    function setSimMode(mode) {
+      simMode = mode;
+
+      // Update simulation navigation header indicators
+      document.querySelectorAll('.mode-btn').forEach(btn => {
+        btn.classList.remove('bg-slate-800', 'text-white');
+        btn.classList.add('text-slate-400', 'hover:text-white');
+      });
+      const activeBtn = document.getElementById(`mode-${mode}`);
+      if (activeBtn) {
+        activeBtn.classList.add('bg-slate-800', 'text-white');
+      }
+
+      // Toggle views
+      document.querySelectorAll('.sim-view').forEach(view => view.classList.add('hidden'));
+      document.getElementById(`render-${mode}`).classList.remove('hidden');
+
+      // Toggle corresponding control panels
+      document.querySelectorAll('.slider-group').forEach(slider => slider.classList.add('hidden'));
+      document.getElementById(`sliders-${mode}`).classList.remove('hidden');
+
+      // Pause pulley if left
+      if (mode !== 'pulley' && isPlaying) {
+        setIsPlaying(false);
+      }
+
+      updateUI();
+    }
+
+    // Push/Pull inputs
+    function onFaChange(val) {
+      pushPullForce = parseInt(val);
+      updateUI();
+    }
+
+    // Rope cut inputs
+    function onFlChange(val) {
+      tugForceL = parseInt(val);
+      tugForceR = parseInt(val);
+      document.getElementById('input-fl').value = val;
+      updateUI();
+    }
+
+    // Slider cut position updates
+    function onCutXChange(val) {
+      cutX = parseInt(val);
+      updateUI();
+    }
+
+    function toggleCutState() {
+      isCutSeparated = !isCutSeparated;
+      const btn = document.getElementById('toggle-cut-btn');
+      const textSpan = document.getElementById('toggle-cut-text');
+      const cutSlider = document.getElementById('input-cutX');
+
+      if (isCutSeparated) {
+        btn.className = "w-full py-2 rounded-xl text-xs font-semibold border transition-all flex items-center justify-center gap-1.5 bg-indigo-950/50 text-indigo-300 border-indigo-900/40";
+        textSpan.innerText = "Slice with Imaginary Cut";
+        cutSlider.removeAttribute('disabled');
+      } else {
+        btn.className = "w-full py-2 rounded-xl text-xs font-semibold border transition-all flex items-center justify-center gap-1.5 bg-slate-950 text-slate-500 border-slate-800";
+        textSpan.innerText = "Joined Rope Profile";
+        cutSlider.setAttribute('disabled', 'true');
+      }
+
+      updateUI();
+    }
+
+    // Pulley dynamic inputs
+    function onMassBlockChange(val) {
+      massBlock = parseFloat(val);
+      document.getElementById('label-massBlock').innerText = `${val} kg`;
+      resetPulley();
+    }
+
+    function onMassHangingChange(val) {
+      massHanging = parseFloat(val);
+      document.getElementById('label-massHanging').innerText = `${val} kg`;
+      resetPulley();
+    }
+
+    function onFrictionChange(val) {
+      frictionCoeff = parseFloat(val);
+      document.getElementById('label-frictionCoeff').innerText = val;
+      resetPulley();
+    }
+
+    // Mathematical calculations for Pulley Dynamics
+    function calculatePulleyDynamics() {
+      const g = 9.81;
+      const maxStaticFriction = frictionCoeff * massBlock * g;
+      const gravitationalForce = massHanging * g;
+
+      if (gravitationalForce <= maxStaticFriction) {
+        return {
+          acceleration: 0,
+          tension: gravitationalForce,
+          isMoving: false,
+          frictionForce: gravitationalForce
+        };
+      } else {
+        const kineticFriction = frictionCoeff * massBlock * g;
+        const acceleration = (gravitationalForce - kineticFriction) / (massBlock + massHanging);
+        const tension = massHanging * (g - acceleration);
+        return {
+          acceleration,
+          tension,
+          isMoving: true,
+          frictionForce: kineticFriction
+        };
+      }
+    }
+
+    // Pulley simulation loop controls
+    function setIsPlaying(playState) {
+      isPlaying = playState;
+      const playBtn = document.getElementById('pulley-play-btn');
+      if (isPlaying) {
+        playBtn.className = "px-4 py-1.5 rounded-lg text-xs font-bold bg-amber-600 hover:bg-amber-500 text-white flex items-center gap-1.5";
+        playBtn.innerHTML = `
+          <!-- Pause Icon -->
+          <svg class="w-3.5 h-3.5 fill-current" viewBox="0 0 24 24"><path d="M6 19h4V5H6v14zm8-14v14h4V5h-4z"/></svg>
+          <span>Pause</span>
+        `;
+        previousTime = undefined;
+        animationFrameId = requestAnimationFrame(animatePulley);
+      } else {
+        playBtn.className = "px-4 py-1.5 rounded-lg text-xs font-bold bg-emerald-600 hover:bg-emerald-500 text-white flex items-center gap-1.5";
+        playBtn.innerHTML = `
+          <!-- Play Icon -->
+          <svg class="w-3.5 h-3.5 fill-current" viewBox="0 0 24 24"><path d="M8 5v14l11-7z"/></svg>
+          <span>Run Simulation</span>
+        `;
+        cancelAnimationFrame(animationFrameId);
+      }
+    }
+
+    // Toggle playing states
+    function togglePlayPulley() {
+      setIsPlaying(!isPlaying);
+    }
+
+    function resetPulley() {
+      setIsPlaying(false);
+      pulleyX = 150;
+      pulleyY = 120;
+      pulleyVel = 0;
+      pulleyAcc = 0;
+      showFrictionLimitWarning = false;
+      document.getElementById('friction-warning').classList.add('hidden');
+      
+      const dynamics = calculatePulleyDynamics();
+      pulleyTension = dynamics.tension;
+      updateUI();
+    }
+
+    function animatePulley(time) {
+      if (previousTime !== undefined) {
+        const dt = Math.min((time - previousTime) / 1000, 0.1);
+
+        const dynamics = calculatePulleyDynamics();
+        pulleyAcc = dynamics.acceleration;
+        pulleyTension = dynamics.tension;
+
+        if (dynamics.isMoving) {
+          showFrictionLimitWarning = false;
+          document.getElementById('friction-warning').classList.add('hidden');
+          
+          const newVel = pulleyVel + dynamics.acceleration * dt * 50;
+          pulleyVel = newVel;
+
+          const newX = pulleyX + newVel * dt;
+          const newY = pulleyY + newVel * dt;
+
+          if (newX >= 290 || newY >= 250) {
+            pulleyX = 290;
+            pulleyY = 250;
+            pulleyVel = 0;
+            pulleyAcc = 0;
+            setIsPlaying(false);
+          } else {
+            pulleyX = newX;
+            pulleyY = newY;
+          }
+        } else {
+          pulleyVel = 0;
+          pulleyAcc = 0;
+          showFrictionLimitWarning = true;
+          document.getElementById('friction-warning').classList.remove('hidden');
+          setIsPlaying(false);
+        }
+      }
+      previousTime = time;
+      if (isPlaying) {
+        animationFrameId = requestAnimationFrame(animatePulley);
+      }
+      updateUI();
+    }
+
+    // Complete UI Sync State updates
+    function updateUI() {
+      if (simMode === 'push_pull') {
+        const statusLabel = document.getElementById('push_pull-status');
+        statusLabel.innerText = `Force Profile: ${pushPullForce > 0 ? 'PULLING Force' : pushPullForce < 0 ? 'PUSHING Force' : 'ZERO Net Force'}`;
+        document.getElementById('label-fa').innerText = `${pushPullForce} N (${pushPullForce >= 0 ? 'Pull' : 'Push'})`;
+
+        // Render floor grid lines
+        const ticksG = document.getElementById('push_pull-floor-ticks');
+        let ticksHTML = '';
+        for (let i = 0; i < 11; i++) {
+          ticksHTML += `<line x1="${50 + i * 50}" y1="110" x2="${40 + i * 50}" y2="120" stroke="#475569" stroke-width="2" />`;
+        }
+        ticksG.innerHTML = ticksHTML;
+
+        // Render Applied Force Vectors
+        const vectorsG = document.getElementById('push_pull-vectors');
+        let vectorsHTML = '';
+        if (pushPullForce > 0) {
+          vectorsHTML += `
+            <line x1="350" y1="80" x2="${350 + Math.abs(pushPullForce) * 1.5}" y2="80" stroke="#38bdf8" stroke-width="4" marker-end="url(#arrow-right)" />
+            <text x="${370 + Math.abs(pushPullForce) * 1.5}" y="85" fill="#38bdf8" font-size="11" font-weight="bold" class="font-mono">
+              F_pull (${Math.abs(pushPullForce)} N) →
+            </text>
+            <path d="M 350 80 Q 380 50 350 50" fill="none" stroke="#38bdf8" stroke-width="1" stroke-dasharray="3" />
+          `;
+        } else if (pushPullForce < 0) {
+          vectorsHTML += `
+            <line x1="${250 - Math.abs(pushPullForce) * 1.5}" y1="80" x2="250" y2="80" stroke="#f43f5e" stroke-width="4" marker-end="url(#arrow-push)" />
+            <text x="${160 - Math.abs(pushPullForce) * 1.5}" y="85" fill="#f43f5e" font-size="11" font-weight="bold" class="font-mono">
+              F_push (${Math.abs(pushPullForce)} N) →
+            </text>
+          `;
+        }
+        vectorsG.innerHTML = vectorsHTML;
+
+        // Sync Readings
+        document.getElementById('data-equilibrium').innerText = "Static";
+        document.getElementById('data-tension').innerText = "N/A (No Rope)";
+        document.getElementById('data-net-mass').innerText = "0 kg (Ideal)";
+        document.getElementById('data-acc').innerText = "0.00 m/s²";
+
+      } else if (simMode === 'rope_cut') {
+        document.getElementById('rope_cut-fL-label').innerText = `Left Pull force: ${tugForceL} N`;
+        document.getElementById('rope_cut-fR-label').innerText = `Right Pull force: ${tugForceR} N`;
+        document.getElementById('tension-x-percent').innerText = Math.round(cutX);
+        document.getElementById('tension-val').innerText = Math.round((tugForceL + tugForceR) / 2);
+        
+        document.getElementById('label-fl').innerText = `${tugForceL} N`;
+        document.getElementById('label-cutX').innerText = `${Math.round(cutX)}% of Length`;
+
+        // Position cut visual line
+        document.getElementById('cut-guideline').setAttribute('x1', 100 + cutX * 4);
+        document.getElementById('cut-guideline').setAttribute('x2', 100 + cutX * 4);
+        document.getElementById('cut-guideline-text').setAttribute('x', 100 + cutX * 4);
+
+        // Typeset Warning Message
+        typeset('rope_cut-warning-math', `x = ${Math.round(cutX)}\\%`);
+        typeset('rope_cut-tension-num-warning', `T = ${tugForceL}\\text{ N}`);
+
+        // Draw Interactive Rope Graphic
+        const ropeG = document.getElementById('rope-graphic-group');
+        let ropeHTML = '';
+        if (!isCutSeparated) {
+          ropeHTML += `
+            <line x1="100" y1="75" x2="${100 - tugForceL * 0.8}" y2="75" stroke="#38bdf8" stroke-width="4" marker-end="url(#arrow-left-green)" />
+            <text x="${60 - tugForceL * 0.8}" y="60" fill="#38bdf8" font-size="11" font-weight="bold" class="font-mono">F_L = ${tugForceL} N</text>
+
+            <line x1="500" y1="75" x2="${500 + tugForceR * 0.8}" y2="75" stroke="#10b981" stroke-width="4" marker-end="url(#arrow-right-green)" />
+            <text x="${440 + tugForceR * 0.8}" y="60" fill="#10b981" font-size="11" font-weight="bold" class="font-mono">F_R = ${tugForceR} N</text>
+
+            <rect x="100" y="68" width="400" height="14" fill="#1e293b" stroke="#475569" stroke-width="2" rx="3" />
+            <text x="300" y="77" fill="#94a3b8" font-size="9" text-anchor="middle" font-weight="semibold" class="font-mono">Continuous Ideal String</text>
+          `;
+        } else {
+          // Separated Pieces Showing Action-Reaction Pairs
+          ropeHTML += `
+            <!-- Left Piece (L) -->
+            <g transform="translate(-15, 0)">
+              <line x1="100" y1="75" x2="${100 - tugForceL * 0.8}" y2="75" stroke="#38bdf8" stroke-width="4" marker-end="url(#arrow-left-green)" />
+              <text x="${80 - tugForceL * 0.8}" y="60" fill="#38bdf8" font-size="11" font-weight="bold" class="font-mono">F_L</text>
+              
+              <rect x="100" y="68" width="${cutX * 4}" height="14" fill="#1e1b4b" stroke="#4f46e5" stroke-width="2" rx="3" />
+              <text x="${100 + (cutX * 2)}" y="78" fill="#a5b4fc" font-size="9" font-weight="bold" text-anchor="middle">L Piece</text>
+
+              <line x1="${100 + cutX * 4}" y1="75" x2="${100 + cutX * 4 + 40}" y2="75" stroke="#a855f7" stroke-width="3" marker-end="url(#internal-purple-right)" />
+              <text x="${100 + cutX * 4 + 10}" y="95" fill="#c084fc" font-size="10" class="font-bold font-mono" text-anchor="middle">F_RL (Tension)</text>
+            </g>
+
+            <!-- Right Piece (R) -->
+            <g transform="translate(15, 0)">
+              <line x1="500" y1="75" x2="${500 + tugForceR * 0.8}" y2="75" stroke="#10b981" stroke-width="4" marker-end="url(#arrow-right-green)" />
+              <text x="${420 + tugForceR * 0.8}" y="60" fill="#10b981" font-size="11" font-weight="bold" class="font-mono">F_R</text>
+
+              <rect x="${100 + cutX * 4}" y="68" width="${(100 - cutX) * 4}" height="14" fill="#3b0764" stroke="#c084fc" stroke-width="2" rx="3" />
+              <text x="${100 + cutX * 4 + ((100 - cutX) * 2)}" y="78" fill="#e9d5ff" font-size="9" font-weight="bold" text-anchor="middle">R Piece</text>
+
+              <line x1="${100 + cutX * 4}" y1="75" x2="${100 + cutX * 4 - 40}" y2="75" stroke="#4f46e5" stroke-width="3" marker-end="url(#internal-blue-left)" />
+              <text x="${100 + cutX * 4 - 10}" y="95" fill="#818cf8" font-size="10" class="font-bold font-mono" text-anchor="middle">F_LR (Tension)</text>
+            </g>
+          `;
+        }
+        ropeG.innerHTML = ropeHTML;
+
+        // Dynamic formula typesetting
+        typeset('rope-tension-equation-render', `|\\vec{F}_{RL}| = |\\vec{F}_{LR}| = T = ${Math.round((tugForceL + tugForceR) / 2)}\\text{ N}`);
+
+        // Readings Update
+        document.getElementById('data-equilibrium').innerText = "Static";
+        document.getElementById('data-tension').innerText = `${Math.round((tugForceL + tugForceR) / 2)} N`;
+        document.getElementById('data-net-mass').innerText = "0 kg (Ideal)";
+        document.getElementById('data-acc').innerText = "0.00 m/s²";
+
+      } else if (simMode === 'pulley') {
+        // Dynamics solver state readings
+        const dynamics = calculatePulleyDynamics();
+
+        document.getElementById('hud-M').innerText = massBlock.toFixed(1);
+        document.getElementById('hud-T').innerText = pulleyTension.toFixed(2);
+        document.getElementById('hud-acc').innerText = pulleyAcc.toFixed(2);
+        document.getElementById('hud-vel').innerText = (pulleyVel / 50).toFixed(2);
+
+        // Render dynamic SVG elements
+        const pulleyG = document.getElementById('pulley-dynamic-elements');
+        let pulleyHTML = `
+          <!-- Sliding mass block (M) -->
+          <rect x="${pulleyX}" y="72" width="50" height="28" rx="2" fill="#1e1b4b" stroke="#6366f1" stroke-width="2.5" />
+          <text x="${pulleyX + 25}" y="90" fill="#c084fc" font-size="10" font-weight="bold" text-anchor="middle">M=${massBlock}kg</text>
+
+          <!-- String mapping linked to block -->
+          <line x1="${pulleyX + 50}" y1="86" x2="350" y2="86" stroke="#f8fafc" stroke-width="1.5" />
+          <path d="M 350 86 A 14 14 0 0 1 362 100" fill="none" stroke="#f8fafc" stroke-width="1.5" />
+          <line x1="362" y1="100" x2="362" y2="${pulleyY}" stroke="#f8fafc" stroke-width="1.5" />
+
+          <!-- Hanging mass block (m) -->
+          <rect x="347" y="${pulleyY}" width="30" height="30" rx="2" fill="#064e3b" stroke="#10b981" stroke-width="2.5" />
+          <text x="362" y="${pulleyY + 18}" fill="#a7f3d0" font-size="10" font-weight="bold" text-anchor="middle">m</text>
+
+          <!-- Force overlays on block M -->
+          <g transform="translate(${pulleyX + 25}, 86)">
+            <line x1="-25" y1="0" x2="-65" y2="0" stroke="#e11d48" stroke-width="2.5" marker-end="url(#arrow-left-green)" />
+            <text x="-45" y="-6" fill="#f43f5e" font-size="9" font-weight="bold" text-anchor="middle">f_k</text>
+
+            <line x1="25" y1="0" x2="65" y2="0" stroke="#38bdf8" stroke-width="2.5" marker-end="url(#arrow-right-sky)" />
+            <text x="45" y="-6" fill="#0ea5e9" font-size="9" font-weight="bold" text-anchor="middle">T_M</text>
+          </g>
+
+          <!-- Force overlays on Hanging Mass -->
+          <g transform="translate(362, ${pulleyY + 15})">
+            <line x1="0" y1="-15" x2="0" y2="-45" stroke="#38bdf8" stroke-width="2.5" marker-end="url(#arrow-left-sky)" transform="rotate(-90)" />
+            <text x="14" y="-25" fill="#0ea5e9" font-size="9" font-weight="bold">T_m</text>
+
+            <line x1="0" y1="15" x2="0" y2="45" stroke="#10b981" stroke-width="2.5" marker-end="url(#arrow-right-green)" transform="rotate(90)" />
+            <text x="14" y="35" fill="#10b981" font-size="9" font-weight="bold">m·g</text>
+          </g>
+        `;
+
+        if (pulleyAcc > 0) {
+          pulleyHTML += `
+            <g transform="translate(150, 40)">
+              <line x1="0" y1="0" x2="40" y2="0" stroke="#f43f5e" stroke-width="3" marker-end="url(#force-acc)" />
+              <text x="50" y="4" fill="#f43f5e" font-size="9" font-weight="bold" class="font-mono">Sys Acc →</text>
+            </g>
+          `;
+        }
+        pulleyG.innerHTML = pulleyHTML;
+
+        // Dynamics Readings Sync
+        document.getElementById('data-equilibrium').innerText = dynamics.isMoving ? "Accelerating" : "Static Limit";
+        document.getElementById('data-tension').innerText = `${pulleyTension.toFixed(1)} N`;
+        document.getElementById('data-net-mass').innerText = `${(massBlock + massHanging).toFixed(1)} kg`;
+        document.getElementById('data-acc').innerText = `${pulleyAcc.toFixed(2)} m/s²`;
+      }
+    }
+  </script>
+</body>
+</html>

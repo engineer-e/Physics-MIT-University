@@ -1,0 +1,941 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Friction Dynamics: Static to Kinetic Transition</title>
+  <!-- Tailwind CSS CDN -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  <!-- KaTeX for beautiful math rendering -->
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.8/dist/katex.min.css">
+  <script src="https://cdn.jsdelivr.net/npm/katex@0.16.8/dist/katex.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/katex@0.16.8/dist/contrib/auto-render.min.js"></script>
+  <!-- Google Fonts -->
+  <link href="https://fonts.googleapis.com/css2?family=Fira+Code:wght@400;500;700&family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+  <style>
+    body {
+      font-family: 'Inter', sans-serif;
+    }
+    .mono-font {
+      font-family: 'Fira Code', monospace;
+    }
+    /* Simple custom scrollbar for dashboard columns */
+    ::-webkit-scrollbar {
+      width: 6px;
+    }
+    ::-webkit-scrollbar-track {
+      background: #0f172a;
+    }
+    ::-webkit-scrollbar-thumb {
+      background: #334155;
+      border-radius: 3px;
+    }
+    ::-webkit-scrollbar-thumb:hover {
+      background: #475569;
+    }
+  </style>
+</head>
+<body class="bg-slate-950 text-slate-100 min-h-screen flex flex-col selection:bg-teal-500 selection:text-slate-900 overflow-x-hidden">
+
+  <!-- Header -->
+  <header class="border-b border-slate-800 bg-slate-900/80 backdrop-blur sticky top-0 z-50 px-6 py-4 flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
+    <div>
+      <div class="flex items-center gap-2">
+        <span class="px-2.5 py-1 rounded bg-teal-500/10 border border-teal-500/30 text-teal-400 text-xs font-semibold uppercase tracking-wider">Physics Lab</span>
+        <h1 class="text-xl font-bold tracking-tight text-white">Friction Dynamics Simulator</h1>
+      </div>
+      <p class="text-xs text-slate-400 mt-1">Exploring the microscopic and macroscopic transition from Static to Kinetic friction states.</p>
+    </div>
+    <div class="flex items-center gap-3">
+      <button id="btn-reset" class="px-3 py-1.5 rounded-lg bg-slate-800 hover:bg-slate-700 text-slate-300 hover:text-white transition-all text-xs font-semibold border border-slate-700 flex items-center gap-1.5">
+        <svg xmlns="http://www.w3.org/2000/svg" class="h-3.5 w-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M3 12a9 9 0 1 0 9-9 9.75 9.75 0 0 0-6.74 2.74L3 8"/><path d="M3 3v5h5"/></svg>
+        Reset Simulation
+      </button>
+      <button id="btn-auto-sweep" class="px-3.5 py-1.5 rounded-lg bg-teal-600 hover:bg-teal-500 text-white transition-all text-xs font-semibold shadow-lg shadow-teal-500/10 hover:shadow-teal-500/20 flex items-center gap-1.5">
+        <svg xmlns="http://www.w3.org/2000/svg" class="h-3.5 w-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="m5 3 14 9-14 9V3z"/></svg>
+        Auto Force Sweep
+      </button>
+    </div>
+  </header>
+
+  <!-- Main Content Grid -->
+  <main class="flex-grow p-4 md:p-6 grid grid-cols-1 xl:grid-cols-12 gap-6 max-w-7xl mx-auto w-full">
+    
+    <!-- Left Panel: Interactive Simulation Visualizer (6 Columns) -->
+    <section class="xl:col-span-7 flex flex-col gap-6">
+      <!-- Live Lab Workspace -->
+      <div class="bg-slate-900 border border-slate-800 rounded-xl p-4 md:p-5 flex flex-col gap-4 shadow-xl">
+        <div class="flex justify-between items-center">
+          <h2 class="text-sm font-semibold tracking-wider uppercase text-slate-400 flex items-center gap-2">
+            <span class="h-2 w-2 rounded-full bg-teal-500 animate-pulse"></span>
+            Dynamic Physics Sandbox
+          </h2>
+          <div id="regime-badge" class="px-2.5 py-0.5 rounded-full text-xs font-bold bg-slate-800 text-slate-300 transition-all border border-slate-700">
+            At Rest
+          </div>
+        </div>
+
+        <!-- Simulator Canvas Area -->
+        <div class="relative bg-slate-950 rounded-lg border border-slate-800 overflow-hidden aspect-[16/9] w-full flex items-center justify-center">
+          <canvas id="canvas-physics" class="absolute inset-0 w-full h-full block"></canvas>
+          
+          <!-- Zoom Magnifier Overlay (Simulated micro-asperities) -->
+          <div class="absolute bottom-4 right-4 bg-slate-900/90 border border-slate-700/80 rounded-xl p-3 w-40 h-40 shadow-2xl flex flex-col pointer-events-none transition-all" id="micro-zoom">
+            <span class="text-[9px] font-bold uppercase tracking-wider text-teal-400 mb-1 block">Microscopic Zoom</span>
+            <div class="relative flex-grow bg-slate-950 rounded border border-slate-800 overflow-hidden">
+              <canvas id="canvas-micro" class="absolute inset-0 w-full h-full"></canvas>
+            </div>
+            <span id="micro-state-txt" class="text-[9px] font-mono mt-1 text-slate-400 text-center">Interlocked Welds</span>
+          </div>
+        </div>
+
+        <!-- Real-Time Metrics Dashboard -->
+        <div class="grid grid-cols-2 sm:grid-cols-4 gap-3 bg-slate-950 p-3 rounded-lg border border-slate-800/80">
+          <div class="flex flex-col">
+            <span class="text-[10px] text-slate-500 font-semibold uppercase tracking-wider">Applied Force (F)</span>
+            <span class="text-lg font-bold text-teal-400 mono-font" id="metric-applied-force">0.00 N</span>
+          </div>
+          <div class="flex flex-col">
+            <span class="text-[10px] text-slate-500 font-semibold uppercase tracking-wider">Friction (f)</span>
+            <span class="text-lg font-bold text-cyan-400 mono-font" id="metric-friction-force">0.00 N</span>
+          </div>
+          <div class="flex flex-col">
+            <span class="text-[10px] text-slate-500 font-semibold uppercase tracking-wider">Max Static (f_s,max)</span>
+            <span class="text-lg font-bold text-amber-500 mono-font" id="metric-max-static">0.00 N</span>
+          </div>
+          <div class="flex flex-col">
+            <span class="text-[10px] text-slate-500 font-semibold uppercase tracking-wider">Kinetic Friction (f_k)</span>
+            <span class="text-lg font-bold text-rose-400 mono-font" id="metric-kinetic-friction">0.00 N</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- Friction Curve Graph -->
+      <div class="bg-slate-900 border border-slate-800 rounded-xl p-4 md:p-5 flex flex-col gap-3 shadow-xl">
+        <h2 class="text-sm font-semibold tracking-wider uppercase text-slate-400 flex items-center gap-2">
+          <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 text-cyan-500" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 3v18h18"/><path d="M18.7 8l-5.1 5.2-2.8-2.7L7 14.3"/></svg>
+          Friction vs. Applied Force Curve
+        </h2>
+        <div class="bg-slate-950 rounded-lg border border-slate-800 p-2 aspect-[16/6] relative">
+          <canvas id="canvas-graph" class="w-full h-full block"></canvas>
+        </div>
+      </div>
+    </section>
+
+    <!-- Right Panel: Controls & Detailed Infographic (5 Columns) -->
+    <section class="xl:col-span-5 flex flex-col gap-6">
+      
+      <!-- Interactive Parameter Sliders -->
+      <div class="bg-slate-900 border border-slate-800 rounded-xl p-5 shadow-xl flex flex-col gap-4">
+        <h2 class="text-sm font-bold tracking-wider uppercase text-slate-400 flex items-center gap-2 border-b border-slate-800 pb-2">
+          <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 text-teal-400" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M12 6V4m0 2a2 2 0 100 4m0-4a2 2 0 110 4m-6 8a2 2 0 100-4m0 4a2 2 0 110-4m0 4v2m0-6V4m6 6v10m6-2a2 2 0 100-4m0 4a2 2 0 110-4m0 4v2m0-6V4" /></svg>
+          System Controls & Inputs
+        </h2>
+        
+        <!-- Pull Force Slider -->
+        <div class="flex flex-col gap-1.5">
+          <div class="flex justify-between items-center text-xs">
+            <span class="text-slate-300 font-medium">Applied Force, \(F_{\text{app}}\)</span>
+            <span class="font-mono text-teal-400 font-bold bg-teal-500/10 px-2 py-0.5 rounded border border-teal-500/20" id="val-force">0.0 N</span>
+          </div>
+          <input type="range" id="input-force" min="-50" max="50" step="0.1" value="0" class="w-full h-1.5 bg-slate-800 rounded-lg appearance-none cursor-pointer accent-teal-500">
+          <div class="flex justify-between text-[10px] text-slate-500">
+            <span>Pulling Left (-50 N)</span>
+            <span>Balanced (0 N)</span>
+            <span>Pulling Right (+50 N)</span>
+          </div>
+        </div>
+
+        <div class="grid grid-cols-1 sm:grid-cols-3 gap-4 mt-1">
+          <!-- Static Coefficient Slider -->
+          <div class="flex flex-col gap-1.5">
+            <div class="flex justify-between items-center text-xs">
+              <span class="text-slate-300 font-medium">Static \(\mu_s\)</span>
+              <span class="font-mono text-amber-400 font-bold" id="val-mus">0.55</span>
+            </div>
+            <input type="range" id="input-mus" min="0.1" max="1.0" step="0.01" value="0.55" class="w-full h-1 bg-slate-800 rounded-lg appearance-none cursor-pointer accent-amber-500">
+          </div>
+
+          <!-- Kinetic Coefficient Slider -->
+          <div class="flex flex-col gap-1.5">
+            <div class="flex justify-between items-center text-xs">
+              <span class="text-slate-300 font-medium">Kinetic \(\mu_k\)</span>
+              <span class="font-mono text-rose-400 font-bold" id="val-muk">0.38</span>
+            </div>
+            <input type="range" id="input-muk" min="0.05" max="0.9" step="0.01" value="0.38" class="w-full h-1 bg-slate-800 rounded-lg appearance-none cursor-pointer accent-rose-500">
+          </div>
+
+          <!-- Mass Slider -->
+          <div class="flex flex-col gap-1.5">
+            <div class="flex justify-between items-center text-xs">
+              <span class="text-slate-300 font-medium">Mass, \(m\)</span>
+              <span class="font-mono text-blue-400 font-bold" id="val-mass">5.0 kg</span>
+            </div>
+            <input type="range" id="input-mass" min="1.0" max="10.0" step="0.5" value="5.0" class="w-full h-1 bg-slate-800 rounded-lg appearance-none cursor-pointer accent-blue-500">
+          </div>
+        </div>
+      </div>
+
+      <!-- Algorithmic Live Process Sync -->
+      <div class="bg-slate-900 border border-slate-800 rounded-xl p-5 shadow-xl flex-grow flex flex-col gap-4">
+        <h2 class="text-sm font-bold tracking-wider uppercase text-slate-400 flex items-center gap-2 border-b border-slate-800 pb-2">
+          <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 text-violet-400" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-6 9l2 2 4-4" /></svg>
+          Mathematical & Computational Flow
+        </h2>
+
+        <!-- Step-by-Step Interactive Workflow Pipeline -->
+        <div class="flex flex-col gap-3" id="algo-flow">
+          
+          <!-- Step 1: Normal Force Calculation (Always Active) -->
+          <div class="p-3 rounded-lg border bg-slate-950/50 border-slate-800 flex flex-col gap-1 transition-all duration-300" id="step-normal">
+            <div class="flex items-center gap-2">
+              <span class="w-5 h-5 rounded-full bg-slate-800 text-slate-400 flex items-center justify-center text-xs font-mono">1</span>
+              <span class="text-xs font-bold text-slate-200">Normal & Gravitational Equilibrium</span>
+            </div>
+            <p class="text-[11px] text-slate-400 pl-7 leading-relaxed">
+              Before calculating friction constraints, compute vertical force balance:
+              <span class="block my-1 text-xs text-blue-400 font-mono">\(N = m \cdot g = \text{mass} \times 9.81\text{ m/s}^2\)</span>
+            </p>
+          </div>
+
+          <!-- Step 2: Calculate Limits (Always Active) -->
+          <div class="p-3 rounded-lg border bg-slate-950/50 border-slate-800 flex flex-col gap-1 transition-all duration-300" id="step-limits">
+            <div class="flex items-center gap-2">
+              <span class="w-5 h-5 rounded-full bg-slate-800 text-slate-400 flex items-center justify-center text-xs font-mono">2</span>
+              <span class="text-xs font-bold text-slate-200">Friction Boundary Thresholds</span>
+            </div>
+            <p class="text-[11px] text-slate-400 pl-7 leading-relaxed">
+              Compute the threshold bounds for transitions:
+              <span class="block my-1 text-xs text-amber-500 font-mono">\(f_{s,\max} = \mu_s N\)</span>
+              <span class="block text-xs text-rose-400 font-mono">\(f_k = \mu_k N\)</span>
+            </p>
+          </div>
+
+          <!-- Step 3: State Determination & Dynamic Solver (Active Highlight) -->
+          <div class="p-3 rounded-lg border bg-slate-950/50 border-slate-800 flex flex-col gap-1 transition-all duration-300" id="step-static">
+            <div class="flex items-center gap-2">
+              <span class="w-5 h-5 rounded-full bg-slate-800 text-slate-400 flex items-center justify-center text-xs font-mono" id="badge-static">3a</span>
+              <span class="text-xs font-bold text-slate-200">Regime: Static Resistance (\(v = 0\) and \(|F| \le f_{s,\max}\))</span>
+            </div>
+            <p class="text-[11px] text-slate-400 pl-7 leading-relaxed">
+              Applied force does not exceed limits. Force is perfectly balanced by static resistance:
+              <span class="block my-1 text-xs text-teal-400 font-mono">\(f_s = -F_{\text{app}} \quad \Longrightarrow \quad a = 0\)</span>
+            </p>
+          </div>
+
+          <!-- Step 4: Kinetic Slip Transition (Active Highlight) -->
+          <div class="p-3 rounded-lg border bg-slate-950/50 border-slate-800 flex flex-col gap-1 transition-all duration-300" id="step-kinetic">
+            <div class="flex items-center gap-2">
+              <span class="w-5 h-5 rounded-full bg-slate-800 text-slate-400 flex items-center justify-center text-xs font-mono" id="badge-kinetic">3b</span>
+              <span class="text-xs font-bold text-slate-200">Regime: Kinetic Slip (\(|F| > f_{s,\max}\) or \(v \neq 0\))</span>
+            </div>
+            <p class="text-[11px] text-slate-400 pl-7 leading-relaxed">
+              Applied force breaks static welds. Interlocking asperities shear; friction drops instantly to kinetic resistance:
+              <span class="block my-1 text-xs text-rose-400 font-mono">\(f = -\operatorname{sgn}(v) f_k\)</span>
+              <span class="block text-xs text-emerald-400 font-mono">\(a = \frac{F_{\text{app}} + f}{m} \quad \Longrightarrow \quad v_{t} = v_0 + a \cdot \Delta t\)</span>
+            </p>
+          </div>
+
+        </div>
+      </div>
+    </section>
+
+  </main>
+
+  <!-- Instructional / Physics Fact Bar -->
+  <footer class="mt-auto border-t border-slate-800 bg-slate-950 p-4 text-center text-xs text-slate-500">
+    <div class="max-w-4xl mx-auto flex flex-col sm:flex-row items-center justify-between gap-2">
+      <span>Designed to accompany MIT/Physics curricula outlining Coulomb's Friction Model.</span>
+      <span class="text-slate-400 font-medium">Formulas are processed live inside Canvas animation frames.</span>
+    </div>
+  </footer>
+
+  <!-- Script block of simulation, visualization, math solver, and UI logic -->
+  <script>
+    // State Variables
+    let mass = 5.0;            // kg
+    let g = 9.81;              // m/s^2
+    let mu_s = 0.55;           // Static friction coefficient
+    let mu_k = 0.38;           // Kinetic friction coefficient
+    let appliedForce = 0.0;    // Newtons
+    let blockVelocity = 0.0;   // m/s
+    let blockPosition = 0.0;   // relative offset in px
+    let totalTime = 0;         // clock tick
+    
+    // Auto force sweep animation properties
+    let isSweeping = false;
+    let sweepDirection = 1;    // 1 = up, -1 = down
+    let sweepTarget = 45;       // N
+    
+    // Elements
+    const canvasPhysics = document.getElementById('canvas-physics');
+    const ctxPhysics = canvasPhysics.getContext('2d');
+    
+    const canvasGraph = document.getElementById('canvas-graph');
+    const ctxGraph = canvasGraph.getContext('2d');
+
+    const canvasMicro = document.getElementById('canvas-micro');
+    const ctxMicro = canvasMicro.getContext('2d');
+    
+    // Sliders & Outputs
+    const inputForce = document.getElementById('input-force');
+    const inputMus = document.getElementById('input-mus');
+    const inputMuk = document.getElementById('input-muk');
+    const inputMass = document.getElementById('input-mass');
+    
+    const valForce = document.getElementById('val-force');
+    const valMus = document.getElementById('val-mus');
+    const valMuk = document.getElementById('val-muk');
+    const valMass = document.getElementById('val-mass');
+    
+    // Metrics
+    const metricAppliedForce = document.getElementById('metric-applied-force');
+    const metricFrictionForce = document.getElementById('metric-friction-force');
+    const metricMaxStatic = document.getElementById('metric-max-static');
+    const metricKineticFriction = document.getElementById('metric-kinetic-friction');
+    
+    // Badges & Steps
+    const regimeBadge = document.getElementById('regime-badge');
+    const stepNormal = document.getElementById('step-normal');
+    const stepLimits = document.getElementById('step-limits');
+    const stepStatic = document.getElementById('step-static');
+    const stepKinetic = document.getElementById('step-kinetic');
+    const microStateTxt = document.getElementById('micro-state-txt');
+    const btnAutoSweep = document.getElementById('btn-auto-sweep');
+    const btnReset = document.getElementById('btn-reset');
+
+    // UI Interactive Event Hooks
+    inputForce.addEventListener('input', (e) => {
+      appliedForce = parseFloat(e.target.value);
+      valForce.textContent = `${appliedForce.toFixed(1)} N`;
+      if(isSweeping) stopSweep();
+    });
+    
+    inputMus.addEventListener('input', (e) => {
+      // Keep mu_s >= mu_k
+      let val = parseFloat(e.target.value);
+      if (val < mu_k) {
+        val = mu_k;
+        inputMus.value = val;
+      }
+      mu_s = val;
+      valMus.textContent = mu_s.toFixed(2);
+    });
+
+    inputMuk.addEventListener('input', (e) => {
+      // Keep mu_k <= mu_s
+      let val = parseFloat(e.target.value);
+      if (val > mu_s) {
+        val = mu_s;
+        inputMuk.value = val;
+      }
+      mu_k = val;
+      valMuk.textContent = mu_k.toFixed(2);
+    });
+
+    inputMass.addEventListener('input', (e) => {
+      mass = parseFloat(e.target.value);
+      valMass.textContent = `${mass.toFixed(1)} kg`;
+    });
+
+    btnReset.addEventListener('click', () => {
+      stopSweep();
+      blockVelocity = 0;
+      blockPosition = 0;
+      appliedForce = 0;
+      inputForce.value = 0;
+      valForce.textContent = "0.0 N";
+    });
+
+    btnAutoSweep.addEventListener('click', () => {
+      if(isSweeping) {
+        stopSweep();
+      } else {
+        startSweep();
+      }
+    });
+
+    function startSweep() {
+      isSweeping = true;
+      blockVelocity = 0;
+      blockPosition = -100; // Reset position to left side
+      appliedForce = 0;
+      inputForce.value = 0;
+      valForce.textContent = "0.0 N";
+      btnAutoSweep.innerHTML = `<svg xmlns="http://www.w3.org/2000/svg" class="h-3.5 w-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><rect x="3" y="3" width="18" height="18" rx="2" ry="2"/></svg> Stop Sweep`;
+      btnAutoSweep.classList.remove('bg-teal-600', 'hover:bg-teal-500');
+      btnAutoSweep.classList.add('bg-rose-600', 'hover:bg-rose-500');
+    }
+
+    function stopSweep() {
+      isSweeping = false;
+      btnAutoSweep.innerHTML = `<svg xmlns="http://www.w3.org/2000/svg" class="h-3.5 w-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="m5 3 14 9-14 9V3z"/></svg> Auto Force Sweep`;
+      btnAutoSweep.classList.remove('bg-rose-600', 'hover:bg-rose-500');
+      btnAutoSweep.classList.add('bg-teal-600', 'hover:bg-teal-500');
+    }
+
+    // Main Phys loop config
+    let lastTime = 0;
+    function mainLoop(timestamp) {
+      if(!lastTime) lastTime = timestamp;
+      let dt = (timestamp - lastTime) / 1000;
+      if (dt > 0.1) dt = 0.1; // Clamp delta to avoid warp physics on tab unfocus
+      lastTime = timestamp;
+
+      updatePhysics(dt);
+      drawSandbox();
+      drawGraph();
+      drawMicroscopicView();
+
+      requestAnimationFrame(mainLoop);
+    }
+
+    // Engine Core Implementation
+    function updatePhysics(dt) {
+      // Dynamic sweep incrementing force over time
+      if(isSweeping) {
+        appliedForce += 10 * dt; // Build force slowly
+        if(appliedForce > 48) {
+          appliedForce = 0;
+          blockPosition = -100;
+          blockVelocity = 0;
+        }
+        inputForce.value = appliedForce.toFixed(1);
+        valForce.textContent = `${appliedForce.toFixed(1)} N`;
+      }
+
+      // Calculations 
+      const N = mass * g;
+      const f_s_max = mu_s * N;
+      const f_k = mu_k * N;
+      
+      let friction = 0;
+      let stateStr = "At Rest";
+      let acceleration = 0;
+
+      // Friction Decision Tree & Step Highlight Coordination
+      if (Math.abs(blockVelocity) < 0.01) {
+        // Static State Check
+        if (Math.abs(appliedForce) <= f_s_max) {
+          friction = -appliedForce; // Balance perfectly
+          blockVelocity = 0;
+          stateStr = "Static State (At Rest)";
+          
+          // Class Highlight Updates
+          setFlowActive('step-static');
+          setFlowInactive('step-kinetic');
+          
+          regimeBadge.className = "px-2.5 py-0.5 rounded-full text-xs font-bold bg-amber-500/10 border border-amber-500/30 text-amber-400";
+          regimeBadge.innerHTML = "Static Friction";
+          microStateTxt.innerText = "Interlocked Welds";
+          microStateTxt.className = "text-[9px] font-mono mt-1 text-amber-400 text-center";
+        } else {
+          // Break Limit transition
+          stateStr = "Slipping Transition!";
+          friction = -Math.sign(appliedForce) * f_k;
+          acceleration = (appliedForce + friction) / mass;
+          blockVelocity += acceleration * dt;
+          
+          setFlowActive('step-kinetic');
+          setFlowInactive('step-static');
+          
+          regimeBadge.className = "px-2.5 py-0.5 rounded-full text-xs font-bold bg-emerald-500/10 border border-emerald-500/30 text-emerald-400";
+          regimeBadge.innerHTML = "Kinetic Slip";
+          microStateTxt.innerText = "Interlock Broken / Sliding";
+          microStateTxt.className = "text-[9px] font-mono mt-1 text-rose-400 text-center";
+        }
+      } else {
+        // Kinetic State Loop
+        friction = -Math.sign(blockVelocity) * f_k;
+        acceleration = (appliedForce + friction) / mass;
+        blockVelocity += acceleration * dt;
+        
+        // Retard velocity to 0 if forces switch direction or decay
+        if (Math.sign(blockVelocity - acceleration * dt) !== Math.sign(blockVelocity) && Math.abs(appliedForce) <= f_s_max) {
+          blockVelocity = 0;
+          stateStr = "Static State (At Rest)";
+        } else {
+          stateStr = "Kinetic Motion";
+        }
+        
+        setFlowActive('step-kinetic');
+        setFlowInactive('step-static');
+        
+        regimeBadge.className = "px-2.5 py-0.5 rounded-full text-xs font-bold bg-rose-500/10 border border-rose-500/30 text-rose-400 animate-pulse";
+        regimeBadge.innerHTML = "Kinetic Sliding";
+        microStateTxt.innerText = "Asperities Colliding";
+        microStateTxt.className = "text-[9px] font-mono mt-1 text-rose-400 text-center";
+      }
+
+      // Update position
+      blockPosition += blockVelocity * dt * 40; // Scale output to screen width
+      
+      // Wrap-around bounds limit of simulation ground
+      const simLimit = canvasPhysics.width / 2.5;
+      if (blockPosition > simLimit) {
+        blockPosition = simLimit;
+        blockVelocity = 0;
+      } else if (blockPosition < -simLimit) {
+        blockPosition = -simLimit;
+        blockVelocity = 0;
+      }
+
+      // Live metrics update
+      metricAppliedForce.textContent = `${appliedForce.toFixed(2)} N`;
+      metricFrictionForce.textContent = `${friction.toFixed(2)} N`;
+      metricMaxStatic.textContent = `${f_s_max.toFixed(2)} N`;
+      metricKineticFriction.textContent = `${f_k.toFixed(2)} N`;
+
+      // Keep step 1 and 2 permanently running visually
+      stepNormal.className = "p-3 rounded-lg border bg-slate-900 border-slate-700/60 transition-all duration-300";
+      stepLimits.className = "p-3 rounded-lg border bg-slate-900 border-slate-700/60 transition-all duration-300";
+    }
+
+    function setFlowActive(id) {
+      const el = document.getElementById(id);
+      el.className = "p-3 rounded-lg border-2 bg-slate-900 border-teal-500/80 shadow-lg shadow-teal-500/5 transition-all duration-300 transform scale-[1.01]";
+    }
+
+    function setFlowInactive(id) {
+      const el = document.getElementById(id);
+      el.className = "p-3 rounded-lg border bg-slate-950/40 border-slate-800 opacity-60 transition-all duration-300";
+    }
+
+    // Dynamic Canvas Drawing Engine (16:9 Sandbox Area)
+    function drawSandbox() {
+      // Dynamic canvas resizing
+      const dpr = window.devicePixelRatio || 1;
+      const rect = canvasPhysics.getBoundingClientRect();
+      canvasPhysics.width = rect.width * dpr;
+      canvasPhysics.height = rect.height * dpr;
+      ctxPhysics.scale(dpr, dpr);
+
+      const w = rect.width;
+      const h = rect.height;
+
+      // Background styling
+      ctxPhysics.fillStyle = '#020617';
+      ctxPhysics.fillRect(0, 0, w, h);
+
+      // Grid System (Subtle background)
+      ctxPhysics.strokeStyle = '#1e293b';
+      ctxPhysics.lineWidth = 0.5;
+      for (let x = 0; x < w; x += 40) {
+        ctxPhysics.beginPath();
+        ctxPhysics.moveTo(x, 0);
+        ctxPhysics.lineTo(x, h);
+        ctxPhysics.stroke();
+      }
+      for (let y = 0; y < h; y += 40) {
+        ctxPhysics.beginPath();
+        ctxPhysics.moveTo(0, y);
+        ctxPhysics.lineTo(w, y);
+        ctxPhysics.stroke();
+      }
+
+      // Draw Horizon Ground Surface
+      const groundY = h * 0.7;
+      ctxPhysics.strokeStyle = '#475569';
+      ctxPhysics.lineWidth = 3;
+      ctxPhysics.beginPath();
+      ctxPhysics.moveTo(40, groundY);
+      ctxPhysics.lineTo(w - 40, groundY);
+      ctxPhysics.stroke();
+
+      // Render micro roughness textures under groundline
+      ctxPhysics.strokeStyle = '#334155';
+      ctxPhysics.lineWidth = 1;
+      for (let mx = 40; mx < w - 40; mx += 8) {
+        ctxPhysics.beginPath();
+        ctxPhysics.moveTo(mx, groundY);
+        ctxPhysics.lineTo(mx + 4, groundY + 8);
+        ctxPhysics.stroke();
+      }
+
+      // Block Setup dimensions
+      const blockWidth = 110;
+      const blockHeight = 85;
+      const blockX = (w / 2) + blockPosition - (blockWidth / 2);
+      const blockY = groundY - blockHeight;
+
+      // Draw shadow block
+      ctxPhysics.fillStyle = 'rgba(0,0,0,0.4)';
+      ctxPhysics.fillRect(blockX + 4, blockY + 4, blockWidth, blockHeight);
+
+      // Draw Main Kinetic Block
+      ctxPhysics.strokeStyle = '#06b6d4';
+      ctxPhysics.lineWidth = 2.5;
+      ctxPhysics.fillStyle = '#0f172a';
+      ctxPhysics.beginPath();
+      ctxPhysics.roundRect(blockX, blockY, blockWidth, blockHeight, 6);
+      ctxPhysics.fill();
+      ctxPhysics.stroke();
+
+      // Block styling details
+      ctxPhysics.fillStyle = '#1e293b';
+      ctxPhysics.fillRect(blockX + 10, blockY + 10, blockWidth - 20, 10);
+      
+      // Text labels inside the block
+      ctxPhysics.fillStyle = '#94a3b8';
+      ctxPhysics.font = '10px "Fira Code", monospace';
+      ctxPhysics.fillText(`m = ${mass.toFixed(1)}kg`, blockX + 18, blockY + 42);
+      ctxPhysics.fillText(`v = ${blockVelocity.toFixed(2)}m/s`, blockX + 18, blockY + 56);
+
+      // Draw vector arrows in sync
+      const centerX = blockX + blockWidth / 2;
+      const centerY = blockY + blockHeight / 2;
+
+      // Applied Pulling force vector (Teal color)
+      if (Math.abs(appliedForce) > 0.1) {
+        const forceLength = Math.min(appliedForce * 2.5, w / 3);
+        drawArrow(centerX, centerY, centerX + forceLength, centerY, '#0df', 3.5, `F = ${appliedForce.toFixed(1)}N`);
+      }
+
+      // Counter-acting friction force vector (Crimson/amber color)
+      const f_s_max = mu_s * mass * g;
+      const f_k = mu_k * mass * g;
+      let currFric = 0;
+      if (Math.abs(blockVelocity) < 0.01) {
+        currFric = -appliedForce;
+        if(Math.abs(currFric) > f_s_max) currFric = -Math.sign(appliedForce) * f_k;
+      } else {
+        currFric = -Math.sign(blockVelocity) * f_k;
+      }
+
+      if (Math.abs(currFric) > 0.1) {
+        const fricLength = Math.min(currFric * 2.5, w / 3);
+        const fColor = Math.abs(blockVelocity) > 0.01 ? '#fb7185' : '#f59e0b';
+        drawArrow(centerX, centerY, centerX + fricLength, centerY, fColor, 3, `f = ${currFric.toFixed(1)}N`);
+      }
+
+      // Normal and Gravitational vectors
+      const normalVal = mass * g;
+      const verticalLength = Math.min(normalVal * 1.5, blockHeight * 1.2);
+      // Gravity arrow down
+      drawArrow(centerX, centerY, centerX, centerY + verticalLength, '#3b82f6', 2, `W = mg`);
+      // Normal arrow up
+      drawArrow(centerX, blockY, centerX, blockY - verticalLength, '#10b981', 2, `N = ${normalVal.toFixed(1)}N`);
+    }
+
+    // Dynamic Helper drawing arrow vectors
+    function drawArrow(fromx, fromy, tox, toy, color, thickness, label) {
+      ctxPhysics.strokeStyle = color;
+      ctxPhysics.fillStyle = color;
+      ctxPhysics.lineWidth = thickness;
+      
+      ctxPhysics.beginPath();
+      ctxPhysics.moveTo(fromx, fromy);
+      ctxPhysics.lineTo(tox, toy);
+      ctxPhysics.stroke();
+
+      const angle = Math.atan2(toy - fromy, tox - fromx);
+      const arrowSize = 6 + thickness;
+      
+      ctxPhysics.beginPath();
+      ctxPhysics.moveTo(tox, toy);
+      ctxPhysics.lineTo(tox - arrowSize * Math.cos(angle - Math.PI / 6), toy - arrowSize * Math.sin(angle - Math.PI / 6));
+      ctxPhysics.lineTo(tox - arrowSize * Math.cos(angle + Math.PI / 6), toy - arrowSize * Math.sin(angle + Math.PI / 6));
+      ctxPhysics.fill();
+
+      // Text label position offsets
+      ctxPhysics.fillStyle = '#f8fafc';
+      ctxPhysics.font = 'bold 9px "Inter", sans-serif';
+      
+      const textX = tox + Math.cos(angle) * 8 - 15;
+      const textY = toy + Math.sin(angle) * 8 - (angle === 0 ? -12 : 5);
+      ctxPhysics.fillText(label, textX, textY);
+    }
+
+    // Dynamic Plot Engine (Friction vs. Force)
+    function drawGraph() {
+      const dpr = window.devicePixelRatio || 1;
+      const rect = canvasGraph.getBoundingClientRect();
+      canvasGraph.width = rect.width * dpr;
+      canvasGraph.height = rect.height * dpr;
+      ctxGraph.scale(dpr, dpr);
+
+      const w = rect.width;
+      const h = rect.height;
+
+      ctxGraph.fillStyle = '#020617';
+      ctxGraph.fillRect(0, 0, w, h);
+
+      const padLeft = 45;
+      const padRight = 20;
+      const padTop = 15;
+      const padBottom = 25;
+
+      const graphW = w - padLeft - padRight;
+      const graphH = h - padTop - padBottom;
+
+      // Draw Axes
+      ctxGraph.strokeStyle = '#334155';
+      ctxGraph.lineWidth = 1;
+      ctxGraph.beginPath();
+      ctxGraph.moveTo(padLeft, padTop);
+      ctxGraph.lineTo(padLeft, h - padBottom);
+      ctxGraph.lineTo(w - padRight, h - padBottom);
+      ctxGraph.stroke();
+
+      // Label Names
+      ctxGraph.fillStyle = '#94a3b8';
+      ctxGraph.font = '8px "Inter", sans-serif';
+      ctxGraph.fillText("Friction Force (f)", 4, padTop + 5);
+      ctxGraph.fillText("Applied Pulling Force (F)", w / 2 - 35, h - 4);
+
+      // System limit variables
+      const maxPlotForce = 50.0; 
+      const N = mass * g;
+      const fsMax = mu_s * N;
+      const fk = mu_k * N;
+
+      // Mapping utility
+      function mapForceToX(fVal) {
+        // Range: [-maxPlotForce, maxPlotForce]
+        const norm = (fVal + maxPlotForce) / (maxPlotForce * 2);
+        return padLeft + norm * graphW;
+      }
+      function mapFricToY(fricVal) {
+        // Friction can only be max static + safety offset
+        const maxFricPlot = fsMax * 1.3 || 35;
+        const norm = fricVal / maxFricPlot; 
+        return (h - padBottom) - norm * graphH;
+      }
+
+      // Draw Grid markings
+      ctxGraph.strokeStyle = '#1e293b';
+      ctxGraph.lineWidth = 0.5;
+      // Y marks
+      [0, fsMax / 2, fsMax, fk].forEach(val => {
+        const y = mapFricToY(val);
+        ctxGraph.beginPath();
+        ctxGraph.moveTo(padLeft, y);
+        ctxGraph.lineTo(w - padRight, y);
+        ctxGraph.stroke();
+      });
+
+      // Build static limits line graph
+      ctxGraph.lineWidth = 2;
+      ctxGraph.strokeStyle = '#64748b';
+      ctxGraph.setLineDash([2, 3]);
+
+      // Draw standard friction graph trace line (For positive force side first for simplicity)
+      ctxGraph.beginPath();
+      ctxGraph.setLineDash([]);
+      
+      // Let's draw the standard idealized piecewise curve for positive pulling
+      const originX = mapForceToX(0);
+      const originY = mapFricToY(0);
+      const peakX = mapForceToX(fsMax);
+      const peakY = mapFricToY(fsMax);
+      const slipX = mapForceToX(fsMax);
+      const kineticStart = mapFricToY(fk);
+      const endX = mapForceToX(maxPlotForce);
+      const endY = mapFricToY(fk);
+
+      // Static ramp line
+      ctxGraph.strokeStyle = '#f59e0b'; // Amber
+      ctxGraph.beginPath();
+      ctxGraph.moveTo(originX, originY);
+      ctxGraph.lineTo(peakX, peakY);
+      ctxGraph.stroke();
+
+      // Drop to kinetic line
+      ctxGraph.strokeStyle = '#94a3b8';
+      ctxGraph.beginPath();
+      ctxGraph.moveTo(peakX, peakY);
+      ctxGraph.lineTo(slipX, kineticStart);
+      ctxGraph.stroke();
+
+      // Kinetic plateaux line
+      ctxGraph.strokeStyle = '#fb7185'; // Rose
+      ctxGraph.beginPath();
+      ctxGraph.moveTo(slipX, kineticStart);
+      ctxGraph.lineTo(endX, endY);
+      ctxGraph.stroke();
+
+      // Left-side (Symmetric) negative dynamic lines
+      const peakX_neg = mapForceToX(-fsMax);
+      const peakY_neg = mapFricToY(fsMax); // Magnitude remains positive
+      const slipX_neg = mapForceToX(-fsMax);
+      const kineticStart_neg = mapFricToY(fk);
+      const endX_neg = mapForceToX(-maxPlotForce);
+      const endY_neg = mapFricToY(fk);
+
+      ctxGraph.strokeStyle = '#f59e0b';
+      ctxGraph.beginPath();
+      ctxGraph.moveTo(originX, originY);
+      ctxGraph.lineTo(peakX_neg, peakY_neg);
+      ctxGraph.stroke();
+
+      ctxGraph.strokeStyle = '#94a3b8';
+      ctxGraph.beginPath();
+      ctxGraph.moveTo(peakX_neg, peakY_neg);
+      ctxGraph.lineTo(slipX_neg, kineticStart_neg);
+      ctxGraph.stroke();
+
+      ctxGraph.strokeStyle = '#fb7185';
+      ctxGraph.beginPath();
+      ctxGraph.moveTo(slipX_neg, kineticStart_neg);
+      ctxGraph.lineTo(endX_neg, endY_neg);
+      ctxGraph.stroke();
+
+      // Realtime tracing locator node
+      let activeFriction = 0;
+      if (Math.abs(blockVelocity) < 0.01) {
+        activeFriction = Math.abs(appliedForce);
+        if(activeFriction > fsMax) activeFriction = fk;
+      } else {
+        activeFriction = fk;
+      }
+
+      const tracerX = mapForceToX(appliedForce);
+      const tracerY = mapFricToY(activeFriction);
+
+      // Reticle guide lines
+      ctxGraph.strokeStyle = 'rgba(6, 182, 212, 0.3)';
+      ctxGraph.lineWidth = 1;
+      ctxGraph.setLineDash([2, 2]);
+      
+      ctxGraph.beginPath();
+      ctxGraph.moveTo(padLeft, tracerY);
+      ctxGraph.lineTo(tracerX, tracerY);
+      ctxGraph.lineTo(tracerX, h - padBottom);
+      ctxGraph.stroke();
+      ctxGraph.setLineDash([]);
+
+      // Draw the locator tracking dot
+      ctxGraph.fillStyle = '#06b6d4';
+      ctxGraph.beginPath();
+      ctxGraph.arc(tracerX, tracerY, 5, 0, Math.PI * 2);
+      ctxGraph.fill();
+      
+      // Halo around dot if sliding
+      if (Math.abs(blockVelocity) > 0.01) {
+        ctxGraph.strokeStyle = 'rgba(251, 113, 133, 0.8)';
+        ctxGraph.lineWidth = 2;
+        ctxGraph.beginPath();
+        ctxGraph.arc(tracerX, tracerY, 8 + Math.sin(timestampGlobal / 100) * 2, 0, Math.PI * 2);
+        ctxGraph.stroke();
+      }
+
+      // Add text details directly on plot thresholds
+      ctxGraph.fillStyle = '#d97706';
+      ctxGraph.font = 'bold 7px monospace';
+      ctxGraph.fillText(`fs,max = ${fsMax.toFixed(1)}N`, padLeft + 4, peakY - 4);
+      
+      ctxGraph.fillStyle = '#f43f5e';
+      ctxGraph.fillText(`fk = ${fk.toFixed(1)}N`, padLeft + 4, kineticStart - 4);
+    }
+
+    // Microscopic Visualizer (Zoom inset rendering)
+    let microAsperityOffset = 0;
+    function drawMicroscopicView() {
+      const dpr = window.devicePixelRatio || 1;
+      const rect = canvasMicro.getBoundingClientRect();
+      canvasMicro.width = rect.width * dpr;
+      canvasMicro.height = rect.height * dpr;
+      ctxMicro.scale(dpr, dpr);
+
+      const w = rect.width;
+      const h = rect.height;
+
+      ctxMicro.fillStyle = '#020617';
+      ctxMicro.fillRect(0, 0, w, h);
+
+      // Mid division ground line
+      const midY = h / 2;
+
+      // Update asperity offset based on physical velocity
+      microAsperityOffset += blockVelocity * 0.15;
+
+      // Draw Top block sliding asperities (interlocking teeth)
+      ctxMicro.fillStyle = '#0f172a';
+      ctxMicro.strokeStyle = '#06b6d4';
+      ctxMicro.lineWidth = 1.5;
+
+      ctxMicro.beginPath();
+      ctxMicro.moveTo(0, 0);
+      ctxMicro.lineTo(0, midY - 6);
+
+      // Draw teeth with visual interlocking shape
+      const stepWidth = 14;
+      const slideShift = microAsperityOffset % stepWidth;
+      
+      for(let x = -20; x < w + 20; x += stepWidth) {
+        const tx = x + slideShift;
+        // The vertical overlap (compression) depends on whether block is stationary
+        const compression = Math.abs(blockVelocity) < 0.01 ? 4 : 1.5;
+        ctxMicro.lineTo(tx, midY - 6 + compression);
+        ctxMicro.lineTo(tx + stepWidth / 2, midY - 6 - compression);
+      }
+      ctxMicro.lineTo(w, midY - 6);
+      ctxMicro.lineTo(w, 0);
+      ctxMicro.closePath();
+      ctxMicro.fill();
+      ctxMicro.stroke();
+
+      // Draw Lower flat stationary ground surface interlocking asperities
+      ctxMicro.fillStyle = '#1e293b';
+      ctxMicro.strokeStyle = '#475569';
+      ctxMicro.lineWidth = 1.5;
+
+      ctxMicro.beginPath();
+      ctxMicro.moveTo(0, h);
+      ctxMicro.lineTo(0, midY - 2);
+      for(let x = -20; x < w + 20; x += stepWidth) {
+        // Stationary, no slide shift
+        const tx = x;
+        const compression = Math.abs(blockVelocity) < 0.01 ? 4 : 1.0;
+        ctxMicro.lineTo(tx, midY - 6 + compression);
+        ctxMicro.lineTo(tx + stepWidth / 2, midY - 6 - compression);
+      }
+      ctxMicro.lineTo(w, midY - 2);
+      ctxMicro.lineTo(w, h);
+      ctxMicro.closePath();
+      ctxMicro.fill();
+      ctxMicro.stroke();
+
+      // Show tiny friction spark animations when moving
+      if (Math.abs(blockVelocity) > 0.01) {
+        ctxMicro.strokeStyle = '#f59e0b';
+        ctxMicro.lineWidth = 1.5;
+        for (let i = 0; i < 3; i++) {
+          const rx = Math.random() * w;
+          const ry = midY - 6 + (Math.random() * 8 - 4);
+          ctxMicro.beginPath();
+          ctxMicro.moveTo(rx, ry);
+          ctxMicro.lineTo(rx + (Math.random() * 8 - 4), ry + (Math.random() * 8 - 4));
+          ctxMicro.stroke();
+        }
+      }
+    }
+
+    // Capture dynamic timestamp frames globally
+    let timestampGlobal = 0;
+    requestAnimationFrame(function tick(t) {
+      timestampGlobal = t;
+      requestAnimationFrame(tick);
+    });
+
+    // Handle initialization & KaTeX auto-rendering on DOM completion
+    document.addEventListener("DOMContentLoaded", function() {
+      // Configure KaTeX with inline and display math delimiter rules
+      renderMathInElement(document.body, {
+        delimiters: [
+          {left: '$$', right: '$$', display: true},
+          {left: '$', right: '$', display: false},
+          {left: '\\(', right: '\\)', display: false},
+          {left: '\\[', right: '\\]', display: true}
+        ],
+        throwOnError : false
+      });
+    });
+
+    // Start engine on window load
+    window.onload = function() {
+      requestAnimationFrame(mainLoop);
+    };
+  </script>
+</body>
+</html>

@@ -1,0 +1,1269 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Coupled Pulley Constrained Motion Simulator</title>
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Chart.js for real-time physics data visualization -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <!-- FontAwesome for beautiful modern icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <!-- Google Fonts: Inter -->
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=Fira+Code:wght@400;500&display=swap" rel="stylesheet">
+    <style>
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: #0f172a; /* Slate 900 */
+        }
+        .fira {
+            font-family: 'Fira Code', monospace;
+        }
+        /* Custom scrollbar styling for sidebar */
+        ::-webkit-scrollbar {
+            width: 6px;
+        }
+        ::-webkit-scrollbar-track {
+            background: #1e293b;
+        }
+        ::-webkit-scrollbar-thumb {
+            background: #475569;
+            border-radius: 3px;
+        }
+        ::-webkit-scrollbar-thumb:hover {
+            background: #64748b;
+        }
+    </style>
+</head>
+<body class="text-slate-100 min-h-screen flex flex-col overflow-x-hidden">
+
+    <!-- Navigation Header -->
+    <header class="border-b border-slate-800 bg-slate-900/80 backdrop-blur sticky top-0 z-50 px-6 py-4 flex flex-wrap items-center justify-between gap-4">
+        <div class="flex items-center space-x-3">
+            <div class="h-10 w-10 rounded-xl bg-gradient-to-tr from-emerald-500 to-cyan-500 flex items-center justify-center shadow-lg shadow-emerald-500/20">
+                <i class="fa-solid fa-circle-nodes text-lg text-white animate-pulse"></i>
+            </div>
+            <div>
+                <h1 class="font-extrabold text-lg tracking-tight bg-gradient-to-r from-emerald-400 to-cyan-400 bg-clip-text text-transparent">Pulley Dynamics Simulator</h1>
+                <p class="text-xs text-slate-400">Step-by-Step Kinematic Constraint & Forces Explainer</p>
+            </div>
+        </div>
+        <div class="flex items-center space-x-4">
+            <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-emerald-500/10 text-emerald-400 border border-emerald-500/20">
+                <span class="w-1.5 h-1.5 mr-1.5 bg-emerald-400 rounded-full animate-ping"></span>
+                Interactive Sandbox Active
+            </span>
+            <button onclick="resetSimulation()" class="bg-slate-800 hover:bg-slate-700 text-slate-200 hover:text-white px-3.5 py-1.5 rounded-lg text-sm font-semibold transition-all border border-slate-700 flex items-center gap-1.5">
+                <i class="fa-solid fa-rotate-left"></i> Reset System
+            </button>
+        </div>
+    </header>
+
+    <!-- Main Container -->
+    <main class="flex-1 grid grid-cols-1 lg:grid-cols-12 gap-6 p-4 md:p-6 max-w-[1600px] mx-auto w-full">
+
+        <!-- Left Side: Simulator and Dashboard (7 Columns) -->
+        <section class="lg:col-span-7 flex flex-col gap-6">
+            
+            <!-- Primary Live Canvas View -->
+            <div class="bg-slate-900 border border-slate-800 rounded-2xl p-4 md:p-6 shadow-xl relative overflow-hidden flex flex-col">
+                <div class="flex items-center justify-between mb-4">
+                    <div class="flex items-center space-x-2">
+                        <span class="h-2 w-2 rounded-full bg-emerald-500"></span>
+                        <h2 class="text-sm font-bold uppercase tracking-wider text-slate-300">Live Mechanical Workspace</h2>
+                    </div>
+                    <div class="flex items-center gap-2">
+                        <button id="dragModeToggle" onclick="toggleDragMode()" class="px-2.5 py-1 text-xs rounded-md font-semibold transition-all border bg-slate-800 hover:bg-slate-700 text-slate-300 border-slate-700 flex items-center gap-1" title="Toggle between physics simulation mode and manual dragging mode">
+                            <i id="dragIcon" class="fa-solid fa-hand-pointer"></i> 
+                            <span id="dragText">Drag Blocks</span>
+                        </button>
+                        <span class="text-xs text-slate-500" id="canvasCoords">X1: 0.0m | X2: 0.0m</span>
+                    </div>
+                </div>
+
+                <!-- Canvas Wrapper -->
+                <div class="relative w-full aspect-[16/7] md:aspect-[16/6] bg-slate-950 rounded-xl border border-slate-800/80 overflow-hidden group">
+                    <!-- Physical track background decorations -->
+                    <div class="absolute inset-0 bg-[radial-gradient(#1e293b_1px,transparent_1px)] [background-size:16px_16px] opacity-40"></div>
+                    <canvas id="pulleyCanvas" class="relative z-10 w-full h-full cursor-crosshair"></canvas>
+                    
+                    <!-- Floating Legend -->
+                    <div class="absolute bottom-3 left-3 z-20 flex flex-wrap gap-2 text-xs bg-slate-900/90 backdrop-blur p-2 rounded-lg border border-slate-800">
+                        <span class="flex items-center gap-1 text-red-400"><span class="w-2.5 h-2.5 rounded bg-red-500 inline-block"></span> Pulling Force F</span>
+                        <span class="flex items-center gap-1 text-blue-400"><span class="w-2.5 h-2.5 rounded bg-blue-500 inline-block"></span> Tension T_A / T_B</span>
+                        <span class="flex items-center gap-1 text-purple-400"><span class="w-2.5 h-2.5 rounded bg-purple-500 inline-block"></span> Main String (T)</span>
+                        <span class="flex items-center gap-1 text-emerald-400"><span class="w-2.5 h-2.5 rounded bg-emerald-500 inline-block"></span> Acceleration Vectors</span>
+                    </div>
+
+                    <!-- Crash Warning -->
+                    <div id="crashAlert" class="hidden absolute inset-0 bg-red-950/85 backdrop-blur flex flex-col items-center justify-center z-30 transition-all">
+                        <i class="fa-solid fa-triangle-exclamation text-4xl text-red-500 mb-2 animate-bounce"></i>
+                        <h4 class="text-lg font-bold text-red-200">System Limit Reached!</h4>
+                        <p class="text-xs text-red-400 max-w-xs text-center mt-1">Blocks have collided or reached track limits. Modify the force vector or click reset to restore balance.</p>
+                        <button onclick="resetSimulation()" class="mt-4 px-4 py-1.5 bg-red-600 hover:bg-red-500 text-white rounded-lg text-xs font-semibold shadow-lg transition-all">
+                            Reposition & Resume
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Simulation Quick Play Controls -->
+                <div class="grid grid-cols-1 md:grid-cols-3 gap-4 mt-4 pt-4 border-t border-slate-800">
+                    <div class="flex items-center justify-center md:justify-start space-x-2">
+                        <button id="playBtn" onclick="togglePlay()" class="h-10 w-10 rounded-lg bg-emerald-500 hover:bg-emerald-400 text-slate-950 flex items-center justify-center font-bold shadow-lg shadow-emerald-500/20 transition-all">
+                            <i class="fa-solid fa-play text-lg" id="playIcon"></i>
+                        </button>
+                        <button onclick="stepFrame()" class="h-10 w-10 rounded-lg bg-slate-800 hover:bg-slate-700 text-slate-200 flex items-center justify-center font-bold transition-all" title="Step simulation frame by frame">
+                            <i class="fa-solid fa-forward-step"></i>
+                        </button>
+                        <button onclick="resetSimulation()" class="h-10 w-10 rounded-lg bg-slate-800 hover:bg-slate-700 text-slate-200 flex items-center justify-center font-bold transition-all" title="Reset velocities to 0">
+                            <i class="fa-solid fa-arrow-rotate-left"></i>
+                        </button>
+                    </div>
+                    
+                    <div class="flex items-center justify-center">
+                        <div class="flex items-center space-x-2 bg-slate-950/80 px-3 py-1.5 rounded-lg border border-slate-800">
+                            <span class="text-xs text-slate-400 font-semibold uppercase tracking-wider">Constraint Integrity</span>
+                            <span class="font-mono text-xs text-emerald-400 bg-emerald-500/10 px-1.5 py-0.5 rounded border border-emerald-500/20" id="constraintCheck">
+                                a₁ = 1.50 a₂
+                            </span>
+                        </div>
+                    </div>
+
+                    <div class="flex items-center justify-center md:justify-end gap-1.5 text-xs text-slate-400">
+                        <span>Speed Multiplier:</span>
+                        <select id="timeStepFactor" onchange="updateSimSpeed()" class="bg-slate-800 border border-slate-700 text-slate-200 rounded px-2 py-1 focus:outline-none focus:ring-1 focus:ring-emerald-500">
+                            <option value="0.25">0.25x (Slow Motion)</option>
+                            <option value="0.5">0.50x</option>
+                            <option value="1" selected>1.00x (Real-time)</option>
+                            <option value="1.5">1.50x</option>
+                        </select>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Dashboard Sliders & Dynamic Readouts -->
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                
+                <!-- Parameters Dashboard Card -->
+                <div class="bg-slate-900 border border-slate-800 rounded-2xl p-5 shadow-xl">
+                    <h3 class="text-sm font-bold uppercase tracking-wider text-slate-300 mb-4 flex items-center gap-1.5">
+                        <i class="fa-solid fa-sliders text-emerald-500"></i> Adjust Lab Settings
+                    </h3>
+                    
+                    <div class="space-y-4">
+                        <!-- Pulling Force F -->
+                        <div>
+                            <div class="flex justify-between text-xs mb-1.5">
+                                <span class="text-slate-400 flex items-center gap-1">
+                                    <span class="w-2 h-2 rounded bg-red-500"></span> Force (F)
+                                </span>
+                                <span class="font-mono text-red-400 font-bold" id="valF">40 N</span>
+                            </div>
+                            <input type="range" id="inputF" min="-150" max="150" value="40" step="5" oninput="updateParameters()" class="w-full accent-red-500 cursor-ew-resize bg-slate-800 rounded-lg appearance-none h-1.5">
+                            <div class="flex justify-between text-[10px] text-slate-500 mt-0.5">
+                                <span>-150N (Pull Left)</span>
+                                <span>0N</span>
+                                <span>150N (Pull Right)</span>
+                            </div>
+                        </div>
+
+                        <!-- Mass m1 -->
+                        <div>
+                            <div class="flex justify-between text-xs mb-1.5">
+                                <span class="text-slate-400">Mass of Block 1 (m₁)</span>
+                                <span class="font-mono text-emerald-400 font-bold" id="valM1">10 kg</span>
+                            </div>
+                            <input type="range" id="inputM1" min="1" max="50" value="10" step="0.5" oninput="updateParameters()" class="w-full accent-emerald-500 cursor-ew-resize bg-slate-800 rounded-lg appearance-none h-1.5">
+                            <div class="flex justify-between text-[10px] text-slate-500 mt-0.5">
+                                <span>1 kg</span>
+                                <span>25 kg</span>
+                                <span>50 kg</span>
+                            </div>
+                        </div>
+
+                        <!-- Mass m2 -->
+                        <div>
+                            <div class="flex justify-between text-xs mb-1.5">
+                                <span class="text-slate-400">Mass of Block 2 (m₂)</span>
+                                <span class="font-mono text-cyan-400 font-bold" id="valM2">20 kg</span>
+                            </div>
+                            <input type="range" id="inputM2" min="1" max="50" value="20" step="0.5" oninput="updateParameters()" class="w-full accent-cyan-500 cursor-ew-resize bg-slate-800 rounded-lg appearance-none h-1.5">
+                            <div class="flex justify-between text-[10px] text-slate-500 mt-0.5">
+                                <span>1 kg</span>
+                                <span>25 kg</span>
+                                <span>50 kg</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Quick Lab Scenarios presets -->
+                    <div class="mt-5 pt-4 border-t border-slate-800/80">
+                        <span class="text-xs text-slate-400 font-semibold block mb-2">Preset Lab Configurations:</span>
+                        <div class="grid grid-cols-2 gap-2 text-xs">
+                            <button onclick="applyPreset('standard')" class="px-2 py-1.5 rounded-lg bg-slate-800 hover:bg-slate-700 hover:text-white border border-slate-700 text-left transition-all">
+                                <i class="fa-solid fa-vial mr-1 text-emerald-500"></i> Standard Coupling
+                            </button>
+                            <button onclick="applyPreset('heavyM1')" class="px-2 py-1.5 rounded-lg bg-slate-800 hover:bg-slate-700 hover:text-white border border-slate-700 text-left transition-all">
+                                <i class="fa-solid fa-weight-hanging mr-1 text-red-400"></i> Heavy Block 1
+                            </button>
+                            <button onclick="applyPreset('heavyM2')" class="px-2 py-1.5 rounded-lg bg-slate-800 hover:bg-slate-700 hover:text-white border border-slate-700 text-left transition-all">
+                                <i class="fa-solid fa-weight-hanging mr-1 text-cyan-400"></i> Heavy Block 2
+                            </button>
+                            <button onclick="applyPreset('noForce')" class="px-2 py-1.5 rounded-lg bg-slate-800 hover:bg-slate-700 hover:text-white border border-slate-700 text-left transition-all">
+                                <i class="fa-solid fa-anchor mr-1 text-yellow-500"></i> Frictionless Drift
+                            </button>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Live Dynamic State Readout Panel -->
+                <div class="bg-slate-900 border border-slate-800 rounded-2xl p-5 shadow-xl flex flex-col justify-between">
+                    <div>
+                        <h3 class="text-sm font-bold uppercase tracking-wider text-slate-300 mb-4 flex items-center gap-1.5">
+                            <i class="fa-solid fa-chart-line text-cyan-500"></i> Real-time Telemetry
+                        </h3>
+                        
+                        <div class="grid grid-cols-2 gap-4">
+                            <!-- Block 1 Data -->
+                            <div class="bg-slate-950 p-3 rounded-xl border border-slate-800">
+                                <span class="text-[10px] font-bold text-emerald-400 tracking-wide uppercase">Block 1 (Red Pull)</span>
+                                <div class="mt-1 space-y-1">
+                                    <div class="flex justify-between text-xs">
+                                        <span class="text-slate-500">Pos (x₁):</span>
+                                        <span class="font-mono text-slate-300" id="readoutX1">3.00 m</span>
+                                    </div>
+                                    <div class="flex justify-between text-xs">
+                                        <span class="text-slate-500">Vel (v₁):</span>
+                                        <span class="font-mono text-slate-300" id="readoutV1">0.00 m/s</span>
+                                    </div>
+                                    <div class="flex justify-between text-xs">
+                                        <span class="text-slate-500">Acc (a₁):</span>
+                                        <span class="font-mono text-emerald-400 font-semibold" id="readoutA1">0.00 m/s²</span>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- Block 2 Data -->
+                            <div class="bg-slate-950 p-3 rounded-xl border border-slate-800">
+                                <span class="text-[10px] font-bold text-cyan-400 tracking-wide uppercase">Block 2 (Blue Box)</span>
+                                <div class="mt-1 space-y-1">
+                                    <div class="flex justify-between text-xs">
+                                        <span class="text-slate-500">Pos (x₂):</span>
+                                        <span class="font-mono text-slate-300" id="readoutX2">1.00 m</span>
+                                    </div>
+                                    <div class="flex justify-between text-xs">
+                                        <span class="text-slate-500">Vel (v₂):</span>
+                                        <span class="font-mono text-slate-300" id="readoutV2">0.00 m/s</span>
+                                    </div>
+                                    <div class="flex justify-between text-xs">
+                                        <span class="text-slate-500">Acc (a₂):</span>
+                                        <span class="font-mono text-cyan-400 font-semibold" id="readoutA2">0.00 m/s²</span>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Computed Tension Outputs -->
+                        <div class="mt-4 space-y-2 bg-slate-950/50 p-3 rounded-xl border border-slate-800/80">
+                            <span class="text-[10px] font-bold text-slate-400 tracking-wide uppercase">String & Coupling Tension Dynamics</span>
+                            <div class="grid grid-cols-3 gap-2 text-xs text-center mt-1">
+                                <div class="p-1.5 rounded bg-slate-900 border border-slate-800">
+                                    <span class="text-[10px] text-slate-500 block">String T</span>
+                                    <span class="font-mono font-semibold text-purple-400" id="readoutT">0.00 N</span>
+                                </div>
+                                <div class="p-1.5 rounded bg-slate-900 border border-slate-800">
+                                    <span class="text-[10px] text-slate-500 block">Pulley T_A</span>
+                                    <span class="font-mono font-semibold text-blue-400" id="readoutTA">0.00 N</span>
+                                </div>
+                                <div class="p-1.5 rounded bg-slate-900 border border-slate-800">
+                                    <span class="text-[10px] text-slate-500 block">Pulley T_B</span>
+                                    <span class="font-mono font-semibold text-blue-400" id="readoutTB">0.00 N</span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="text-[11px] text-slate-500 mt-4 leading-relaxed">
+                        <i class="fa-solid fa-circle-info text-emerald-500/80 mr-1"></i>
+                        Notice that string tension <span class="font-semibold text-purple-400">T</span> adjusts dynamically with mass to ensure the physical kinematics constraint <span class="font-semibold text-emerald-400">a₁ = 1.50 a₂</span> holds perfectly.
+                    </div>
+                </div>
+
+            </div>
+
+        </section>
+
+        <!-- Right Side: Step-by-Step Educational Synchronizer (5 Columns) -->
+        <section class="lg:col-span-5 flex flex-col gap-6">
+            
+            <!-- Theory & Derivation Explorer -->
+            <div class="bg-slate-900 border border-slate-800 rounded-2xl p-5 shadow-xl flex-1 flex flex-col h-full max-h-[700px] overflow-hidden">
+                <div class="flex items-center justify-between border-b border-slate-800 pb-3 mb-4">
+                    <h3 class="text-sm font-bold uppercase tracking-wider text-slate-300 flex items-center gap-1.5">
+                        <i class="fa-solid fa-graduation-cap text-emerald-400"></i> Physics Derivation Panel
+                    </h3>
+                    <div class="flex bg-slate-950 p-1 rounded-lg border border-slate-800">
+                        <button onclick="setActiveTab('math')" id="tabMathBtn" class="px-3 py-1 text-xs font-semibold rounded-md transition-all bg-emerald-500 text-slate-950">Theory</button>
+                        <button onclick="setActiveTab('plots')" id="tabPlotsBtn" class="px-3 py-1 text-xs font-semibold text-slate-400 hover:text-white rounded-md transition-all">Live Graph</button>
+                    </div>
+                </div>
+
+                <!-- TAB CONTENT 1: MATHEMATICAL & COMPUTATIONAL EXPLANATION -->
+                <div id="tabMath" class="flex-1 overflow-y-auto space-y-4 pr-1">
+                    
+                    <!-- Dynamic sync indicator alert -->
+                    <div class="bg-slate-950 p-3 rounded-xl border border-emerald-500/10 text-xs text-slate-300 leading-relaxed flex items-start gap-2.5">
+                        <i class="fa-solid fa-wand-magic-sparkles text-emerald-400 mt-0.5 animate-pulse"></i>
+                        <div>
+                            <span class="font-bold text-white block">Interactive Synced Learning</span>
+                            Click or hover over the step banners to highlight structural components and forces directly inside the live canvas!
+                        </div>
+                    </div>
+
+                    <!-- Step 1: Kinematic constraint -->
+                    <div class="border border-slate-800 rounded-xl bg-slate-950 hover:border-emerald-500/30 transition-all overflow-hidden group/step" 
+                         onmouseenter="highlightStrands(true)" onmouseleave="highlightStrands(false)">
+                        <div class="bg-slate-900/50 p-3 border-b border-slate-800 flex items-center justify-between">
+                            <span class="text-xs font-bold text-emerald-400">STEP 1: Kinematic String Constraint</span>
+                            <span class="text-[10px] text-slate-500 group-hover/step:text-emerald-400 transition-colors">Hover to view String Paths</span>
+                        </div>
+                        <div class="p-3 space-y-2 text-xs text-slate-300">
+                            <p>We trace the length of the string segment dynamically starting from the right wall fixed anchor <span class="font-semibold text-white">d</span>:</p>
+                            <div class="fira bg-slate-900 p-2 rounded text-slate-200 text-center my-1.5 border border-slate-800 select-all">
+                                L = (d - x₂) + 2(x₁ - x₂) + C
+                            </div>
+                            <p>Simplifying the formula yields:</p>
+                            <div class="fira bg-slate-900 p-2 rounded text-slate-200 text-center my-1.5 border border-slate-800">
+                                L = d + 2x₁ - 3x₂ + C
+                            </div>
+                            <p>Since the string length <span class="fira text-slate-100">L</span> is non-extensible, its time derivative is zero. Differentiating twice gives:</p>
+                            <div class="fira bg-emerald-500/10 border border-emerald-500/20 p-2.5 rounded text-emerald-300 text-center my-1.5 font-bold">
+                                2a₁ - 3a₂ = 0  ⇒  a₁ = 1.5 a₂
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Step 2: FBD & Massless Pulley simplification -->
+                    <div class="border border-slate-800 rounded-xl bg-slate-950 hover:border-blue-500/30 transition-all overflow-hidden group/step"
+                         onmouseenter="highlightFBD(true)" onmouseleave="highlightFBD(false)">
+                        <div class="bg-slate-900/50 p-3 border-b border-slate-800 flex items-center justify-between">
+                            <span class="text-xs font-bold text-blue-400">STEP 2: Massless Pulley Tension Mechanics</span>
+                            <span class="text-[10px] text-slate-500 group-hover/step:text-blue-400 transition-colors">Hover to view Force FBDs</span>
+                        </div>
+                        <div class="p-3 space-y-2 text-xs text-slate-300">
+                            <p>For two massless pulleys (<span class="fira text-cyan-400">m = 0</span>), the net force acting on each pulley must equal zero at all times:</p>
+                            <ul class="list-disc pl-4 space-y-1">
+                                <li><strong class="text-slate-100">Pulley A:</strong> Pulled left by coupler connector <span class="fira text-blue-400">T_A</span> and right by two segments of tension <span class="fira text-purple-400">T</span>: <span class="fira block text-cyan-300 font-semibold text-center py-1">2T - T_A = 0  ⇒  T_A = 2T</span></li>
+                                <li><strong class="text-slate-100">Pulley B:</strong> Pulled right by coupler connector <span class="fira text-blue-400">T_B</span> and left by two segments of tension <span class="fira text-purple-400">T</span>: <span class="fira block text-cyan-300 font-semibold text-center py-1">T_B - 2T = 0  ⇒  T_B = 2T</span></li>
+                            </ul>
+                        </div>
+                    </div>
+
+                    <!-- Step 3: Newton's second law -->
+                    <div class="border border-slate-800 rounded-xl bg-slate-950 hover:border-indigo-500/30 transition-all overflow-hidden">
+                        <div class="bg-slate-900/50 p-3 border-b border-slate-800">
+                            <span class="text-xs font-bold text-indigo-400">STEP 3: Coupled Equations of Motion</span>
+                        </div>
+                        <div class="p-3 space-y-2 text-xs text-slate-300">
+                            <p>Applying <span class="fira text-slate-200">ΣF = ma</span> to both moving parts:</p>
+                            <div class="bg-slate-900 p-2.5 rounded border border-slate-800 space-y-1 font-mono text-slate-200 text-center">
+                                <div>Block 1: F - T_B = m₁ a₁  ⇒  F - 2T = m₁ a₁</div>
+                                <div class="text-slate-500">------------------------------</div>
+                                <div>Block 2: T + T_A = m₂ a₂  ⇒  3T = m₂ a₂</div>
+                            </div>
+                            <p>Solve Block 2 for tension <span class="fira text-purple-400">T = ⅓ m₂ a₂</span>. Substitute into Block 1's equation:</p>
+                            <div class="fira bg-slate-900 p-2 rounded text-slate-200 text-center my-1.5 border border-slate-800">
+                                F - ⅔ m₂ a₂ = m₁ a₁
+                            </div>
+                            <p>Now, inject the kinematic constraint <span class="fira text-emerald-400">a₁ = 1.5 a₂</span>:</p>
+                            <div class="fira bg-indigo-500/10 border border-indigo-500/20 p-2 rounded text-indigo-300 text-center font-semibold">
+                                F - ⅔ m₂ a₂ = 1.5 m₁ a₂  ⇒  F = (1.5 m₁ + ⅔ m₂) a₂
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Step 4: Closed form solutions and integration -->
+                    <div class="border border-slate-800 rounded-xl bg-slate-950 hover:border-yellow-500/30 transition-all overflow-hidden">
+                        <div class="bg-slate-900/50 p-3 border-b border-slate-800">
+                            <span class="text-xs font-bold text-yellow-400">STEP 4: Closed-Form Algorithm & Integration</span>
+                        </div>
+                        <div class="p-3 space-y-2 text-xs text-slate-300">
+                            <p>The system is simulated using the exact closed-form solution derived algebraically:</p>
+                            <div class="fira bg-slate-900 p-2.5 rounded border border-slate-800 text-slate-200 space-y-1 text-center">
+                                <div class="font-bold text-yellow-300">a₂ = 6F / (9m₁ + 4m₂)</div>
+                                <div class="font-bold text-emerald-300">a₁ = 1.5 · a₂</div>
+                            </div>
+                            <p>To compute real-time physics, we execute <strong>Euler-Cromer integration</strong> at 60 FPS:</p>
+                            <div class="fira bg-slate-900 p-2.5 rounded border border-slate-800 text-[11px] text-slate-400 space-y-1">
+                                <div>v2_new = v2 + a2 * dt;  v1_new = 1.5 * v2_new;</div>
+                                <div>x2_new = x2 + v2_new * dt;</div>
+                                <div>x1_new = x1 + v1_new * dt;</div>
+                            </div>
+                        </div>
+                    </div>
+
+                </div>
+
+                <!-- TAB CONTENT 2: LIVE PLOTS -->
+                <div id="tabPlots" class="hidden flex-1 flex flex-col space-y-4 overflow-hidden">
+                    <div class="flex-1 min-h-[250px] relative bg-slate-950 rounded-xl p-3 border border-slate-800">
+                        <canvas id="telemetryChart"></canvas>
+                    </div>
+                    <div class="p-3 bg-slate-950 rounded-xl border border-slate-800 text-xs">
+                        <span class="font-bold text-slate-300 block mb-1">Graph Legend & Controls</span>
+                        <p class="text-slate-400 mb-2">This real-time scrolling graph traces system variables dynamically to prove the coupling factor.</p>
+                        <div class="flex justify-between">
+                            <button onclick="clearChartData()" class="px-2.5 py-1 rounded bg-slate-800 hover:bg-slate-700 text-slate-300 text-[11px] font-semibold border border-slate-700 flex items-center gap-1">
+                                <i class="fa-solid fa-trash"></i> Clear History
+                            </button>
+                            <div class="flex gap-2 text-[11px]">
+                                <span class="flex items-center gap-1"><span class="w-2 h-2 rounded-full bg-emerald-500"></span> Velocity v₁</span>
+                                <span class="flex items-center gap-1"><span class="w-2 h-2 rounded-full bg-cyan-400"></span> Velocity v₂</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+            </div>
+
+            <!-- Conceptual Checkpoint/Challenges Section -->
+            <div class="bg-slate-900 border border-slate-800 rounded-2xl p-5 shadow-xl">
+                <h3 class="text-sm font-bold uppercase tracking-wider text-slate-300 mb-3 flex items-center gap-1.5">
+                    <i class="fa-solid fa-puzzle-piece text-yellow-400 animate-pulse"></i> Conceptual Checkpoint
+                </h3>
+                <div class="bg-slate-950 p-4 rounded-xl border border-slate-800">
+                    <p class="text-xs text-slate-300 mb-3 font-medium">
+                        Challenge: What is the constant ratio of the tension <span class="font-semibold text-blue-400">T_B</span> acting on Block 1 relative to the tension pulling Block 2?
+                    </p>
+                    <div class="space-y-2">
+                        <button onclick="checkAnswer(1)" class="w-full text-left p-2 rounded-lg bg-slate-900 hover:bg-slate-800 border border-slate-800 text-xs transition-all flex justify-between items-center group">
+                            <span>A) 2/3 (T_B is always smaller than the Block 2 pull)</span>
+                            <i class="fa-solid fa-chevron-right text-slate-600 group-hover:text-emerald-400 transition-colors"></i>
+                        </button>
+                        <button onclick="checkAnswer(2)" class="w-full text-left p-2 rounded-lg bg-slate-900 hover:bg-slate-800 border border-slate-800 text-xs transition-all flex justify-between items-center group">
+                            <span>B) 1.50 (Block 1 tension dominates by 50%)</span>
+                            <i class="fa-solid fa-chevron-right text-slate-600 group-hover:text-emerald-400 transition-colors"></i>
+                        </button>
+                        <button onclick="checkAnswer(3)" class="w-full text-left p-2 rounded-lg bg-slate-900 hover:bg-slate-800 border border-slate-800 text-xs transition-all flex justify-between items-center group">
+                            <span>C) 2/3, with a tension ratio of T_B / (3T) = 2/3</span>
+                            <i class="fa-solid fa-chevron-right text-slate-600 group-hover:text-emerald-400 transition-colors"></i>
+                        </button>
+                    </div>
+                    <!-- Feedback Alert -->
+                    <div id="quizFeedback" class="hidden mt-3 p-2.5 rounded-lg text-xs font-semibold text-center border"></div>
+                </div>
+            </div>
+
+        </section>
+
+    </main>
+
+    <!-- Custom JS Simulation and Math Model Controller -->
+    <script>
+        // DOM Elements
+        const canvas = document.getElementById('pulleyCanvas');
+        const ctx = canvas.getContext('2d');
+        const playBtn = document.getElementById('playBtn');
+        const playIcon = document.getElementById('playIcon');
+        const dragModeToggleBtn = document.getElementById('dragModeToggle');
+        const dragIcon = document.getElementById('dragIcon');
+        const dragText = document.getElementById('dragText');
+        const crashAlert = document.getElementById('crashAlert');
+
+        // Telemetry Readouts
+        const readoutX1 = document.getElementById('readoutX1');
+        const readoutV1 = document.getElementById('readoutV1');
+        const readoutA1 = document.getElementById('readoutA1');
+        const readoutX2 = document.getElementById('readoutX2');
+        const readoutV2 = document.getElementById('readoutV2');
+        const readoutA2 = document.getElementById('readoutA2');
+        const readoutT = document.getElementById('readoutT');
+        const readoutTA = document.getElementById('readoutTA');
+        const readoutTB = document.getElementById('readoutTB');
+        const canvasCoords = document.getElementById('canvasCoords');
+
+        // Parameter Sliders
+        const inputF = document.getElementById('inputF');
+        const inputM1 = document.getElementById('inputM1');
+        const inputM2 = document.getElementById('inputM2');
+        const valF = document.getElementById('valF');
+        const valM1 = document.getElementById('valM1');
+        const valM2 = document.getElementById('valM2');
+
+        // Simulation State variables
+        let isRunning = false;
+        let isDragMode = false;
+        let dragTarget = null; // 'block1', 'block2', or null
+        let dragOffset = 0;
+
+        // Visual Customization Overlay Flags
+        let highlightStrandsActive = false;
+        let highlightFBDActive = false;
+
+        // Physics constants and state values
+        let m1 = 10.0; // mass of block 1 (kg)
+        let m2 = 20.0; // mass of block 2 (kg)
+        let F = 40.0;  // pulling force on m1 (N)
+        let simSpeed = 1.0;
+
+        // Coordinate limits (m)
+        const trackMin = 0.5;
+        const trackMax = 9.5;
+        const minSpacing = 1.2; // minimum separation between pulleys and blocks
+
+        // Positions, velocities, accelerations
+        let x1 = 4.0; // Position of Block 1 / Pulley B
+        let v1 = 0.0;
+        let a1 = 0.0;
+
+        let x2 = 1.8; // Position of Block 2 / Pulley A
+        let v2 = 0.0;
+        let a2 = 0.0;
+
+        // Derive initial length constraint constant
+        // L = d + 2x1 - 3x2. Let's define the fixed anchor wall at x = 10.0
+        const d_anchor = 10.0;
+        let lengthConstant = 2 * x1 - 3 * x2; // initial configuration constant
+
+        let tension = 0.0;
+        let TA = 0.0;
+        let TB = 0.0;
+
+        // Track dimension helpers for canvas rendering
+        let canvasWidth = 800;
+        let canvasHeight = 300;
+
+        // Chart.js object
+        let telemetryChart = null;
+        let chartTime = 0;
+
+        // Initialization
+        window.onload = function() {
+            setupCanvasSize();
+            updateParameters();
+            initChart();
+            animate();
+            
+            // Add canvas mouse interaction
+            canvas.addEventListener('mousedown', onMouseDown);
+            canvas.addEventListener('mousemove', onMouseMove);
+            canvas.addEventListener('mouseup', onMouseUp);
+            canvas.addEventListener('touchstart', onTouchStart, { passive: false });
+            canvas.addEventListener('touchmove', onTouchMove, { passive: false });
+            canvas.addEventListener('touchend', onTouchEnd);
+
+            window.addEventListener('resize', () => {
+                setupCanvasSize();
+            });
+        };
+
+        function setupCanvasSize() {
+            const rect = canvas.getBoundingClientRect();
+            canvas.width = rect.width * window.devicePixelRatio;
+            canvas.height = rect.height * window.devicePixelRatio;
+            canvasWidth = rect.width;
+            canvasHeight = rect.height;
+            ctx.scale(window.devicePixelRatio, window.devicePixelRatio);
+        }
+
+        // Preset Laboratory Scenarios
+        function applyPreset(presetType) {
+            isRunning = false;
+            playIcon.className = "fa-solid fa-play text-lg";
+            crashAlert.classList.add('hidden');
+
+            v1 = 0.0;
+            v2 = 0.0;
+            a1 = 0.0;
+            a2 = 0.0;
+
+            if (presetType === 'standard') {
+                inputM1.value = 10;
+                inputM2.value = 20;
+                inputF.value = 40;
+                x1 = 4.0;
+                x2 = 1.8;
+            } else if (presetType === 'heavyM1') {
+                inputM1.value = 40;
+                inputM2.value = 10;
+                inputF.value = 80;
+                x1 = 4.5;
+                x2 = 2.0;
+            } else if (presetType === 'heavyM2') {
+                inputM1.value = 5;
+                inputM2.value = 45;
+                inputF.value = 120;
+                x1 = 5.0;
+                x2 = 2.2;
+            } else if (presetType === 'noForce') {
+                inputM1.value = 15;
+                inputM2.value = 15;
+                inputF.value = 0;
+                v1 = 1.5; // give it a little initial drift
+                v2 = 1.0;
+                x1 = 4.0;
+                x2 = 1.8;
+            }
+
+            lengthConstant = 2 * x1 - 3 * x2;
+            updateParameters();
+            clearChartData();
+        }
+
+        // Toggle Manual Dragging Mode vs Simulation Mode
+        function toggleDragMode() {
+            isDragMode = !isDragMode;
+            if (isDragMode) {
+                isRunning = false;
+                playIcon.className = "fa-solid fa-play text-lg";
+                dragModeToggleBtn.classList.replace('bg-slate-800', 'bg-emerald-500');
+                dragModeToggleBtn.classList.replace('text-slate-300', 'text-slate-950');
+                dragIcon.className = "fa-solid fa-hand-pointer animate-bounce";
+            } else {
+                dragModeToggleBtn.classList.replace('bg-emerald-500', 'bg-slate-800');
+                dragModeToggleBtn.classList.replace('text-slate-950', 'text-slate-300');
+                dragIcon.className = "fa-solid fa-hand-pointer";
+            }
+        }
+
+        function updateParameters() {
+            m1 = parseFloat(inputM1.value);
+            m2 = parseFloat(inputM2.value);
+            F = parseFloat(inputF.value);
+
+            // Update numerical labels
+            valF.textContent = F + " N";
+            valM1.textContent = m1 + " kg";
+            valM2.textContent = m2 + " kg";
+
+            calculatePhysics();
+        }
+
+        function updateSimSpeed() {
+            simSpeed = parseFloat(document.getElementById('timeStepFactor').value);
+        }
+
+        // Main closed-form physical equations
+        function calculatePhysics() {
+            // Accelerations derived from system equations:
+            // a2 = 6F / (9m1 + 4m2)
+            // a1 = 1.5 * a2
+            a2 = (6 * F) / (9 * m1 + 4 * m2);
+            a1 = 1.5 * a2;
+
+            // Tensions derived:
+            // T = 1/3 * m2 * a2
+            tension = (1 / 3) * m2 * a2;
+            TA = 2 * tension;
+            TB = 2 * tension;
+        }
+
+        // Reset system to zero velocities
+        function resetSimulation() {
+            isRunning = false;
+            playIcon.className = "fa-solid fa-play text-lg";
+            crashAlert.classList.add('hidden');
+            
+            x1 = 4.0;
+            x2 = 1.8;
+            v1 = 0.0;
+            v2 = 0.0;
+            a1 = 0.0;
+            a2 = 0.0;
+            
+            lengthConstant = 2 * x1 - 3 * x2;
+            updateParameters();
+            clearChartData();
+        }
+
+        function togglePlay() {
+            isRunning = !isRunning;
+            if (isRunning) {
+                isDragMode = false;
+                dragModeToggleBtn.classList.replace('bg-emerald-500', 'bg-slate-800');
+                dragModeToggleBtn.classList.replace('text-slate-950', 'text-slate-300');
+                dragIcon.className = "fa-solid fa-hand-pointer";
+                playIcon.className = "fa-solid fa-pause text-lg";
+                crashAlert.classList.add('hidden');
+            } else {
+                playIcon.className = "fa-solid fa-play text-lg";
+            }
+        }
+
+        // Step simulation frame-by-frame manually
+        function stepFrame() {
+            if (!isRunning) {
+                calculatePhysics();
+                integratePhysics(1/60 * simSpeed);
+            }
+        }
+
+        // Euler-Cromer Numerical Integration Block
+        function integratePhysics(dt) {
+            // Apply integration step
+            v2 += a2 * dt;
+            v1 = 1.5 * v2; // strictly bind velocities to constraint to prevent drift!
+
+            x2 += v2 * dt;
+            x1 = (lengthConstant + 3 * x2) / 2; // strictly bind coordinates to length constraint
+
+            // Safety limit collision boundary checks
+            const blockCollisionLimit = 0.8; // minimum separation buffer
+            
+            if (x2 < trackMin || x1 > trackMax || (x1 - x2) < blockCollisionLimit) {
+                // Collided or exceeded range
+                isRunning = false;
+                playIcon.className = "fa-solid fa-play text-lg";
+                
+                // clamp positions
+                if (x2 < trackMin) {
+                    x2 = trackMin;
+                    x1 = (lengthConstant + 3 * x2) / 2;
+                }
+                if (x1 > trackMax) {
+                    x1 = trackMax;
+                    x2 = (2 * x1 - lengthConstant) / 3;
+                }
+                if ((x1 - x2) < blockCollisionLimit) {
+                    // Backtrack dynamically to edge of contact
+                    x2 = (2 * x1 - lengthConstant) / 3;
+                }
+                
+                v1 = 0;
+                v2 = 0;
+                crashAlert.classList.remove('hidden');
+            }
+        }
+
+        // Dynamic synchronizer highlighting callbacks
+        function highlightStrands(active) {
+            highlightStrandsActive = active;
+        }
+
+        function highlightFBD(active) {
+            highlightFBDActive = active;
+        }
+
+        // Conceptual Checkpoint Quiz System
+        function checkAnswer(option) {
+            const feedback = document.getElementById('quizFeedback');
+            feedback.classList.remove('hidden', 'bg-emerald-500/10', 'text-emerald-400', 'border-emerald-500/20', 'bg-red-500/10', 'text-red-400', 'border-red-500/20');
+            
+            if (option === 3) {
+                feedback.innerHTML = `<i class="fa-solid fa-circle-check mr-1.5"></i> Correct! From Pulley FBD, T_B = 2T and Block 2 is pulled right by T + T_A = 3T. The ratio is exactly 2T / 3T = 2/3.`;
+                feedback.classList.add('bg-emerald-500/10', 'text-emerald-400', 'border-emerald-500/20');
+            } else {
+                feedback.innerHTML = `<i class="fa-solid fa-circle-xmark mr-1.5"></i> Incorrect. Review the free body diagrams: Pulley B transfers a total force of 2T to Block 1, while Block 2 is accelerated by both the anchor string and Pulley A (T + T_A = 3T). Try again!`;
+                feedback.classList.add('bg-red-500/10', 'text-red-400', 'border-red-500/20');
+            }
+        }
+
+        function setActiveTab(tab) {
+            const tabMath = document.getElementById('tabMath');
+            const tabPlots = document.getElementById('tabPlots');
+            const tabMathBtn = document.getElementById('tabMathBtn');
+            const tabPlotsBtn = document.getElementById('tabPlotsBtn');
+
+            if (tab === 'math') {
+                tabMath.classList.remove('hidden');
+                tabPlots.classList.add('hidden');
+                tabMathBtn.className = "px-3 py-1 text-xs font-semibold rounded-md transition-all bg-emerald-500 text-slate-950";
+                tabPlotsBtn.className = "px-3 py-1 text-xs font-semibold text-slate-400 hover:text-white rounded-md transition-all";
+            } else {
+                tabMath.classList.add('hidden');
+                tabPlots.classList.remove('hidden');
+                tabMathBtn.className = "px-3 py-1 text-xs font-semibold text-slate-400 hover:text-white rounded-md transition-all";
+                tabPlotsBtn.className = "px-3 py-1 text-xs font-semibold rounded-md transition-all bg-emerald-500 text-slate-950";
+                if (telemetryChart) telemetryChart.update();
+            }
+        }
+
+        // Drag-and-Drop Interactive physics mapping
+        function getMousePos(evt) {
+            const rect = canvas.getBoundingClientRect();
+            // Map coordinates scaling for high-DPI canvas
+            return {
+                x: evt.clientX - rect.left,
+                y: evt.clientY - rect.top
+            };
+        }
+
+        function getTouchPos(evt) {
+            const rect = canvas.getBoundingClientRect();
+            if (evt.touches.length > 0) {
+                return {
+                    x: evt.touches[0].clientX - rect.left,
+                    y: evt.touches[0].clientY - rect.top
+                };
+            }
+            return { x: 0, y: 0 };
+        }
+
+        function coordinateToPixelX(physX) {
+            // Map 0m to 10m range to canvas width
+            const pad = 40; // horizontal padding in pixels
+            return pad + (physX / 10.0) * (canvasWidth - 2 * pad);
+        }
+
+        function pixelToCoordinateX(pixX) {
+            const pad = 40;
+            const normalizedX = (pixX - pad) / (canvasWidth - 2 * pad);
+            return normalizedX * 10.0;
+        }
+
+        function onMouseDown(e) {
+            const mouse = getMousePos(e);
+            startDrag(mouse.x, mouse.y);
+        }
+
+        function onTouchStart(e) {
+            const touch = getTouchPos(e);
+            startDrag(touch.x, touch.y);
+            if (isDragMode || dragTarget) {
+                e.preventDefault();
+            }
+        }
+
+        function startDrag(mouseX, mouseY) {
+            if (!isDragMode) return;
+
+            // Define locations in pixels
+            const px1 = coordinateToPixelX(x1);
+            const px2 = coordinateToPixelX(x2);
+            
+            // Assume track y centerline is around canvasHeight * 0.55
+            const centerY = canvasHeight * 0.55;
+
+            // Click check bounding box on Block 1 (Red Pull)
+            if (Math.abs(mouseX - px1) < 40 && Math.abs(mouseY - centerY) < 40) {
+                dragTarget = 'block1';
+                dragOffset = pixelToCoordinateX(mouseX) - x1;
+                v1 = 0; v2 = 0;
+            }
+            // Click check bounding box on Block 2 (Blue Box)
+            else if (Math.abs(mouseX - px2) < 40 && Math.abs(mouseY - centerY) < 40) {
+                dragTarget = 'block2';
+                dragOffset = pixelToCoordinateX(mouseX) - x2;
+                v1 = 0; v2 = 0;
+            }
+        }
+
+        function onMouseMove(e) {
+            const mouse = getMousePos(e);
+            handleDrag(mouse.x, mouse.y);
+        }
+
+        function onTouchMove(e) {
+            const touch = getTouchPos(e);
+            handleDrag(touch.x, touch.y);
+            if (dragTarget) {
+                e.preventDefault();
+            }
+        }
+
+        function handleDrag(mouseX, mouseY) {
+            const physMouseX = pixelToCoordinateX(mouseX);
+            canvasCoords.textContent = `X1: ${x1.toFixed(2)}m | X2: ${x2.toFixed(2)}m`;
+
+            if (!dragTarget) return;
+
+            if (dragTarget === 'block1') {
+                let targetX1 = physMouseX - dragOffset;
+                // clamp target to boundaries
+                if (targetX1 > trackMax) targetX1 = trackMax;
+                // Let's deduce Block 2 position from kinematic string constraint:
+                // L = 2x1 - 3x2 => x2 = (2x1 - lengthConstant) / 3
+                let computedX2 = (2 * targetX1 - lengthConstant) / 3;
+
+                // Spacing block collider check
+                if (computedX2 >= trackMin && (targetX1 - computedX2) >= 0.8) {
+                    x1 = targetX1;
+                    x2 = computedX2;
+                }
+            } else if (dragTarget === 'block2') {
+                let targetX2 = physMouseX - dragOffset;
+                if (targetX2 < trackMin) targetX2 = trackMin;
+                
+                // Deduce Block 1 position:
+                // x1 = (lengthConstant + 3x2) / 2
+                let computedX1 = (lengthConstant + 3 * targetX2) / 2;
+
+                if (computedX1 <= trackMax && (computedX1 - targetX2) >= 0.8) {
+                    x2 = targetX2;
+                    x1 = computedX1;
+                }
+            }
+        }
+
+        function onMouseUp() {
+            dragTarget = null;
+        }
+
+        function onTouchEnd() {
+            dragTarget = null;
+        }
+
+        // Advanced High-Fidelity 2D Physics Canvas Drawing Engine
+        function drawScene() {
+            ctx.clearRect(0, 0, canvasWidth, canvasHeight);
+
+            // 1. Draw Lab track rail
+            const trackY = canvasHeight * 0.55;
+            ctx.strokeStyle = '#334155'; // slate 700
+            ctx.lineWidth = 6;
+            ctx.lineCap = 'round';
+            ctx.beginPath();
+            ctx.moveTo(coordinateToPixelX(0), trackY + 30);
+            ctx.lineTo(coordinateToPixelX(10), trackY + 30);
+            ctx.stroke();
+
+            // Support Pillars/Girders for tracks
+            ctx.strokeStyle = '#1e293b';
+            ctx.lineWidth = 4;
+            for (let i = 1; i < 10; i += 2) {
+                ctx.beginPath();
+                ctx.moveTo(coordinateToPixelX(i), trackY + 30);
+                ctx.lineTo(coordinateToPixelX(i) - 10, canvasHeight);
+                ctx.stroke();
+            }
+
+            // Draw coordinate labels on the track
+            ctx.fillStyle = '#64748b';
+            ctx.font = '10px "Fira Code", monospace';
+            ctx.textAlign = 'center';
+            for (let i = 0; i <= 10; i++) {
+                const px = coordinateToPixelX(i);
+                ctx.beginPath();
+                ctx.arc(px, trackY + 30, 2, 0, 2 * Math.PI);
+                ctx.fill();
+                ctx.fillText(i + "m", px, trackY + 45);
+            }
+
+            // 2. Map Block coordinate coordinates to pixel coordinates
+            const block2PixelX = coordinateToPixelX(x2);
+            const block1PixelX = coordinateToPixelX(x1);
+
+            // Anchor point on the right wall (x = d_anchor)
+            const rightAnchorPixelX = coordinateToPixelX(10);
+
+            // Dimensions of blocks and pulleys
+            const bWidth = 55;
+            const bHeight = 35;
+            const pRadiusB = 14; // Pulley B mounted on Block 1
+            const pRadiusA = 10; // Pulley A mounted on Block 2
+
+            // Vertical offset positions for separate string wraps
+            const offsetTopY = trackY - 12;
+            const offsetMidY = trackY;
+            const offsetBotY = trackY + 12;
+
+            // Draw right fixed wall anchor
+            ctx.fillStyle = '#1e293b';
+            ctx.strokeStyle = '#475569';
+            ctx.lineWidth = 2;
+            ctx.beginPath();
+            ctx.rect(rightAnchorPixelX, trackY - 45, 20, 90);
+            ctx.fill();
+            ctx.stroke();
+            // diagonal grip lines on anchor wall
+            ctx.strokeStyle = '#334155';
+            ctx.lineWidth = 1.5;
+            for (let y = trackY - 40; y < trackY + 45; y += 8) {
+                ctx.beginPath();
+                ctx.moveTo(rightAnchorPixelX, y);
+                ctx.lineTo(rightAnchorPixelX + 15, y + 5);
+                ctx.stroke();
+            }
+
+            // --- STRINGS DRAWING SECTION ---
+            // Draw regular string path (or glow styling on hover step 1)
+            ctx.strokeStyle = highlightStrandsActive ? '#e9d5ff' : '#a78bfa'; // light purple
+            ctx.lineWidth = highlightStrandsActive ? 4.5 : 2.5;
+            ctx.shadowColor = '#8b5cf6';
+            ctx.shadowBlur = highlightStrandsActive ? 12 : 0;
+            ctx.lineJoin = 'round';
+            ctx.lineCap = 'round';
+
+            // Wrap Strand 1: From right wall anchor to Pulley A (on Block 2) bottom segment
+            ctx.beginPath();
+            ctx.moveTo(rightAnchorPixelX, offsetBotY);
+            ctx.lineTo(block2PixelX + bWidth/2 + pRadiusA, offsetBotY);
+            ctx.stroke();
+
+            // Wrap Strand 2: Wrapping Pulley A to Pulley B (on Block 1) center segment
+            ctx.beginPath();
+            ctx.moveTo(block2PixelX + bWidth/2 + pRadiusA, offsetBotY);
+            // wrap around Pulley A (drawn dynamically or with arc)
+            ctx.arc(block2PixelX + bWidth/2, offsetMidY + 6, pRadiusA, 0.5 * Math.PI, 1.5 * Math.PI, false);
+            ctx.lineTo(block1PixelX - bWidth/2 - pRadiusB, offsetMidY);
+            ctx.stroke();
+
+            // Wrap Strand 3: Wrapping Pulley B back to Block 2 anchor
+            ctx.beginPath();
+            ctx.arc(block1PixelX - bWidth/2, trackY, pRadiusB, 0.5 * Math.PI, 1.5 * Math.PI, false);
+            ctx.lineTo(block2PixelX + bWidth/2, offsetTopY);
+            ctx.stroke();
+
+            // Reset shadow blur
+            ctx.shadowBlur = 0;
+
+            // --- BLOCKS DRAWING SECTION ---
+
+            // BLOCK 2 (Blue Box)
+            ctx.fillStyle = '#0891b2'; // cyan 600
+            ctx.strokeStyle = '#22d3ee'; // cyan 400
+            ctx.lineWidth = 2;
+            ctx.beginPath();
+            // Rounded rectangle for block
+            ctx.roundRect(block2PixelX - bWidth/2, trackY - bHeight/2, bWidth, bHeight, 6);
+            ctx.fill();
+            ctx.stroke();
+
+            // Block 2 Core Symbol Label
+            ctx.fillStyle = '#ffffff';
+            ctx.font = 'bold 12px "Inter", sans-serif';
+            ctx.textAlign = 'center';
+            ctx.fillText(`m₂`, block2PixelX, trackY + 4);
+
+            // Mount bracket for Pulley A (extending to the right of Block 2)
+            ctx.strokeStyle = '#475569';
+            ctx.lineWidth = 3;
+            ctx.beginPath();
+            ctx.moveTo(block2PixelX + bWidth/2, trackY);
+            ctx.lineTo(block2PixelX + bWidth/2 + 8, trackY);
+            ctx.stroke();
+
+            // Pulley A Wheel (massless pulley attached to Block 2)
+            ctx.fillStyle = '#1e293b';
+            ctx.strokeStyle = '#94a3b8';
+            ctx.lineWidth = 2;
+            ctx.beginPath();
+            ctx.arc(block2PixelX + bWidth/2 + 8, trackY, pRadiusA, 0, 2 * Math.PI);
+            ctx.fill();
+            ctx.stroke();
+            // Little axis pin
+            ctx.fillStyle = '#f1f5f9';
+            ctx.beginPath();
+            ctx.arc(block2PixelX + bWidth/2 + 8, trackY, 2, 0, 2 * Math.PI);
+            ctx.fill();
+
+            // BLOCK 1 (Red/Amber Theme)
+            ctx.fillStyle = '#b91c1c'; // red 700
+            ctx.strokeStyle = '#f87171'; // red 400
+            ctx.lineWidth = 2;
+            ctx.beginPath();
+            ctx.roundRect(block1PixelX - bWidth/2, trackY - bHeight/2, bWidth, bHeight, 6);
+            ctx.fill();
+            ctx.stroke();
+
+            // Block 1 Core Symbol Label
+            ctx.fillStyle = '#ffffff';
+            ctx.font = 'bold 12px "Inter", sans-serif';
+            ctx.fillText(`m₁`, block1PixelX, trackY + 4);
+
+            // Mount bracket for Pulley B (extending to the left of Block 1)
+            ctx.strokeStyle = '#475569';
+            ctx.lineWidth = 3;
+            ctx.beginPath();
+            ctx.moveTo(block1PixelX - bWidth/2, trackY);
+            ctx.lineTo(block1PixelX - bWidth/2 - 10, trackY);
+            ctx.stroke();
+
+            // Pulley B Wheel (massless pulley attached to Block 1)
+            ctx.fillStyle = '#1e293b';
+            ctx.strokeStyle = '#94a3b8';
+            ctx.lineWidth = 2;
+            ctx.beginPath();
+            ctx.arc(block1PixelX - bWidth/2 - 10, trackY, pRadiusB, 0, 2 * Math.PI);
+            ctx.fill();
+            ctx.stroke();
+            // Axis pin
+            ctx.fillStyle = '#f1f5f9';
+            ctx.beginPath();
+            ctx.arc(block1PixelX - bWidth/2 - 10, trackY, 2.5, 0, 2 * Math.PI);
+            ctx.fill();
+
+            // --- FORCE VECTORS OVERLAYS (FBD) ---
+            const arrowScale = 1.2;
+
+            // Draw Pulling Force Vector F acting on Block 1 to the right (if active)
+            if (Math.abs(F) > 0.1 || highlightFBDActive) {
+                const vectorLen = F * arrowScale;
+                const arrowStartX = block1PixelX + bWidth/2;
+                const arrowEndX = arrowStartX + vectorLen;
+                
+                drawVector(arrowStartX, trackY, arrowEndX, trackY, '#f87171', `F = ${F.toFixed(0)}N`);
+            }
+
+            // Highlight Step 2 Vector Forces (FBD mode)
+            if (highlightFBDActive) {
+                // Tension T_B pulling Block 1 left
+                const tbVal = 2 * tension;
+                drawVector(block1PixelX - bWidth/2, trackY - 12, block1PixelX - bWidth/2 - tbVal * arrowScale, trackY - 12, '#38bdf8', `T_B = ${tbVal.toFixed(1)}N`, true);
+
+                // Tension pulling Block 2 right (T + T_A = 3T)
+                const tBlock2Val = 3 * tension;
+                drawVector(block2PixelX + bWidth/2, trackY - 15, block2PixelX + bWidth/2 + tBlock2Val * arrowScale, trackY - 15, '#38bdf8', `3T = ${tBlock2Val.toFixed(1)}N`);
+            }
+
+            // Draw Dynamic accelerations as subtle green arrows above blocks
+            if (isRunning && Math.abs(a2) > 0.01) {
+                // Acceleration Block 2
+                const accLen2 = a2 * 12;
+                drawVector(block2PixelX, trackY - bHeight/2 - 8, block2PixelX + accLen2, trackY - bHeight/2 - 8, '#34d399', `a₂ = ${a2.toFixed(2)}m/s²`);
+
+                // Acceleration Block 1
+                const accLen1 = a1 * 12;
+                drawVector(block1PixelX, trackY - bHeight/2 - 8, block1PixelX + accLen1, trackY - bHeight/2 - 8, '#34d399', `a₁ = ${a1.toFixed(2)}m/s²`);
+            }
+        }
+
+        // Vector arrow helper drawing function
+        function drawVector(startX, startY, endX, endY, color, label, labelOnLeft = false) {
+            ctx.strokeStyle = color;
+            ctx.fillStyle = color;
+            ctx.lineWidth = 3;
+            
+            // Draw main shaft
+            ctx.beginPath();
+            ctx.moveTo(startX, startY);
+            ctx.lineTo(endX, endY);
+            ctx.stroke();
+
+            // Draw arrowhead
+            const angle = Math.atan2(endY - startY, endX - startX);
+            const headSize = 6;
+            ctx.beginPath();
+            ctx.moveTo(endX, endY);
+            ctx.lineTo(endX - headSize * Math.cos(angle - Math.PI / 6), endY - headSize * Math.sin(angle - Math.PI / 6));
+            ctx.lineTo(endX - headSize * Math.cos(angle + Math.PI / 6), endY - headSize * Math.sin(angle + Math.PI / 6));
+            ctx.fill();
+
+            // Add text label
+            ctx.font = 'bold 9px "Fira Code", monospace';
+            ctx.textAlign = labelOnLeft ? 'right' : 'left';
+            ctx.fillText(label, endX + (labelOnLeft ? -10 : 8), endY - 4);
+        }
+
+        // ChartJS Dynamic Scrolling Graph Implementation
+        function initChart() {
+            const chartCtx = document.getElementById('telemetryChart').getContext('2d');
+            telemetryChart = new Chart(chartCtx, {
+                type: 'line',
+                data: {
+                    labels: [],
+                    datasets: [
+                        {
+                            label: 'Vel v₁ (Block 1)',
+                            borderColor: '#34d399', // emerald 400
+                            backgroundColor: 'rgba(52, 211, 153, 0.05)',
+                            borderWidth: 2,
+                            data: [],
+                            tension: 0.2,
+                            pointRadius: 0
+                        },
+                        {
+                            label: 'Vel v₂ (Block 2)',
+                            borderColor: '#22d3ee', // cyan 400
+                            backgroundColor: 'rgba(34, 211, 238, 0.05)',
+                            borderWidth: 2,
+                            data: [],
+                            tension: 0.2,
+                            pointRadius: 0
+                        }
+                    ]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    animation: false,
+                    plugins: {
+                        legend: {
+                            display: false
+                        }
+                    },
+                    scales: {
+                        x: {
+                            grid: { color: '#1e293b' },
+                            ticks: { color: '#64748b', font: { size: 9 } },
+                            title: { display: true, text: 'Sim Elapsed (seconds)', color: '#475569', font: { size: 9 } }
+                        },
+                        y: {
+                            grid: { color: '#1e293b' },
+                            ticks: { color: '#64748b', font: { size: 9 } },
+                            title: { display: true, text: 'Velocity (m/s)', color: '#475569', font: { size: 9 } }
+                        }
+                    }
+                }
+            });
+        }
+
+        function pushChartData(time, val1, val2) {
+            if (!telemetryChart) return;
+            
+            telemetryChart.data.labels.push(time.toFixed(1));
+            telemetryChart.data.datasets[0].data.push(val1);
+            telemetryChart.data.datasets[1].data.push(val2);
+
+            // Scroll graph dynamically by discarding early frames
+            if (telemetryChart.data.labels.length > 60) {
+                telemetryChart.data.labels.shift();
+                telemetryChart.data.datasets[0].data.shift();
+                telemetryChart.data.datasets[1].data.shift();
+            }
+            
+            telemetryChart.update('none'); // silent dynamic update without layout transitions
+        }
+
+        function clearChartData() {
+            if (!telemetryChart) return;
+            telemetryChart.data.labels = [];
+            telemetryChart.data.datasets[0].data = [];
+            telemetryChart.data.datasets[1].data = [];
+            chartTime = 0;
+            telemetryChart.update();
+        }
+
+        // Live updating numeric HTML labels
+        function updateDOMReadouts() {
+            readoutX1.textContent = x1.toFixed(2) + " m";
+            readoutV1.textContent = v1.toFixed(2) + " m/s";
+            readoutA1.textContent = a1.toFixed(2) + " m/s²";
+
+            readoutX2.textContent = x2.toFixed(2) + " m";
+            readoutV2.textContent = v2.toFixed(2) + " m/s";
+            readoutA2.textContent = a2.toFixed(2) + " m/s²";
+
+            readoutT.textContent = tension.toFixed(2) + " N";
+            readoutTA.textContent = TA.toFixed(2) + " N";
+            readoutTB.textContent = TB.toFixed(2) + " N";
+        }
+
+        // Main Animation Loop
+        let lastTime = performance.now();
+        function animate() {
+            const now = performance.now();
+            let dt = (now - lastTime) / 1000;
+            
+            // Frame capping for high refresh rate monitors
+            if (dt > 0.1) dt = 0.1; 
+            lastTime = now;
+
+            if (isRunning) {
+                // Update system coordinates dynamically
+                integratePhysics(dt * simSpeed);
+                
+                // Track plotting data update cycle
+                chartTime += dt * simSpeed;
+                pushChartData(chartTime, v1, v2);
+            }
+
+            drawScene();
+            updateDOMReadouts();
+
+            requestAnimationFrame(animate);
+        }
+    </script>
+</body>
+</html>

@@ -1,0 +1,1068 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Nanoscale Friction & Superlubricity Simulator</title>
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- FontAwesome for Premium Icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <!-- Google Fonts -->
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=Fira+Code:wght@400;500&display=swap" rel="stylesheet">
+    <style>
+        body {
+            font-family: 'Inter', sans-serif;
+        }
+        .code-font {
+            font-family: 'Fira Code', monospace;
+        }
+        /* Custom scrollbars */
+        ::-webkit-scrollbar {
+            width: 6px;
+            height: 6px;
+        }
+        ::-webkit-scrollbar-track {
+            background: #1e293b;
+        }
+        ::-webkit-scrollbar-thumb {
+            background: #475569;
+            border-radius: 4px;
+        }
+        ::-webkit-scrollbar-thumb:hover {
+            background: #64748b;
+        }
+    </style>
+</head>
+<body class="bg-slate-950 text-slate-100 min-h-screen flex flex-col selection:bg-emerald-500 selection:text-slate-950">
+
+    <!-- Header -->
+    <header class="border-b border-slate-800 bg-slate-900/80 backdrop-blur sticky top-0 z-50 px-6 py-4 flex flex-col sm:flex-row justify-between items-center gap-4">
+        <div class="flex items-center gap-3">
+            <div class="bg-gradient-to-tr from-emerald-500 to-teal-400 p-2 rounded-xl shadow-lg shadow-emerald-500/20">
+                <i class="fa-solid fa-atom text-slate-950 text-xl animate-spin-slow"></i>
+            </div>
+            <div>
+                <h1 class="text-xl font-extrabold tracking-tight bg-gradient-to-r from-emerald-400 to-teal-300 bg-clip-text text-transparent">
+                    NANOPHYSICS LAB
+                </h1>
+                <p class="text-xs text-slate-400 font-medium">Interactive Nanoscale Friction & Superlubricity Simulator</p>
+            </div>
+        </div>
+        <div class="flex items-center gap-3">
+            <span class="px-2.5 py-1 text-xs font-semibold rounded-full bg-slate-800 border border-slate-700 flex items-center gap-1.5 text-slate-300">
+                <span class="w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></span>
+                PT-FK Solvers Live
+            </span>
+            <button onclick="resetAllSimulators()" class="px-3 py-1.5 bg-slate-800 hover:bg-slate-700 text-slate-200 text-xs font-semibold rounded-lg border border-slate-700 transition duration-150 flex items-center gap-1.5">
+                <i class="fa-solid fa-rotate-right"></i> Reset Lab
+            </button>
+        </div>
+    </header>
+
+    <!-- Main Interactive Workspace -->
+    <main class="flex-1 grid grid-cols-1 lg:grid-cols-12 gap-6 p-6 max-w-7xl mx-auto w-full">
+        
+        <!-- Left: Educational Modules & Controls Panel -->
+        <div class="lg:col-span-5 flex flex-col gap-6">
+            
+            <!-- Tab Selection -->
+            <div class="bg-slate-900 border border-slate-800 rounded-xl p-1.5 flex gap-1">
+                <button onclick="switchTab('module-1')" id="tab-module-1" class="tab-btn flex-1 py-2 text-xs font-semibold rounded-lg transition duration-200 bg-emerald-500 text-slate-950">
+                    1. Prandtl-Tomlinson
+                </button>
+                <button onclick="switchTab('module-2')" id="tab-module-2" class="tab-btn flex-1 py-2 text-xs font-semibold rounded-lg transition duration-200 text-slate-400 hover:text-slate-100 hover:bg-slate-800">
+                    2. Multi-Atom Chains
+                </button>
+                <button onclick="switchTab('module-3')" id="tab-module-3" class="tab-btn flex-1 py-2 text-xs font-semibold rounded-lg transition duration-200 text-slate-400 hover:text-slate-100 hover:bg-slate-800">
+                    3. Thermolubricity
+                </button>
+            </div>
+
+            <!-- TAB 1: PRANDTL-TOMLINSON MODEL -->
+            <div id="panel-module-1" class="tab-panel flex flex-col gap-5">
+                <div class="bg-slate-900 border border-slate-800 rounded-xl p-5 flex flex-col gap-4">
+                    <h2 class="text-lg font-bold text-slate-100 flex items-center gap-2">
+                        <i class="fa-solid fa-compass-drafting text-emerald-400"></i>
+                        The Prandtl-Tomlinson Model
+                    </h2>
+                    <p class="text-sm text-slate-300 leading-relaxed">
+                        Formulated independently by Prandtl (1928) and Tomlinson (1929), this model represents the friction on a single-atom tip connected to a support moving with velocity <span class="code-font text-emerald-400">v</span> via a spring <span class="code-font text-emerald-400">k</span>.
+                    </p>
+                    
+                    <div class="bg-slate-950 border border-slate-850 rounded-lg p-3.5 border-l-4 border-l-emerald-500">
+                        <div class="text-xs text-slate-400 uppercase tracking-wider font-bold mb-1">Mathematical Potential:</div>
+                        <div class="code-font text-sm text-emerald-300 font-semibold select-all">
+                            V(x, t) = -V₀·cos(2π·x / a) + ½·k·(x - v·t)²
+                        </div>
+                    </div>
+
+                    <div class="text-xs text-slate-400 leading-relaxed">
+                        <span class="font-semibold text-slate-200">The Friction Transition:</span> 
+                        If the spring parameter <span class="code-font text-emerald-400">η = (2π/a)² (V₀/k) &lt; 1</span>, only a single minimum exists, and the sliding is continuous and completely frictionless. If <span class="code-font text-emerald-400">η &gt; 1</span>, multi-stability occurs, creating sudden energy-dissipating slips (heat production).
+                    </div>
+                </div>
+
+                <!-- Control Card for Module 1 -->
+                <div class="bg-slate-900 border border-slate-800 rounded-xl p-5 flex flex-col gap-4">
+                    <h3 class="text-sm font-bold text-slate-200 flex items-center gap-2">
+                        <i class="fa-solid fa-sliders text-emerald-400"></i> Adjust PT Parameters
+                    </h3>
+
+                    <!-- Corrugation (V0) -->
+                    <div class="flex flex-col gap-1.5">
+                        <div class="flex justify-between text-xs font-semibold">
+                            <span class="text-slate-400">Potential Barrier (V₀)</span>
+                            <span id="v0-val" class="text-emerald-400 code-font">1.50 eV</span>
+                        </div>
+                        <input type="range" id="v0-slider" min="0.1" max="4.0" step="0.1" value="2.0" class="w-full accent-emerald-500 bg-slate-950 rounded-lg appearance-none h-2">
+                    </div>
+
+                    <!-- Spring Constant (k) -->
+                    <div class="flex flex-col gap-1.5">
+                        <div class="flex justify-between text-xs font-semibold">
+                            <span class="text-slate-400">Spring Constant (k)</span>
+                            <span id="k-val" class="text-emerald-400 code-font">1.0 N/m</span>
+                        </div>
+                        <input type="range" id="k-slider" min="0.2" max="5.0" step="0.1" value="1.0" class="w-full accent-emerald-500 bg-slate-950 rounded-lg appearance-none h-2">
+                    </div>
+
+                    <!-- Pulling Velocity (v) -->
+                    <div class="flex flex-col gap-1.5">
+                        <div class="flex justify-between text-xs font-semibold">
+                            <span class="text-slate-400">Sliding Velocity (v)</span>
+                            <span id="v-val" class="text-emerald-400 code-font">1.0 Å/s</span>
+                        </div>
+                        <input type="range" id="v-slider" min="0.1" max="3.0" step="0.1" value="0.8" class="w-full accent-emerald-500 bg-slate-950 rounded-lg appearance-none h-2">
+                    </div>
+
+                    <div class="border-t border-slate-800/80 pt-4 flex gap-3">
+                        <button id="pt-play-btn" onclick="togglePTPlay()" class="flex-1 py-2 px-4 bg-emerald-500 hover:bg-emerald-400 text-slate-950 font-bold rounded-lg transition text-xs flex justify-center items-center gap-1.5 shadow-lg shadow-emerald-500/10">
+                            <i id="pt-play-icon" class="fa-solid fa-pause"></i> <span id="pt-play-text">Pause Simulation</span>
+                        </button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- TAB 2: MULTI-ATOM CHAINS -->
+            <div id="panel-module-2" class="tab-panel hidden flex flex-col gap-5">
+                <div class="bg-slate-900 border border-slate-800 rounded-xl p-5 flex flex-col gap-4">
+                    <h2 class="text-lg font-bold text-slate-100 flex items-center gap-2">
+                        <i class="fa-solid fa-circle-nodes text-teal-400"></i>
+                        Superlubricity & Golden Ratio
+                    </h2>
+                    <p class="text-sm text-slate-300 leading-relaxed">
+                        When multiple atoms contact a substrate, the relationship between their spacing (<span class="code-font text-teal-400">d</span>) and the substrate lattice constant (<span class="code-font text-teal-400">a</span>) governs the friction.
+                    </p>
+
+                    <div class="grid grid-cols-2 gap-3 text-xs">
+                        <div class="p-3 bg-slate-950 border border-slate-800 rounded-lg">
+                            <span class="font-bold text-rose-400 block mb-1">Commensurate (d = a)</span>
+                            All atoms sit in energy minima together. They stick and slip synchronously, producing <span class="font-semibold text-rose-400">high friction</span>.
+                        </div>
+                        <div class="p-3 bg-slate-950 border border-slate-800 rounded-lg">
+                            <span class="font-bold text-emerald-400 block mb-1">Incommensurate (d / a = φ)</span>
+                            Atoms sit in mismatched locations. Barriers cancel out, producing <span class="font-semibold text-emerald-400">almost zero friction</span> (Superlubricity).
+                        </div>
+                    </div>
+
+                    <div class="bg-slate-950 border border-slate-850 rounded-lg p-3 border-l-4 border-l-teal-500 text-xs">
+                        <span class="font-bold text-slate-200">The Aubry Transition:</span> When the chain matches the mathematical <span class="font-bold text-teal-400">Golden Ratio (φ = 1.618033...)</span>, it represents the most incommensurate scenario possible, exhibiting remarkable sliding behavior.
+                    </div>
+                </div>
+
+                <!-- Control Card for Module 2 -->
+                <div class="bg-slate-900 border border-slate-800 rounded-xl p-5 flex flex-col gap-4">
+                    <h3 class="text-sm font-bold text-slate-200 flex items-center gap-2">
+                        <i class="fa-solid fa-sliders text-teal-400"></i> Adjust Chain Parameters
+                    </h3>
+
+                    <!-- Commensurability Presets -->
+                    <div class="flex flex-col gap-2">
+                        <span class="text-xs font-semibold text-slate-400">Lattice Matching Preset:</span>
+                        <div class="grid grid-cols-3 gap-2">
+                            <button onclick="setChainPreset('commensurate')" id="preset-comm" class="py-1.5 px-3 rounded bg-slate-850 hover:bg-slate-800 border border-rose-500/40 text-xs font-semibold text-rose-300 transition">
+                                Commensurate (1:1)
+                            </button>
+                            <button onclick="setChainPreset('incommensurate')" id="preset-incomm" class="py-1.5 px-3 rounded bg-slate-850 hover:bg-slate-800 border border-slate-700 text-xs font-semibold text-slate-300 transition">
+                                Simple Mismatch
+                            </button>
+                            <button onclick="setChainPreset('golden')" id="preset-golden" class="py-1.5 px-3 rounded bg-teal-500/20 hover:bg-teal-500/30 border border-teal-500 text-xs font-bold text-teal-300 transition">
+                                Golden Ratio (φ)
+                            </button>
+                        </div>
+                    </div>
+
+                    <!-- Chain Spacing (d) -->
+                    <div class="flex flex-col gap-1.5">
+                        <div class="flex justify-between text-xs font-semibold">
+                            <span class="text-slate-400">Intra-Chain Spacing (d)</span>
+                            <span id="d-val" class="text-teal-400 code-font">1.00 a</span>
+                        </div>
+                        <input type="range" id="d-slider" min="0.5" max="2.0" step="0.01" value="1.0" class="w-full accent-teal-500 bg-slate-950 rounded-lg appearance-none h-2">
+                    </div>
+
+                    <!-- Inter-atomic stiffness (K_chain) -->
+                    <div class="flex flex-col gap-1.5">
+                        <div class="flex justify-between text-xs font-semibold">
+                            <span class="text-slate-400">Coupling Springs (K_chain)</span>
+                            <span id="kc-val" class="text-teal-400 code-font">2.0 N/m</span>
+                        </div>
+                        <input type="range" id="kc-slider" min="0.5" max="8.0" step="0.1" value="2.0" class="w-full accent-teal-500 bg-slate-950 rounded-lg appearance-none h-2">
+                    </div>
+
+                    <div class="border-t border-slate-800/80 pt-4 flex gap-3">
+                        <button id="chain-play-btn" onclick="toggleChainPlay()" class="flex-1 py-2 px-4 bg-teal-500 hover:bg-teal-400 text-slate-950 font-bold rounded-lg transition text-xs flex justify-center items-center gap-1.5 shadow-lg shadow-teal-500/10">
+                            <i id="chain-play-icon" class="fa-solid fa-pause"></i> <span id="chain-play-text">Pause Simulation</span>
+                        </button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- TAB 3: THERMOLUBRICITY -->
+            <div id="panel-module-3" class="tab-panel hidden flex flex-col gap-5">
+                <div class="bg-slate-900 border border-slate-800 rounded-xl p-5 flex flex-col gap-4">
+                    <h2 class="text-lg font-bold text-slate-100 flex items-center gap-2">
+                        <i class="fa-solid fa-fire-flame-simple text-amber-400"></i>
+                        Thermolubricity & Velocity Regimes
+                    </h2>
+                    <p class="text-sm text-slate-300 leading-relaxed">
+                        At non-zero temperatures (<span class="code-font text-amber-400">T &gt; 0</span>), atomic kinetic energy fluctuates. This thermal activation helps the atom "hop" over energy barriers before they completely vanish, significantly reducing net friction.
+                    </p>
+
+                    <div class="bg-slate-950 border border-slate-850 rounded-lg p-3.5 border-l-4 border-l-amber-500">
+                        <div class="text-xs text-slate-400 uppercase tracking-wider font-bold mb-1">Computational Stochastic Differential Equation (SDE):</div>
+                        <div class="code-font text-xs text-amber-300 font-semibold select-all">
+                            m·ẍ + γ·ẋ = -∂V/∂x + η_thermal(t)
+                        </div>
+                        <div class="text-[10px] text-slate-500 mt-1 code-font">
+                            &lt;η_thermal(t) η_thermal(t')&gt; = 2γ·k_B·T·δ(t-t')
+                        </div>
+                    </div>
+
+                    <div class="text-xs text-slate-400 leading-relaxed">
+                        <span class="font-semibold text-slate-200">The Velocity Regimes:</span>
+                        At ultra-low speeds, thermal fluctuations completely dominate, leading to continuous hopping and <span class="font-semibold text-amber-400">vanishing friction</span>. As speed rises, the system shifts through a logarithmic increase towards flat temperature-independent macroscopic behavior.
+                    </div>
+                </div>
+
+                <!-- Control Card for Module 3 -->
+                <div class="bg-slate-900 border border-slate-800 rounded-xl p-5 flex flex-col gap-4">
+                    <h3 class="text-sm font-bold text-slate-200 flex items-center gap-2">
+                        <i class="fa-solid fa-sliders text-amber-400"></i> Adjust Thermal Parameters
+                    </h3>
+
+                    <!-- Temperature (T) -->
+                    <div class="flex flex-col gap-1.5">
+                        <div class="flex justify-between text-xs font-semibold">
+                            <span class="text-slate-400">Surface Temperature (T)</span>
+                            <span id="t-val" class="text-amber-400 code-font">0 K</span>
+                        </div>
+                        <input type="range" id="t-slider" min="0" max="600" step="10" value="0" class="w-full accent-amber-500 bg-slate-950 rounded-lg appearance-none h-2">
+                    </div>
+
+                    <!-- Thermal Velocity -->
+                    <div class="flex flex-col gap-1.5">
+                        <div class="flex justify-between text-xs font-semibold">
+                            <span class="text-slate-400">Pulling Velocity (v)</span>
+                            <span id="tv-val" class="text-amber-400 code-font">0.5 Å/s</span>
+                        </div>
+                        <input type="range" id="tv-slider" min="0.05" max="3.0" step="0.05" value="0.5" class="w-full accent-amber-500 bg-slate-950 rounded-lg appearance-none h-2">
+                    </div>
+
+                    <div class="border-t border-slate-800/80 pt-4 flex gap-3">
+                        <button id="thermal-play-btn" onclick="toggleThermalPlay()" class="flex-1 py-2 px-4 bg-amber-500 hover:bg-amber-400 text-slate-950 font-bold rounded-lg transition text-xs flex justify-center items-center gap-1.5 shadow-lg shadow-amber-500/10">
+                            <i id="thermal-play-icon" class="fa-solid fa-pause"></i> <span id="thermal-play-text">Pause Simulation</span>
+                        </button>
+                    </div>
+                </div>
+            </div>
+
+        </div>
+
+        <!-- Right: Dynamic Real-time Visualizers and Charts -->
+        <div class="lg:col-span-7 flex flex-col gap-6">
+            
+            <!-- Real-time Interactive Physics Canvas -->
+            <div class="bg-slate-900 border border-slate-800 rounded-2xl p-5 flex flex-col gap-3 relative shadow-xl">
+                <div class="flex justify-between items-center">
+                    <div class="flex items-center gap-2">
+                        <span class="w-2.5 h-2.5 rounded-full bg-emerald-500 animate-pulse"></span>
+                        <h2 class="text-sm font-bold uppercase tracking-wider text-slate-200" id="visualizer-title">
+                            Prandtl-Tomlinson Dynamics
+                        </h2>
+                    </div>
+                    <div class="text-[11px] code-font text-slate-400" id="canvas-status">
+                        Running @ 60 FPS
+                    </div>
+                </div>
+
+                <!-- Canvas Wrap -->
+                <div class="relative w-full aspect-[16/10] bg-slate-950 rounded-xl overflow-hidden border border-slate-800/80">
+                    <canvas id="physics-canvas" class="block w-full h-full"></canvas>
+                </div>
+            </div>
+
+            <!-- Frictional Force Real-time Plotting Panel -->
+            <div class="bg-slate-900 border border-slate-800 rounded-2xl p-5 flex flex-col gap-3 shadow-xl">
+                <div class="flex justify-between items-center">
+                    <div class="flex items-center gap-2 text-slate-300">
+                        <i class="fa-solid fa-chart-line text-emerald-400" id="graph-icon"></i>
+                        <h2 class="text-sm font-bold uppercase tracking-wider" id="graph-title">
+                            Friction Force vs. Time (F_pull)
+                        </h2>
+                    </div>
+                    <span class="text-xs font-semibold px-2 py-0.5 bg-slate-800 text-emerald-400 border border-slate-700 rounded" id="inst-friction">
+                        F_avg: --
+                    </span>
+                </div>
+
+                <!-- Custom real-time responsive graph canvas -->
+                <div class="w-full h-36 bg-slate-950 rounded-xl overflow-hidden border border-slate-800/80">
+                    <canvas id="graph-canvas" class="block w-full h-full"></canvas>
+                </div>
+            </div>
+
+        </div>
+    </main>
+
+    <!-- Detailed Mathematical & Algorithmic Explainer Section -->
+    <section class="bg-slate-900/60 border-t border-slate-800/80 py-12 px-6">
+        <div class="max-w-7xl mx-auto flex flex-col gap-8">
+            <h2 class="text-2xl font-bold text-slate-100 flex items-center gap-3">
+                <i class="fa-solid fa-book-open text-emerald-400"></i>
+                Nanophysical Theory & Algorithmic Design
+            </h2>
+
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+                <!-- Box 1 -->
+                <div class="bg-slate-900 border border-slate-800/80 p-5 rounded-xl flex flex-col gap-3">
+                    <div class="p-2.5 bg-emerald-500/10 text-emerald-400 w-fit rounded-lg">
+                        <i class="fa-solid fa-calculator text-lg"></i>
+                    </div>
+                    <h3 class="font-bold text-slate-200">The Prandtl-Tomlinson Potential</h3>
+                    <p class="text-xs text-slate-400 leading-relaxed">
+                        To compute the instantaneous physical forces, we compute the gradient of the spatial system potential:
+                    </p>
+                    <div class="bg-slate-950 p-2.5 rounded border border-slate-800 font-mono text-[11px] text-emerald-300">
+                        F_total = -∂V/∂x = -V₀(2π/a)sin(2πx/a) - k(x - vt)
+                    </div>
+                    <p class="text-xs text-slate-400 leading-relaxed">
+                        The dynamics are integrated via a robust Leapfrog/Euler scheme, ensuring full conservation of energy during elastic deformation phases.
+                    </p>
+                </div>
+
+                <!-- Box 2 -->
+                <div class="bg-slate-900 border border-slate-800/80 p-5 rounded-xl flex flex-col gap-3">
+                    <div class="p-2.5 bg-teal-500/10 text-teal-400 w-fit rounded-lg">
+                        <i class="fa-solid fa-share-nodes text-lg"></i>
+                    </div>
+                    <h3 class="font-bold text-slate-200">Multi-Atom Chain (Frenkel-Kontorova)</h3>
+                    <p class="text-xs text-slate-400 leading-relaxed">
+                        For an array of particles connected by mutual spring forces:
+                    </p>
+                    <div class="bg-slate-950 p-2.5 rounded border border-slate-800 font-mono text-[11px] text-teal-300">
+                        F_chain_i = k_chain·(x_i+1 - 2x_i + x_i-1)
+                    </div>
+                    <p class="text-xs text-slate-400 leading-relaxed">
+                        We resolve coupling interactions alongside substrate constraints. When structural spacing is mismatched (e.g., using golden ratio offsets), phase-shifting forces cancel spatial barriers, leading to vanishing static friction.
+                    </p>
+                </div>
+
+                <!-- Box 3 -->
+                <div class="bg-slate-900 border border-slate-800/80 p-5 rounded-xl flex flex-col gap-3">
+                    <div class="p-2.5 bg-amber-500/10 text-amber-400 w-fit rounded-lg">
+                        <i class="fa-solid fa-temperature-arrow-up text-lg"></i>
+                    </div>
+                    <h3 class="font-bold text-slate-200">Stochastic Euler-Maruyama Solver</h3>
+                    <p class="text-xs text-slate-400 leading-relaxed">
+                        To replicate realistic temperature fluctuations ($T > 0$), we inject Gaussian white noise:
+                    </p>
+                    <div class="bg-slate-950 p-2.5 rounded border border-slate-800 font-mono text-[11px] text-amber-300 flex flex-col gap-1">
+                        <span>dx_i = v_i·dt</span>
+                        <span>dv_i = [-γv_i - ∂V/∂x]dt + dW(t)</span>
+                    </div>
+                    <p class="text-xs text-slate-400 leading-relaxed">
+                        Where <span class="code-font">dW</span> is derived from random Gaussian sampling scaled directly by <span class="code-font">sqrt(2·γ·k_B·T·dt)</span>, reproducing Brownian hopping.
+                    </p>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Footer -->
+    <footer class="bg-slate-950 border-t border-slate-900 py-6 px-6 text-center text-xs text-slate-500">
+        <p>© 2026 Nanophysics Simulation Labs. Generated for high-fidelity interactive physical teaching.</p>
+    </footer>
+
+    <script>
+        let activeTab = 'module-1';
+        let isSimRunning = true;
+
+        // Canvas Setup
+        const canvas = document.getElementById('physics-canvas');
+        const ctx = canvas.getContext('2d');
+        const graphCanvas = document.getElementById('graph-canvas');
+        const graphCtx = graphCanvas.getContext('2d');
+
+        // Physical Constants / Units
+        const a_lattice = 80; // Substrate spatial period in pixels
+        const dt = 0.05;      // Physics timestep
+        const gamma_damping = 0.8; // System friction coefficient (viscous damping)
+
+        // Prandtl-Tomlinson (PT) parameters
+        let ptParams = {
+            v0: 2.0,      // eV (potential depth)
+            k: 1.0,       // N/m (pulling spring)
+            v: 0.8,       // Å/s (pulling velocity)
+            atomX: 200,   // Instantaneous atom position
+            atomV: 0.0,   // Velocity
+            stageX: 200,  // Pulling stage position
+            mass: 1.0     // Atom mass
+        };
+
+        // Multi-atom Chain (FK) parameters
+        let chainParams = {
+            numAtoms: 8,
+            d: 1.0,       // Ratio to substrate period (d/a)
+            kc: 2.0,      // Coupling spring constant
+            v0: 2.0,      // eV (potential depth)
+            v: 0.8,       // Pulling velocity
+            atoms: [],    // Array of {x, v, stageX}
+            springLength: 80,
+            stageX: 200
+        };
+
+        // Thermolubricity parameters
+        let thermalParams = {
+            T: 0,         // K
+            v0: 2.0,
+            k: 1.0,
+            v: 0.5,
+            atomX: 200,
+            atomV: 0.0,
+            stageX: 200,
+            mass: 1.0
+        };
+
+        // Graph data queues
+        let graphData = [];
+        const maxGraphPoints = 250;
+
+        // UI Sliders Connections
+        const v0Slider = document.getElementById('v0-slider');
+        const kSlider = document.getElementById('k-slider');
+        const vSlider = document.getElementById('v-slider');
+        
+        const dSlider = document.getElementById('d-slider');
+        const kcSlider = document.getElementById('kc-slider');
+        
+        const tSlider = document.getElementById('t-slider');
+        const tvSlider = document.getElementById('tv-slider');
+
+        // Update display text values helper
+        function updateUIValues() {
+            document.getElementById('v0-val').textContent = `${parseFloat(ptParams.v0).toFixed(2)} eV`;
+            document.getElementById('k-val').textContent = `${parseFloat(ptParams.k).toFixed(2)} N/m`;
+            document.getElementById('v-val').textContent = `${parseFloat(ptParams.v).toFixed(2)} Å/s`;
+            
+            document.getElementById('d-val').textContent = `${parseFloat(chainParams.d).toFixed(2)} a`;
+            document.getElementById('kc-val').textContent = `${parseFloat(chainParams.kc).toFixed(2)} N/m`;
+            
+            document.getElementById('t-val').textContent = `${parseInt(thermalParams.T)} K`;
+            document.getElementById('tv-val').textContent = `${parseFloat(thermalParams.v).toFixed(2)} Å/s`;
+        }
+
+        // Initialize Sliders
+        v0Slider.oninput = (e) => { ptParams.v0 = parseFloat(e.target.value); updateUIValues(); };
+        kSlider.oninput = (e) => { ptParams.k = parseFloat(e.target.value); updateUIValues(); };
+        vSlider.oninput = (e) => { ptParams.v = parseFloat(e.target.value); updateUIValues(); };
+        
+        dSlider.oninput = (e) => { 
+            chainParams.d = parseFloat(e.target.value); 
+            updateUIValues(); 
+            initChainAtoms(); // Reinitialize chain positions
+        };
+        kcSlider.oninput = (e) => { chainParams.kc = parseFloat(e.target.value); updateUIValues(); };
+        
+        tSlider.oninput = (e) => { thermalParams.T = parseInt(e.target.value); updateUIValues(); };
+        tvSlider.oninput = (e) => { thermalParams.v = parseFloat(e.target.value); updateUIValues(); };
+
+        function initChainAtoms() {
+            chainParams.atoms = [];
+            const centerOffset = 200;
+            for (let i = 0; i < chainParams.numAtoms; i++) {
+                // Positional spacing is determined by the spacing multiplier d
+                const targetX = centerOffset + i * (a_lattice * chainParams.d);
+                chainParams.atoms.push({
+                    x: targetX,
+                    v: 0.0,
+                    restOffset: i * (a_lattice * chainParams.d) // rest offset from the stage center
+                });
+            }
+            chainParams.stageX = centerOffset;
+            graphData = []; // clear plot data
+        }
+
+        // Commensurability presets
+        function setChainPreset(preset) {
+            // Remove highlighting of other buttons
+            document.getElementById('preset-comm').classList.replace('bg-rose-500/20', 'bg-slate-850');
+            document.getElementById('preset-comm').classList.replace('text-rose-300', 'text-slate-300');
+            document.getElementById('preset-incomm').classList.replace('bg-yellow-500/20', 'bg-slate-850');
+            document.getElementById('preset-incomm').classList.replace('text-yellow-300', 'text-slate-300');
+            document.getElementById('preset-golden').classList.replace('bg-teal-500', 'bg-teal-500/20');
+            document.getElementById('preset-golden').classList.replace('text-slate-950', 'text-teal-300');
+
+            if (preset === 'commensurate') {
+                chainParams.d = 1.0;
+                dSlider.value = 1.0;
+                document.getElementById('preset-comm').className = "py-1.5 px-3 rounded bg-rose-500/20 border border-rose-500 text-xs font-bold text-rose-300 transition";
+            } else if (preset === 'incommensurate') {
+                chainParams.d = 1.37;
+                dSlider.value = 1.37;
+                document.getElementById('preset-incomm').className = "py-1.5 px-3 rounded bg-yellow-500/20 border border-yellow-500 text-xs font-bold text-yellow-300 transition";
+            } else if (preset === 'golden') {
+                // Golden Ratio = 1.618033
+                chainParams.d = 1.618;
+                dSlider.value = 1.618;
+                document.getElementById('preset-golden').className = "py-1.5 px-3 rounded bg-teal-500 text-slate-950 border border-teal-500 text-xs font-bold text-teal-950 transition";
+            }
+            updateUIValues();
+            initChainAtoms();
+        }
+
+        function switchTab(tabId) {
+            activeTab = tabId;
+            document.querySelectorAll('.tab-panel').forEach(panel => panel.classList.add('hidden'));
+            document.getElementById(`panel-${tabId}`).classList.remove('hidden');
+
+            document.querySelectorAll('.tab-btn').forEach(btn => {
+                btn.className = "tab-btn flex-1 py-2 text-xs font-semibold rounded-lg transition duration-200 text-slate-400 hover:text-slate-100 hover:bg-slate-800";
+            });
+
+            const activeBtn = document.getElementById(`tab-${tabId}`);
+            if (tabId === 'module-1') {
+                activeBtn.className = "tab-btn flex-1 py-2 text-xs font-semibold rounded-lg transition duration-200 bg-emerald-500 text-slate-950";
+                document.getElementById('visualizer-title').textContent = "Prandtl-Tomlinson Dynamics";
+                document.getElementById('graph-title').textContent = "Spring Restoring Force (F_spring)";
+                document.getElementById('graph-icon').className = "fa-solid fa-chart-line text-emerald-400";
+                ptParams.stageX = 200;
+                ptParams.atomX = 200;
+                ptParams.atomV = 0.0;
+            } else if (tabId === 'module-2') {
+                activeBtn.className = "tab-btn flex-1 py-2 text-xs font-semibold rounded-lg transition duration-200 bg-teal-500 text-slate-950";
+                document.getElementById('visualizer-title').textContent = "Frenkel-Kontorova Chain Dynamics";
+                document.getElementById('graph-title').textContent = "Collective Chain Friction Force";
+                document.getElementById('graph-icon').className = "fa-solid fa-share-nodes text-teal-400";
+                initChainAtoms();
+            } else {
+                activeBtn.className = "tab-btn flex-1 py-2 text-xs font-semibold rounded-lg transition duration-200 bg-amber-500 text-slate-950";
+                document.getElementById('visualizer-title').textContent = "Thermal Activation Dynamics";
+                document.getElementById('graph-title').textContent = "Thermal Energy Barrier Hopping";
+                document.getElementById('graph-icon').className = "fa-solid fa-fire-flame-simple text-amber-400";
+                thermalParams.stageX = 200;
+                thermalParams.atomX = 200;
+                thermalParams.atomV = 0.0;
+            }
+            graphData = []; // Reset real-time graphs
+        }
+
+        function togglePTPlay() {
+            isSimRunning = !isSimRunning;
+            const btnText = document.getElementById('pt-play-text');
+            const btnIcon = document.getElementById('pt-play-icon');
+            if (isSimRunning) {
+                btnText.textContent = "Pause Simulation";
+                btnIcon.className = "fa-solid fa-pause";
+            } else {
+                btnText.textContent = "Resume Simulation";
+                btnIcon.className = "fa-solid fa-play";
+            }
+        }
+
+        function toggleChainPlay() {
+            togglePTPlay();
+            const btnText = document.getElementById('chain-play-text');
+            const btnIcon = document.getElementById('chain-play-icon');
+            if (isSimRunning) {
+                btnText.textContent = "Pause Simulation";
+                btnIcon.className = "fa-solid fa-pause";
+            } else {
+                btnText.textContent = "Resume Simulation";
+                btnIcon.className = "fa-solid fa-play";
+            }
+        }
+
+        function toggleThermalPlay() {
+            togglePTPlay();
+            const btnText = document.getElementById('thermal-play-text');
+            const btnIcon = document.getElementById('thermal-play-icon');
+            if (isSimRunning) {
+                btnText.textContent = "Pause Simulation";
+                btnIcon.className = "fa-solid fa-pause";
+            } else {
+                btnText.textContent = "Resume Simulation";
+                btnIcon.className = "fa-solid fa-play";
+            }
+        }
+
+        function resetAllSimulators() {
+            ptParams.stageX = 200;
+            ptParams.atomX = 200;
+            ptParams.atomV = 0;
+            thermalParams.stageX = 200;
+            thermalParams.atomX = 200;
+            thermalParams.atomV = 0;
+            initChainAtoms();
+            graphData = [];
+            isSimRunning = true;
+            document.getElementById('pt-play-text').textContent = "Pause Simulation";
+            document.getElementById('pt-play-icon').className = "fa-solid fa-pause";
+            document.getElementById('chain-play-text').textContent = "Pause Simulation";
+            document.getElementById('chain-play-icon').className = "fa-solid fa-pause";
+            document.getElementById('thermal-play-text').textContent = "Pause Simulation";
+            document.getElementById('thermal-play-icon').className = "fa-solid fa-pause";
+        }
+
+        // Box-Muller transform for normal distribution random numbers
+        function randomGaussian() {
+            let u = 0, v = 0;
+            while(u === 0) u = Math.random(); 
+            while(v === 0) v = Math.random();
+            return Math.sqrt(-2.0 * Math.log(u)) * Math.cos(2.0 * Math.PI * v);
+        }
+
+        function solveDynamics() {
+            if (!isSimRunning) return;
+
+            if (activeTab === 'module-1') {
+                // Update pulling support position
+                ptParams.stageX += ptParams.v * dt;
+
+                // Substrate Force F_sub = -V0 * (2pi/a) * sin(2pi*x/a)
+                const fSub = -ptParams.v0 * (2 * Math.PI / a_lattice) * Math.sin((2 * Math.PI * ptParams.atomX) / a_lattice);
+                // Spring Force
+                const fSpring = -ptParams.k * (ptParams.atomX - ptParams.stageX);
+                // Viscous friction force from tip substrate interaction
+                const fDamping = -gamma_damping * ptParams.atomV;
+
+                // Total Acceleration
+                const acc = (fSub + fSpring + fDamping) / ptParams.mass;
+
+                // Update physical states (Semi-implicit Euler integration)
+                ptParams.atomV += acc * dt;
+                ptParams.atomX += ptParams.atomV * dt;
+
+                // Queue data to graphs
+                graphData.push(-fSpring); // Plot restoring force exerted on support tip
+
+                // Auto-center camera/canvas tracking loop
+                if (ptParams.stageX > canvas.width * 0.7) {
+                    const offset = ptParams.stageX - 200;
+                    ptParams.stageX -= offset;
+                    ptParams.atomX -= offset;
+                }
+
+            } else if (activeTab === 'module-2') {
+                // Dynamics solver for multi-atom Frenkel-Kontorova chain
+                chainParams.stageX += chainParams.v * dt;
+
+                let collectiveSpringF = 0;
+
+                // Temporary forces accumulator
+                let forceAcc = new Array(chainParams.numAtoms).fill(0);
+
+                for (let i = 0; i < chainParams.numAtoms; i++) {
+                    const currentAtom = chainParams.atoms[i];
+                    
+                    // Substrate Force
+                    const fSub = -chainParams.v0 * (2 * Math.PI / a_lattice) * Math.sin((2 * Math.PI * currentAtom.x) / a_lattice);
+                    
+                    // Pulling Spring Force (each atom attached to its relative position on sliding stage)
+                    const targetX = chainParams.stageX + currentAtom.restOffset;
+                    const fSpring = -1.5 * (currentAtom.x - targetX);
+                    collectiveSpringF += -fSpring;
+
+                    // Coupling Chain Springs F_coupling = kc * (x_next - x_curr - d)
+                    let fCoupling = 0;
+                    if (i > 0) {
+                        fCoupling += -chainParams.kc * (currentAtom.x - chainParams.atoms[i-1].x - a_lattice * chainParams.d);
+                    }
+                    if (i < chainParams.numAtoms - 1) {
+                        fCoupling += chainParams.kc * (chainParams.atoms[i+1].x - currentAtom.x - a_lattice * chainParams.d);
+                    }
+
+                    // Viscous damping
+                    const fDamping = -gamma_damping * currentAtom.v;
+
+                    forceAcc[i] = fSub + fSpring + fCoupling + fDamping;
+                }
+
+                // Apply forces to update positions
+                for (let i = 0; i < chainParams.numAtoms; i++) {
+                    const atom = chainParams.atoms[i];
+                    const acc = forceAcc[i] / 1.0; // mass = 1
+                    atom.v += acc * dt;
+                    atom.x += atom.v * dt;
+                }
+
+                graphData.push(collectiveSpringF);
+
+                if (chainParams.stageX > canvas.width * 0.5) {
+                    const offset = chainParams.stageX - 150;
+                    chainParams.stageX -= offset;
+                    for (let i = 0; i < chainParams.numAtoms; i++) {
+                        chainParams.atoms[i].x -= offset;
+                    }
+                }
+
+            } else if (activeTab === 'module-3') {
+                // Stochastic Euler-Maruyama Integration for thermal fluctuations
+                thermalParams.stageX += thermalParams.v * dt;
+
+                // Mechanical forces
+                const fSub = -thermalParams.v0 * (2 * Math.PI / a_lattice) * Math.sin((2 * Math.PI * thermalParams.atomX) / a_lattice);
+                const fSpring = -thermalParams.k * (thermalParams.atomX - thermalParams.stageX);
+                const fDamping = -gamma_damping * thermalParams.atomV;
+
+                // Thermal Stochastic Force (Brownian Noise Component scaling with Temp)
+                // Variance: 2 * gamma * k_B * T
+                const k_B = 0.05; // Scaling factor
+                const noiseSigma = Math.sqrt(2.0 * gamma_damping * k_B * thermalParams.T / dt);
+                const fThermal = noiseSigma * randomGaussian();
+
+                const acc = (fSub + fSpring + fDamping + fThermal) / thermalParams.mass;
+
+                thermalParams.atomV += acc * dt;
+                thermalParams.atomX += thermalParams.atomV * dt;
+
+                graphData.push(-fSpring);
+
+                if (thermalParams.stageX > canvas.width * 0.7) {
+                    const offset = thermalParams.stageX - 200;
+                    thermalParams.stageX -= offset;
+                    thermalParams.atomX -= offset;
+                }
+            }
+
+            // Trim old graph points
+            if (graphData.length > maxGraphPoints) {
+                graphData.shift();
+            }
+        }
+
+        function drawVisualizer() {
+            // Adjust canvas bounding dimensions
+            if (canvas.width !== canvas.clientWidth || canvas.height !== canvas.clientHeight) {
+                canvas.width = canvas.clientWidth;
+                canvas.height = canvas.clientHeight;
+            }
+
+            // Clear Background
+            ctx.fillStyle = "#020617";
+            ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+            // 1. Draw periodic substrate atoms/potential energy corrugation wave
+            const numLattices = Math.ceil(canvas.width / a_lattice) + 2;
+            ctx.beginPath();
+            ctx.strokeStyle = "rgba(71, 85, 105, 0.2)";
+            ctx.lineWidth = 1;
+            
+            // Draw visual gridlines
+            for(let i=0; i < canvas.width; i += a_lattice) {
+                ctx.moveTo(i, 0);
+                ctx.lineTo(i, canvas.height);
+            }
+            ctx.stroke();
+
+            // Draw substrate waves representing periodic crystalline array potential
+            ctx.beginPath();
+            ctx.lineWidth = 3;
+            ctx.strokeStyle = activeTab === 'module-1' ? "rgba(16, 185, 129, 0.4)" : (activeTab === 'module-2' ? "rgba(20, 184, 166, 0.4)" : "rgba(245, 158, 11, 0.4)");
+            
+            const amplitude = 30; // height amplitude of periodic crystal field
+            const baseHeight = 180; // center wave level
+
+            for (let x = 0; x <= canvas.width + 10; x += 2) {
+                const y = baseHeight - Math.cos((2 * Math.PI * x) / a_lattice) * amplitude;
+                if (x === 0) ctx.moveTo(x, y);
+                else ctx.lineTo(x, y);
+            }
+            ctx.stroke();
+
+            // Render substrate atom circles at potential valleys
+            for (let i = -1; i < numLattices; i++) {
+                const atomCenterX = i * a_lattice + a_lattice / 2;
+                ctx.beginPath();
+                ctx.arc(atomCenterX, baseHeight + amplitude, 12, 0, Math.PI * 2);
+                ctx.fillStyle = "rgba(30, 41, 59, 0.9)";
+                ctx.strokeStyle = "rgba(71, 85, 105, 0.6)";
+                ctx.lineWidth = 2;
+                ctx.fill();
+                ctx.stroke();
+            }
+
+            // RENDER ACTIVE MODAL SCENARIOS
+            if (activeTab === 'module-1') {
+                // Drawing single-atom PT visualizer
+                const pStage = ptParams.stageX;
+                const pAtom = ptParams.atomX;
+                const atomY = baseHeight - Math.cos((2 * Math.PI * pAtom) / a_lattice) * amplitude;
+
+                // 2. Draw Pulling Support (Stage slider on top)
+                const stageY = 50;
+                ctx.beginPath();
+                ctx.rect(pStage - 25, stageY - 10, 50, 15);
+                ctx.fillStyle = "#1e293b";
+                ctx.strokeStyle = "#10b981";
+                ctx.lineWidth = 2.5;
+                ctx.fill();
+                ctx.stroke();
+
+                // Center node on Stage
+                ctx.beginPath();
+                ctx.arc(pStage, stageY, 5, 0, Math.PI * 2);
+                ctx.fillStyle = "#10b981";
+                ctx.fill();
+
+                // 3. Draw Spring connecting Stage to Tip atom
+                ctx.beginPath();
+                ctx.strokeStyle = "#64748b";
+                ctx.lineWidth = 2;
+                // Simple spring drawing zigzag path
+                ctx.moveTo(pStage, stageY);
+                const steps = 14;
+                const dy = (atomY - stageY) / steps;
+                for (let i = 1; i < steps; i++) {
+                    const springX = pStage + (i % 2 === 0 ? 12 : -12) * (1 - Math.abs(i - steps/2)/(steps/2));
+                    ctx.lineTo(springX, stageY + i * dy);
+                }
+                ctx.lineTo(pAtom, atomY);
+                ctx.stroke();
+
+                // 4. Draw Atom tip
+                ctx.beginPath();
+                ctx.arc(pAtom, atomY, 18, 0, Math.PI * 2);
+                const gradient = ctx.createRadialGradient(pAtom - 4, atomY - 4, 2, pAtom, atomY, 18);
+                gradient.addColorStop(0, '#34d399');
+                gradient.addColorStop(1, '#059669');
+                ctx.fillStyle = gradient;
+                ctx.shadowColor = "rgba(16, 185, 129, 0.4)";
+                ctx.shadowBlur = 15;
+                ctx.fill();
+                ctx.shadowBlur = 0; // reset shadow
+                ctx.strokeStyle = "#ffffff";
+                ctx.lineWidth = 1.5;
+                ctx.stroke();
+
+                // Dynamic values overlays
+                ctx.font = "bold 10px 'Fira Code', monospace";
+                ctx.fillStyle = "#10b981";
+                ctx.fillText(`PT-Force: ${(-ptParams.k * (pAtom - pStage)).toFixed(2)} N`, pStage + 35, stageY);
+
+            } else if (activeTab === 'module-2') {
+                // Multi-atom Frenkel-Kontorova Chain Visualizer
+                const pStage = chainParams.stageX;
+                const stageY = 50;
+
+                // Draw collective sliding stage bar
+                ctx.beginPath();
+                ctx.rect(pStage - 40, stageY - 10, (chainParams.numAtoms - 1) * (a_lattice * chainParams.d) + 80, 15);
+                ctx.fillStyle = "rgba(15, 23, 42, 0.8)";
+                ctx.strokeStyle = "#14b8a6";
+                ctx.lineWidth = 2;
+                ctx.fill();
+                ctx.stroke();
+
+                // Connect inter-atomic structural spring links
+                for (let i = 0; i < chainParams.numAtoms; i++) {
+                    const atom = chainParams.atoms[i];
+                    const atomY = baseHeight - Math.cos((2 * Math.PI * atom.x) / a_lattice) * amplitude;
+                    const stageAnchorX = pStage + atom.restOffset;
+
+                    // Draw spring to Stage
+                    ctx.beginPath();
+                    ctx.strokeStyle = "rgba(100, 116, 139, 0.45)";
+                    ctx.lineWidth = 1.5;
+                    ctx.moveTo(stageAnchorX, stageY);
+                    
+                    const steps = 10;
+                    const dy = (atomY - stageY) / steps;
+                    for (let j = 1; j < steps; j++) {
+                        const sx = stageAnchorX + (j % 2 === 0 ? 6 : -6) * (1 - Math.abs(j - steps/2)/(steps/2));
+                        ctx.lineTo(sx, stageY + j * dy);
+                    }
+                    ctx.lineTo(atom.x, atomY);
+                    ctx.stroke();
+
+                    // Draw horizontal structural coupling spring between chain neighbors
+                    if (i < chainParams.numAtoms - 1) {
+                        const nextAtom = chainParams.atoms[i+1];
+                        const nextAtomY = baseHeight - Math.cos((2 * Math.PI * nextAtom.x) / a_lattice) * amplitude;
+                        
+                        ctx.beginPath();
+                        ctx.strokeStyle = "#2dd4bf";
+                        ctx.lineWidth = 2.5;
+                        ctx.moveTo(atom.x, atomY);
+                        
+                        const interSteps = 8;
+                        const dx = (nextAtom.x - atom.x) / interSteps;
+                        for(let j = 1; j < interSteps; j++) {
+                            const sy = ((atomY + nextAtomY)/2) + (j % 2 === 0 ? 10 : -10);
+                            ctx.lineTo(atom.x + j * dx, sy);
+                        }
+                        ctx.lineTo(nextAtom.x, nextAtomY);
+                        ctx.stroke();
+                    }
+                }
+
+                // Draw physical tip atoms
+                for (let i = 0; i < chainParams.numAtoms; i++) {
+                    const atom = chainParams.atoms[i];
+                    const atomY = baseHeight - Math.cos((2 * Math.PI * atom.x) / a_lattice) * amplitude;
+
+                    ctx.beginPath();
+                    ctx.arc(atom.x, atomY, 14, 0, Math.PI * 2);
+                    const grad = ctx.createRadialGradient(atom.x - 3, atomY - 3, 1, atom.x, atomY, 14);
+                    // Match visual color schema based on preset
+                    const colorL = chainParams.d === 1.0 ? ['#f43f5e','#be123c'] : ['#2dd4bf','#0f766e'];
+                    grad.addColorStop(0, colorL[0]);
+                    grad.addColorStop(1, colorL[1]);
+                    ctx.fillStyle = grad;
+                    ctx.shadowBlur = 8;
+                    ctx.shadowColor = colorL[0];
+                    ctx.fill();
+                    ctx.shadowBlur = 0;
+                    ctx.strokeStyle = "#ffffff";
+                    ctx.lineWidth = 1;
+                    ctx.stroke();
+                }
+
+            } else {
+                // Thermolubricity Visualizer
+                const pStage = thermalParams.stageX;
+                const pAtom = thermalParams.atomX;
+                const atomY = baseHeight - Math.cos((2 * Math.PI * pAtom) / a_lattice) * amplitude;
+
+                // Stage pulling top anchor
+                const stageY = 50;
+                ctx.beginPath();
+                ctx.rect(pStage - 25, stageY - 10, 50, 15);
+                ctx.fillStyle = "#1e293b";
+                ctx.strokeStyle = "#f59e0b";
+                ctx.lineWidth = 2.5;
+                ctx.fill();
+                ctx.stroke();
+
+                // Draw spring
+                ctx.beginPath();
+                ctx.strokeStyle = "#64748b";
+                ctx.lineWidth = 2;
+                ctx.moveTo(pStage, stageY);
+                const steps = 14;
+                const dy = (atomY - stageY) / steps;
+                for (let i = 1; i < steps; i++) {
+                    const springX = pStage + (i % 2 === 0 ? 12 : -12) * (1 - Math.abs(i - steps/2)/(steps/2));
+                    ctx.lineTo(springX, stageY + i * dy);
+                }
+                ctx.lineTo(pAtom, atomY);
+                ctx.stroke();
+
+                // If thermal is active, render localized visual "fluctuation aura/heat glow"
+                if (thermalParams.T > 0) {
+                    ctx.beginPath();
+                    ctx.arc(pAtom, atomY, 20 + Math.random() * (thermalParams.T / 50), 0, Math.PI * 2);
+                    ctx.fillStyle = `rgba(245, 158, 11, ${Math.min(0.1 + thermalParams.T / 1200, 0.45)})`;
+                    ctx.fill();
+                }
+
+                // Main Atom
+                ctx.beginPath();
+                ctx.arc(pAtom, atomY, 18, 0, Math.PI * 2);
+                const gradient = ctx.createRadialGradient(pAtom - 4, atomY - 4, 2, pAtom, atomY, 18);
+                gradient.addColorStop(0, '#fbbf24');
+                gradient.addColorStop(1, '#b45309');
+                ctx.fillStyle = gradient;
+                ctx.shadowColor = "rgba(245, 158, 11, 0.4)";
+                ctx.shadowBlur = 15;
+                ctx.fill();
+                ctx.shadowBlur = 0;
+                ctx.strokeStyle = "#ffffff";
+                ctx.lineWidth = 1.5;
+                ctx.stroke();
+            }
+        }
+
+        function drawGraph() {
+            if (graphCanvas.width !== graphCanvas.clientWidth || graphCanvas.height !== graphCanvas.clientHeight) {
+                graphCanvas.width = graphCanvas.clientWidth;
+                graphCanvas.height = graphCanvas.clientHeight;
+            }
+
+            graphCtx.clearRect(0, 0, graphCanvas.width, graphCanvas.height);
+            graphCtx.fillStyle = "#020617";
+            graphCtx.fillRect(0, 0, graphCanvas.width, graphCanvas.height);
+
+            // Draw horizontal zero line
+            graphCtx.beginPath();
+            graphCtx.strokeStyle = "rgba(71, 85, 105, 0.3)";
+            graphCtx.lineWidth = 1.5;
+            graphCtx.moveTo(0, graphCanvas.height / 2);
+            graphCtx.lineTo(graphCanvas.width, graphCanvas.height / 2);
+            graphCtx.stroke();
+
+            if (graphData.length < 2) return;
+
+            // Compute dynamic range bounds
+            let maxVal = Math.max(...graphData);
+            let minVal = Math.min(...graphData);
+            let absMax = Math.max(Math.abs(maxVal), Math.abs(minVal));
+            if (absMax < 1.0) absMax = 1.0;
+
+            const scaleY = (graphCanvas.height / 2) / (absMax * 1.1);
+
+            // Plot line
+            graphCtx.beginPath();
+            
+            // Highlight color corresponding to active module
+            const graphColor = activeTab === 'module-1' ? "#10b981" : (activeTab === 'module-2' ? "#14b8a6" : "#f59e0b");
+            graphCtx.strokeStyle = graphColor;
+            graphCtx.lineWidth = 2.5;
+
+            const dx = graphCanvas.width / (maxGraphPoints - 1);
+
+            for (let i = 0; i < graphData.length; i++) {
+                const x = i * dx;
+                const y = (graphCanvas.height / 2) - (graphData[i] * scaleY);
+                if (i === 0) graphCtx.moveTo(x, y);
+                else graphCtx.lineTo(x, y);
+            }
+            graphCtx.stroke();
+
+            // Calculate instantaneous average friction metric
+            let sum = 0;
+            for(let v of graphData) sum += Math.abs(v);
+            const avgFriction = sum / graphData.length;
+            
+            // Update textual label element
+            document.getElementById('inst-friction').textContent = `F_avg: ${avgFriction.toFixed(2)} N`;
+        }
+
+        function simulationLoop() {
+            solveDynamics();
+            drawVisualizer();
+            drawGraph();
+            requestAnimationFrame(simulationLoop);
+        }
+
+        window.onload = function() {
+            // Kickstart values
+            updateUIValues();
+            initChainAtoms();
+            // Start the physics animation loops
+            requestAnimationFrame(simulationLoop);
+        };
+    </script>
+</body>
+</html>

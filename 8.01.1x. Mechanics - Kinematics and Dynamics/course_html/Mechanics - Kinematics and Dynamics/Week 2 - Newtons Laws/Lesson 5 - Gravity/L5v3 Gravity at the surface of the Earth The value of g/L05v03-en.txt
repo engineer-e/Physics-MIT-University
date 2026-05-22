@@ -1,0 +1,99 @@
+
+We're now going to talk about gravity
+at the surface of the Earth.
+Specifically, the gravitational acceleration
+that a body on the surface is experiencing.
+That is the reason why I'm not flying away right now,
+because I'm standing here and my body
+is experiencing this gravitational acceleration.
+Let's look at that in more detail.
+Let's say we have the Sun here, and it's
+being orbited by the Earth.
+And so the earth is experiencing a force,
+F. Let's say this is object 1 and this is object 2, of 1,
+2 towards the Sun.
+It also means that we are describing
+this with a unit vector r hat.
+In polar coordinates that goes the opposite way.
+And so you have this here.
+And we can then write down our universal [INAUDIBLE] rotation.
+And we're going to have minus, because this is pointing
+in the opposite direction of the force here, Gm1m2 over r1 2
+squared.
+That here is a distance between the two objects
+and, the direction is given here by the r hat,
+together with the minus sign.
+Now, we can consider a slightly different scenario now.
+We have the Earth here, and we're
+moving our other object, our second object, right here
+on top of the surface of the Earth.
+And we have already been using F equals mg
+because that describes how objects
+fall close to the surface of the Earth.
+So if I let my pen drop here, then that's described by F
+equals mg.
+It's a very special kind of acceleration,
+the gravitational acceleration, that is actually tied
+to this kind of setup here.
+So something that is at the surface
+or near the surface of the Earth.
+So I want to write a little Earth here
+to make that very clear.
+If I was on the moon, I had different dimensions,
+the moon is a lot smaller than the Earth,
+and so I would get a g moon, that
+is actually quite a difference.
+Only 16% of the Earth's gravitational acceleration.
+What we're going to do now is we're
+going to combine these two things because, really, it's
+the same kind of scenario.
+I move our second object right to the surface of my Earth.
+Then I can use the same setup as what we have here.
+And so we're going to equate it out,
+and we're going to have mg Earth.
+And that's equals-- we're going to take the magnitude
+of this force here now.
+So we have gm, and now we need to see.
+So this little mass here has mass m.
+And this is our Earth.
+So we know that is an Earth radius
+and it has an Earth mass.
+So this is our test mass here, and now m Earth
+is the second mass over the radius of the Earth squared.
+And we'll see that m and m here cancel,
+so the mass of the test object actually
+is no longer important, and we get
+to g Earth equals gm Earth over the Earth radius squared.
+And you will see that, really, if we were sitting
+on a different planet, we would have
+a different gravitational acceleration because it
+is tied to the mass of our planet and the Earth radius.
+So in the following, let's put some numbers into this
+to actually calculate the little g.
+So we have g Earth, our gravitational acceleration.
+And so we have capital G, that's the gravitational constant,
+6.67 times 10 to the minus 11 newton per kilogram
+squared meters square, and then times the Earth mass.
+And that's about 6 times 10 to the 24 kilograms.
+And we need to divide that by the Earth's radius.
+And that's also about 6 times 10 to the 6 meters.
+And that gets squared.
+And so that comes out to about 9.81 meters per second squared.
+And I'm pretty sure all you have seen this number here already.
+So again, the point is that this pertains
+to this particular setup.
+Means that we are operating here on the surface of the Earth.
+If I was going to go on a really tall mountain,
+let's say the Mauna Kea mountain on the big island of Hawaii
+at 10,000 feet, my little g would already
+be a little bit different because I would be much further
+away from the center of the Earth
+than what the average Earth radius is.
+So we have here used the gravitational constant plus
+the Earth mass and the Earth radius to determine little g.
+But one can actually also do it the opposite way.
+Back in the day, capital G was not known.
+And so you can do an experiment to determine little g
+from some kind of set up in the lab,
+and then actually determine your gravitational constant.
+Maybe you're going to do that one day.
