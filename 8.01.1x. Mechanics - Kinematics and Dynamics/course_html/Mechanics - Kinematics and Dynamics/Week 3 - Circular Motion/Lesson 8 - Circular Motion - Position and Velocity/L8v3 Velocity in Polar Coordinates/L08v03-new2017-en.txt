@@ -1,0 +1,86 @@
+
+Today we'll derive the velocity vectors
+for the motion of a particle in circular motion,
+and we'll do so in polar coordinate system.
+In polar coordinate system, the position vector
+is this vector r, defined from the origin
+of your coordinate system to the position of the particle.
+The unit vector would be these r hat vector,
+which is radially outward, and is theta hat vector, which
+is tangential and perpendicular to the r hat direction.
+We'll assume here that the motion of the particle
+is confined to this circle of radius r.
+
+The implication being that then this position vector
+would have a constant magnitude, which
+is the radius of this circle.
+And we'll call this r without the vector notation.
+
+So in polar coordinate system, our position vector
+can simply be written as this magnitude r in the r hat
+direction.
+To get the velocity, then, we take the time derivative
+of this position vector.
+
+The magnitude r being a constant with time
+will come out of the derivative, but we
+will take the time derivative then of this r hat vector.
+
+In polar coordinate system, this time derivative of r hat
+is not trivial because the direction of r hat changes
+with time.
+So at a later time, for instance,
+when the particle is over here, the r hat direction
+will be radially outward this way,
+and the theta hat direction will be here.
+So both r hat and theta hat will constantly change direction
+as a function of time.
+So to calculate an expression for this dr hat dt,
+we had previously derived a relationship
+between the r hat and theta hat unit vectors,
+with i hat and j hat, our unit vectors
+in Cartesian coordinates system, which do not change with time.
+We've established that r hat is a rotation from the i hat
+direction, meaning that this r hat
+direction is a rotation of an angle theta from the x-axis.
+So similarly, then, the theta hat direction,
+which is perpendicular to the r hat direction,
+will be a rotation of an angle theta with respect
+to the j hat direction.
+We then derive that r hat is going
+to have a component of cosine theta in the i hat
+direction, that's this component, plus sine
+of theta in the j hat direction, which is this component.
+And theta hat is going to have a component in the minus i hat
+direction, which is in minus sine of theta,
+plus a component in the j hat direction, which
+is this adjacent, which is cosine theta in the j hat
+direction.
+So from this expression, we can take the time derivative,
+dr hat dt, the derivative of cosine
+giving us minus sine of theta, and because theta
+can change as a function of time,
+then we have to do a chain rule to get d theta dt,
+that is, this, the derivative of this expression,
+in the i hat direction.
+And the derivative of sine theta is
+going to be cosine of theta, and by the chain rule, d theta dt,
+in the j hat direction.
+So by taking the time derivative of this r hat vector, in fact,
+we pick up a d theta dt, and the remaining expression,
+minus sine of theta in the i hat direction, plus cosine
+of theta in the j hat direction, is exactly what theta hat is.
+
+This expression, in parentheses, is exactly what theta hat is.
+So the time derivative of the r hat dt
+gives us d theta dt in the theta hat direction.
+
+Now that we've derived an expression for the time
+derivative of dr hat dt, we are ready to continue
+our derivation for the velocity.
+
+Then the time derivative of the position vector,
+which gives us the velocity, is r,
+which is a constant, times the time derivative of r hat,
+and the time derivative of r hat gives us a d theta
+dt, in the theta hat direction.

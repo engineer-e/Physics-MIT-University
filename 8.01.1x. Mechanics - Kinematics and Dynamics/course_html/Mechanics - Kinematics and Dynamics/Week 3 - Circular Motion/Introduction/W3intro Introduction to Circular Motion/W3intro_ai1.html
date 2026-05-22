@@ -1,0 +1,1211 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Circula - Circular Motion & Polar Kinematics Simulator</title>
+    <!-- Tailwind CSS for modern responsive layout -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Google Fonts: Inter & JetBrains Mono -->
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;500;700&display=swap" rel="stylesheet">
+    
+    <!-- KaTeX CSS for beautiful math typesetting -->
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.8/dist/katex.min.css">
+    
+    <!-- KaTeX JS and Autorender loader setup (without inline head-loading to avoid DOM initialization errors) -->
+    <script src="https://cdn.jsdelivr.net/npm/katex@0.16.8/dist/katex.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/katex@0.16.8/dist/contrib/auto-render.min.js"></script>
+
+    <script>
+        function renderMath(element = document.body) {
+            // Safety guard to completely prevent "No element provided to render" global errors
+            if (!element) return;
+            if (typeof renderMathInElement !== 'undefined') {
+                renderMathInElement(element, {
+                    delimiters: [
+                        {left: '$$', right: '$$', display: true},
+                        {left: '$', right: '$', display: false},
+                        {left: '\\(', right: '\\)', display: false},
+                        {left: '\\[', right: '\\]', display: true}
+                    ],
+                    throwOnError: false
+                });
+            }
+        }
+    </script>
+
+    <style>
+        body {
+            font-family: 'Inter', sans-serif;
+        }
+        .code-font {
+            font-family: 'JetBrains Mono', monospace;
+        }
+        /* Custom scrollbar for sleeker dashboard feel */
+        ::-webkit-scrollbar {
+            width: 6px;
+            height: 6px;
+        }
+        ::-webkit-scrollbar-track {
+            background: #1e293b;
+        }
+        ::-webkit-scrollbar-thumb {
+            background: #475569;
+            border-radius: 3px;
+        }
+        ::-webkit-scrollbar-thumb:hover {
+            background: #64748b;
+        }
+    </style>
+</head>
+<body class="bg-slate-950 text-slate-100 min-h-screen flex flex-col overflow-x-hidden">
+
+    <!-- HEADER -->
+    <header class="border-b border-slate-800 bg-slate-900/80 backdrop-blur sticky top-0 z-50 px-6 py-4 flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
+        <div>
+            <div class="flex items-center gap-2">
+                <span class="p-2 bg-indigo-600/20 text-indigo-400 rounded-lg">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="w-6 h-6 animate-spin" style="animation-duration: 4s;" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <circle cx="12" cy="12" r="10" stroke="currentColor" stroke-width="2" stroke-dasharray="4 4" />
+                        <circle cx="12" cy="12" r="4" fill="currentColor" />
+                    </svg>
+                </span>
+                <h1 class="text-2xl font-extrabold tracking-tight bg-gradient-to-r from-indigo-400 via-purple-400 to-pink-400 bg-clip-text text-transparent">
+                    CIRCULA
+                </h1>
+            </div>
+            <p class="text-xs text-slate-400 mt-1 font-medium">Kinematics, Constrained Dynamics & Polar Coordinates Masterclass</p>
+        </div>
+        <div class="flex flex-wrap gap-2">
+            <span class="px-3 py-1 bg-slate-800 text-slate-300 rounded-full text-xs font-semibold flex items-center gap-1 border border-slate-700">
+                <span class="w-2.5 h-2.5 rounded-full bg-emerald-500 animate-pulse"></span> Simulator Active
+            </span>
+            <span class="px-3 py-1 bg-indigo-950/50 text-indigo-300 rounded-full text-xs font-semibold border border-indigo-800/50">
+                Expert Mental Model Edition
+            </span>
+        </div>
+    </header>
+
+    <!-- MAIN WORKSPACE -->
+    <main class="flex-grow grid grid-cols-1 lg:grid-cols-12 gap-6 p-6 max-w-7xl mx-auto w-full">
+        
+        <!-- LEFT COLUMN: SIMULATOR & VECTOR CONTROLLER (7 Cols) -->
+        <section class="lg:col-span-7 flex flex-col gap-6">
+            
+            <!-- THE INTERACTIVE CANVAS CONTAINER -->
+            <div class="bg-slate-900 border border-slate-800 rounded-2xl overflow-hidden shadow-2xl relative flex flex-col">
+                <!-- Live Dashboard HUD overlay -->
+                <div class="absolute top-4 left-4 z-10 bg-slate-950/90 backdrop-blur-md px-4 py-3 rounded-xl border border-slate-800/80 shadow-lg text-xs space-y-1.5 min-w-[180px]">
+                    <div class="text-[10px] uppercase font-bold text-slate-500 tracking-wider">LIVE TELEMETRY</div>
+                    <div class="flex justify-between gap-4">
+                        <span class="text-slate-400">Angle ($\theta$):</span>
+                        <span id="hud-theta" class="code-font font-semibold text-indigo-400">0.00 rad</span>
+                    </div>
+                    <div class="flex justify-between gap-4">
+                        <span class="text-slate-400">Ang. Vel ($\omega$):</span>
+                        <span id="hud-omega" class="code-font font-semibold text-emerald-400">0.00 rad/s</span>
+                    </div>
+                    <div class="flex justify-between gap-4">
+                        <span class="text-slate-400">Ang. Acc ($\alpha$):</span>
+                        <span id="hud-alpha" class="code-font font-semibold text-amber-400">0.00 rad/s²</span>
+                    </div>
+                    <div class="flex justify-between gap-4">
+                        <span class="text-slate-400">Velocity ($v$):</span>
+                        <span id="hud-v" class="code-font font-semibold text-sky-400">0.00 m/s</span>
+                    </div>
+                    <div class="flex justify-between gap-4 pt-1.5 border-t border-slate-800">
+                        <span class="text-slate-400 font-medium">Centripetal ($a_c$):</span>
+                        <span id="hud-ac" class="code-font font-semibold text-rose-400">0.00 m/s²</span>
+                    </div>
+                    <div class="flex justify-between gap-4">
+                        <span class="text-slate-400 font-medium">Tangential ($a_t$):</span>
+                        <span id="hud-at" class="code-font font-semibold text-fuchsia-400">0.00 m/s²</span>
+                    </div>
+                </div>
+
+                <!-- Simulation Settings quick bar -->
+                <div class="absolute top-4 right-4 z-10 flex gap-2">
+                    <button id="btn-cut-constraint" class="bg-red-600 hover:bg-red-500 active:scale-95 text-white px-3 py-1.5 rounded-lg text-xs font-bold transition flex items-center gap-1.5 shadow-lg shadow-red-950/50">
+                        <svg xmlns="http://www.w3.org/2000/svg" class="w-3.5 h-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M6 22V4c0-.5.2-1 .6-1.4C7 2.2 7.5 2 8 2h8c.5 0 1 .2 1.4.6.4.4.6.9.6 1.4v18l-8-4-8 4Z"/></svg>
+                        CUT CONSTRAINT
+                    </button>
+                    <button id="btn-reset-constraint" class="bg-slate-800 hover:bg-slate-700 active:scale-95 text-slate-300 px-3 py-1.5 rounded-lg text-xs font-bold transition flex items-center gap-1.5 border border-slate-700 hidden">
+                        <svg xmlns="http://www.w3.org/2000/svg" class="w-3.5 h-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M21.5 2v6h-6M21.34 15.57a10 10 0 1 1-.57-8.38l5.67-5.67"/></svg>
+                        RESET CIRCLE
+                    </button>
+                </div>
+
+                <!-- Canvas Component -->
+                <div class="bg-slate-950/70 backdrop-blur-inner h-[420px] relative w-full flex items-center justify-center">
+                    <canvas id="simCanvas" class="w-full h-full block cursor-crosshair"></canvas>
+                    
+                    <!-- Constraint Broken Warning Overlay -->
+                    <div id="cut-warning" class="hidden absolute inset-0 bg-red-950/20 pointer-events-none flex items-center justify-center">
+                        <div class="bg-red-950/90 border border-red-800 px-4 py-2 rounded-xl text-center shadow-2xl animate-bounce">
+                            <span class="text-red-400 text-xs font-bold tracking-widest uppercase">⚠️ CONSTRAINT BROKEN — INERTIAL DRIFT</span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- PLAYBACK CONTROLS -->
+                <div class="bg-slate-900 border-t border-slate-800 px-4 py-3 flex flex-wrap items-center justify-between gap-4">
+                    <div class="flex items-center gap-2">
+                        <button id="btn-play" class="bg-indigo-600 hover:bg-indigo-500 active:scale-90 text-white p-2.5 rounded-xl transition shadow-lg shadow-indigo-900/40">
+                            <!-- Play Icon -->
+                            <svg id="icon-play" xmlns="http://www.w3.org/2000/svg" class="w-5 h-5" viewBox="0 0 24 24" fill="currentColor"><polygon points="6 3 20 12 6 21 6 3"/></svg>
+                            <!-- Pause Icon -->
+                            <svg id="icon-pause" xmlns="http://www.w3.org/2000/svg" class="w-5 h-5 hidden" viewBox="0 0 24 24" fill="currentColor"><rect x="14" y="4" width="4" height="16" rx="1"/><rect x="6" y="4" width="4" height="16" rx="1"/></svg>
+                        </button>
+                        <button id="btn-step" class="bg-slate-800 hover:bg-slate-700 text-slate-300 p-2.5 rounded-xl transition border border-slate-700" title="Step Frame Forward">
+                            <svg xmlns="http://www.w3.org/2000/svg" class="w-5 h-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polygon points="5 4 15 12 5 20 5 4"/><line x1="19" y1="5" x2="19" y2="19" stroke-linecap="round"/></svg>
+                        </button>
+                        <button id="btn-reset" class="bg-slate-800 hover:bg-slate-700 text-slate-300 p-2.5 rounded-xl transition border border-slate-700" title="Reset State">
+                            <svg xmlns="http://www.w3.org/2000/svg" class="w-5 h-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M3 12a9 9 0 1 0 9-9 9.75 9.75 0 0 0-6.74 2.74L3 8"/><path d="M3 3v5h5"/></svg>
+                        </button>
+                    </div>
+
+                    <!-- Toggle Display Vectors -->
+                    <div class="flex flex-wrap gap-2 text-xs">
+                        <label class="flex items-center gap-1.5 cursor-pointer bg-slate-950/40 px-2.5 py-1.5 rounded-lg border border-slate-800">
+                            <input type="checkbox" id="chk-vec-v" checked class="rounded border-slate-700 text-sky-600 focus:ring-0">
+                            <span class="text-sky-400 font-semibold">v (Velocity)</span>
+                        </label>
+                        <label class="flex items-center gap-1.5 cursor-pointer bg-slate-950/40 px-2.5 py-1.5 rounded-lg border border-slate-800">
+                            <input type="checkbox" id="chk-vec-ac" checked class="rounded border-slate-700 text-rose-600 focus:ring-0">
+                            <span class="text-rose-400 font-semibold">a_c (Centripetal)</span>
+                        </label>
+                        <label class="flex items-center gap-1.5 cursor-pointer bg-slate-950/40 px-2.5 py-1.5 rounded-lg border border-slate-800">
+                            <input type="checkbox" id="chk-vec-at" checked class="rounded border-slate-700 text-fuchsia-600 focus:ring-0">
+                            <span class="text-fuchsia-400 font-semibold">a_t (Tangential)</span>
+                        </label>
+                        <label class="flex items-center gap-1.5 cursor-pointer bg-slate-950/40 px-2.5 py-1.5 rounded-lg border border-slate-800">
+                            <input type="checkbox" id="chk-polar-basis" checked class="rounded border-slate-700 text-indigo-600 focus:ring-0">
+                            <span class="text-indigo-400 font-semibold">Polar Basis ($\hat{r}$, $\hat{\theta}$)</span>
+                        </label>
+                    </div>
+                </div>
+            </div>
+
+            <!-- PARAMETER CONTROLLERS -->
+            <div class="bg-slate-900 border border-slate-800 rounded-2xl p-6 shadow-xl">
+                <h3 class="text-sm font-bold uppercase tracking-wider text-slate-400 mb-4 flex items-center gap-2">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="w-4 h-4 text-indigo-400" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6V4m0 2a2 2 0 100 4m0-4a2 2 0 110 4m-6 8a2 2 0 100-4m0 4a2 2 0 110-4m0 4v2m0-6V4m6 6v10m6-2a2 2 0 100-4m0 4a2 2 0 110-4m0 4v2m0-6V4" /></svg>
+                    Simulation Presets & Kinematic Physics Parameters
+                </h3>
+
+                <!-- Presets Toggle Grid -->
+                <div class="grid grid-cols-2 sm:grid-cols-4 gap-2 mb-6">
+                    <button id="preset-uniform" class="preset-btn bg-indigo-600 text-white font-bold py-2 px-3 rounded-xl text-xs transition border border-indigo-500 shadow-md">
+                        Uniform
+                    </button>
+                    <button id="preset-nonuniform" class="preset-btn bg-slate-800 hover:bg-slate-700 text-slate-300 font-semibold py-2 px-3 rounded-xl text-xs transition border border-slate-700">
+                        Non-Uniform
+                    </button>
+                    <button id="preset-pendulum" class="preset-btn bg-slate-800 hover:bg-slate-700 text-slate-300 font-semibold py-2 px-3 rounded-xl text-xs transition border border-slate-700">
+                        Gravity Pendulum
+                    </button>
+                    <button id="preset-loop" class="preset-btn bg-slate-800 hover:bg-slate-700 text-slate-300 font-semibold py-2 px-3 rounded-xl text-xs transition border border-slate-700">
+                        Loop-The-Loop
+                    </button>
+                </div>
+
+                <!-- Parameters Sliders -->
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-4 text-xs">
+                    <!-- Circle Radius (r) -->
+                    <div class="space-y-1.5">
+                        <div class="flex justify-between">
+                            <span class="text-slate-400 font-medium">Radius ($r$)</span>
+                            <span id="val-r" class="text-indigo-400 font-bold code-font">120 px</span>
+                        </div>
+                        <input type="range" id="slide-r" min="60" max="180" value="120" class="w-full accent-indigo-500 bg-slate-950 h-1.5 rounded-lg appearance-none cursor-pointer">
+                    </div>
+
+                    <!-- Angular Velocity (w) -->
+                    <div class="space-y-1.5" id="container-slide-w">
+                        <div class="flex justify-between">
+                            <span class="text-slate-400 font-medium">Initial Angular Velocity ($\omega_0$)</span>
+                            <span id="val-w" class="text-emerald-400 font-bold code-font">1.5 rad/s</span>
+                        </div>
+                        <input type="range" id="slide-w" min="-5" max="5" step="0.1" value="1.5" class="w-full accent-emerald-500 bg-slate-950 h-1.5 rounded-lg appearance-none cursor-pointer">
+                    </div>
+
+                    <!-- Angular Acceleration (alpha) -->
+                    <div class="space-y-1.5" id="container-slide-alpha">
+                        <div class="flex justify-between">
+                            <span class="text-slate-400 font-medium">Constant Angular Acceleration ($\alpha$)</span>
+                            <span id="val-alpha" class="text-amber-400 font-bold code-font">0.0 rad/s²</span>
+                        </div>
+                        <input type="range" id="slide-alpha" min="-2" max="2" step="0.1" value="0.0" class="w-full accent-amber-500 bg-slate-950 h-1.5 rounded-lg appearance-none cursor-pointer">
+                    </div>
+
+                    <!-- Particle Mass (m) -->
+                    <div class="space-y-1.5">
+                        <div class="flex justify-between">
+                            <span class="text-slate-400 font-medium">Particle Mass ($m$)</span>
+                            <span id="val-m" class="text-pink-400 font-bold code-font">1.0 kg</span>
+                        </div>
+                        <input type="range" id="slide-m" min="0.1" max="5" step="0.1" value="1.0" class="w-full accent-pink-500 bg-slate-950 h-1.5 rounded-lg appearance-none cursor-pointer">
+                    </div>
+                </div>
+
+                <!-- Simulation Info Banner dependent on Preset -->
+                <div class="mt-4 p-3.5 bg-slate-950/50 border border-slate-800 rounded-xl text-xs text-slate-400">
+                    <span id="preset-desc" class="italic">Uniform Circular Motion: Angular acceleration is zero, maintaining a constant tangential speed. The only acceleration present is centripetal ($a_c$), pointing radially inward.</span>
+                </div>
+            </div>
+
+            <!-- LIVE OSCILLOSCOPE GRAPHING PANEL -->
+            <div class="bg-slate-900 border border-slate-800 rounded-2xl p-6 shadow-xl">
+                <div class="flex justify-between items-center mb-4">
+                    <h3 class="text-sm font-bold uppercase tracking-wider text-slate-400 flex items-center gap-2">
+                        <svg xmlns="http://www.w3.org/2000/svg" class="w-4 h-4 text-emerald-400" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" /></svg>
+                        Real-Time Kinematic Waveforms (Time-Series)
+                    </h3>
+                    <span class="text-[10px] code-font bg-slate-950 px-2 py-1 rounded border border-slate-800 text-slate-400">Y-Values normalized</span>
+                </div>
+                <div class="h-[120px] bg-slate-950 rounded-xl overflow-hidden relative border border-slate-850">
+                    <canvas id="graphCanvas" class="w-full h-full block"></canvas>
+                </div>
+                <div class="flex gap-4 justify-center items-center mt-3 text-[10px]">
+                    <span class="flex items-center gap-1.5"><span class="w-2.5 h-1 bg-indigo-500 rounded-full"></span> Position ($\theta$)</span>
+                    <span class="flex items-center gap-1.5"><span class="w-2.5 h-1 bg-emerald-500 rounded-full"></span> Speed ($\omega$)</span>
+                    <span class="flex items-center gap-1.5"><span class="w-2.5 h-1 bg-rose-500 rounded-full"></span> Radial Force ($F_r$)</span>
+                </div>
+            </div>
+
+        </section>
+
+        <!-- RIGHT COLUMN: MASTERCLASS INFOGRAPHICS & INTUITION (5 Cols) -->
+        <section class="lg:col-span-5 flex flex-col gap-6">
+            
+            <!-- MASTERCLASS NAVIGATION TABS -->
+            <div class="bg-slate-900 border border-slate-800 rounded-2xl p-2 flex gap-1">
+                <button id="tab-btn-kinematics" class="tab-btn flex-1 py-2.5 rounded-xl text-xs font-bold transition text-indigo-400 bg-slate-950 shadow-inner">
+                    Kinematics
+                </button>
+                <button id="tab-btn-dynamics" class="tab-btn flex-1 py-2.5 rounded-xl text-xs font-semibold transition text-slate-400 hover:text-slate-200">
+                    Dynamics
+                </button>
+                <button id="tab-btn-computation" class="tab-btn flex-1 py-2.5 rounded-xl text-xs font-semibold transition text-slate-400 hover:text-slate-200">
+                    Computation
+                </button>
+            </div>
+
+            <!-- TAB 1: KINEMATICS (POLAR vs CARTESIAN) -->
+            <div id="tab-kinematics" class="tab-content bg-slate-900 border border-slate-800 rounded-2xl p-6 shadow-xl space-y-6">
+                <div>
+                    <h2 class="text-lg font-bold text-slate-150">Coordinate Intuition</h2>
+                    <p class="text-xs text-slate-400 mt-1 leading-relaxed">
+                        Why is Cartesian ($x, y$) so complex for circular constraints, and why does the polar coordinate frame ($r, \theta$) yield flawless elegance? Let's unpack the vector mechanics.
+                    </p>
+                </div>
+
+                <!-- Step 1: Position breakdown -->
+                <div class="border-l-2 border-indigo-500 pl-4 space-y-2">
+                    <span class="text-[10px] uppercase tracking-wider font-extrabold text-indigo-400 block">1. Position Vector Mastery</span>
+                    <p class="text-xs text-slate-300 leading-relaxed">
+                        In circular motion, the distance $r$ from the origin is strictly constrained.
+                    </p>
+                    <div class="bg-slate-950 p-3 rounded-xl code-font text-xs space-y-1.5 border border-slate-850">
+                        <div class="text-slate-500 font-medium">// Cartesian Coordinates:</div>
+                        <div class="text-slate-300">$x(t) = r\cos(\theta(t)), \quad y(t) = r\sin(\theta(t))$</div>
+                        <div class="text-slate-500 font-medium mt-2">// Polar Coordinates:</div>
+                        <div class="text-indigo-400 font-semibold">$\vec{r}(t) = r \hat{r}$</div>
+                    </div>
+                    <p class="text-[11px] text-slate-400 italic">
+                        By aligning our coordinate vector $\hat{r}$ directly with the path's radius, the algebraic representation simplifies from complex sinusoidal functions into a single static radial vector.
+                    </p>
+                </div>
+
+                <!-- Step 2: Velocity breakdown -->
+                <div class="border-l-2 border-emerald-500 pl-4 space-y-2">
+                    <span class="text-[10px] uppercase tracking-wider font-extrabold text-emerald-400 block">2. Velocity Vector & Moving Unit Basis</span>
+                    <p class="text-xs text-slate-300 leading-relaxed">
+                        Taking the time-derivative of position, the polar unit vectors $\hat{r}$ and $\hat{\theta}$ rotate as time evolves:
+                    </p>
+                    <div class="bg-slate-950 p-3 rounded-xl code-font text-xs space-y-2 border border-slate-850">
+                        <div class="text-slate-300">$\frac{d\hat{r}}{dt} = \omega \hat{\theta}$</div>
+                        <div class="text-emerald-400 font-semibold">$\vec{v} = \frac{d\vec{r}}{dt} = r \omega \hat{\theta} \quad (v = r \omega)$</div>
+                    </div>
+                    <p class="text-[11px] text-slate-400 italic">
+                        Velocity points exclusively along the tangential direction ($\hat{\theta}$). No radial component ($v_r = 0$) can exist if the object respects its constraint.
+                    </p>
+                </div>
+
+                <!-- Step 3: Acceleration breakdown -->
+                <div class="border-l-2 border-rose-500 pl-4 space-y-2">
+                    <span class="text-[10px] uppercase tracking-wider font-extrabold text-rose-400 block">3. Double Acceleration Phenomenon</span>
+                    <p class="text-xs text-slate-300 leading-relaxed">
+                        Taking another derivative, we uncover two distinct components of acceleration:
+                    </p>
+                    <div class="bg-slate-950 p-3 rounded-xl code-font text-xs space-y-1.5 border border-slate-850">
+                        <div class="text-slate-300">$\vec{a} = a_r\hat{r} + a_\theta\hat{\theta}$</div>
+                        <div class="text-rose-400 font-semibold">$a_r = -r\omega^2 = -\frac{v^2}{r} \quad \text{(Centripetal)}$</div>
+                        <div class="text-fuchsia-400 font-semibold">$a_\theta = r\alpha = r\frac{d\omega}{dt} \quad \text{(Tangential)}$</div>
+                    </div>
+                    <p class="text-[11px] text-slate-400 leading-relaxed">
+                        <strong>Centripetal ($a_c$):</strong> Pulls inward. Always present for any curved motion to continuously bend the velocity vector. <br>
+                        <strong>Tangential ($a_t$):</strong> Acts along the speed path. Only exists when the object is speeding up or slowing down ($\alpha \neq 0$).
+                    </p>
+                </div>
+            </div>
+
+            <!-- TAB 2: DYNAMICS (CONSTRAINTS & FORCES) -->
+            <div id="tab-dynamics" class="tab-content bg-slate-900 border border-slate-800 rounded-2xl p-6 shadow-xl space-y-6 hidden">
+                <div>
+                    <h2 class="text-lg font-bold text-slate-150">Newton's Second Law</h2>
+                    <p class="text-xs text-slate-400 mt-1 leading-relaxed">
+                        Forces do not "want" to make elements spin. For an object to turn, some physical force (tension, normal force, gravity) must act as the constrained centripetal mediator.
+                    </p>
+                </div>
+
+                <!-- Dynamic equations -->
+                <div class="bg-slate-950 p-4 rounded-xl border border-slate-850 space-y-3">
+                    <h4 class="text-xs font-bold uppercase tracking-wider text-pink-400">Forces in Constrained Motion</h4>
+                    <div class="grid grid-cols-2 gap-3 text-xs">
+                        <div class="p-2.5 bg-slate-900/60 rounded-lg border border-slate-800">
+                            <span class="block text-[10px] font-bold text-slate-500">RADIAL FORCE ($F_r$)</span>
+                            <span class="code-font text-rose-400 font-bold text-sm block mt-1">$m \frac{v^2}{r}$</span>
+                            <span class="text-[9px] text-slate-400">Pulls inward. Maintains structural circle constraint.</span>
+                        </div>
+                        <div class="p-2.5 bg-slate-900/60 rounded-lg border border-slate-800">
+                            <span class="block text-[10px] font-bold text-slate-500">TANGENTIAL FORCE ($F_t$)</span>
+                            <span class="code-font text-fuchsia-400 font-bold text-sm block mt-1">$m r \alpha$</span>
+                            <span class="text-[9px] text-slate-400">Drives angular speed up/down along path perimeter.</span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Expert Mental Model Map -->
+                <div class="space-y-3">
+                    <h4 class="text-xs font-extrabold uppercase tracking-widest text-indigo-400">Expert Mental Model: "Centripetal" is a Job Description</h4>
+                    <p class="text-xs text-slate-300 leading-relaxed">
+                        There is no distinct physical force in nature called the "centripetal force." Instead, the term describes a roles-and-responsibilities requirement:
+                    </p>
+                    <ul class="text-xs text-slate-400 space-y-2 pl-4 list-disc">
+                        <li><strong>String Pendulum:</strong> String tension ($T$) acts as the centripetal job fulfiller.</li>
+                        <li><strong>Car around a bend:</strong> Static friction between rubber and asphalt fulfills the centripetal role.</li>
+                        <li><strong>Planet orbit:</strong> Gravitational attraction fulfills the centripetal demand.</li>
+                    </ul>
+                </div>
+
+                <!-- CRITICAL THINKING / EXERCISE BOX -->
+                <div class="bg-indigo-950/20 border border-indigo-900/40 p-4 rounded-xl">
+                    <h4 class="text-xs font-bold text-indigo-300 flex items-center gap-1.5 mb-1.5">
+                        <svg xmlns="http://www.w3.org/2000/svg" class="w-4 h-4 text-indigo-400" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9.663 17h4.673M12 3v1m6.364 1.636l-.707.707M21 12h-1M4 12H3m3.343-5.657l-.707-.707m2.828 9.9a5 5 0 117.072 0l-.548.547A3.374 3.374 0 0014 18.469V19a2 2 0 11-4 0v-.531c0-.895-.356-1.754-.988-2.386l-.548-.547z" /></svg>
+                        Critical Thinking Experiment
+                    </h4>
+                    <p class="text-xs text-slate-300 leading-relaxed">
+                        What happens if the circular constraint suddenly snaps (e.g., cutting the string)? Click <strong>"CUT CONSTRAINT"</strong> on the live simulator view above. Notice how the particle stops turning instantly and drifts off straight, tangentially. Without radial force, $\vec{a} = 0$, confirming Newton's First Law.
+                    </p>
+                </div>
+            </div>
+
+            <!-- TAB 3: COMPUTATIONAL SIMULATION & ALGORITHMS -->
+            <div id="tab-computation" class="tab-content bg-slate-900 border border-slate-800 rounded-2xl p-6 shadow-xl space-y-6 hidden">
+                <div>
+                    <h2 class="text-lg font-bold text-slate-150">Computational Engine</h2>
+                    <p class="text-xs text-slate-400 mt-1 leading-relaxed">
+                        To compute the motion on your monitor screen, the system uses numerical integration (specifically, the **Euler-Cromer Method**).
+                    </p>
+                </div>
+
+                <!-- Simulation Loop Sequence -->
+                <div class="space-y-4">
+                    <span class="text-[10px] uppercase tracking-wider font-extrabold text-amber-500 block">System Integration Steps (Per Frame)</span>
+                    
+                    <!-- Loop step 1 -->
+                    <div class="flex gap-3 text-xs">
+                        <div class="w-6 h-6 rounded-full bg-slate-800 border border-slate-700 flex items-center justify-center text-indigo-400 font-bold flex-shrink-0">1</div>
+                        <div class="space-y-1">
+                            <span class="font-bold text-slate-200 block">Evaluate Angular Forces</span>
+                            <p class="text-slate-400 leading-relaxed text-[11px]">
+                                Identify current angular acceleration ($\alpha$). For constant nonuniform, it is manual. For a gravity pendulum, it updates dynamically: <br>
+                                <span class="code-font text-amber-400">$\alpha = -\frac{g}{r} \sin(\theta)$</span>
+                            </p>
+                        </div>
+                    </div>
+
+                    <!-- Loop step 2 -->
+                    <div class="flex gap-3 text-xs">
+                        <div class="w-6 h-6 rounded-full bg-slate-800 border border-slate-700 flex items-center justify-center text-emerald-400 font-bold flex-shrink-0">2</div>
+                        <div class="space-y-1">
+                            <span class="font-bold text-slate-200 block">Update Angular Velocity ($\omega$)</span>
+                            <p class="text-slate-400 leading-relaxed text-[11px]">
+                                Integrate acceleration over the small timestep $dt$: <br>
+                                <span class="code-font text-emerald-400">$\omega_{\text{new}} = \omega_{\text{old}} + \alpha \, dt$</span>
+                            </p>
+                        </div>
+                    </div>
+
+                    <!-- Loop step 3 -->
+                    <div class="flex gap-3 text-xs">
+                        <div class="w-6 h-6 rounded-full bg-slate-800 border border-slate-700 flex items-center justify-center text-sky-400 font-bold flex-shrink-0">3</div>
+                        <div class="space-y-1">
+                            <span class="font-bold text-slate-200 block">Update Rotational Position ($\theta$)</span>
+                            <p class="text-slate-400 leading-relaxed text-[11px]">
+                                Apply integrated velocity to find the new angular state: <br>
+                                <span class="code-font text-sky-400">$\theta_{\text{new}} = \theta_{\text{old}} + \omega_{\text{new}} \, dt$</span>
+                            </p>
+                        </div>
+                    </div>
+
+                    <!-- Loop step 4 -->
+                    <div class="flex gap-3 text-xs">
+                        <div class="w-6 h-6 rounded-full bg-slate-800 border border-slate-700 flex items-center justify-center text-purple-400 font-bold flex-shrink-0">4</div>
+                        <div class="space-y-1">
+                            <span class="font-bold text-slate-200 block">Translate to Cartesian Coordinates for Canvas Render</span>
+                            <p class="text-slate-400 leading-relaxed text-[11px]">
+                                To render on your screen, we transform polar states back to coordinates: <br>
+                                <span class="code-font text-purple-400">$x = x_c + r \cos(\theta), \quad y = y_c - r \sin(\theta)$</span>
+                            </p>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Simulation Specs and Details -->
+                <div class="p-3 bg-slate-950/80 rounded-xl border border-slate-850 text-xs">
+                    <span class="text-[10px] font-bold uppercase tracking-wider text-slate-500 block mb-1">Sim Precision Variables:</span>
+                    <ul class="space-y-1 text-[11px] text-slate-300 code-font">
+                        <li>Fixed Integrator Delta: <span class="text-indigo-400">$dt = 0.016\,\text{s}$ (60Hz)</span></li>
+                        <li>Radius Dimension Mapping: <span class="text-indigo-400">1px = 0.05 meters</span></li>
+                    </ul>
+                </div>
+            </div>
+
+            <!-- DYNAMIC FORMULA COMPARATIVE MATRIX -->
+            <div class="bg-slate-900 border border-slate-800 rounded-2xl p-6 shadow-xl">
+                <h3 class="text-xs font-bold uppercase tracking-wider text-slate-400 mb-3">Polar vs Cartesian Equivalency</h3>
+                <div class="overflow-x-auto">
+                    <table class="w-full text-left border-collapse text-xs">
+                        <thead>
+                            <tr class="border-b border-slate-800 text-slate-500">
+                                <th class="pb-2 font-semibold">Concept</th>
+                                <th class="pb-2 font-semibold">Cartesian View (Complex)</th>
+                                <th class="pb-2 font-semibold text-indigo-400">Polar View (Elegant)</th>
+                            </tr>
+                        </thead>
+                        <tbody class="divide-y divide-slate-800/50 text-slate-350 font-medium">
+                            <tr>
+                                <td class="py-2.5">Position</td>
+                                <td class="py-2.5 font-mono text-[10px]">$r \cos(\theta)\hat{i} + r \sin(\theta)\hat{j}$</td>
+                                <td class="py-2.5 font-mono text-indigo-400 text-[11px]">$r \hat{r}$</td>
+                            </tr>
+                            <tr>
+                                <td class="py-2.5">Velocity</td>
+                                <td class="py-2.5 font-mono text-[10px]">$v_x \hat{i} + v_y \hat{j}$</td>
+                                <td class="py-2.5 font-mono text-emerald-400 text-[11px]">$r \omega \hat{\theta}$</td>
+                            </tr>
+                            <tr>
+                                <td class="py-2.5">Accel (Unif)</td>
+                                <td class="py-2.5 font-mono text-[10px]">$-r\omega^2 \cos(\theta)\hat{i} - r\omega^2 \sin(\theta)\hat{j}$</td>
+                                <td class="py-2.5 font-mono text-rose-400 text-[11px]">$-r\omega^2 \hat{r}$</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+
+        </section>
+        
+    </main>
+
+    <!-- FOOTER -->
+    <footer class="border-t border-slate-800 bg-slate-950 px-6 py-4 mt-auto text-center text-xs text-slate-500">
+        Circula Interactive Physics Simulator • Designed for Web and Mobile Interactions.
+    </footer>
+
+    <!-- JAVASCRIPT SIMULATION AND UI IMPLEMENTATION -->
+    <script>
+        // DOM ELEMENTS
+        const canvas = document.getElementById('simCanvas');
+        const ctx = canvas.getContext('2d');
+        const graphCanvas = document.getElementById('graphCanvas');
+        const graphCtx = graphCanvas.getContext('2d');
+
+        // Playback Controls
+        const btnPlay = document.getElementById('btn-play');
+        const btnStep = document.getElementById('btn-step');
+        const btnReset = document.getElementById('btn-reset');
+        const iconPlay = document.getElementById('icon-play');
+        const iconPause = document.getElementById('icon-pause');
+
+        // Parameter Sliders
+        const slideR = document.getElementById('slide-r');
+        const slideW = document.getElementById('slide-w');
+        const slideAlpha = document.getElementById('slide-alpha');
+        const slideM = document.getElementById('slide-m');
+
+        const valR = document.getElementById('val-r');
+        const valW = document.getElementById('val-w');
+        const valAlpha = document.getElementById('val-alpha');
+        const valM = document.getElementById('val-m');
+
+        // Slider Container Elements
+        const containerSlideW = document.getElementById('container-slide-w');
+        const containerSlideAlpha = document.getElementById('container-slide-alpha');
+
+        // Preset buttons
+        const btnUniform = document.getElementById('preset-uniform');
+        const btnNonuniform = document.getElementById('preset-nonuniform');
+        const btnPendulum = document.getElementById('preset-pendulum');
+        const btnLoop = document.getElementById('preset-loop');
+        const presetDesc = document.getElementById('preset-desc');
+
+        // Checkboxes & HUD
+        const chkVecV = document.getElementById('chk-vec-v');
+        const chkVecAc = document.getElementById('chk-vec-ac');
+        const chkVecAt = document.getElementById('chk-vec-at');
+        const chkPolarBasis = document.getElementById('chk-polar-basis');
+
+        const hudTheta = document.getElementById('hud-theta');
+        const hudOmega = document.getElementById('hud-omega');
+        const hudAlpha = document.getElementById('hud-alpha');
+        const hudV = document.getElementById('hud-v');
+        const hudAc = document.getElementById('hud-ac');
+        const hudAt = document.getElementById('hud-at');
+
+        // Constraint Snapping Controls
+        const btnCutConstraint = document.getElementById('btn-cut-constraint');
+        const btnResetConstraint = document.getElementById('btn-reset-constraint');
+        const cutWarning = document.getElementById('cut-warning');
+
+        // Tabs
+        const tabBtnKinematics = document.getElementById('tab-btn-kinematics');
+        const tabBtnDynamics = document.getElementById('tab-btn-dynamics');
+        const tabBtnComputation = document.getElementById('tab-btn-computation');
+        const tabContents = document.querySelectorAll('.tab-content');
+        const tabBtns = document.querySelectorAll('.tab-btn');
+
+        // SIMULATION STATE VARIABLES
+        let isPlaying = false;
+        let presetMode = 'uniform'; // 'uniform', 'nonuniform', 'pendulum', 'loop'
+        let isConstraintCut = false;
+
+        // Kinematics State variables
+        let r = parseFloat(slideR.value); // current radius in pixels
+        let theta = 0; // angular position (radians)
+        let omega = parseFloat(slideW.value); // angular velocity (rad/s)
+        let alpha = parseFloat(slideAlpha.value); // angular acceleration (rad/s^2)
+        let mass = parseFloat(slideM.value); // mass of the particle (kg)
+
+        // Cartesian state (needed especially if the constraint is broken)
+        let posX = 0;
+        let posY = 0;
+        let velX = 0;
+        let velY = 0;
+
+        // Time step configuration
+        const dt = 0.016; // 60 updates per second (approx)
+        let timeHistory = []; // to store real-time data history for charts
+        const maxHistory = 150;
+
+        // Set high DPI Canvas bounds
+        function resizeCanvas() {
+            const rect = canvas.getBoundingClientRect();
+            canvas.width = rect.width * window.devicePixelRatio;
+            canvas.height = rect.height * window.devicePixelRatio;
+            ctx.scale(window.devicePixelRatio, window.devicePixelRatio);
+
+            const graphRect = graphCanvas.getBoundingClientRect();
+            graphCanvas.width = graphRect.width * window.devicePixelRatio;
+            graphCanvas.height = graphRect.height * window.devicePixelRatio;
+            graphCtx.scale(window.devicePixelRatio, window.devicePixelRatio);
+        }
+
+        // TAB SWITCHING LOGIC
+        function initTabs() {
+            const tabs = [
+                { btn: tabBtnKinematics, contentId: 'tab-kinematics' },
+                { btn: tabBtnDynamics, contentId: 'tab-dynamics' },
+                { btn: tabBtnComputation, contentId: 'tab-computation' }
+            ];
+
+            tabs.forEach(tab => {
+                tab.btn.addEventListener('click', () => {
+                    // Update tab buttons style
+                    tabBtns.forEach(b => {
+                        b.classList.remove('text-indigo-400', 'bg-slate-950', 'shadow-inner');
+                        b.classList.add('text-slate-400', 'hover:text-slate-200');
+                    });
+                    tab.btn.classList.add('text-indigo-400', 'bg-slate-950', 'shadow-inner');
+                    tab.btn.classList.remove('text-slate-400', 'hover:text-slate-200');
+
+                    // Display proper panel
+                    tabContents.forEach(content => content.classList.add('hidden'));
+                    document.getElementById(tab.contentId).classList.remove('hidden');
+                });
+            });
+        }
+
+        // PRESET MANAGEMENT
+        function setPreset(mode) {
+            presetMode = mode;
+            isConstraintCut = false;
+            cutWarning.classList.add('hidden');
+            btnCutConstraint.classList.remove('hidden');
+            btnResetConstraint.classList.add('hidden');
+
+            // Set preset styling active status
+            const buttons = [
+                { el: btnUniform, mode: 'uniform' },
+                { el: btnNonuniform, mode: 'nonuniform' },
+                { el: btnPendulum, mode: 'pendulum' },
+                { el: btnLoop, mode: 'loop' }
+            ];
+
+            buttons.forEach(item => {
+                if (item.mode === mode) {
+                    item.el.className = "preset-btn bg-indigo-600 text-white font-bold py-2 px-3 rounded-xl text-xs transition border border-indigo-500 shadow-md";
+                } else {
+                    item.el.className = "preset-btn bg-slate-800 hover:bg-slate-700 text-slate-300 font-semibold py-2 px-3 rounded-xl text-xs transition border border-slate-700";
+                }
+            });
+
+            // Re-organize layout based on presets
+            if (mode === 'uniform') {
+                containerSlideW.classList.remove('hidden');
+                containerSlideAlpha.classList.add('hidden');
+                omega = 1.5;
+                alpha = 0.0;
+                presetDesc.innerHTML = "<strong>Uniform Circular Motion:</strong> Angular acceleration is zero, maintaining a constant tangential speed. The only acceleration present is centripetal ($a_c$), pointing radially inward.";
+            } else if (mode === 'nonuniform') {
+                containerSlideW.classList.remove('hidden');
+                containerSlideAlpha.classList.remove('hidden');
+                omega = 0.5;
+                alpha = 0.4;
+                presetDesc.innerHTML = "<strong>Non-Uniform Circular Motion:</strong> Constantly speeding up or slowing down. Both centripetal acceleration ($a_c$) and tangential acceleration ($a_t$) are active.";
+            } else if (mode === 'pendulum') {
+                containerSlideW.classList.add('hidden');
+                containerSlideAlpha.classList.add('hidden');
+                theta = Math.PI / 3; // Start swing at 60 degrees
+                omega = 0.0;
+                alpha = 0.0;
+                presetDesc.innerHTML = "<strong>Gravity Simple Pendulum:</strong> Constrained circular arc. gravity pulls vertically, producing a rotational acceleration proportional to $-\\sin(\\theta)$. Oscillates indefinitely.";
+            } else if (mode === 'loop') {
+                containerSlideW.classList.add('hidden');
+                containerSlideAlpha.classList.add('hidden');
+                theta = Math.PI / 2; // Start loop top
+                omega = 2.0; // High enough speed to traverse top
+                alpha = 0.0;
+                presetDesc.innerHTML = "<strong>Vertical Loop-the-Loop:</strong> Mechanical constraint where speed changes based on height. Gravity speeds the object up on descent and slows it down on ascent.";
+            }
+
+            syncInputs();
+            resetState();
+            
+            // Re-render math inside the dynamically modified presetDesc
+            renderMath(presetDesc);
+        }
+
+        // Synch inputs
+        function syncInputs() {
+            slideR.value = r;
+            valR.innerText = `${r} px`;
+
+            slideW.value = omega;
+            valW.innerText = `${omega.toFixed(1)} rad/s`;
+
+            slideAlpha.value = alpha;
+            valAlpha.innerText = `${alpha.toFixed(1)} rad/s²`;
+
+            slideM.value = mass;
+            valM.innerText = `${mass.toFixed(1)} kg`;
+        }
+
+        // UPDATE PHYSICS SIMULATION STEP
+        function updatePhysics() {
+            const g = 9.8; // gravity acceleration
+            
+            // If constraint is NOT broken, map polar kinematics
+            if (!isConstraintCut) {
+                
+                if (presetMode === 'pendulum') {
+                    // Simple pendulum motion: alpha = -(g / R_meters) * sin(theta)
+                    // Let's assume r scale is 100px = 5 meters. R_meters = r * 0.05
+                    const r_m = r * 0.05;
+                    alpha = -(g / r_m) * Math.sin(theta);
+                } else if (presetMode === 'loop') {
+                    // Vertical coaster loop energy conservation:
+                    // Alpha is calculated via kinetic dynamics: F_tangential = -mg * cos(theta)
+                    // a_t = -g * cos(theta) => alpha = a_t / r
+                    const r_m = r * 0.05;
+                    alpha = -(g / r_m) * Math.cos(theta);
+                } else if (presetMode === 'uniform') {
+                    alpha = 0.0;
+                }
+
+                // Numerical Integration (Euler-Cromer Algorithm)
+                omega += alpha * dt;
+                theta += omega * dt;
+
+                // Bind theta within [0, 2pi] for clear representation
+                if (theta > Math.PI * 2) theta -= Math.PI * 2;
+                if (theta < 0) theta += Math.PI * 2;
+
+                // Find Cartesian position dynamically for visual rendering
+                const cx = canvas.width / (2 * window.devicePixelRatio);
+                const cy = canvas.height / (2 * window.devicePixelRatio);
+                posX = cx + r * Math.cos(theta);
+                posY = cy - r * Math.sin(theta); // Subtract because Canvas Y coordinates increase downwards
+
+                // Track continuous cartesian velocity values for SNAP/BREAK simulation transition
+                velX = -r * omega * Math.sin(theta);
+                velY = -r * omega * Math.cos(theta);
+
+            } else {
+                // CONSTRAINT BROKEN: Particles behaves on inert inertial coordinates! (Newton 1st Law)
+                posX += velX * dt;
+                posY += velY * dt;
+                
+                // Acceleration is zero without constraints
+                omega = 0;
+                alpha = 0;
+                theta = Math.atan2((canvas.height / (2 * window.devicePixelRatio)) - posY, posX - (canvas.width / (2 * window.devicePixelRatio)));
+            }
+
+            // Record parameters for scrolling visual plot
+            let a_c = r * omega * omega;
+            let a_t = r * alpha;
+            let net_force = mass * a_c;
+
+            timeHistory.push({
+                theta: theta,
+                omega: omega,
+                force: net_force
+            });
+            if (timeHistory.length > maxHistory) timeHistory.shift();
+
+            // Render live HUD specs
+            hudTheta.innerText = `${theta.toFixed(2)} rad`;
+            hudOmega.innerText = `${omega.toFixed(2)} rad/s`;
+            hudAlpha.innerText = `${alpha.toFixed(2)} rad/s²`;
+            
+            // Linear values (1px = 0.05 meters)
+            const speed_m_s = Math.abs(r * 0.05 * omega);
+            const ac_m_s2 = r * 0.05 * omega * omega;
+            const at_m_s2 = r * 0.05 * alpha;
+
+            hudV.innerText = `${speed_m_s.toFixed(2)} m/s`;
+            hudAc.innerText = `${ac_m_s2.toFixed(2)} m/s²`;
+            hudAt.innerText = `${at_m_s2.toFixed(2)} m/s²`;
+        }
+
+        // CUSTOM RENDERING METHOD FOR MATH MODIFIERS (VECTORS & HATS)
+        // Completely resolves overlapping box characters (▢) on standard canvas engines
+        function drawSymbolOnCanvas(ctx, text, x, y, color) {
+            ctx.save();
+            ctx.font = 'bold 11px Inter, sans-serif';
+            ctx.textBaseline = 'middle';
+            
+            let labelWidth = 0;
+            if (text === 'v') {
+                labelWidth = ctx.measureText('v').width;
+            } else if (text === 'a_c' || text === 'a_t') {
+                labelWidth = ctx.measureText('a').width + ctx.measureText('x').width * 0.8;
+            } else if (text === 'r_hat') {
+                labelWidth = ctx.measureText('r').width;
+            } else if (text === 'theta_hat') {
+                labelWidth = ctx.measureText('θ').width;
+            } else {
+                labelWidth = ctx.measureText(text).width;
+            }
+            
+            // Draw backdrop pill
+            ctx.fillStyle = 'rgba(9, 13, 22, 0.9)';
+            ctx.strokeStyle = color;
+            ctx.lineWidth = 1.5;
+            
+            const padX = 6;
+            const padY = 5;
+            const rx = x - padX;
+            const ry = y - 10;
+            const rw = labelWidth + padX * 2;
+            const rh = 18;
+            
+            ctx.beginPath();
+            if (ctx.roundRect) {
+                ctx.roundRect(rx, ry, rw, rh, 5);
+            } else {
+                ctx.rect(rx, ry, rw, rh);
+            }
+            ctx.fill();
+            ctx.stroke();
+            
+            // Render letters and precise geometric modifiers
+            ctx.fillStyle = '#ffffff';
+            if (text === 'v') {
+                ctx.fillText('v', x, y + 1);
+                // Custom drawn vector arrow above 'v'
+                ctx.strokeStyle = '#ffffff';
+                ctx.lineWidth = 1;
+                ctx.beginPath();
+                ctx.moveTo(x + 1, y - 6);
+                ctx.lineTo(x + 5, y - 6);
+                ctx.lineTo(x + 3.5, y - 7.5);
+                ctx.moveTo(x + 5, y - 6);
+                ctx.lineTo(x + 3.5, y - 4.5);
+                ctx.stroke();
+            } else if (text === 'a_c' || text === 'a_t') {
+                ctx.fillText('a', x, y);
+                // Custom drawn vector arrow above 'a'
+                ctx.strokeStyle = '#ffffff';
+                ctx.lineWidth = 1;
+                ctx.beginPath();
+                ctx.moveTo(x + 1, y - 7);
+                ctx.lineTo(x + 5, y - 7);
+                ctx.lineTo(x + 3.5, y - 8.5);
+                ctx.moveTo(x + 5, y - 7);
+                ctx.lineTo(x + 3.5, y - 5.5);
+                ctx.stroke();
+                
+                // Subscript c or t
+                ctx.font = 'bold 8px Inter, sans-serif';
+                const sub = text === 'a_c' ? 'c' : 't';
+                ctx.fillText(sub, x + ctx.measureText('a').width + 2, y + 4);
+            } else if (text === 'r_hat') {
+                ctx.fillText('r', x, y + 1);
+                // Custom drawn unit coordinate caret (hat)
+                ctx.font = 'bold 9px Inter, sans-serif';
+                ctx.fillText('^', x + 1, y - 4);
+            } else if (text === 'theta_hat') {
+                ctx.fillText('θ', x, y);
+                // Custom drawn unit coordinate caret (hat)
+                ctx.font = 'bold 9px Inter, sans-serif';
+                ctx.fillText('^', x + 1, y - 5);
+            } else {
+                ctx.fillText(text, x, y + 1);
+            }
+            ctx.restore();
+        }
+
+        // RENDER METHOD FOR SIMULATOR CANVAS
+        function drawSimulation() {
+            // Background clearance
+            ctx.fillStyle = '#090d16';
+            ctx.fillRect(0, 0, canvas.width / window.devicePixelRatio, canvas.height / window.devicePixelRatio);
+
+            const cx = canvas.width / (2 * window.devicePixelRatio);
+            const cy = canvas.height / (2 * window.devicePixelRatio);
+
+            // DRAW COORDINATE SYSTEM AXES
+            ctx.strokeStyle = '#1e293b';
+            ctx.lineWidth = 1;
+            ctx.setLineDash([4, 4]);
+            ctx.beginPath();
+            ctx.moveTo(0, cy); ctx.lineTo(canvas.width, cy);
+            ctx.moveTo(cx, 0); ctx.lineTo(cx, canvas.height);
+            ctx.stroke();
+            ctx.setLineDash([]);
+
+            // DRAW CIRCLE ORBIT PATH (If constraint holds)
+            if (!isConstraintCut) {
+                ctx.strokeStyle = '#334155';
+                ctx.lineWidth = 1.5;
+                ctx.beginPath();
+                ctx.arc(cx, cy, r, 0, Math.PI * 2);
+                ctx.stroke();
+
+                // Draw string connecting center to particle
+                ctx.strokeStyle = '#475569';
+                ctx.lineWidth = 2;
+                ctx.beginPath();
+                ctx.moveTo(cx, cy);
+                ctx.lineTo(posX, posY);
+                ctx.stroke();
+            }
+
+            // Draw center coordinate pin
+            ctx.fillStyle = '#6366f1';
+            ctx.beginPath();
+            ctx.arc(cx, cy, 5, 0, Math.PI * 2);
+            ctx.fill();
+
+            // RENDER ACTIVE KINEMATIC VECTORS
+            if (!isConstraintCut) {
+                // Polar angle direction calculations
+                const cosT = Math.cos(theta);
+                const sinT = Math.sin(theta);
+
+                // 1. VELOCITY VECTOR (Tangent to the perimeter: sky-500)
+                if (chkVecV.checked) {
+                    const vx = -sinT * omega * r * 0.2; 
+                    const vy = -cosT * omega * r * 0.2;
+                    drawArrow(posX, posY, posX + vx, posY + vy, '#0ea5e9', 3, 'v');
+                }
+
+                // 2. CENTRIPETAL ACCELERATION VECTOR (Points directly inward: rose-500)
+                if (chkVecAc.checked && Math.abs(omega) > 0.05) {
+                    const acx = -cosT * (omega * omega * r) * 0.1; 
+                    const acy = sinT * (omega * omega * r) * 0.1;
+                    drawArrow(posX, posY, posX + acx, posY + acy, '#f43f5e', 3, 'a_c');
+                }
+
+                // 3. TANGENTIAL ACCELERATION VECTOR (Direction: fuchsia-500)
+                if (chkVecAt.checked && Math.abs(alpha) > 0.01) {
+                    const atx = -sinT * (alpha * r) * 0.2;
+                    const aty = -cosT * (alpha * r) * 0.2;
+                    drawArrow(posX, posY, posX + atx, posY + aty, '#d946ef', 3, 'a_t');
+                }
+
+                // 4. POLAR UNIT BASIS VECTORS (r̂ and θ̂: indigo-400)
+                if (chkPolarBasis.checked) {
+                    const basisLen = 45;
+                    // radial r̂ unit (In direction of radius)
+                    const rx = cosT * basisLen;
+                    const ry = -sinT * basisLen;
+                    drawArrow(posX, posY, posX + rx, posY + ry, '#818cf8', 2.5, 'r_hat');
+
+                    // thetâ unit (Tangential - always 90 deg counterclockwise)
+                    const tx = -sinT * basisLen;
+                    const ty = -cosT * basisLen;
+                    drawArrow(posX, posY, posX + tx, posY + ty, '#a5b4fc', 2.5, 'theta_hat');
+                }
+            }
+
+            // DRAW MASS PARTICLE (Bright orb indicator)
+            ctx.fillStyle = '#ffffff';
+            ctx.shadowBlur = 15;
+            ctx.shadowColor = '#6366f1';
+            ctx.beginPath();
+            ctx.arc(posX, posY, 10 + mass * 2, 0, Math.PI * 2); // Radius depends on mass
+            ctx.fill();
+            ctx.shadowBlur = 0; // Clear shadow for outer canvas items
+
+            // Thin border outline
+            ctx.strokeStyle = '#4338ca';
+            ctx.lineWidth = 2.5;
+            ctx.stroke();
+        }
+
+        // Arrow drawing helper function
+        function drawArrow(fromx, fromy, tox, toy, color, width, label) {
+            ctx.strokeStyle = color;
+            ctx.fillStyle = color;
+            ctx.lineWidth = width;
+
+            // Draw line stem
+            ctx.beginPath();
+            ctx.moveTo(fromx, fromy);
+            ctx.lineTo(tox, toy);
+            ctx.stroke();
+
+            // Draw arrowhead
+            const angle = Math.atan2(toy - fromy, tox - fromx);
+            const r_head = 7;
+            ctx.beginPath();
+            ctx.moveTo(tox, toy);
+            ctx.lineTo(tox - r_head * Math.cos(angle - Math.PI / 6), toy - r_head * Math.sin(angle - Math.PI / 6));
+            ctx.lineTo(tox - r_head * Math.cos(angle + Math.PI / 6), toy - r_head * Math.sin(angle + Math.PI / 6));
+            ctx.closePath();
+            ctx.fill();
+
+            // High-fidelity Pill label renderer
+            if (label) {
+                // Offset label position to sit neatly beyond arrow tip
+                const lx = tox + 10 * Math.cos(angle);
+                const ly = toy + 10 * Math.sin(angle);
+                drawSymbolOnCanvas(ctx, label, lx, ly, color);
+            }
+        }
+
+        // REAL-TIME SCROLLING OSCILLOSCOPE DRAW
+        function drawGraph() {
+            graphCtx.fillStyle = '#090d16';
+            graphCtx.fillRect(0, 0, graphCanvas.width / window.devicePixelRatio, graphCanvas.height / window.devicePixelRatio);
+
+            if (timeHistory.length < 2) return;
+
+            const w = graphCanvas.width / window.devicePixelRatio;
+            const h = graphCanvas.height / window.devicePixelRatio;
+            const midY = h / 2;
+
+            // Draw center zero reference
+            graphCtx.strokeStyle = '#1e293b';
+            graphCtx.lineWidth = 1;
+            graphCtx.beginPath();
+            graphCtx.moveTo(0, midY);
+            graphCtx.lineTo(w, midY);
+            graphCtx.stroke();
+
+            const step = w / maxHistory;
+
+            // Rendering helper for waveform lines
+            function plotLine(valSelector, color, minMaxVal) {
+                graphCtx.strokeStyle = color;
+                graphCtx.lineWidth = 1.8;
+                graphCtx.beginPath();
+
+                for (let i = 0; i < timeHistory.length; i++) {
+                    const x = i * step;
+                    const val = valSelector(timeHistory[i]);
+                    // Normalize to fit container height beautifully
+                    const normalizedVal = (val / minMaxVal) * (h * 0.4);
+                    const y = midY - normalizedVal;
+
+                    if (i === 0) {
+                        graphCtx.moveTo(x, y);
+                    } else {
+                        graphCtx.lineTo(x, y);
+                    }
+                }
+                graphCtx.stroke();
+            }
+
+            // Plot Position (\theta) in Indigo (0 to 2pi normalized)
+            plotLine(d => d.theta - Math.PI, '#6366f1', Math.PI);
+
+            // Plot speed (\omega) in Emerald
+            plotLine(d => d.omega, '#10b981', 4.0);
+
+            // Plot Centripetal/Radial Force (F_r) in Rose
+            plotLine(d => d.force, '#f43f5e', 2000.0);
+        }
+
+        // EVENT HANDLERS & BINDINGS
+        function setupEventListeners() {
+            
+            // Play & Pause State transitions
+            btnPlay.addEventListener('click', () => {
+                isPlaying = !isPlaying;
+                if (isPlaying) {
+                    iconPlay.classList.add('hidden');
+                    iconPause.classList.remove('hidden');
+                    runMainLoop();
+                } else {
+                    iconPlay.classList.remove('hidden');
+                    iconPause.classList.add('hidden');
+                }
+            });
+
+            // Playback step helper
+            btnStep.addEventListener('click', () => {
+                isPlaying = false;
+                iconPlay.classList.remove('hidden');
+                iconPause.classList.add('hidden');
+                updatePhysics();
+                drawSimulation();
+                drawGraph();
+            });
+
+            // Total state Reset click
+            btnReset.addEventListener('click', () => {
+                resetState();
+            });
+
+            // Snap constraint controls
+            btnCutConstraint.addEventListener('click', () => {
+                isConstraintCut = true;
+                cutWarning.classList.remove('hidden');
+                btnCutConstraint.classList.add('hidden');
+                btnResetConstraint.classList.remove('hidden');
+                drawSimulation();
+            });
+
+            btnResetConstraint.addEventListener('click', () => {
+                setPreset(presetMode);
+            });
+
+            // Sliders changes binding events
+            slideR.addEventListener('input', (e) => {
+                r = parseFloat(e.target.value);
+                valR.innerText = `${r} px`;
+                if (!isPlaying) {
+                    resetState();
+                }
+            });
+
+            slideW.addEventListener('input', (e) => {
+                omega = parseFloat(e.target.value);
+                valW.innerText = `${omega.toFixed(1)} rad/s`;
+                if (!isPlaying) {
+                    resetState();
+                }
+            });
+
+            slideAlpha.addEventListener('input', (e) => {
+                alpha = parseFloat(e.target.value);
+                valAlpha.innerText = `${alpha.toFixed(1)} rad/s²`;
+                if (!isPlaying) {
+                    resetState();
+                }
+            });
+
+            slideM.addEventListener('input', (e) => {
+                mass = parseFloat(e.target.value);
+                valM.innerText = `${mass.toFixed(1)} kg`;
+            });
+
+            // Preset activations
+            btnUniform.addEventListener('click', () => setPreset('uniform'));
+            btnNonuniform.addEventListener('click', () => setPreset('nonuniform'));
+            btnPendulum.addEventListener('click', () => setPreset('pendulum'));
+            btnLoop.addEventListener('click', () => setPreset('loop'));
+
+            // Redraw on window sizes alteration
+            window.addEventListener('resize', () => {
+                resizeCanvas();
+                resetState();
+            });
+        }
+
+        // Reset the states cleanly back
+        function resetState() {
+            timeHistory = [];
+            
+            // Check initial position bindings dependent on presetting configurations
+            if (presetMode === 'pendulum') {
+                theta = Math.PI / 3; // 60 deg offset
+                omega = 0.0;
+                alpha = 0.0;
+            } else if (presetMode === 'loop') {
+                theta = Math.PI / 2; // top center
+                omega = 2.0;
+                alpha = 0.0;
+            } else {
+                theta = 0.0;
+                omega = parseFloat(slideW.value);
+                alpha = parseFloat(slideAlpha.value);
+            }
+
+            if (isConstraintCut) {
+                isConstraintCut = false;
+                cutWarning.classList.add('hidden');
+                btnCutConstraint.classList.remove('hidden');
+                btnResetConstraint.classList.add('hidden');
+            }
+
+            // Sync static math translations
+            const cx = canvas.width / (2 * window.devicePixelRatio);
+            const cy = canvas.height / (2 * window.devicePixelRatio);
+            posX = cx + r * Math.cos(theta);
+            posY = cy - r * Math.sin(theta);
+
+            drawSimulation();
+            drawGraph();
+        }
+
+        // SYSTEM MASTER LOOP RUNNER
+        function runMainLoop() {
+            if (!isPlaying) return;
+
+            updatePhysics();
+            drawSimulation();
+            drawGraph();
+
+            requestAnimationFrame(runMainLoop);
+        }
+
+        // BOOTSTRAP INIT
+        window.onload = function() {
+            resizeCanvas();
+            setupEventListeners();
+            initTabs();
+            setPreset('uniform'); // Default starting state is basic uniform
+            
+            // Trigger beautiful formatting sweep when entire DOM has built successfully
+            renderMath();
+        }
+    </script>
+</body>
+</html>

@@ -1,0 +1,159 @@
+
+Today we'll discuss polar coordinate systems.
+And we'll start from Cartesian coordinate system
+and look at the correspondence of a position vector
+in polar coordinate system.
+So for point p, the position of this point p
+in a Cartesian coordinate system is
+uniquely defined by a vector.
+So we draw our Cartesian coordinate system
+starting with an origin o and a unit vector, i hat and j hat.
+And we uniquely define the position vector
+as this vector r that tells us where this particle
+p is in our coordinate system.
+This vector r is then defined as its component
+in the i hat direction, which we'll call x.
+So it will be x in the i hat direction.
+And its component in the j hat direction, which we'll call y.
+So it'll be plus y in the j hat direction.
+
+The magnitude of this position vector
+is now just going to be the hypotenuse of this right angle
+triangle, which side of magnitude
+x here and magnitude y here.
+So the magnitude of this vector is going to be,
+then, the square root of this side square, that's
+x square, plus this side square, which is y square.
+
+Now in the polar coordinate system,
+we define a new unit vector, r hat,
+which is pointing in the direction of the position
+vector r.
+Then the second unit vector, theta hat
+will then be perpendicular to this r hat direction.
+So let's rewrite the position of the point here.
+And the point will be p.
+
+In this polar coordinate system, now the vector,
+the position vector r would have a certain magnitude
+r in the r hat direction.
+But there should be correspondence
+between the Cartesian coordinate system
+and the polar coordinate system.
+That is that this magnitude is still the same,
+regardless of which unit vectors I choose to represent them in.
+So this magnitude of r is exactly the square root
+of x squared plus y squared.
+
+So for consistency, let's just take the magnitude
+of the vector in polar coordinate system.
+So we say that this has a magnitude which is r,
+and it's in the r hat direction.
+So we take the magnitude of r hat direction.
+But since r hat is a unit vector, the magnitude of r hat
+is just one.
+So this is just going to be r times one, which is r.
+So in fact, if we write down the magnitude of this vector
+is r in polar coordinate system and it's exactly
+square root of x square plus y square
+in Cartesian coordinate system.
+So this is one correspondence between polar coordinate system
+and Cartesian coordinate system.
+
+To further look at the correspondence
+between Cartesian and polar coordinate system,
+let's consider this angle that the position vector r makes
+with respect to the x-axis.
+And let's define this angle as theta.
+Then by looking at the same right angle triangle,
+we will know that x is the adjacent.
+Therefore, x can be written as the magnitude
+of r times cosine of theta.
+And y is the opposite.
+So y is going to be the magnitude of the position
+vector r times sine of theta.
+Since we know that the magnitude can
+be written as just a r as a quantity,
+so we're just going to simplify this expression
+and say it's r cosine theta, and here, r times sine of theta.
+
+All these expressions now are self-consistent.
+If I take x square plus y square,
+I get now r-squared cosine squared
+theta plus r square sine squared theta.
+I can factorize r square and get cosine square theta
+plus sine square theta.
+And this expression is 1.
+Therefore, x square plus y square in fact
+gives you, again, r square, which
+is consistent with the expression
+that we had just derived there.
+
+The next correspondence that we need to derive between polar
+and Cartesian coordinate system is
+the correspondence between the unit
+vectors i hat j hat and r hat theta hat.
+For that list, redraw the vectors i hat and j hat.
+
+A vector is fully defined by its magnitude and its direction.
+So I can redraw r hat and theta hat
+to have the same origin as i hat and j hat.
+But notice that r hat is exactly in the direction
+of the full position vector r, which is making an angle
+theta with the x-axis.
+Therefore, r hat is making an angle theta
+with the x-axis, which is the i hat direction.
+So I can draw my unit vector r hat
+as making an angle theta with the i hat direction.
+So it's easier to see, then, that the perpendicular
+component which is theta hat will be pointing this way,
+and it will be perpendicular to r hat.
+
+It's also helpful to know that if this is an angle theta,
+this is 90 degrees.
+Therefore this, by correspondence,
+you can solve that this angle is also theta.
+So let's decompose now r hat and theta hat
+as a function of i hat j hat using this picture.
+
+So we can write down r hat.
+Notice r hat is a unit vector.
+So if I now look at the projection on the i hat and j
+hat, if this is a unit vector, so it has a magnitude 1,
+the component on the i hat direction
+is just going to be the adjacent, which
+is cosine of theta.
+So cosine of theta times magnitude 1
+in the i hat direction.
+And then r hat is also going to have
+a component in the positive j hat direction, which
+is going to be the opposite.
+So it's going to be sine of theta in the j hat direction.
+
+Now let's look at the theta hat vector.
+Notice that theta hat actually projects
+and has a component opposite of the i hat direction.
+So i hat is pointing this way.
+theta hat actually has a component in this direction,
+so opposite of i hat direction.
+So it's going to have a component in the minus i hat
+direction.
+
+And the magnitude of that component
+is better seen by looking at this right angle triangle,
+where this is the angle theta.
+So the magnitude now is going to be the opposite side, which
+is a sine of theta times the magnitude of theta hat.
+So theta hat is a unit vector.
+So it's a 1 times sine of theta, and this component
+is in the minus i hat direction.
+theta hat also has a component in the positive j hat
+direction.
+And the magnitude of that component
+is going to be this much, which is the adjacent side.
+So it's going to be cosine of theta in the j hat direction.
+
+We have now fully derived correspondences
+between both the unit vectors, i hat j hat and r hat theta hat,
+as well as the magnitude r and the relevant magnitudes
+x and y for polar and Cartesian coordinate systems.

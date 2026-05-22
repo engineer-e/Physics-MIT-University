@@ -1,0 +1,348 @@
+0
+00:00:00,000 --> 00:00:04,560
+
+
+1
+00:00:04,560 --> 00:00:06,870
+Today we'll derive the velocity vectors
+
+2
+00:00:06,870 --> 00:00:09,870
+for the motion of a particle in circular motion,
+
+3
+00:00:09,870 --> 00:00:13,010
+and we'll do so in polar coordinate system.
+
+4
+00:00:13,010 --> 00:00:15,420
+In polar coordinate system, the position vector
+
+5
+00:00:15,420 --> 00:00:18,180
+is this vector r, defined from the origin
+
+6
+00:00:18,180 --> 00:00:23,710
+of your coordinate system to the position of the particle.
+
+7
+00:00:23,710 --> 00:00:27,630
+The unit vector would be these r hat vector,
+
+8
+00:00:27,630 --> 00:00:31,950
+which is radially outward, and is theta hat vector, which
+
+9
+00:00:31,950 --> 00:00:37,450
+is tangential and perpendicular to the r hat direction.
+
+10
+00:00:37,450 --> 00:00:40,900
+We'll assume here that the motion of the particle
+
+11
+00:00:40,900 --> 00:00:43,960
+is confined to this circle of radius r.
+
+12
+00:00:43,960 --> 00:00:46,830
+
+
+13
+00:00:46,830 --> 00:00:52,110
+The implication being that then this position vector
+
+14
+00:00:52,110 --> 00:00:54,300
+would have a constant magnitude, which
+
+15
+00:00:54,300 --> 00:00:56,280
+is the radius of this circle.
+
+16
+00:00:56,280 --> 00:00:58,935
+And we'll call this r without the vector notation.
+
+17
+00:00:58,935 --> 00:01:01,820
+
+
+18
+00:01:01,820 --> 00:01:04,319
+So in polar coordinate system, our position vector
+
+19
+00:01:04,319 --> 00:01:09,070
+can simply be written as this magnitude r in the r hat
+
+20
+00:01:09,070 --> 00:01:10,800
+direction.
+
+21
+00:01:10,800 --> 00:01:15,000
+To get the velocity, then, we take the time derivative
+
+22
+00:01:15,000 --> 00:01:16,200
+of this position vector.
+
+23
+00:01:16,200 --> 00:01:19,940
+
+
+24
+00:01:19,940 --> 00:01:25,280
+The magnitude r being a constant with time
+
+25
+00:01:25,280 --> 00:01:28,010
+will come out of the derivative, but we
+
+26
+00:01:28,010 --> 00:01:30,830
+will take the time derivative then of this r hat vector.
+
+27
+00:01:30,830 --> 00:01:34,050
+
+
+28
+00:01:34,050 --> 00:01:38,790
+In polar coordinate system, this time derivative of r hat
+
+29
+00:01:38,790 --> 00:01:42,630
+is not trivial because the direction of r hat changes
+
+30
+00:01:42,630 --> 00:01:44,050
+with time.
+
+31
+00:01:44,050 --> 00:01:46,350
+So at a later time, for instance,
+
+32
+00:01:46,350 --> 00:01:51,420
+when the particle is over here, the r hat direction
+
+33
+00:01:51,420 --> 00:01:53,820
+will be radially outward this way,
+
+34
+00:01:53,820 --> 00:01:56,350
+and the theta hat direction will be here.
+
+35
+00:01:56,350 --> 00:02:00,270
+So both r hat and theta hat will constantly change direction
+
+36
+00:02:00,270 --> 00:02:03,040
+as a function of time.
+
+37
+00:02:03,040 --> 00:02:08,160
+So to calculate an expression for this dr hat dt,
+
+38
+00:02:08,160 --> 00:02:10,380
+we had previously derived a relationship
+
+39
+00:02:10,380 --> 00:02:13,760
+between the r hat and theta hat unit vectors,
+
+40
+00:02:13,760 --> 00:02:16,650
+with i hat and j hat, our unit vectors
+
+41
+00:02:16,650 --> 00:02:20,850
+in Cartesian coordinates system, which do not change with time.
+
+42
+00:02:20,850 --> 00:02:27,210
+We've established that r hat is a rotation from the i hat
+
+43
+00:02:27,210 --> 00:02:31,850
+direction, meaning that this r hat
+
+44
+00:02:31,850 --> 00:02:36,270
+direction is a rotation of an angle theta from the x-axis.
+
+45
+00:02:36,270 --> 00:02:40,310
+So similarly, then, the theta hat direction,
+
+46
+00:02:40,310 --> 00:02:42,740
+which is perpendicular to the r hat direction,
+
+47
+00:02:42,740 --> 00:02:45,920
+will be a rotation of an angle theta with respect
+
+48
+00:02:45,920 --> 00:02:48,220
+to the j hat direction.
+
+49
+00:02:48,220 --> 00:02:51,860
+We then derive that r hat is going
+
+50
+00:02:51,860 --> 00:02:55,820
+to have a component of cosine theta in the i hat
+
+51
+00:02:55,820 --> 00:02:58,400
+direction, that's this component, plus sine
+
+52
+00:02:58,400 --> 00:03:03,740
+of theta in the j hat direction, which is this component.
+
+53
+00:03:03,740 --> 00:03:07,800
+And theta hat is going to have a component in the minus i hat
+
+54
+00:03:07,800 --> 00:03:12,770
+direction, which is in minus sine of theta,
+
+55
+00:03:12,770 --> 00:03:17,660
+plus a component in the j hat direction, which
+
+56
+00:03:17,660 --> 00:03:22,850
+is this adjacent, which is cosine theta in the j hat
+
+57
+00:03:22,850 --> 00:03:25,280
+direction.
+
+58
+00:03:25,280 --> 00:03:28,530
+So from this expression, we can take the time derivative,
+
+59
+00:03:28,530 --> 00:03:33,600
+dr hat dt, the derivative of cosine
+
+60
+00:03:33,600 --> 00:03:36,570
+giving us minus sine of theta, and because theta
+
+61
+00:03:36,570 --> 00:03:40,240
+can change as a function of time,
+
+62
+00:03:40,240 --> 00:03:43,630
+then we have to do a chain rule to get d theta dt,
+
+63
+00:03:43,630 --> 00:03:46,320
+that is, this, the derivative of this expression,
+
+64
+00:03:46,320 --> 00:03:48,570
+in the i hat direction.
+
+65
+00:03:48,570 --> 00:03:51,870
+And the derivative of sine theta is
+
+66
+00:03:51,870 --> 00:03:56,860
+going to be cosine of theta, and by the chain rule, d theta dt,
+
+67
+00:03:56,860 --> 00:04:00,010
+in the j hat direction.
+
+68
+00:04:00,010 --> 00:04:04,110
+So by taking the time derivative of this r hat vector, in fact,
+
+69
+00:04:04,110 --> 00:04:09,340
+we pick up a d theta dt, and the remaining expression,
+
+70
+00:04:09,340 --> 00:04:12,660
+minus sine of theta in the i hat direction, plus cosine
+
+71
+00:04:12,660 --> 00:04:17,800
+of theta in the j hat direction, is exactly what theta hat is.
+
+72
+00:04:17,800 --> 00:04:22,570
+
+
+73
+00:04:22,570 --> 00:04:27,650
+This expression, in parentheses, is exactly what theta hat is.
+
+74
+00:04:27,650 --> 00:04:31,840
+So the time derivative of the r hat dt
+
+75
+00:04:31,840 --> 00:04:35,668
+gives us d theta dt in the theta hat direction.
+
+76
+00:04:35,668 --> 00:04:38,300
+
+
+77
+00:04:38,300 --> 00:04:40,910
+Now that we've derived an expression for the time
+
+78
+00:04:40,910 --> 00:04:45,140
+derivative of dr hat dt, we are ready to continue
+
+79
+00:04:45,140 --> 00:04:47,300
+our derivation for the velocity.
+
+80
+00:04:47,300 --> 00:04:51,190
+
+
+81
+00:04:51,190 --> 00:04:54,270
+Then the time derivative of the position vector,
+
+82
+00:04:54,270 --> 00:04:56,610
+which gives us the velocity, is r,
+
+83
+00:04:56,610 --> 00:05:00,810
+which is a constant, times the time derivative of r hat,
+
+84
+00:05:00,810 --> 00:05:04,090
+and the time derivative of r hat gives us a d theta
+
+85
+00:05:04,090 --> 00:05:08,960
+dt, in the theta hat direction.
+
+86
+00:05:08,960 --> 00:05:15,456
+
+

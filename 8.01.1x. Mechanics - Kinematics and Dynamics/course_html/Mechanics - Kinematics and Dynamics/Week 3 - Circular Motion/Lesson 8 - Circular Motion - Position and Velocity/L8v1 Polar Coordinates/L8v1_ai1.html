@@ -1,0 +1,1135 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Polar Coordinates & Vector Kinematics Lab</title>
+  
+  <!-- Tailwind CSS CDN -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  
+  <!-- KaTeX for crisp LaTeX-style math rendering -->
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.8/dist/katex.min.css" crossorigin="anonymous">
+  <script src="https://cdn.jsdelivr.net/npm/katex@0.16.8/dist/katex.min.js" crossorigin="anonymous"></script>
+
+  <script>
+    // Extend Tailwind to match original premium design tokens
+    tailwind.config = {
+      theme: {
+        extend: {
+          colors: {
+            slate: {
+              950: '#020617',
+            }
+          }
+        }
+      }
+    }
+  </script>
+</head>
+<body class="min-h-screen bg-slate-950 text-slate-100 flex flex-col font-sans selection:bg-cyan-500 selection:text-slate-900 select-none">
+
+  <!-- Premium Header -->
+  <header class="border-b border-slate-800 bg-slate-900/60 backdrop-blur-md sticky top-0 z-50 px-6 py-4 flex flex-wrap items-center justify-between gap-4">
+    <div class="flex items-center space-x-3">
+      <div class="h-10 w-10 rounded-xl bg-gradient-to-br from-cyan-400 to-indigo-600 flex items-center justify-center shadow-lg shadow-cyan-500/20">
+        <svg class="h-6 w-6 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 1121.21 6H16" />
+        </svg>
+      </div>
+      <div>
+        <h1 class="text-xl font-bold tracking-tight bg-clip-text text-transparent bg-gradient-to-r from-cyan-300 via-indigo-200 to-white">
+          Dynamic Polar Kinematics Laboratory
+        </h1>
+        <p class="text-xs text-slate-400 font-medium">Coordinate Transformations, Unit Vectors, and Central Force Orbits</p>
+      </div>
+    </div>
+
+    <!-- Global Tab Navigation -->
+    <div class="flex bg-slate-950 p-1.5 rounded-xl border border-slate-800/80">
+      <button onclick="switchTab('sandbox')" id="tab-sandbox" class="px-4 py-2 rounded-lg text-sm font-semibold transition-all bg-cyan-500 text-slate-950 shadow-md">
+        Vector Sandbox
+      </button>
+      <button onclick="switchTab('intuition')" id="tab-intuition" class="px-4 py-2 rounded-lg text-sm font-semibold transition-all text-slate-400 hover:text-white hover:bg-slate-900">
+        Mathematical Intuition
+      </button>
+      <button onclick="switchTab('derivation')" id="tab-derivation" class="px-4 py-2 rounded-lg text-sm font-semibold transition-all text-slate-400 hover:text-white hover:bg-slate-900">
+        Algorithmic Derivation
+      </button>
+      <button onclick="switchTab('orbit')" id="tab-orbit" class="px-4 py-2 rounded-lg text-sm font-semibold transition-all text-slate-400 hover:text-white hover:bg-slate-900">
+        Orbit Engine Simulator
+      </button>
+    </div>
+  </header>
+
+  <!-- Main Grid Layout -->
+  <main class="flex-1 max-w-7xl w-full mx-auto p-4 md:p-6 grid grid-cols-1 lg:grid-cols-12 gap-6 items-start">
+    
+    <!-- VIEWPORT PANEL: Active Canvas Display -->
+    <div class="lg:col-span-7 bg-slate-900/50 border border-slate-800/80 rounded-2xl p-4 md:p-6 flex flex-col justify-between items-center shadow-2xl relative overflow-hidden backdrop-blur-sm">
+      
+      <div class="absolute top-4 left-4 z-10 bg-slate-950/80 border border-slate-800 px-3 py-1.5 rounded-lg text-xs font-semibold font-mono tracking-wide text-cyan-400 backdrop-blur-md flex items-center gap-1.5">
+        <span class="h-2 w-2 rounded-full bg-cyan-400 animate-pulse"></span>
+        <span id="canvas-status-text">INTERACTIVE COORD PLANE (DRAG OBJECTS)</span>
+      </div>
+
+      <!-- SANDBOX CANVAS AREA (SVG) -->
+      <div id="sandbox-viewport" class="w-full flex flex-col items-center">
+        <svg id="svg-sandbox" class="w-full max-w-[480px] aspect-square bg-slate-950/85 rounded-xl border border-slate-800 touch-none select-none cursor-crosshair" viewBox="-250 -250 500 500">
+          <defs>
+            <marker id="arrow-r1" viewBox="0 0 10 10" refX="6" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
+              <path d="M0,2 L10,5 L0,8 Z" fill="#f97316" />
+            </marker>
+            <marker id="arrow-theta1" viewBox="0 0 10 10" refX="6" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
+              <path d="M0,2 L10,5 L0,8 Z" fill="#06b6d4" />
+            </marker>
+            <marker id="arrow-r2" viewBox="0 0 10 10" refX="6" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
+              <path d="M0,2 L10,5 L0,8 Z" fill="#ec4899" />
+            </marker>
+            <marker id="arrow-theta2" viewBox="0 0 10 10" refX="6" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
+              <path d="M0,2 L10,5 L0,8 Z" fill="#eab308" />
+            </marker>
+          </defs>
+
+          <!-- Concentric Polar Grid Rings -->
+          <circle cx="0" cy="0" r="60" fill="none" stroke="#1e293b" stroke-width="1" />
+          <circle cx="0" cy="0" r="120" fill="none" stroke="#1e293b" stroke-width="1" />
+          <circle cx="0" cy="0" r="180" fill="none" stroke="#1e293b" stroke-width="1" />
+          <circle cx="0" cy="0" r="240" fill="none" stroke="#1e293b" stroke-width="1" />
+
+          <!-- Radial Grid Rays -->
+          <g id="sandbox-grid-rays"></g>
+
+          <!-- Cartesian Axes -->
+          <line x1="-240" y1="0" x2="240" y2="0" stroke="#334155" stroke-width="1" stroke-dasharray="3,3" />
+          <line x1="0" y1="-240" x2="0" y2="240" stroke="#334155" stroke-width="1" stroke-dasharray="3,3" />
+
+          <!-- Origin Point -->
+          <circle cx="0" cy="0" r="6" fill="#f8fafc" />
+          <text x="0" y="18" fill="#94a3b8" font-size="12" text-anchor="middle" class="font-semibold font-mono">P (Origin)</text>
+
+          <!-- Projections Group S1 -->
+          <g id="projections-s1" opacity="0.25">
+            <line id="proj-s1-x" x1="0" y1="0" x2="0" y2="0" stroke="#f8fafc" stroke-width="1.5" stroke-dasharray="3,3" />
+            <line id="proj-s1-y" x1="0" y1="0" x2="0" y2="0" stroke="#f8fafc" stroke-width="1.5" stroke-dasharray="3,3" />
+          </g>
+
+          <!-- Reference lines S1 & S2 -->
+          <line id="ref-line-s1" x1="0" y1="0" x2="0" y2="0" stroke="#f97316" stroke-width="1.5" opacity="0.4" />
+          <line id="ref-line-s2" x1="0" y1="0" x2="0" y2="0" stroke="#ec4899" stroke-width="1.5" opacity="0.4" />
+
+          <!-- S1 interactive body and unit vectors -->
+          <g id="group-s1" class="cursor-grab active:cursor-grabbing">
+            <line id="vector-r1" x1="0" y1="0" x2="0" y2="0" stroke="#f97316" stroke-width="3.5" marker-end="url(#arrow-r1)" />
+            <text id="label-r1" fill="#fdba74" font-size="14" font-weight="bold" text-anchor="middle" class="font-serif">r̂₁</text>
+
+            <line id="vector-theta1" x1="0" y1="0" x2="0" y2="0" stroke="#06b6d4" stroke-width="3.5" marker-end="url(#arrow-theta1)" />
+            <text id="label-theta1" fill="#67e8f9" font-size="14" font-weight="bold" text-anchor="middle" class="font-serif">θ̂₁</text>
+
+            <circle id="body-s1-outer" cx="0" cy="0" r="14" fill="#1e1b4b" stroke="#f97316" stroke-width="3" />
+            <circle id="body-s1-inner" cx="0" cy="0" r="5" fill="#f97316" />
+            <text id="text-s1" fill="#ffedd5" font-size="14" font-weight="bold" class="pointer-events-none select-none">S₁</text>
+          </g>
+
+          <!-- S2 interactive body and unit vectors -->
+          <g id="group-s2" class="cursor-grab active:cursor-grabbing">
+            <line id="vector-r2" x1="0" y1="0" x2="0" y2="0" stroke="#ec4899" stroke-width="3.5" marker-end="url(#arrow-r2)" />
+            <text id="label-r2" fill="#f9a8d4" font-size="14" font-weight="bold" text-anchor="middle" class="font-serif">r̂₂</text>
+
+            <line id="vector-theta2" x1="0" y1="0" x2="0" y2="0" stroke="#eab308" stroke-width="3.5" marker-end="url(#arrow-theta2)" />
+            <text id="label-theta2" fill="#fde047" font-size="14" font-weight="bold" text-anchor="middle" class="font-serif">θ̂₂</text>
+
+            <circle id="body-s2-outer" cx="0" cy="0" r="14" fill="#310c1f" stroke="#ec4899" stroke-width="3" />
+            <circle id="body-s2-inner" cx="0" cy="0" r="5" fill="#ec4899" />
+            <text id="text-s2" fill="#fce7f3" font-size="14" font-weight="bold" class="pointer-events-none select-none">S₂</text>
+          </g>
+        </svg>
+      </div>
+
+      <!-- ORBIT PHYSICS CANVAS AREA -->
+      <div id="orbit-viewport" class="w-full hidden flex flex-col items-center">
+        <svg id="svg-orbit" class="w-full max-w-[480px] aspect-square bg-slate-950/85 rounded-xl border border-slate-800" viewBox="-250 -250 500 500">
+          <defs>
+            <radialGradient id="sun-gradient">
+              <stop offset="0%" stop-color="#fef08a" />
+              <stop offset="50%" stop-color="#eab308" />
+              <stop offset="100%" stop-color="#ca8a04" />
+            </radialGradient>
+            <marker id="arrow-r-orbit" viewBox="0 0 10 10" refX="6" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
+              <path d="M0,2 L10,5 L0,8 Z" fill="#ef4444" />
+            </marker>
+            <marker id="arrow-theta-orbit" viewBox="0 0 10 10" refX="6" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
+              <path d="M0,2 L10,5 L0,8 Z" fill="#06b6d4" />
+            </marker>
+          </defs>
+
+          <!-- Backdrop Rings -->
+          <circle cx="0" cy="0" r="50" fill="none" stroke="#1e293b" stroke-width="1" stroke-dasharray="3,3" />
+          <circle cx="0" cy="0" r="100" fill="none" stroke="#1e293b" stroke-width="1" stroke-dasharray="3,3" />
+          <circle cx="0" cy="0" r="150" fill="none" stroke="#1e293b" stroke-width="1" stroke-dasharray="3,3" />
+          <circle cx="0" cy="0" r="200" fill="none" stroke="#1e293b" stroke-width="1" stroke-dasharray="3,3" />
+
+          <line x1="-240" y1="0" x2="240" y2="0" stroke="#1e293b" stroke-width="1" stroke-dasharray="5,5" />
+          <line x1="0" y1="-240" x2="0" y2="240" stroke="#1e293b" stroke-width="1" stroke-dasharray="5,5" />
+
+          <!-- Gravity Central Star -->
+          <circle cx="0" cy="0" r="14" fill="url(#sun-gradient)" filter="drop-shadow(0 0 10px rgba(234,179,8,0.5))" />
+
+          <!-- Orbit History Trace -->
+          <polyline id="orbit-history-trail" points="" fill="none" stroke="#475569" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" />
+
+          <!-- Orbiting Planet System -->
+          <g id="orbit-body-group">
+            <line id="orbit-radial-link" x1="0" y1="0" x2="0" y2="0" stroke="#334155" stroke-width="1.5" stroke-dasharray="4,4" />
+            
+            <line id="orbit-vec-r" x1="0" y1="0" x2="0" y2="0" stroke="#ef4444" stroke-width="2" marker-end="url(#arrow-r-orbit)" />
+            <text id="orbit-lbl-r" fill="#fca5a5" font-size="12" font-weight="bold" font-family="monospace" text-anchor="middle">r̂</text>
+
+            <line id="orbit-vec-theta" x1="0" y1="0" x2="0" y2="0" stroke="#06b6d4" stroke-width="2" marker-end="url(#arrow-theta-orbit)" />
+            <text id="orbit-lbl-theta" fill="#67e8f9" font-size="12" font-weight="bold" font-family="monospace" text-anchor="middle">θ̂</text>
+
+            <circle id="orbit-planet" cx="0" cy="0" r="8" fill="#a855f7" />
+            <circle id="orbit-planet-ping" cx="0" cy="0" r="12" fill="none" stroke="#c084fc" stroke-width="1.5" class="animate-ping" style="animation-duration: 3s" />
+          </g>
+        </svg>
+      </div>
+
+      <!-- Real-Time Metrics Status Bar -->
+      <div class="w-full mt-4 bg-slate-950/80 rounded-xl p-3 border border-slate-800 flex justify-around items-center flex-wrap gap-4 text-xs font-mono">
+        <div>
+          <span class="text-orange-400 font-bold">S₁ Pos:</span> <span id="metrics-s1">(r = 160.0, θ = 30°)</span>
+        </div>
+        <div id="metrics-s2-container">
+          <span class="text-pink-400 font-bold">S₂ Pos:</span> <span id="metrics-s2">(r = 160.0, θ = 135°)</span>
+        </div>
+        <div class="text-cyan-400 flex items-center gap-1">
+          <span class="h-1.5 w-1.5 rounded-full bg-cyan-400"></span>
+          Live Synced
+        </div>
+      </div>
+
+    </div>
+
+    <!-- WORKSTATION SIDEBAR: Settings and Dynamic Math cards -->
+    <div class="lg:col-span-5 flex flex-col gap-6">
+
+      <!-- TAB CONTROLS: VECTOR SANDBOX PANEL -->
+      <div id="panel-sandbox" class="bg-slate-900/50 border border-slate-800 rounded-2xl p-5 md:p-6 flex flex-col gap-5 shadow-lg">
+        <div>
+          <h2 class="text-lg font-bold text-slate-100 flex items-center gap-2">
+            <span class="h-2 w-2 rounded-full bg-orange-500"></span> Vector Sandbox Panel
+          </h2>
+          <p class="text-xs text-slate-400 mt-1">
+            Manipulate points in space and analyze their instantaneous unit vectors. Click and drag the objects in the grid or use the precision sliders below.
+          </p>
+        </div>
+
+        <!-- S1 Sliders -->
+        <div class="space-y-4 bg-slate-950 p-4 rounded-xl border border-slate-800">
+          <div class="flex justify-between items-center">
+            <span class="text-sm font-bold text-orange-400 flex items-center gap-1">
+              <span class="h-2 w-2 rounded-full bg-orange-500"></span> Target Object 1 (S₁)
+            </span>
+            <span class="text-xs font-mono bg-slate-900 px-2 py-0.5 rounded text-slate-300">Point Coordinates</span>
+          </div>
+          
+          <div class="space-y-3">
+            <div>
+              <div class="flex justify-between text-xs text-slate-300 mb-1">
+                <span id="math-r1-slider-lbl" class="math-target"></span>
+                <span id="text-r1-val" class="font-mono text-cyan-400 font-semibold">160 px</span>
+              </div>
+              <input type="range" id="slider-r1" min="30" max="220" value="160" class="w-full accent-orange-500 bg-slate-800 rounded-lg appearance-none h-1.5" />
+            </div>
+
+            <div>
+              <div class="flex justify-between text-xs text-slate-300 mb-1">
+                <span id="math-theta1-slider-lbl" class="math-target"></span>
+                <span id="text-theta1-val" class="font-mono text-cyan-400 font-semibold">30° (0.17π rad)</span>
+              </div>
+              <input type="range" id="slider-theta1" min="0" max="6.28318" step="0.01" value="0.52359" class="w-full accent-cyan-500 bg-slate-800 rounded-lg appearance-none h-1.5" />
+            </div>
+          </div>
+        </div>
+
+        <!-- S2 Sliders -->
+        <div class="space-y-4 bg-slate-950 p-4 rounded-xl border border-slate-800">
+          <div class="flex justify-between items-center">
+            <label class="text-sm font-bold text-pink-400 flex items-center gap-1.5 cursor-pointer">
+              <input type="checkbox" id="checkbox-show-s2" checked class="rounded border-slate-800 bg-slate-900 text-pink-500 focus:ring-0" />
+              Enable Object 2 (S₂)
+            </label>
+            <span class="text-xs font-mono bg-slate-900 px-2 py-0.5 rounded text-slate-300">Compare Spaces</span>
+          </div>
+
+          <div id="s2-sliders-container" class="space-y-3">
+            <div>
+              <div class="flex justify-between text-xs text-slate-300 mb-1">
+                <span id="math-r2-slider-lbl" class="math-target"></span>
+                <span id="text-r2-val" class="font-mono text-pink-400 font-semibold">160 px</span>
+              </div>
+              <input type="range" id="slider-r2" min="30" max="220" value="160" class="w-full accent-pink-500 bg-slate-800 rounded-lg appearance-none h-1.5" />
+            </div>
+
+            <div>
+              <div class="flex justify-between text-xs text-slate-300 mb-1">
+                <span id="math-theta2-slider-lbl" class="math-target"></span>
+                <span id="text-theta2-val" class="font-mono text-pink-400 font-semibold">135° (0.75π rad)</span>
+              </div>
+              <input type="range" id="slider-theta2" min="0" max="6.28318" step="0.01" value="2.35619" class="w-full accent-yellow-500 bg-slate-800 rounded-lg appearance-none h-1.5" />
+            </div>
+          </div>
+        </div>
+
+        <!-- Rotator Control Block -->
+        <div class="bg-slate-950 p-4 rounded-xl border border-slate-800 flex flex-col gap-3">
+          <span class="text-xs font-semibold text-slate-400 uppercase tracking-wider">Dynamic Systems Playback</span>
+          <div class="flex items-center gap-3">
+            <button id="btn-toggle-rotate" onclick="toggleRotation()" class="flex-1 py-2 px-4 rounded-lg text-sm font-semibold transition-all flex items-center justify-center gap-2 bg-slate-900 text-slate-200 hover:bg-slate-800 border border-slate-800">
+              ▶ Start Rotation
+            </button>
+            <button onclick="resetSandbox()" class="p-2 bg-slate-900 text-slate-400 hover:text-white rounded-lg border border-slate-800 text-sm" title="Reset Coordinates">
+              Reset
+            </button>
+          </div>
+
+          <div id="rotation-speed-container" class="mt-1 hidden">
+            <div class="flex justify-between text-xs text-slate-400 mb-1">
+              <span>Rotation Speed</span>
+              <span id="text-speed-val" class="font-mono">0.010 rad/f</span>
+            </div>
+            <input type="range" id="slider-speed" min="0.002" max="0.04" step="0.001" value="0.01" class="w-full accent-amber-500 bg-slate-800 rounded-lg appearance-none h-1.5" />
+          </div>
+        </div>
+      </div>
+
+      <!-- TAB CONTROLS: CORE INTUITION TAB -->
+      <div id="panel-intuition" class="hidden bg-slate-900/50 border border-slate-800 rounded-2xl p-5 md:p-6 flex flex-col gap-5 shadow-lg max-h-[70vh] overflow-y-auto">
+        <div>
+          <h2 class="text-lg font-bold text-slate-100 flex items-center gap-2">
+            <span class="h-2 w-2 rounded-full bg-cyan-400"></span> Coordinate Space Comparison
+          </h2>
+          <p class="text-xs text-slate-400 mt-1">
+            Why is kinematics in Polar Coordinates intrinsically complex? Contrast Cartesian vectors against Polar vectors below.
+          </p>
+        </div>
+
+        <!-- Comparative Proof Card -->
+        <div class="bg-slate-950 rounded-xl p-4 border border-slate-800 space-y-4">
+          <h3 class="text-xs font-semibold text-cyan-400 uppercase tracking-wider">Cartesian vs. Polar Unit Vectors</h3>
+          
+          <div class="border-t border-slate-800/80 pt-3 space-y-3 text-sm">
+            <div class="grid grid-cols-2 gap-2 pb-2 border-b border-slate-900">
+              <span class="text-slate-400">Cartesian Frame:</span>
+              <span class="text-slate-400">Polar Frame:</span>
+            </div>
+            <div class="grid grid-cols-2 gap-2">
+              <div class="bg-slate-900/40 p-2.5 rounded-lg border border-slate-900">
+                <div class="text-xs text-slate-400 mb-1">Invariant System</div>
+                <div id="math-cart-vec-1" class="math-target"></div>
+                <div id="math-cart-vec-2" class="math-target"></div>
+                <p class="text-slate-500 text-[11px] leading-relaxed mt-1">
+                  The unit vectors pointing Right and Up are constant at all places. They do not spin or translate.
+                </p>
+              </div>
+              <div class="bg-slate-900/40 p-2.5 rounded-lg border border-slate-900">
+                <div class="text-xs text-slate-400 mb-1">Variant System</div>
+                <div id="math-polar-vec-1" class="math-target"></div>
+                <div id="math-polar-vec-2" class="math-target"></div>
+                <p class="text-slate-500 text-[11px] leading-relaxed mt-1">
+                  The unit vectors pointing Radial Out and Tangential Spin with the body's position.
+                </p>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Dynamic Vector Expansion -->
+        <div class="bg-slate-950 rounded-xl p-4 border border-slate-800 space-y-3">
+          <h3 class="text-xs font-semibold text-pink-400 uppercase tracking-wider">Instantaneous Vector Mapping</h3>
+          <p class="text-xs text-slate-400 leading-relaxed">
+            Look at the Cartesian expansion of the unit vectors at current <span id="math-inline-s1" class="math-target"></span> position (<span id="math-inline-theta" class="math-target"></span>):
+          </p>
+
+          <div class="bg-slate-900 p-3 rounded-lg border border-slate-800 space-y-3 text-xs md:text-sm">
+            <div class="flex justify-between items-center py-1 border-b border-slate-800">
+              <span class="text-slate-400">Radial Vector:</span>
+              <span id="math-radial-formula-general" class="math-target"></span>
+            </div>
+            <div class="text-cyan-400 font-mono text-center py-1">
+              <div id="math-radial-formula-inst" class="math-target"></div>
+              <div class="text-[11px] text-slate-400 mt-1">
+                Value: <span id="text-r-cos" class="text-white font-bold">0.866</span> î + <span id="text-r-sin" class="text-white font-bold">0.500</span> ĵ
+              </div>
+            </div>
+
+            <div class="flex justify-between items-center py-1 border-b border-slate-800">
+              <span class="text-slate-400">Tangential Vector:</span>
+              <span id="math-tang-formula-general" class="math-target"></span>
+            </div>
+            <div class="text-yellow-400 font-mono text-center py-1">
+              <div id="math-tang-formula-inst" class="math-target"></div>
+              <div class="text-[11px] text-slate-400 mt-1">
+                Value: <span id="text-t-sin" class="text-white font-bold">-0.500</span> î + <span id="text-t-cos" class="text-white font-bold">0.866</span> ĵ
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- TAB CONTROLS: DERIVATIONS TAB -->
+      <div id="panel-derivation" class="hidden bg-slate-900/50 border border-slate-800 rounded-2xl p-5 md:p-6 flex flex-col gap-5 shadow-lg max-h-[70vh] overflow-y-auto">
+        <div>
+          <h2 class="text-lg font-bold text-slate-100 flex items-center gap-2">
+            <span class="h-2 w-2 rounded-full bg-violet-500"></span> Mathematical Derivations
+          </h2>
+          <p class="text-xs text-slate-400 mt-1">
+            How physics engines calculate velocity and acceleration vectors using derivative functions.
+          </p>
+        </div>
+
+        <div class="bg-slate-950 p-4 rounded-xl border border-slate-800 space-y-4">
+          <h3 class="text-xs font-semibold text-cyan-400 uppercase tracking-wider">1. Derivatives of the Unit Vectors</h3>
+          <p class="text-xs text-slate-300 leading-relaxed">
+            Since <span id="math-deriv-r" class="math-target"></span> and <span id="math-deriv-theta" class="math-target"></span> depend on the angle variable <span id="math-deriv-theta-t" class="math-target"></span>, differentiating them with respect to time using the Chain Rule yields:
+          </p>
+          <div class="bg-slate-900 p-3 rounded-lg space-y-2 text-xs border border-slate-800">
+            <div id="math-deriv-block1" class="math-target"></div>
+            <div id="math-deriv-block2" class="math-target"></div>
+          </div>
+        </div>
+
+        <div class="bg-slate-950 p-4 rounded-xl border border-slate-800 space-y-4">
+          <h3 class="text-xs font-semibold text-orange-400 uppercase tracking-wider">2. Velocity Derivation</h3>
+          <p class="text-xs text-slate-300 leading-relaxed">
+            Position is defined by magnitude and radial direction: <span id="math-vel-pos" class="math-target"></span>. Applying the Product Rule:
+          </p>
+          <div class="bg-slate-900 p-3 rounded-lg text-xs border border-slate-800">
+            <div id="math-vel-block" class="math-target"></div>
+          </div>
+          <div class="text-slate-400 text-xs">
+            This splits velocity perfectly into:
+            <ul class="list-disc pl-5 mt-1 space-y-1 text-slate-300">
+              <li><strong class="text-orange-300">Radial Velocity:</strong> <span id="math-vel-r-term" class="math-target"></span> (expanding outward)</li>
+              <li><strong className="text-cyan-300">Tangential Velocity:</strong> <span id="math-vel-theta-term" class="math-target"></span> (sweeping angle)</li>
+            </ul>
+          </div>
+        </div>
+
+        <div class="bg-slate-950 p-4 rounded-xl border border-slate-800 space-y-4">
+          <h3 class="text-xs font-semibold text-pink-400 uppercase tracking-wider">3. Acceleration Derivation (Critical Mechanics)</h3>
+          <p class="text-xs text-slate-300 leading-relaxed">
+            Differentiating the velocity vector <span id="math-accel-v" class="math-target"></span> again yields the core components of physics engines:
+          </p>
+          <div class="bg-slate-900 p-3 rounded-lg text-xs border border-slate-800">
+            <div id="math-accel-block" class="math-target"></div>
+          </div>
+          <div class="text-slate-400 text-xs space-y-3">
+            <div>
+              <span class="font-bold text-red-400">Radial Component: </span>
+              <span id="math-accel-rad-expr" class="math-target"></span>
+              <ul class="list-disc pl-5 mt-1 text-slate-300">
+                <li><span id="math-accel-r-dotdot" class="math-target"></span> = linear radial acceleration.</li>
+                <li><span id="math-accel-centrip" class="math-target"></span> = <strong>Centripetal Acceleration</strong> (pulls inward).</li>
+              </ul>
+            </div>
+            <div>
+              <span class="font-bold text-cyan-400">Tangential Component: </span>
+              <span id="math-accel-tang-expr" class="math-target"></span>
+              <ul class="list-disc pl-5 mt-1 text-slate-300">
+                <li><span id="math-accel-theta-dotdot" class="math-target"></span> = angular sweeping acceleration.</li>
+                <li><span id="math-accel-coriolis" class="math-target"></span> = <strong>Coriolis Acceleration</strong> (occurs when radial distance changes while rotating).</li>
+              </ul>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- TAB CONTROLS: PHYSICS SIMULATOR TAB -->
+      <div id="panel-orbit" class="hidden bg-slate-900/50 border border-slate-800 rounded-2xl p-5 md:p-6 flex flex-col gap-5 shadow-lg">
+        <div>
+          <h2 class="text-lg font-bold text-slate-100 flex items-center gap-2">
+            <span class="h-2 w-2 rounded-full bg-amber-500 animate-pulse"></span> Orbit Physics Engine
+          </h2>
+          <p class="text-xs text-slate-400 mt-1">
+            Watch the polar kinematics model compute gravitational orbits inside a step-by-step mathematical algorithm in real-time.
+          </p>
+        </div>
+
+        <!-- Orbit Presets -->
+        <div class="grid grid-cols-3 gap-2 bg-slate-950 p-2 rounded-xl border border-slate-800">
+          <button id="btn-preset-circular" onclick="applyOrbitPreset('circular')" class="text-xs py-2 px-1.5 rounded font-bold transition-all bg-cyan-500 text-slate-950">
+            Circular Orbit
+          </button>
+          <button id="btn-preset-elliptic" onclick="applyOrbitPreset('elliptic')" class="text-xs py-2 px-1.5 rounded font-bold transition-all bg-slate-900 text-slate-300 hover:bg-slate-800">
+            Elliptical Orbit
+          </button>
+          <button id="btn-preset-decaying" onclick="applyOrbitPreset('decaying')" class="text-xs py-2 px-1.5 rounded font-bold transition-all bg-slate-900 text-slate-300 hover:bg-slate-800">
+            Decaying Orbit
+          </button>
+        </div>
+
+        <!-- Live Metrics Values -->
+        <div class="bg-slate-950 p-4 rounded-xl border border-slate-800 space-y-4 text-xs font-mono">
+          <div class="flex justify-between items-center pb-2 border-b border-slate-800/60">
+            <span class="text-slate-400">ENGINE STATE</span>
+            <span class="text-cyan-400 font-bold">ACTIVE INTEGRATOR</span>
+          </div>
+
+          <div class="grid grid-cols-2 gap-x-4 gap-y-3">
+            <div>
+              <span class="text-slate-400 block mb-0.5">Radial Dist (r):</span>
+              <span id="text-orbit-r" class="text-white text-sm font-bold">150.0 px</span>
+            </div>
+            <div>
+              <span class="text-slate-400 block mb-0.5">Angle (θ):</span>
+              <span id="text-orbit-theta" class="text-white text-sm font-bold">0°</span>
+            </div>
+            <div>
+              <span class="text-red-400 block mb-0.5">Radial Velocity (ṙ):</span>
+              <span id="text-orbit-dr" class="text-white text-sm font-bold">0.000 px/f</span>
+            </div>
+            <div>
+              <span class="text-cyan-400 block mb-0.5">Angular Vel (θ̇):</span>
+              <span id="text-orbit-dtheta" class="text-white text-sm font-bold">0.0250 rad/f</span>
+            </div>
+          </div>
+
+          <!-- Live forces calculus container -->
+          <div class="bg-slate-900 p-3 rounded-lg border border-slate-900 text-[11px] leading-relaxed space-y-1.5 text-slate-300">
+            <div class="text-xs font-bold text-slate-400 mb-1">Polar Force Vectors:</div>
+            <div>
+              <span class="text-orange-400 font-bold">Inward Pull (Centripetal Acceleration):</span>
+              <span id="math-inst-centrip" class="text-white font-bold inline-block ml-1"></span>
+            </div>
+            <div>
+              <span class="text-purple-400 font-bold">Coriolis Acceleration:</span>
+              <span id="math-inst-coriolis" class="text-white font-bold inline-block ml-1"></span>
+            </div>
+          </div>
+        </div>
+
+        <!-- Physics Action Controls -->
+        <div class="flex gap-3">
+          <button id="btn-toggle-orbit" onclick="toggleOrbit()" class="flex-1 py-2.5 px-4 rounded-xl text-sm font-bold transition-all bg-rose-500 text-white hover:bg-rose-600">
+            Stop Engine
+          </button>
+          <button onclick="clearOrbitTrail()" class="py-2.5 px-4 bg-slate-950 hover:bg-slate-900 border border-slate-800 text-slate-300 rounded-xl text-sm font-bold">
+            Clear Path
+          </button>
+        </div>
+      </div>
+
+    </div>
+
+  </main>
+
+  <!-- Footnote Block -->
+  <footer class="mt-auto border-t border-slate-800/80 bg-slate-950 py-6 px-6 text-center text-xs text-slate-500">
+    <div class="max-w-4xl mx-auto space-y-2">
+      <p class="font-semibold text-slate-400">Critical Kinematics Insight:</p>
+      <div id="math-footer-insight" class="text-slate-500 max-w-2xl mx-auto text-center"></div>
+      <p class="pt-2 text-[11px] text-slate-600">
+        Engineered in plain HTML5 & vanilla JS with high-contrast Tailwind UI layout framework and RK4-Euler-Cromer dynamic sync integration loops.
+      </p>
+    </div>
+  </footer>
+
+  <!-- CORE CONTROLLER SCRIPT -->
+  <script>
+    // State management
+    const state = {
+      activeTab: 'sandbox',
+      p1: { r: 160, theta: Math.PI / 6 },
+      p2: { r: 160, theta: (3 * Math.PI) / 4 },
+      showPoint2: true,
+      isRotating: false,
+      rotationSpeed: 0.01,
+      showProjections: true,
+      
+      orbitState: {
+        r: 150,
+        theta: 0,
+        dr: 0,
+        dtheta: 0.025,
+        G: 3000,
+        friction: 0.0
+      },
+      orbitHistory: [],
+      isOrbitRunning: true,
+      orbitType: 'circular',
+      
+      draggingPoint: null,
+      katexLoaded: false
+    };
+
+    // DOM Elements cache
+    const svgSandbox = document.getElementById('svg-sandbox');
+    const groupS1 = document.getElementById('group-s1');
+    const groupS2 = document.getElementById('group-s2');
+    const sandboxGridRays = document.getElementById('sandbox-grid-rays');
+
+    // Create 12 Radial Grid lines dynamically on sandbox SVG load
+    function buildPolarGrid() {
+      let rayHTML = '';
+      for (let i = 0; i < 12; i++) {
+        const angle = (i * Math.PI) / 6;
+        const endX = 240 * Math.cos(angle);
+        const endY = -240 * Math.sin(angle);
+        rayHTML += `<line x1="0" y1="0" x2="${endX}" y2="${endY}" stroke="#1e293b" stroke-width="1" stroke-dasharray="4,4" />`;
+      }
+      sandboxGridRays.innerHTML = rayHTML;
+    }
+
+    // Helper: Convert polar variables to Cartesian coordinates
+    function polarToCartesian(r, theta) {
+      const safeR = isNaN(r) ? 150 : r;
+      const safeTheta = isNaN(theta) ? 0 : theta;
+      return {
+        x: safeR * Math.cos(safeTheta),
+        y: -safeR * Math.sin(safeTheta)
+      };
+    }
+
+    // Helper: Compute instantaneous polar unit vectors at a given angle
+    function getUnitVectors(theta) {
+      const safeTheta = isNaN(theta) ? 0 : theta;
+      return {
+        rHat: { x: Math.cos(safeTheta), y: -Math.sin(safeTheta) },
+        thetaHat: { x: -Math.sin(safeTheta), y: -Math.cos(safeTheta) }
+      };
+    }
+
+    // Tab switcher
+    function switchTab(tab) {
+      state.activeTab = tab;
+      
+      // Update Tab button states
+      ['sandbox', 'intuition', 'derivation', 'orbit'].forEach(t => {
+        const btn = document.getElementById(`tab-${t}`);
+        const panel = document.getElementById(`panel-${t}`);
+        if (t === tab) {
+          btn.className = "px-4 py-2 rounded-lg text-sm font-semibold transition-all bg-cyan-500 text-slate-950 shadow-md";
+          panel.classList.remove('hidden');
+        } else {
+          btn.className = "px-4 py-2 rounded-lg text-sm font-semibold transition-all text-slate-400 hover:text-white hover:bg-slate-900";
+          panel.classList.add('hidden');
+        }
+      });
+
+      // Show correct Viewport area
+      const sandboxView = document.getElementById('sandbox-viewport');
+      const orbitView = document.getElementById('orbit-viewport');
+      const statusText = document.getElementById('canvas-status-text');
+
+      if (tab === 'orbit') {
+        sandboxView.classList.add('hidden');
+        orbitView.classList.remove('hidden');
+        statusText.textContent = "ORBITAL PHYSICS RENDERING ENGINE";
+      } else {
+        sandboxView.classList.remove('hidden');
+        orbitView.classList.add('hidden');
+        statusText.textContent = "INTERACTIVE COORD PLANE (DRAG OBJECTS)";
+      }
+
+      updateUI();
+    }
+
+    // Safe KaTeX renderer function
+    function renderMathOnNode(elementId, formula, block = false) {
+      const node = document.getElementById(elementId);
+      if (!node) return;
+      if (window.katex) {
+        try {
+          window.katex.render(formula, node, {
+            displayMode: block,
+            throwOnError: false,
+            trust: true
+          });
+        } catch (err) {
+          node.innerHTML = block ? `$$${formula}$$` : `$${formula}$`;
+        }
+      } else {
+        node.innerHTML = block ? `$$${formula}$$` : `$${formula}$`;
+      }
+    }
+
+    // Compile dynamic values inside text
+    function updateUI() {
+      // Calculate coordinates S1
+      const s1Cart = polarToCartesian(state.p1.r, state.p1.theta);
+      const s1Vecs = getUnitVectors(state.p1.theta);
+
+      // Render S1 elements
+      document.getElementById('ref-line-s1').setAttribute('x2', s1Cart.x);
+      document.getElementById('ref-line-s1').setAttribute('y2', s1Cart.y);
+      
+      document.getElementById('body-s1-outer').setAttribute('cx', s1Cart.x);
+      document.getElementById('body-s1-outer').setAttribute('cy', s1Cart.y);
+      document.getElementById('body-s1-inner').setAttribute('cx', s1Cart.x);
+      document.getElementById('body-s1-inner').setAttribute('cy', s1Cart.y);
+      document.getElementById('text-s1').setAttribute('x', s1Cart.x + 18);
+      document.getElementById('text-s1').setAttribute('y', s1Cart.y - 10);
+
+      // S1 Unit vectors
+      const r1End = { x: s1Cart.x + s1Vecs.rHat.x * 65, y: s1Cart.y + s1Vecs.rHat.y * 65 };
+      const theta1End = { x: s1Cart.x + s1Vecs.thetaHat.x * 65, y: s1Cart.y + s1Vecs.thetaHat.y * 65 };
+
+      document.getElementById('vector-r1').setAttribute('x1', s1Cart.x);
+      document.getElementById('vector-r1').setAttribute('y1', s1Cart.y);
+      document.getElementById('vector-r1').setAttribute('x2', r1End.x);
+      document.getElementById('vector-r1').setAttribute('y2', r1End.y);
+      document.getElementById('label-r1').setAttribute('x', s1Cart.x + s1Vecs.rHat.x * 85);
+      document.getElementById('label-r1').setAttribute('y', s1Cart.y + s1Vecs.rHat.y * 85);
+
+      document.getElementById('vector-theta1').setAttribute('x1', s1Cart.x);
+      document.getElementById('vector-theta1').setAttribute('y1', s1Cart.y);
+      document.getElementById('vector-theta1').setAttribute('x2', theta1End.x);
+      document.getElementById('vector-theta1').setAttribute('y2', theta1End.y);
+      document.getElementById('label-theta1').setAttribute('x', s1Cart.x + s1Vecs.thetaHat.x * 85);
+      document.getElementById('label-theta1').setAttribute('y', s1Cart.y + s1Vecs.thetaHat.y * 85);
+
+      // Projections S1
+      const projX = document.getElementById('proj-s1-x');
+      const projY = document.getElementById('proj-s1-y');
+      if (state.showProjections) {
+        document.getElementById('projections-s1').setAttribute('opacity', '0.25');
+        projX.setAttribute('x1', s1Cart.x);
+        projX.setAttribute('y1', s1Cart.y);
+        projX.setAttribute('x2', s1Cart.x);
+        projX.setAttribute('y2', '0');
+        
+        projY.setAttribute('x1', s1Cart.x);
+        projY.setAttribute('y1', s1Cart.y);
+        projY.setAttribute('x2', '0');
+        projY.setAttribute('y2', s1Cart.y);
+      } else {
+        document.getElementById('projections-s1').setAttribute('opacity', '0');
+      }
+
+      // S2 Rendering conditional
+      const s2Container = document.getElementById('s2-sliders-container');
+      const s2Metrics = document.getElementById('metrics-s2-container');
+      if (state.showPoint2) {
+        groupS2.setAttribute('opacity', '1');
+        document.getElementById('ref-line-s2').setAttribute('opacity', '0.4');
+        s2Container.classList.remove('hidden');
+        s2Metrics.classList.remove('hidden');
+
+        const s2Cart = polarToCartesian(state.p2.r, state.p2.theta);
+        const s2Vecs = getUnitVectors(state.p2.theta);
+
+        document.getElementById('ref-line-s2').setAttribute('x2', s2Cart.x);
+        document.getElementById('ref-line-s2').setAttribute('y2', s2Cart.y);
+
+        document.getElementById('body-s2-outer').setAttribute('cx', s2Cart.x);
+        document.getElementById('body-s2-outer').setAttribute('cy', s2Cart.y);
+        document.getElementById('body-s2-inner').setAttribute('cx', s2Cart.x);
+        document.getElementById('body-s2-inner').setAttribute('cy', s2Cart.y);
+        document.getElementById('text-s2').setAttribute('x', s2Cart.x + 18);
+        document.getElementById('text-s2').setAttribute('y', s2Cart.y - 10);
+
+        const r2End = { x: s2Cart.x + s2Vecs.rHat.x * 65, y: s2Cart.y + s2Vecs.rHat.y * 65 };
+        const theta2End = { x: s2Cart.x + s2Vecs.thetaHat.x * 65, y: s2Cart.y + s2Vecs.thetaHat.y * 65 };
+
+        document.getElementById('vector-r2').setAttribute('x1', s2Cart.x);
+        document.getElementById('vector-r2').setAttribute('y1', s2Cart.y);
+        document.getElementById('vector-r2').setAttribute('x2', r2End.x);
+        document.getElementById('vector-r2').setAttribute('y2', r2End.y);
+        document.getElementById('label-r2').setAttribute('x', s2Cart.x + s2Vecs.rHat.x * 85);
+        document.getElementById('label-r2').setAttribute('y', s2Cart.y + s2Vecs.rHat.y * 85);
+
+        document.getElementById('vector-theta2').setAttribute('x1', s2Cart.x);
+        document.getElementById('vector-theta2').setAttribute('y1', s2Cart.y);
+        document.getElementById('vector-theta2').setAttribute('x2', theta2End.x);
+        document.getElementById('vector-theta2').setAttribute('y2', theta2End.y);
+        document.getElementById('label-theta2').setAttribute('x', s2Cart.x + s2Vecs.thetaHat.x * 85);
+        document.getElementById('label-theta2').setAttribute('y', s2Cart.y + s2Vecs.thetaHat.y * 85);
+
+        document.getElementById('metrics-s2').textContent = `(r = ${state.p2.r.toFixed(1)}, θ = ${(state.p2.theta * 180 / Math.PI).toFixed(0)}°)`;
+      } else {
+        groupS2.setAttribute('opacity', '0');
+        document.getElementById('ref-line-s2').setAttribute('opacity', '0');
+        s2Container.classList.add('hidden');
+        s2Metrics.classList.add('hidden');
+      }
+
+      // Update Slider Elements
+      document.getElementById('slider-r1').value = state.p1.r;
+      document.getElementById('text-r1-val').textContent = `${state.p1.r.toFixed(0)} px`;
+      document.getElementById('slider-theta1').value = state.p1.theta;
+      document.getElementById('text-theta1-val').textContent = `${(state.p1.theta * 180 / Math.PI).toFixed(0)}° (${(state.p1.theta / Math.PI).toFixed(2)}π rad)`;
+
+      document.getElementById('slider-r2').value = state.p2.r;
+      document.getElementById('text-r2-val').textContent = `${state.p2.r.toFixed(0)} px`;
+      document.getElementById('slider-theta2').value = state.p2.theta;
+      document.getElementById('text-theta2-val').textContent = `${(state.p2.theta * 180 / Math.PI).toFixed(0)}° (${(state.p2.theta / Math.PI).toFixed(2)}π rad)`;
+
+      document.getElementById('metrics-s1').textContent = `(r = ${state.p1.r.toFixed(1)}, θ = ${(state.p1.theta * 180 / Math.PI).toFixed(0)}°)`;
+
+      // Render math for sliders and static blocks
+      triggerMathUpdates();
+    }
+
+    // Dynamic mathematical formula render hook
+    function triggerMathUpdates() {
+      // Sliders math
+      renderMathOnNode('math-r1-slider-lbl', 'r_1 \\text{ (Radius)}');
+      renderMathOnNode('math-theta1-slider-lbl', '\\theta_1 \\text{ (Angle)}');
+      renderMathOnNode('math-r2-slider-lbl', 'r_2 \\text{ (Radius)}');
+      renderMathOnNode('math-theta2-slider-lbl', '\\theta_2 \\text{ (Angle)}');
+
+      if (state.activeTab === 'intuition') {
+        renderMathOnNode('math-cart-vec-1', '\\hat{i}_1 = \hat{i}_2 = \\hat{i}', true);
+        renderMathOnNode('math-cart-vec-2', '\\hat{j}_1 = \\hat{j}_2 = \\hat{j}', true);
+        renderMathOnNode('math-polar-vec-1', '\\hat{r}_1 \\neq \\hat{r}_2', true);
+        renderMathOnNode('math-polar-vec-2', '\\hat{\\theta}_1 \\neq \\hat{\\theta}_2', true);
+
+        renderMathOnNode('math-inline-s1', 'S_1');
+        const deg = (state.p1.theta * 180 / Math.PI).toFixed(0);
+        renderMathOnNode('math-inline-theta', `\\theta = ${deg}^\\circ`);
+
+        renderMathOnNode('math-radial-formula-general', '\\hat{r} = \\cos(\\theta)\\hat{i} + \\sin(\\theta)\\hat{j}');
+        renderMathOnNode('math-radial-formula-inst', `\\hat{r} = \\cos(${deg}^\\circ)\\hat{i} + \\sin(${deg}^\\circ)\\hat{j}`);
+
+        renderMathOnNode('math-tang-formula-general', '\\hat{\\theta} = -\\sin(\\theta)\\hat{i} + \\cos(\\theta)\\hat{j}');
+        renderMathOnNode('math-tang-formula-inst', `\\hat{\\theta} = -\\sin(${deg}^\\circ)\\hat{i} + \\cos(${deg}^\\circ)\\hat{j}`);
+
+        // Update numeric components inside evaluation card
+        document.getElementById('text-r-cos').textContent = Math.cos(state.p1.theta).toFixed(3);
+        document.getElementById('text-r-sin').textContent = Math.sin(state.p1.theta).toFixed(3);
+        document.getElementById('text-t-sin').textContent = (-Math.sin(state.p1.theta)).toFixed(3);
+        document.getElementById('text-t-cos').textContent = Math.cos(state.p1.theta).toFixed(3);
+      }
+
+      if (state.activeTab === 'derivation') {
+        renderMathOnNode('math-deriv-r', '\\hat{r}');
+        renderMathOnNode('math-deriv-theta', '\\hat{\\theta}');
+        renderMathOnNode('math-deriv-theta-t', '\\theta(t)');
+
+        renderMathOnNode('math-deriv-block1', '\\frac{d\\hat{r}}{dt} = \\frac{d\\hat{r}}{d\\theta} \\frac{d\\theta}{dt} = (-\\sin\\theta\\hat{i} + \\cos\\theta\\hat{j})\\dot{\\theta} = \\dot{\\theta}\\hat{\\theta}', true);
+        renderMathOnNode('math-deriv-block2', '\\frac{d\\hat{\\theta}}{dt} = \\frac{d\\hat{\\theta}}{d\\theta} \\frac{d\\theta}{dt} = (-\\cos\\theta\\hat{i} - \\sin\\theta\\hat{j})\\dot{\\theta} = -\\dot{\\theta}\\hat{r}', true);
+
+        renderMathOnNode('math-vel-pos', '\\vec{r} = r\\hat{r}');
+        renderMathOnNode('math-vel-block', '\\vec{v} = \\frac{d}{dt}(r\\hat{r}) = \\dot{r}\\hat{r} + r\\frac{d\\hat{r}}{dt} = \\dot{r}\\hat{r} + r\\dot{\\theta}\\hat{\\theta}', true);
+        
+        renderMathOnNode('math-vel-r-term', '\\dot{r}');
+        renderMathOnNode('math-vel-theta-term', 'r\\dot{\\theta}');
+
+        renderMathOnNode('math-accel-v', '\\vec{v}');
+        renderMathOnNode('math-accel-block', '\\vec{a} = (\\ddot{r} - r\\dot{\\theta}^2)\\hat{r} + (r\\ddot{\\theta} + 2\\dot{r}\\dot{\\theta})\\hat{\\theta}', true);
+        
+        renderMathOnNode('math-accel-rad-expr', '\\ddot{r} - r\\dot{\\theta}^2');
+        renderMathOnNode('math-accel-r-dotdot', '\\ddot{r}');
+        renderMathOnNode('math-accel-centrip', '-r\\dot{\\theta}^2');
+
+        renderMathOnNode('math-accel-tang-expr', 'r\\ddot{\\theta} + 2\\dot{r}\\dot{\\theta}');
+        renderMathOnNode('math-accel-theta-dotdot', 'r\\ddot{\\theta}');
+        renderMathOnNode('math-accel-coriolis', '2\\dot{r}\\dot{\\theta}');
+      }
+
+      if (state.activeTab === 'orbit') {
+        // Compute forces for active simulator and push to math labels
+        const centripForce = -(state.orbitState.r * state.orbitState.dtheta * state.orbitState.dtheta);
+        const coriolisForce = 2 * state.orbitState.dr * state.orbitState.dtheta;
+
+        renderMathOnNode('math-inst-centrip', `-r\\dot{\\theta}^2 = ${centripForce.toFixed(3)}`);
+        renderMathOnNode('math-inst-coriolis', `2\\dot{r}\\dot{\\theta} = ${coriolisForce.toFixed(4)}`);
+      }
+
+      renderMathOnNode('math-footer-insight', 'Unlike Cartesian coordinate frames where \\frac{d\\hat{i}}{dt} = \\vec{0} and \\frac{d\\hat{j}}{dt} = \\vec{0}, Polar Coordinate systems introduce time-dependent unit vectors \\hat{r}(t) and \\hat{\theta}(t) that change direction along with the orbiting body, giving rise to Centripetal and Coriolis accelerations.');
+    }
+
+    // Toggle Rotator
+    function toggleRotation() {
+      state.isRotating = !state.isRotating;
+      const btn = document.getElementById('btn-toggle-rotate');
+      const container = document.getElementById('rotation-speed-container');
+      
+      if (state.isRotating) {
+        btn.innerHTML = `<span class="h-2 w-2 rounded-full bg-slate-950 animate-ping"></span> Pause Rotation`;
+        btn.className = "flex-1 py-2 px-4 rounded-lg text-sm font-semibold transition-all flex items-center justify-center gap-2 bg-amber-500 text-slate-950 font-bold";
+        container.classList.remove('hidden');
+      } else {
+        btn.innerHTML = `▶ Start Rotation`;
+        btn.className = "flex-1 py-2 px-4 rounded-lg text-sm font-semibold transition-all flex items-center justify-center gap-2 bg-slate-900 text-slate-200 hover:bg-slate-800 border border-slate-800";
+        container.classList.add('hidden');
+      }
+    }
+
+    // Reset Sandbox coordinates
+    function resetSandbox() {
+      state.p1 = { r: 160, theta: Math.PI / 6 };
+      state.p2 = { r: 160, theta: (3 * Math.PI) / 4 };
+      state.isRotating = false;
+      
+      const btn = document.getElementById('btn-toggle-rotate');
+      btn.innerHTML = `▶ Start Rotation`;
+      btn.className = "flex-1 py-2 px-4 rounded-lg text-sm font-semibold transition-all flex items-center justify-center gap-2 bg-slate-900 text-slate-200 hover:bg-slate-800 border border-slate-800";
+      document.getElementById('rotation-speed-container').classList.add('hidden');
+
+      updateUI();
+    }
+
+    // Interaction dragging coordinates resolver
+    function handleDrag(clientX, clientY) {
+      if (!state.draggingPoint) return;
+      const rect = svgSandbox.getBoundingClientRect();
+      const centerX = rect.left + rect.width / 2;
+      const centerY = rect.top + rect.height / 2;
+
+      const mouseX = clientX - centerX;
+      const mouseY = clientY - centerY;
+
+      let r = Math.sqrt(mouseX * mouseX + mouseY * mouseY);
+      // Coordinate space mapping scale adjustments
+      const coordinateScale = 500 / rect.width;
+      r = r * coordinateScale;
+      r = Math.max(30, Math.min(220, r));
+
+      let theta = Math.atan2(-mouseY, mouseX);
+      if (theta < 0) theta += 2 * Math.PI;
+
+      if (isNaN(r) || isNaN(theta)) return;
+
+      if (state.draggingPoint === 'p1') {
+        state.p1.r = r;
+        state.p1.theta = theta;
+      } else if (state.draggingPoint === 'p2') {
+        state.p2.r = r;
+        state.p2.theta = theta;
+      }
+      updateUI();
+    }
+
+    // Bind interaction event listeners
+    function setupInteractions() {
+      // Sliders bindings
+      document.getElementById('slider-r1').addEventListener('input', (e) => {
+        state.p1.r = parseFloat(e.target.value);
+        updateUI();
+      });
+      document.getElementById('slider-theta1').addEventListener('input', (e) => {
+        state.p1.theta = parseFloat(e.target.value);
+        updateUI();
+      });
+      document.getElementById('slider-r2').addEventListener('input', (e) => {
+        state.p2.r = parseFloat(e.target.value);
+        updateUI();
+      });
+      document.getElementById('slider-theta2').addEventListener('input', (e) => {
+        state.p2.theta = parseFloat(e.target.value);
+        updateUI();
+      });
+      document.getElementById('slider-speed').addEventListener('input', (e) => {
+        state.rotationSpeed = parseFloat(e.target.value);
+        document.getElementById('text-speed-val').textContent = `${state.rotationSpeed.toFixed(3)} rad/f`;
+      });
+      document.getElementById('checkbox-show-s2').addEventListener('change', (e) => {
+        state.showPoint2 = e.target.checked;
+        updateUI();
+      });
+
+      // Mouse drag handlers
+      const triggerDragStart = (target) => (e) => {
+        e.preventDefault();
+        state.draggingPoint = target;
+      };
+
+      groupS1.addEventListener('mousedown', triggerDragStart('p1'));
+      groupS2.addEventListener('mousedown', triggerDragStart('p2'));
+
+      // Touch drag handlers
+      groupS1.addEventListener('touchstart', (e) => {
+        state.draggingPoint = 'p1';
+      }, { passive: true });
+      groupS2.addEventListener('touchstart', (e) => {
+        state.draggingPoint = 'p2';
+      }, { passive: true });
+
+      window.addEventListener('mousemove', (e) => {
+        if (state.draggingPoint) handleDrag(e.clientX, e.clientY);
+      });
+      window.addEventListener('touchmove', (e) => {
+        if (state.draggingPoint) {
+          const touch = e.touches[0];
+          handleDrag(touch.clientX, touch.clientY);
+        }
+      }, { passive: false });
+
+      window.addEventListener('mouseup', () => state.draggingPoint = null);
+      window.addEventListener('touchend', () => state.draggingPoint = null);
+    }
+
+    // Toggle central engine running state
+    function toggleOrbit() {
+      state.isOrbitRunning = !state.isOrbitRunning;
+      const btn = document.getElementById('btn-toggle-orbit');
+      if (state.isOrbitRunning) {
+        btn.textContent = 'Stop Engine';
+        btn.className = "flex-1 py-2.5 px-4 rounded-xl text-sm font-bold transition-all bg-rose-500 text-white hover:bg-rose-600";
+      } else {
+        btn.textContent = 'Resume Engine';
+        btn.className = "flex-1 py-2.5 px-4 rounded-xl text-sm font-bold transition-all bg-emerald-500 text-slate-950 hover:bg-emerald-600";
+      }
+    }
+
+    // Clear Trail Points history
+    function clearOrbitTrail() {
+      state.orbitHistory = [];
+      document.getElementById('orbit-history-trail').setAttribute('points', '');
+    }
+
+    // Set configuration presets for gravitational paths
+    function applyOrbitPreset(type) {
+      state.orbitType = type;
+      clearOrbitTrail();
+      
+      const presets = {
+        circular: { r: 140, theta: 0, dr: 0, dtheta: 0.035, G: 2400, friction: 0 },
+        elliptic: { r: 180, theta: 0, dr: 0, dtheta: 0.015, G: 2400, friction: 0 },
+        decaying: { r: 180, theta: 0, dr: 0, dtheta: 0.02, G: 2400, friction: 0.005 }
+      };
+
+      const p = presets[type];
+      state.orbitState = { ...p };
+
+      // Update button colors
+      ['circular', 'elliptic', 'decaying'].forEach(t => {
+        const btn = document.getElementById(`btn-preset-${t}`);
+        if (t === type) {
+          const colorClass = t === 'circular' ? 'bg-cyan-500' : (t === 'elliptic' ? 'bg-pink-500' : 'bg-amber-500');
+          btn.className = `text-xs py-2 px-1.5 rounded font-bold transition-all ${colorClass} text-slate-950`;
+        } else {
+          btn.className = 'text-xs py-2 px-1.5 rounded font-bold transition-all bg-slate-900 text-slate-300 hover:bg-slate-800';
+        }
+      });
+
+      updateOrbitUI();
+    }
+
+    // Render Orbit SVG values
+    function updateOrbitUI() {
+      const orbCart = polarToCartesian(state.orbitState.r, state.orbitState.theta);
+      const orbVecs = getUnitVectors(state.orbitState.theta);
+
+      // Radial vector lines and anchors
+      document.getElementById('orbit-radial-link').setAttribute('x2', orbCart.x);
+      document.getElementById('orbit-radial-link').setAttribute('y2', orbCart.y);
+
+      document.getElementById('orbit-planet').setAttribute('cx', orbCart.x);
+      document.getElementById('orbit-planet').setAttribute('cy', orbCart.y);
+      document.getElementById('orbit-planet-ping').setAttribute('cx', orbCart.x);
+      document.getElementById('orbit-planet-ping').setAttribute('cy', orbCart.y);
+
+      // Render radial and tangential vectors at planet's coordinates
+      document.getElementById('orbit-vec-r').setAttribute('x1', orbCart.x);
+      document.getElementById('orbit-vec-r').setAttribute('y1', orbCart.y);
+      document.getElementById('orbit-vec-r').setAttribute('x2', orbCart.x + orbVecs.rHat.x * 55);
+      document.getElementById('orbit-vec-r').setAttribute('y2', orbCart.y + orbVecs.rHat.y * 55);
+      
+      document.getElementById('orbit-lbl-r').setAttribute('x', orbCart.x + orbVecs.rHat.x * 70);
+      document.getElementById('orbit-lbl-r').setAttribute('y', orbCart.y + orbVecs.rHat.y * 70);
+
+      document.getElementById('orbit-vec-theta').setAttribute('x1', orbCart.x);
+      document.getElementById('orbit-vec-theta').setAttribute('y1', orbCart.y);
+      document.getElementById('orbit-vec-theta').setAttribute('x2', orbCart.x + orbVecs.thetaHat.x * 55);
+      document.getElementById('orbit-vec-theta').setAttribute('y2', orbCart.y + orbVecs.thetaHat.y * 55);
+
+      document.getElementById('orbit-lbl-theta').setAttribute('x', orbCart.x + orbVecs.thetaHat.x * 70);
+      document.getElementById('orbit-lbl-theta').setAttribute('y', orbCart.y + orbVecs.thetaHat.y * 70);
+
+      // Update Text labels
+      document.getElementById('text-orbit-r').textContent = `${state.orbitState.r.toFixed(1)} px`;
+      document.getElementById('text-orbit-theta').textContent = `${(state.orbitState.theta * 180 / Math.PI).toFixed(0)}°`;
+      document.getElementById('text-orbit-dr').textContent = `${state.orbitState.dr.toFixed(3)} px/f`;
+      document.getElementById('text-orbit-dtheta').textContent = `${state.orbitState.dtheta.toFixed(4)} rad/f`;
+
+      // Update trace path trail
+      if (state.orbitHistory.length > 1) {
+        const pointsStr = state.orbitHistory.map(p => {
+          const coords = polarToCartesian(p.r, p.theta);
+          return `${coords.x},${coords.y}`;
+        }).join(' ');
+        document.getElementById('orbit-history-trail').setAttribute('points', pointsStr);
+      }
+    }
+
+    // Master Animation loop tick (handles rotation & orbit mechanics)
+    function loop() {
+      // Rotation physics sandbox tick
+      if (state.isRotating && state.activeTab === 'sandbox') {
+        state.p1.theta = (state.p1.theta + state.rotationSpeed) % (2 * Math.PI);
+        state.p2.theta = (state.p2.theta - state.rotationSpeed * 0.7) % (2 * Math.PI);
+        updateUI();
+      }
+
+      // Gravitational Simulator engine orbit tick
+      if (state.isOrbitRunning && state.activeTab === 'orbit') {
+        let r = state.orbitState.r;
+        let theta = state.orbitState.theta;
+        let dr = state.orbitState.dr;
+        let dtheta = state.orbitState.dtheta;
+
+        const substeps = 10;
+        const dt = 1.0 / substeps;
+
+        for (let i = 0; i < substeps; i++) {
+          const softening = 400;
+          const radialGravity = -state.orbitState.G / (r * r + softening);
+          
+          // Polar kinematics formulas:
+          // dr'' = r * theta'^2 + gravity - friction
+          const d2r = r * dtheta * dtheta + radialGravity - state.orbitState.friction * dr;
+          const safeR = Math.max(15, r);
+          const d2theta = -2 * dr * dtheta / safeR;
+
+          dr += d2r * dt;
+          dtheta += d2theta * dt;
+
+          const maxDr = 15;
+          const maxDtheta = 0.15;
+          dr = Math.max(-maxDr, Math.min(maxDr, dr));
+          dtheta = Math.max(-maxDtheta, Math.min(maxDtheta, dtheta));
+
+          r += dr * dt;
+          theta += dtheta * dt;
+        }
+
+        r = Math.max(30, Math.min(230, r));
+        theta = (theta % (2 * Math.PI) + 2 * Math.PI) % (2 * Math.PI);
+
+        if (!isNaN(r) && !isNaN(theta)) {
+          state.orbitState.r = r;
+          state.orbitState.theta = theta;
+          state.orbitState.dr = dr;
+          state.orbitState.dtheta = dtheta;
+
+          // Save history point
+          state.orbitHistory.push({ r, theta });
+          if (state.orbitHistory.length > 150) state.orbitHistory.shift();
+        }
+
+        updateOrbitUI();
+        triggerMathUpdates();
+      }
+
+      requestAnimationFrame(loop);
+    }
+
+    // Wait until KaTeX packages and assets load before triggering calculations
+    window.onload = function() {
+      buildPolarGrid();
+      setupInteractions();
+      
+      // Allow slight load interval delay to let KaTeX library register
+      setTimeout(() => {
+        state.katexLoaded = !!window.katex;
+        updateUI();
+        applyOrbitPreset('circular');
+        loop();
+      }, 300);
+    };
+  </script>
+</body>
+</html>

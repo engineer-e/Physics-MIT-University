@@ -1,0 +1,1124 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Circular Motion Kinematics & Integration Simulator</title>
+    <!-- Tailwind CSS for robust, modern styling -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Google Fonts: Inter for premium typography -->
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=Fira+Code:wght@400;500&display=swap" rel="stylesheet">
+    <style>
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: #0f172a; /* Slate 900 */
+        }
+        .math-font {
+            font-family: 'Georgia', serif;
+        }
+        .code-font {
+            font-family: 'Fira Code', monospace;
+        }
+        /* Custom scrollbar for sleek sidebars */
+        ::-webkit-scrollbar {
+            width: 6px;
+            height: 6px;
+        }
+        ::-webkit-scrollbar-track {
+            background: #1e293b;
+        }
+        ::-webkit-scrollbar-thumb {
+            background: #475569;
+            border-radius: 3px;
+        }
+        ::-webkit-scrollbar-thumb:hover {
+            background: #64748b;
+        }
+    </style>
+</head>
+<body class="text-slate-100 min-h-screen flex flex-col overflow-x-hidden">
+
+    <!-- Header banner -->
+    <header class="border-b border-slate-800 bg-slate-900/80 backdrop-blur sticky top-0 z-50 px-6 py-4">
+        <div class="max-w-7xl mx-auto flex flex-col md:flex-row items-center justify-between gap-4">
+            <div class="flex items-center gap-3">
+                <div class="p-2 bg-indigo-600 rounded-lg text-white shadow-lg shadow-indigo-500/30">
+                    <svg class="w-6 h-6 animate-spin-slow" fill="none" stroke="currentColor" viewBox="0 0 24 24" style="animation: spin 8s linear infinite;">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z" />
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+                    </svg>
+                </div>
+                <div>
+                    <h1 class="text-xl font-bold tracking-tight bg-gradient-to-r from-indigo-400 via-purple-400 to-pink-400 bg-clip-text text-transparent">
+                        Calculus of Circular Kinematics
+                    </h1>
+                    <p class="text-xs text-slate-400">Integrating Non-Constant Tangential Acceleration: a<sub>θ</sub>(t) = A - Bt</p>
+                </div>
+            </div>
+            <div class="flex items-center gap-4 text-xs">
+                <span class="px-2.5 py-1 rounded-full bg-emerald-500/10 text-emerald-400 border border-emerald-500/20 flex items-center gap-1.5">
+                    <span class="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse"></span>
+                    Interactive Sandbox Connected
+                </span>
+            </div>
+        </div>
+    </header>
+
+    <!-- Main Dashboard Body -->
+    <main class="flex-grow max-w-7xl w-full mx-auto p-4 md:p-6 grid grid-cols-1 lg:grid-cols-12 gap-6">
+
+        <!-- LEFT SIDE: Simulator and Controls (7 Cols) -->
+        <section class="lg:col-span-7 flex flex-col gap-6">
+            
+            <!-- Canvas Simulation Widget -->
+            <div class="bg-slate-800/50 border border-slate-700/60 rounded-2xl overflow-hidden shadow-2xl backdrop-blur flex flex-col">
+                <div class="px-5 py-3 border-b border-slate-700/60 flex items-center justify-between bg-slate-800/30">
+                    <div class="flex items-center gap-2">
+                        <span class="w-3 h-3 rounded-full bg-indigo-500"></span>
+                        <h2 class="text-sm font-semibold text-slate-200">Interactive Orbit Vector Engine</h2>
+                    </div>
+                    <div class="flex items-center gap-4 text-xs text-slate-400">
+                        <span class="flex items-center gap-1">
+                            <span class="w-2.5 h-1 rounded-full bg-emerald-400"></span> Velocity (v<sub>θ</sub>)
+                        </span>
+                        <span class="flex items-center gap-1">
+                            <span class="w-2.5 h-1 rounded-full bg-cyan-400"></span> Tangential Accel (a<sub>θ</sub>)
+                        </span>
+                        <span class="flex items-center gap-1">
+                            <span class="w-2.5 h-1 rounded-full bg-rose-400"></span> Centripetal Accel (a<sub>r</sub>)
+                        </span>
+                    </div>
+                </div>
+
+                <!-- Simulation Canvas Wrapper -->
+                <div class="relative flex-grow flex items-center justify-center p-4 bg-slate-950/40 min-h-[360px] md:min-h-[420px]">
+                    <canvas id="orbitCanvas" class="max-w-full w-full h-full object-contain cursor-crosshair"></canvas>
+                    
+                    <!-- Floating Real-Time Vector Readout HUD -->
+                    <div class="absolute bottom-4 left-4 bg-slate-900/90 border border-slate-700/80 rounded-xl p-3 text-xs shadow-xl space-y-1 backdrop-blur min-w-[150px]">
+                        <p class="font-bold text-slate-300 border-b border-slate-800 pb-1 mb-1.5">Vector HUD</p>
+                        <p class="flex justify-between gap-4">
+                            <span class="text-slate-400">Time (t):</span>
+                            <span id="hud-time" class="font-mono text-indigo-400">0.00s</span>
+                        </p>
+                        <p class="flex justify-between gap-4">
+                            <span class="text-slate-400">Angle (θ):</span>
+                            <span id="hud-angle" class="font-mono text-pink-400">0.00 rad</span>
+                        </p>
+                        <p class="flex justify-between gap-4">
+                            <span class="text-slate-400">Velocity (v<sub>θ</sub>):</span>
+                            <span id="hud-vel" class="font-mono text-emerald-400">0.00 m/s</span>
+                        </p>
+                        <p class="flex justify-between gap-4">
+                            <span class="text-slate-400">Tang. Accel (a<sub>θ</sub>):</span>
+                            <span id="hud-acc-tang" class="font-mono text-cyan-400">0.00 m/s²</span>
+                        </p>
+                        <p class="flex justify-between gap-4">
+                            <span class="text-slate-400">Cent. Accel (a<sub>r</sub>):</span>
+                            <span id="hud-acc-rad" class="font-mono text-rose-400">0.00 m/s²</span>
+                        </p>
+                    </div>
+
+                    <!-- On-Screen Instructions Helper overlay -->
+                    <div id="canvas-helper" class="absolute top-4 right-4 bg-slate-900/80 border border-slate-800 rounded-lg px-2.5 py-1.5 text-[10px] text-slate-400 pointer-events-none">
+                        💡 Click drag inside canvas to manually rotate
+                    </div>
+                </div>
+
+                <!-- Playback & Control Deck -->
+                <div class="p-5 border-t border-slate-700/60 bg-slate-900/40 flex flex-col gap-4">
+                    <!-- Progress Timeline Scrubbing Slider -->
+                    <div class="flex items-center gap-3">
+                        <span class="text-xs font-mono text-slate-400 w-10">t = 0s</span>
+                        <div class="relative flex-grow h-6 flex items-center">
+                            <input type="range" id="timeSlider" min="0" max="10" step="0.01" value="0" 
+                                   class="w-full h-1.5 bg-slate-700 rounded-lg appearance-none cursor-pointer accent-indigo-500 focus:outline-none focus:ring-2 focus:ring-indigo-500/50">
+                            <!-- Visual marks -->
+                            <div class="absolute inset-0 flex justify-between px-1 pointer-events-none">
+                                <span class="h-1 w-0.5 bg-slate-600 self-end mb-1"></span>
+                                <span class="h-1 w-0.5 bg-slate-600 self-end mb-1"></span>
+                                <span class="h-1 w-0.5 bg-slate-600 self-end mb-1"></span>
+                                <span class="h-1 w-0.5 bg-slate-600 self-end mb-1"></span>
+                                <span class="h-1 w-0.5 bg-slate-600 self-end mb-1"></span>
+                            </div>
+                        </div>
+                        <span id="timeMaxDisplay" class="text-xs font-mono text-slate-400 w-12">t = 10s</span>
+                    </div>
+
+                    <!-- Button Deck & Simulation Parameters -->
+                    <div class="flex flex-wrap items-center justify-between gap-4">
+                        <div class="flex items-center gap-2">
+                            <button id="btnPlayPause" class="flex items-center gap-1.5 px-4 py-2 bg-indigo-600 hover:bg-indigo-500 active:scale-95 text-white rounded-lg text-sm font-semibold shadow-lg shadow-indigo-500/20 transition">
+                                <svg class="w-4 h-4" fill="currentColor" viewBox="0 0 20 20" id="playIcon">
+                                    <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM9.555 7.168A1 1 0 008 8v4a1 1 0 001.555.832l3-2a1 1 0 000-1.664l-3-2z" clip-rule="evenodd"/>
+                                </svg>
+                                <span id="playText">Play Simulation</span>
+                            </button>
+                            <button id="btnReset" class="p-2 bg-slate-800 hover:bg-slate-700 active:scale-95 text-slate-300 border border-slate-700 rounded-lg text-sm transition" title="Reset Simulation">
+                                <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" d="M4 4v5h.582m15.356 2A8.001 8.001 0 1121.21 15H18" />
+                                </svg>
+                            </button>
+                        </div>
+
+                        <!-- Integration mode selector toggle -->
+                        <div class="flex bg-slate-800 p-0.5 rounded-lg border border-slate-700/50 text-xs">
+                            <button id="modeAnalytical" class="px-3 py-1.5 rounded-md font-medium text-slate-100 bg-indigo-600 shadow transition-all">
+                                Analytical Math
+                            </button>
+                            <button id="modeNumerical" class="px-3 py-1.5 rounded-md font-medium text-slate-400 hover:text-slate-200 transition-all">
+                                Numerical (Euler)
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Interactive Parameters Control Panel -->
+            <div class="bg-slate-800/40 border border-slate-700/50 rounded-2xl p-5 space-y-4">
+                <div class="flex items-center justify-between border-b border-slate-700/60 pb-2">
+                    <h3 class="font-bold text-slate-200 text-sm">Motion Parameters & Customizer</h3>
+                    <span class="text-[10px] text-indigo-400 uppercase tracking-wider font-semibold">Change to view physical effect</span>
+                </div>
+                
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <!-- Acceleration Parameter A -->
+                    <div class="space-y-1.5">
+                        <div class="flex justify-between text-xs">
+                            <span class="text-slate-300 flex items-center gap-1">
+                                <span class="w-2.5 h-2.5 rounded bg-indigo-500 flex items-center justify-center text-[8px] text-white">A</span>
+                                Initial Tangential Acceleration
+                            </span>
+                            <span id="valA" class="font-mono text-indigo-400 font-bold">2.0 m/s²</span>
+                        </div>
+                        <input type="range" id="paramA" min="0" max="5" step="0.1" value="2.0" class="w-full accent-indigo-500 h-1 bg-slate-700 rounded-lg cursor-pointer">
+                        <p class="text-[10px] text-slate-400">At t=0, a<sub>θ</sub> = A. Higher values accelerate the orbit rapidly.</p>
+                    </div>
+
+                    <!-- Acceleration Parameter B -->
+                    <div class="space-y-1.5">
+                        <div class="flex justify-between text-xs">
+                            <span class="text-slate-300 flex items-center gap-1">
+                                <span class="w-2.5 h-2.5 rounded bg-pink-500 flex items-center justify-center text-[8px] text-white">B</span>
+                                Deceleration Slope Rate
+                            </span>
+                            <span id="valB" class="font-mono text-pink-400 font-bold">0.4 m/s³</span>
+                        </div>
+                        <input type="range" id="paramB" min="0" max="1" step="0.05" value="0.4" class="w-full accent-pink-500 h-1 bg-slate-700 rounded-lg cursor-pointer">
+                        <p class="text-[10px] text-slate-400">Represents the rate at which acceleration decreases over time.</p>
+                    </div>
+
+                    <!-- Radius R -->
+                    <div class="space-y-1.5">
+                        <div class="flex justify-between text-xs">
+                            <span class="text-slate-300 flex items-center gap-1">
+                                <span class="w-2.5 h-2.5 rounded bg-blue-500 flex items-center justify-center text-[8px] text-white">R</span>
+                                Radius of Circle
+                            </span>
+                            <span id="valR" class="font-mono text-blue-400 font-bold">3.0 m</span>
+                        </div>
+                        <input type="range" id="paramR" min="1.5" max="5" step="0.1" value="3.0" class="w-full accent-blue-500 h-1 bg-slate-700 rounded-lg cursor-pointer">
+                        <p class="text-[10px] text-slate-400">Saves physical space: R affects angle change, θ = s/R.</p>
+                    </div>
+
+                    <!-- Initial Velocity V0 -->
+                    <div class="space-y-1.5">
+                        <div class="flex justify-between text-xs">
+                            <span class="text-slate-300 flex items-center gap-1">
+                                <span class="w-2.5 h-2.5 rounded bg-emerald-500 flex items-center justify-center text-[8px] text-white">V<sub>0</sub></span>
+                                Initial Tangential Velocity
+                            </span>
+                            <span id="valV0" class="font-mono text-emerald-400 font-bold">1.0 m/s</span>
+                        </div>
+                        <input type="range" id="paramV0" min="-5" max="5" step="0.5" value="1.0" class="w-full accent-emerald-500 h-1 bg-slate-700 rounded-lg cursor-pointer">
+                        <p class="text-[10px] text-slate-400">Starting velocity at t = 0s. Negative moves clockwise.</p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Graphical Real-time Analysis Center -->
+            <div class="bg-slate-800/40 border border-slate-700/50 rounded-2xl p-5 space-y-3">
+                <div class="flex items-center justify-between border-b border-slate-700/60 pb-2">
+                    <h3 class="font-bold text-slate-200 text-sm">Dynamic Physics Curves</h3>
+                    <div class="flex items-center gap-3 text-xs">
+                        <span class="flex items-center gap-1"><span class="w-2 h-2 rounded bg-cyan-400"></span> a<sub>θ</sub></span>
+                        <span class="flex items-center gap-1"><span class="w-2 h-2 rounded bg-emerald-400"></span> v<sub>θ</sub></span>
+                        <span class="flex items-center gap-1"><span class="w-2 h-2 rounded bg-pink-400"></span> s (Arc Length)</span>
+                    </div>
+                </div>
+
+                <div class="relative h-[180px] w-full bg-slate-950/40 rounded-xl overflow-hidden p-2">
+                    <canvas id="graphCanvas" class="w-full h-full"></canvas>
+                </div>
+                <div class="flex justify-between text-[10px] text-slate-400 px-1 font-mono">
+                    <span>t = 0s</span>
+                    <span>t = 5s</span>
+                    <span>t = 10s (Graph Timeline)</span>
+                </div>
+            </div>
+        </section>
+
+        <!-- RIGHT SIDE: Pedagogical Engine & Intuition Blocks (5 Cols) -->
+        <section class="lg:col-span-5 flex flex-col gap-6 overflow-y-auto max-h-[1000px] lg:max-h-[85vh] pr-1">
+            
+            <!-- Dynamic Step Highlight Panel (Integrations in action) -->
+            <div class="bg-slate-800/50 border border-slate-700/60 rounded-2xl p-5 shadow-xl space-y-4">
+                <div class="border-b border-slate-700 pb-2">
+                    <h3 class="font-bold text-slate-200 text-base">Analytical Calculus Chain</h3>
+                    <p class="text-xs text-slate-400">Watch the analytical integration update live in response to the timeline.</p>
+                </div>
+
+                <!-- STEP 1: Acceleration Model -->
+                <div id="step-acc" class="p-3.5 rounded-xl border border-slate-700/40 bg-slate-800/30 transition-all duration-300">
+                    <div class="flex justify-between items-center mb-1">
+                        <span class="text-xs font-semibold px-2 py-0.5 rounded bg-cyan-500/10 text-cyan-400">STEP 1: Input Model</span>
+                        <span class="text-[10px] text-slate-500">Acceleration Vector</span>
+                    </div>
+                    <p class="text-xs text-slate-300 mb-2">We start with a non-constant tangential polynomial acceleration:</p>
+                    
+                    <!-- Styled CSS Equation (Legible and robust) -->
+                    <div class="flex items-center justify-center bg-slate-900/60 p-2.5 rounded-lg border border-slate-800 my-2">
+                        <span class="math-font text-base text-cyan-300 font-semibold">a<sub>θ</sub>(t) = A - B t</span>
+                    </div>
+                    
+                    <div class="text-[11px] text-slate-400 flex justify-between bg-slate-950/30 px-2 py-1.5 rounded">
+                        <span>Current Evaluate:</span>
+                        <span id="step-acc-eval" class="font-mono text-cyan-300">2.00 - 0.40(t) = 2.00 m/s²</span>
+                    </div>
+                </div>
+
+                <!-- STEP 2: Velocity Integration -->
+                <div id="step-vel" class="p-3.5 rounded-xl border border-slate-700/40 bg-slate-800/30 transition-all duration-300">
+                    <div class="flex justify-between items-center mb-1">
+                        <span class="text-xs font-semibold px-2 py-0.5 rounded bg-emerald-500/10 text-emerald-400">STEP 2: Velocity Integral</span>
+                        <span class="text-[10px] text-slate-500">First Integral</span>
+                    </div>
+                    <p class="text-xs text-slate-300 mb-2">Integrate tangential acceleration with respect to time to get velocity:</p>
+                    
+                    <!-- Styled CSS Equation (Legible and robust) -->
+                    <div class="flex flex-col items-center bg-slate-900/60 p-3 rounded-lg border border-slate-800 my-2 gap-2 text-center">
+                        <div class="flex items-center gap-1.5 text-xs text-slate-400">
+                            <span class="math-font text-base">v<sub>θ</sub>(t) = v<sub>θ,0</sub> + </span>
+                            <span class="text-lg">∫</span>
+                            <div class="flex flex-col text-[8px] items-center -mx-1">
+                                <span>t</span>
+                                <span class="h-[1px] w-2 bg-slate-500 my-0.5"></span>
+                                <span>0</span>
+                            </div>
+                            <span class="math-font text-base text-cyan-300">(A - B t') d t'</span>
+                        </div>
+                        <div class="w-full h-[1px] bg-slate-800"></div>
+                        <span class="math-font text-sm text-emerald-300 font-semibold">v<sub>θ</sub>(t) = v<sub>θ,0</sub> + A t - &frac12; B t²</span>
+                    </div>
+
+                    <div class="text-[11px] text-slate-400 flex justify-between bg-slate-950/30 px-2 py-1.5 rounded">
+                        <span>Current Evaluate:</span>
+                        <span id="step-vel-eval" class="font-mono text-emerald-300">1.00 m/s</span>
+                    </div>
+                </div>
+
+                <!-- STEP 3: Displacement Integration -->
+                <div id="step-disp" class="p-3.5 rounded-xl border border-slate-700/40 bg-slate-800/30 transition-all duration-300">
+                    <div class="flex justify-between items-center mb-1">
+                        <span class="text-xs font-semibold px-2 py-0.5 rounded bg-pink-500/10 text-pink-400">STEP 3: Arc Length & Arc Angle</span>
+                        <span class="text-[10px] text-slate-500">Second Integral</span>
+                    </div>
+                    <p class="text-xs text-slate-300 mb-2">Integrate velocity to determine the total traveled arc length distance s(t):</p>
+                    
+                    <!-- Styled CSS Equation (Legible and robust) -->
+                    <div class="flex flex-col items-center bg-slate-900/60 p-3 rounded-lg border border-slate-800 my-2 gap-2 text-center">
+                        <div class="flex items-center gap-1.5 text-xs text-slate-400">
+                            <span class="math-font text-base">s(t) - s<sub>0</sub> = </span>
+                            <span class="text-lg">∫</span>
+                            <div class="flex flex-col text-[8px] items-center -mx-1">
+                                <span>t</span>
+                                <span class="h-[1px] w-2 bg-slate-500 my-0.5"></span>
+                                <span>0</span>
+                            </div>
+                            <span class="math-font text-base text-emerald-300">v<sub>θ</sub>(t') d t'</span>
+                        </div>
+                        <div class="w-full h-[1px] bg-slate-800"></div>
+                        <span class="math-font text-xs text-pink-300 font-semibold leading-relaxed">
+                            s(t) = v<sub>θ,0</sub>t + &frac12; A t² - <span class="text-[10px] font-sans">1</span>/<span class="text-[10px] font-sans">6</span> B t³
+                        </span>
+                        <span class="text-[10px] text-slate-400 italic">where Angle: θ(t) = s(t) / R</span>
+                    </div>
+
+                    <div class="text-[11px] text-slate-400 flex justify-between bg-slate-950/30 px-2 py-1.5 rounded">
+                        <span>Current Traveled:</span>
+                        <span id="step-disp-eval" class="font-mono text-pink-300">0.00 m (0.00 rad)</span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Expert Mental Model Mapping (Comparing Linear vs. Circular) -->
+            <div class="bg-slate-800/40 border border-slate-700/50 rounded-2xl p-5 space-y-4">
+                <div class="flex items-center gap-2 border-b border-slate-700/60 pb-2">
+                    <svg class="w-5 h-5 text-indigo-400" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" d="M9.663 17h4.673M12 3v1m6.364 1.636l-.707.707M21 12h-1M4 12H3m3.343-5.657l-.707-.707m2.828 9.9a5 5 0 117.072 0l-.548.547A3.374 3.374 0 0014 18.469V19a2 2 0 11-4 0v-.531c0-.895-.356-1.754-.988-2.386l-.548-.547z" />
+                    </svg>
+                    <h3 class="font-bold text-slate-200 text-sm">Mental Model: Linear vs. Circular</h3>
+                </div>
+                <p class="text-xs text-slate-300">
+                    One of the main intuitive leaps in physics is seeing that <strong>tangential direction in circular motion is mathematically identical to 1-dimensional linear motion</strong>.
+                </p>
+
+                <div class="grid grid-cols-2 gap-3 text-xs">
+                    <div class="bg-slate-900/40 border border-slate-800 p-3 rounded-xl space-y-2">
+                        <span class="font-semibold text-sky-400">1D Linear Space</span>
+                        <ul class="space-y-1.5 text-slate-400 text-[11px]">
+                            <li>Position: <code class="text-slate-200">x(t)</code></li>
+                            <li>Velocity: <code class="text-slate-200">v<sub>x</sub>(t) = dx/dt</code></li>
+                            <li>Acceleration: <code class="text-slate-200">a<sub>x</sub> = dv/dt</code></li>
+                            <li class="border-t border-slate-800 pt-1 text-slate-300">Straight line path.</li>
+                        </ul>
+                    </div>
+                    <div class="bg-slate-900/40 border border-slate-800 p-3 rounded-xl space-y-2">
+                        <span class="font-semibold text-purple-400">Tangential Circular Space</span>
+                        <ul class="space-y-1.5 text-slate-400 text-[11px]">
+                            <li>Arc Length: <code class="text-slate-200">s(t) = R·θ(t)</code></li>
+                            <li>Tangential Vel: <code class="text-slate-200">v<sub>θ</sub> = ds/dt</code></li>
+                            <li>Tangential Accel: <code class="text-slate-200">a<sub>θ</sub> = dv/dt</code></li>
+                            <li class="border-t border-slate-800 pt-1 text-slate-300">Curved circular path.</li>
+                        </ul>
+                    </div>
+                </div>
+
+                <div class="p-3 bg-indigo-950/20 border border-indigo-900/40 rounded-xl text-xs text-indigo-300 leading-relaxed">
+                    <strong>Critical Intuition Warning:</strong> Unlike linear motion, circular motion always contains a second vector component, <strong>Radial/Centripetal Acceleration (a<sub>r</sub> = -v²/R)</strong>, pointing directly inward to continuously bend the velocity vector, even if tangential acceleration is zero!
+                </div>
+            </div>
+
+            <!-- Computational Integration Block (Physics Simulation Algorithm) -->
+            <div class="bg-slate-800/40 border border-slate-700/50 rounded-2xl p-5 space-y-3">
+                <div class="flex items-center gap-2 border-b border-slate-700/60 pb-2">
+                    <svg class="w-5 h-5 text-emerald-400" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" d="M8 9l3 3-3 3m5 0h3M5 20h14a2 2 0 002-2V6a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
+                    </svg>
+                    <h3 class="font-bold text-slate-200 text-sm">Computational Integration Loop (Euler)</h3>
+                </div>
+                <p class="text-xs text-slate-300">
+                    When computers solve kinematic systems dynamically, they approximate the integral using tiny time steps (<code class="text-emerald-300">dt</code>). This simulator runs this numerical approximation in parallel.
+                </p>
+
+                <!-- Code segment preview -->
+                <div class="bg-slate-900/90 border border-slate-800 rounded-xl p-3 text-[11px] code-font text-slate-300 space-y-1 overflow-x-auto">
+                    <p class="text-slate-500">// Executed every simulation step (dt ≈ 0.016s)</p>
+                    <p><span class="text-pink-400">let</span> a_theta = A - B * t;</p>
+                    <p><span class="text-emerald-400">v_theta</span> += a_theta * dt; <span class="text-slate-500">// Numerical integral</span></p>
+                    <p><span class="text-pink-400">s</span> += v_theta * dt; <span class="text-slate-500">// Numerical integral</span></p>
+                    <p><span class="text-indigo-400">theta</span> += (v_theta * dt) / R; <span class="text-slate-500">// Convert to angle</span></p>
+                </div>
+
+                <div class="p-3 bg-amber-950/20 border border-amber-900/30 rounded-xl text-xs text-amber-300 space-y-1">
+                    <div class="font-semibold flex items-center gap-1">
+                        ⚠️ Integration Drift Comparison
+                    </div>
+                    <p class="text-[11px] leading-relaxed text-slate-300">
+                        Notice how numerical values slightly diverge from the exact calculus analytical lines at high speed! This demonstrates why scientists use small time steps (Runge-Kutta) to avoid simulation drift.
+                    </p>
+                </div>
+            </div>
+
+            <!-- Interactive Challenge / Quick Quiz Sandbox -->
+            <div class="bg-slate-800/40 border border-slate-700/50 rounded-2xl p-5 space-y-4">
+                <div class="border-b border-slate-700/60 pb-2">
+                    <h3 class="font-bold text-slate-200 text-sm">Physics Intuition Quiz Sandbox</h3>
+                    <p class="text-xs text-slate-400">Let's test your understanding of the integration process.</p>
+                </div>
+
+                <div class="space-y-3" id="quizContainer">
+                    <p class="text-xs text-slate-200 font-medium">Q: With the parameters A=2.0 and B=0.4, at what time does the tangential acceleration a<sub>θ</sub> drop to exactly 0?</p>
+                    
+                    <div class="grid grid-cols-2 gap-2 text-xs">
+                        <button class="quiz-btn px-3 py-2 bg-slate-800 hover:bg-slate-700 border border-slate-700 rounded-lg text-left transition" data-correct="false">
+                            A) t = 2.0 seconds
+                        </button>
+                        <button class="quiz-btn px-3 py-2 bg-slate-800 hover:bg-slate-700 border border-slate-700 rounded-lg text-left transition" data-correct="true">
+                            B) t = 5.0 seconds
+                        </button>
+                        <button class="quiz-btn px-3 py-2 bg-slate-800 hover:bg-slate-700 border border-slate-700 rounded-lg text-left transition" data-correct="false">
+                            C) t = 0.5 seconds
+                        </button>
+                        <button class="quiz-btn px-3 py-2 bg-slate-800 hover:bg-slate-700 border border-slate-700 rounded-lg text-left transition" data-correct="false">
+                            D) Never drops to zero
+                        </button>
+                    </div>
+
+                    <div id="quizFeedback" class="hidden p-3 rounded-lg text-xs leading-relaxed transition-all"></div>
+                </div>
+            </div>
+
+        </section>
+    </main>
+
+    <!-- Footer of page -->
+    <footer class="mt-auto border-t border-slate-800 bg-slate-950/60 text-center py-4 text-xs text-slate-500">
+        <p>Mathematical and Computational Mechanics Engine. Hand-designed layout with no external rendering overheads.</p>
+    </footer>
+
+    <script>
+        /*
+         * CORE STATE MANAGEMENT & SYSTEM CONFIGURATION
+         */
+        const state = {
+            // Simulation Parameters
+            A: 2.0,      // m/s^2 (Initial tangential acceleration)
+            B: 0.4,      // m/s^3 (Deceleration rate)
+            R: 3.0,      // meters (Circle Radius)
+            v0: 1.0,     // m/s (Initial velocity)
+            
+            // Time Management
+            t: 0,        // seconds (Current time)
+            dt: 0.016,   // seconds (Time step for integration)
+            isPlaying: false,
+            integrationMode: 'analytical', // 'analytical' or 'numerical'
+
+            // Numerical State Accumulators (To demonstrate Euler integration)
+            num_v: 1.0,
+            num_s: 0.0,
+            num_theta: 0.0,
+
+            // Interactive dragging state
+            isDragging: false,
+            dragStartAngle: 0
+        };
+
+        // Cache DOM Elements
+        const orbitCanvas = document.getElementById('orbitCanvas');
+        const orbitCtx = orbitCanvas.getContext('2d');
+        const graphCanvas = document.getElementById('graphCanvas');
+        const graphCtx = graphCanvas.getContext('2d');
+
+        const timeSlider = document.getElementById('timeSlider');
+        const btnPlayPause = document.getElementById('btnPlayPause');
+        const btnReset = document.getElementById('btnReset');
+        const playIcon = document.getElementById('playIcon');
+        const playText = document.getElementById('playText');
+
+        const modeAnalytical = document.getElementById('modeAnalytical');
+        const modeNumerical = document.getElementById('modeNumerical');
+
+        // Parameter Sliders
+        const paramA = document.getElementById('paramA');
+        const paramB = document.getElementById('paramB');
+        const paramR = document.getElementById('paramR');
+        const paramV0 = document.getElementById('paramV0');
+
+        const valA = document.getElementById('valA');
+        const valB = document.getElementById('valB');
+        const valR = document.getElementById('valR');
+        const valV0 = document.getElementById('valV0');
+
+        // Math updates placeholders
+        const hudTime = document.getElementById('hud-time');
+        const hudAngle = document.getElementById('hud-angle');
+        const hudVel = document.getElementById('hud-vel');
+        const hudAccTang = document.getElementById('hud-acc-tang');
+        const hudAccRad = document.getElementById('hud-acc-rad');
+
+        const stepAccEval = document.getElementById('step-acc-eval');
+        const stepVelEval = document.getElementById('step-vel-eval');
+        const stepDispEval = document.getElementById('step-disp-eval');
+
+        const stepAccCard = document.getElementById('step-acc');
+        const stepVelCard = document.getElementById('step-vel');
+        const stepDispCard = document.getElementById('step-disp');
+
+        // Listeners for Parameter Customizations
+        paramA.addEventListener('input', (e) => {
+            state.A = parseFloat(e.target.value);
+            valA.textContent = `${state.A.toFixed(1)} m/s²`;
+            resetNumericalEngine();
+            updateFormulas();
+        });
+
+        paramB.addEventListener('input', (e) => {
+            state.B = parseFloat(e.target.value);
+            valB.textContent = `${state.B.toFixed(2)} m/s³`;
+            resetNumericalEngine();
+            updateFormulas();
+        });
+
+        paramR.addEventListener('input', (e) => {
+            state.R = parseFloat(e.target.value);
+            valR.textContent = `${state.R.toFixed(1)} m`;
+            resetNumericalEngine();
+            updateFormulas();
+        });
+
+        paramV0.addEventListener('input', (e) => {
+            state.v0 = parseFloat(e.target.value);
+            valV0.textContent = `${state.v0.toFixed(1)} m/s`;
+            resetNumericalEngine();
+            updateFormulas();
+        });
+
+        // Time scrubbing
+        timeSlider.addEventListener('input', (e) => {
+            state.t = parseFloat(e.target.value);
+            if (state.t === 0) {
+                resetNumericalEngine();
+            } else {
+                recalculateNumericalToTime(state.t);
+            }
+            updateHUD();
+        });
+
+        // Play Pause Event
+        btnPlayPause.addEventListener('click', () => {
+            state.isPlaying = !state.isPlaying;
+            if (state.isPlaying) {
+                playIcon.innerHTML = `<path fill-rule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zM7 8a1 1 0 012 0v4a1 1 0 11-2 0V8zm5-1a1 1 0 00-1 1v4a1 1 0 102 0V8a1 1 0 00-1-1z" clip-rule="evenodd"/>`;
+                playText.textContent = "Pause Simulation";
+            } else {
+                playIcon.innerHTML = `<path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM9.555 7.168A1 1 0 008 8v4a1 1 0 001.555.832l3-2a1 1 0 000-1.664l-3-2z" clip-rule="evenodd"/>`;
+                playText.textContent = "Play Simulation";
+            }
+        });
+
+        btnReset.addEventListener('click', () => {
+            state.isPlaying = false;
+            state.t = 0;
+            timeSlider.value = 0;
+            playIcon.innerHTML = `<path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM9.555 7.168A1 1 0 008 8v4a1 1 0 001.555.832l3-2a1 1 0 000-1.664l-3-2z" clip-rule="evenodd"/>`;
+            playText.textContent = "Play Simulation";
+            resetNumericalEngine();
+            updateHUD();
+        });
+
+        // Reset numerical Euler engine variables back to boundary conditions (t=0)
+        function resetNumericalEngine() {
+            state.num_v = state.v0;
+            state.num_s = 0.0;
+            state.num_theta = 0.0;
+        }
+
+        // Simulates the numerical process up to an exact time marker
+        function recalculateNumericalToTime(targetTime) {
+            resetNumericalEngine();
+            let steps = targetTime / state.dt;
+            for (let i = 0; i < steps; i++) {
+                let tempTime = i * state.dt;
+                let a_theta = state.A - state.B * tempTime;
+                state.num_v += a_theta * state.dt;
+                state.num_s += state.num_v * state.dt;
+                state.num_theta += (state.num_v * state.dt) / state.R;
+            }
+        }
+
+        // Toggle simulation calculation modes
+        modeAnalytical.addEventListener('click', () => {
+            state.integrationMode = 'analytical';
+            modeAnalytical.classList.add('bg-indigo-600', 'text-slate-100');
+            modeAnalytical.classList.remove('text-slate-400');
+            modeNumerical.classList.remove('bg-indigo-600', 'text-slate-100');
+            modeNumerical.classList.add('text-slate-400');
+        });
+
+        modeNumerical.addEventListener('click', () => {
+            state.integrationMode = 'numerical';
+            modeNumerical.classList.add('bg-indigo-600', 'text-slate-100');
+            modeNumerical.classList.remove('text-slate-400');
+            modeAnalytical.classList.remove('bg-indigo-600', 'text-slate-100');
+            modeAnalytical.classList.add('text-slate-400');
+        });
+
+        /*
+         * CORE ANALYTICAL MATHEMATICS ENGINE
+         */
+        // Exact equations integrated analytically from the transcript
+        function getAnalyticalValues(time) {
+            // Acceleration: a_theta = A - Bt
+            const a_theta = state.A - (state.B * time);
+            
+            // Velocity: v_theta = V0 + At - 0.5 * B * t^2
+            const v_theta = state.v0 + (state.A * time) - (0.5 * state.B * Math.pow(time, 2));
+            
+            // Arc Length: s = V0*t + 0.5 * A * t^2 - 1/6 * B * t^3
+            const s = (state.v0 * time) + (0.5 * state.A * Math.pow(time, 2)) - ((1/6) * state.B * Math.pow(time, 3));
+            
+            // Theta (Angle): theta = s / R
+            const theta = s / state.R;
+
+            // Radial (Centripetal) Acceleration: a_r = - v_theta^2 / R
+            const a_rad = -Math.pow(v_theta, 2) / state.R;
+
+            return { a_theta, v_theta, s, theta, a_rad };
+        }
+
+        // Get numerical engine variables calculated via step iteration
+        function getNumericalValues() {
+            return {
+                a_theta: state.A - state.B * state.t,
+                v_theta: state.num_v,
+                s: state.num_s,
+                theta: state.num_theta,
+                a_rad: -Math.pow(state.num_v, 2) / state.R
+            };
+        }
+
+        // Unified values retrieval based on current active model
+        function getCurrentValues() {
+            if (state.integrationMode === 'analytical') {
+                return getAnalyticalValues(state.t);
+            } else {
+                return getNumericalValues();
+            }
+        }
+
+        // Render math cards dynamically to sync with sliders & timeline
+        function updateFormulas() {
+            const vals = getCurrentValues();
+
+            // Calculate active steps based on values to light up cards
+            const currentAcc = vals.a_theta;
+            const currentVel = vals.v_theta;
+
+            // Dynamically highlight based on current behavior
+            if (currentAcc > 0.05) {
+                // Accelerating
+                stepAccCard.className = "p-3.5 rounded-xl border border-cyan-500/30 bg-cyan-950/10 transition-all duration-300";
+                stepVelCard.className = "p-3.5 rounded-xl border border-slate-700/40 bg-slate-800/30 transition-all duration-300";
+                stepDispCard.className = "p-3.5 rounded-xl border border-slate-700/40 bg-slate-800/30 transition-all duration-300";
+            } else if (Math.abs(currentAcc) <= 0.05) {
+                // Peak velocity
+                stepAccCard.className = "p-3.5 rounded-xl border border-slate-700/40 bg-slate-800/30 transition-all duration-300";
+                stepVelCard.className = "p-3.5 rounded-xl border border-emerald-500/30 bg-emerald-950/10 transition-all duration-300";
+                stepDispCard.className = "p-3.5 rounded-xl border border-slate-700/40 bg-slate-800/30 transition-all duration-300";
+            } else {
+                // Decelerating / changing position direction
+                stepAccCard.className = "p-3.5 rounded-xl border border-slate-700/40 bg-slate-800/30 transition-all duration-300";
+                stepVelCard.className = "p-3.5 rounded-xl border border-slate-700/40 bg-slate-800/30 transition-all duration-300";
+                stepDispCard.className = "p-3.5 rounded-xl border border-pink-500/30 bg-pink-950/10 transition-all duration-300";
+            }
+
+            // Write dynamically evaluated string versions for exact feedback
+            stepAccEval.innerHTML = `${state.A.toFixed(2)} - ${state.B.toFixed(2)}(${state.t.toFixed(2)}) = <strong class="text-cyan-300">${currentAcc.toFixed(2)} m/s²</strong>`;
+            
+            stepVelEval.innerHTML = `${state.v0.toFixed(2)} + ${state.A.toFixed(2)}(${state.t.toFixed(2)}) - &frac12;(${state.B.toFixed(2)})(${state.t.toFixed(2)})² = <strong class="text-emerald-300">${currentVel.toFixed(2)} m/s</strong>`;
+            
+            stepDispEval.innerHTML = `s(${state.t.toFixed(2)}) = <strong class="text-pink-300">${vals.s.toFixed(2)} m</strong> (Angle θ = <strong class="text-purple-300">${vals.theta.toFixed(2)} rad</strong>)`;
+        }
+
+        // Live HUD numbers
+        function updateHUD() {
+            const vals = getCurrentValues();
+            hudTime.textContent = `${state.t.toFixed(2)}s`;
+            hudAngle.textContent = `${vals.theta.toFixed(2)} rad`;
+            hudVel.textContent = `${vals.v_theta.toFixed(2)} m/s`;
+            hudAccTang.textContent = `${vals.a_theta.toFixed(2)} m/s²`;
+            hudAccRad.textContent = `${vals.a_rad.toFixed(2)} m/s²`;
+
+            updateFormulas();
+        }
+
+        /*
+         * CANVAS RENDER ENGINE (Visual Orbit & Vectors)
+         */
+        function setupCanvasSize() {
+            // High-DPI screen adjustments
+            const rect = orbitCanvas.parentNode.getBoundingClientRect();
+            const dpr = window.devicePixelRatio || 1;
+            
+            orbitCanvas.width = rect.width * dpr;
+            orbitCanvas.height = Math.max(rect.height, 360) * dpr;
+            orbitCanvas.style.width = `${rect.width}px`;
+            orbitCanvas.style.height = `${Math.max(rect.height, 360)}px`;
+            
+            orbitCtx.scale(dpr, dpr);
+        }
+
+        window.addEventListener('resize', () => {
+            setupCanvasSize();
+            setupGraphCanvasSize();
+        });
+
+        function drawOrbit() {
+            const w = orbitCanvas.width / (window.devicePixelRatio || 1);
+            const h = orbitCanvas.height / (window.devicePixelRatio || 1);
+            const center = { x: w / 2, y: h / 2 };
+            
+            // Define scale factor: 1 meter = 45 pixels
+            const scale = 45;
+            const pxRadius = state.R * scale;
+
+            // Clear screen
+            orbitCtx.clearRect(0, 0, w, h);
+
+            // Draw circular grid guide
+            orbitCtx.beginPath();
+            orbitCtx.arc(center.x, center.y, pxRadius, 0, Math.PI * 2);
+            orbitCtx.strokeStyle = 'rgba(71, 85, 105, 0.25)'; // Slate 600 with transparency
+            orbitCtx.lineWidth = 1.5;
+            orbitCtx.setLineDash([6, 6]);
+            orbitCtx.stroke();
+            orbitCtx.setLineDash([]); // Reset line dash
+
+            // Draw center axes lines for mental model coordinate check
+            orbitCtx.beginPath();
+            orbitCtx.moveTo(center.x - pxRadius - 20, center.y);
+            orbitCtx.lineTo(center.x + pxRadius + 20, center.y);
+            orbitCtx.moveTo(center.x, center.y - pxRadius - 20);
+            orbitCtx.lineTo(center.x, center.y + pxRadius + 20);
+            orbitCtx.strokeStyle = 'rgba(71, 85, 105, 0.1)';
+            orbitCtx.lineWidth = 1;
+            orbitCtx.stroke();
+
+            // Center origin core
+            orbitCtx.beginPath();
+            orbitCtx.arc(center.x, center.y, 4, 0, Math.PI * 2);
+            orbitCtx.fillStyle = '#475569';
+            orbitCtx.fill();
+
+            // Calculate current coordinates of orbital particle
+            const vals = getCurrentValues();
+            const angle = vals.theta;
+
+            const particlePos = {
+                x: center.x + Math.cos(angle) * pxRadius,
+                y: center.y - Math.sin(angle) * pxRadius // Y negative because computer graphics 0,0 is top-left
+            };
+
+            // Draw radius chord
+            orbitCtx.beginPath();
+            orbitCtx.moveTo(center.x, center.y);
+            orbitCtx.lineTo(particlePos.x, particlePos.y);
+            orbitCtx.strokeStyle = 'rgba(99, 102, 241, 0.15)'; // Indigo 500
+            orbitCtx.lineWidth = 2;
+            orbitCtx.stroke();
+
+            // Vector calculation scale multipliers
+            const velVecScale = 20;
+            const accVecScale = 15;
+
+            // Direct angle vectors:
+            // Tangential Unit Vector u_theta = (-sin θ, cos θ) in physics coordinates.
+            // On-screen graphics requires mapping Y inverted:
+            // Tangential Vector: x = -sin(theta), y = -cos(theta)
+            const u_theta = {
+                x: -Math.sin(angle),
+                y: -Math.cos(angle)
+            };
+
+            // Radial Unit Vector u_r = (cos θ, sin θ) -> pointing outwards. 
+            // Inwards (Centripetal) points opposite: -cos θ, +sin θ (screen Y)
+            const u_r_inward = {
+                x: -Math.cos(angle),
+                y: Math.sin(angle)
+            };
+
+            // 1. Draw Velocity Vector (Emerald)
+            const v_mag = vals.v_theta;
+            const velEnd = {
+                x: particlePos.x + u_theta.x * v_mag * velVecScale,
+                y: particlePos.y + u_theta.y * v_mag * velVecScale
+            };
+            drawArrow(particlePos, velEnd, '#34d399', 3, 'Velocity (v)');
+
+            // 2. Draw Tangential Acceleration Vector (Cyan)
+            const a_t_mag = vals.a_theta;
+            const accTEnd = {
+                x: particlePos.x + u_theta.x * a_t_mag * accVecScale,
+                y: particlePos.y + u_theta.y * a_t_mag * accVecScale
+            };
+            drawArrow(particlePos, accTEnd, '#22d3ee', 2.5, 'a_tang');
+
+            // 3. Draw Centripetal Acceleration Vector (Rose)
+            // Centripetal points always inward
+            const a_r_mag = -vals.a_rad; // magnitude positive
+            const accREnd = {
+                x: particlePos.x + u_r_inward.x * a_r_mag * accVecScale,
+                y: particlePos.y + u_r_inward.y * a_r_mag * accVecScale
+            };
+            drawArrow(particlePos, accREnd, '#f43f5e', 2.5, 'a_rad');
+
+            // 4. Draw Net Total Vector (Violet) if simulation has both
+            const netAcc = {
+                x: (u_theta.x * a_t_mag + u_r_inward.x * a_r_mag) * accVecScale,
+                y: (u_theta.y * a_t_mag + u_r_inward.y * a_r_mag) * accVecScale
+            };
+            const accNetEnd = {
+                x: particlePos.x + netAcc.x,
+                y: particlePos.y + netAcc.y
+            };
+            drawArrow(particlePos, accNetEnd, '#a855f7', 1.5, 'a_net');
+
+            // Finally, Draw Orbiting Particle Core
+            orbitCtx.beginPath();
+            orbitCtx.arc(particlePos.x, particlePos.y, 8, 0, Math.PI * 2);
+            orbitCtx.fillStyle = '#6366f1'; // Indigo 500
+            orbitCtx.shadowBlur = 12;
+            orbitCtx.shadowColor = '#6366f1';
+            orbitCtx.fill();
+            orbitCtx.shadowBlur = 0; // Reset shadow blur
+
+            // Circular stroke ring around particle
+            orbitCtx.beginPath();
+            orbitCtx.arc(particlePos.x, particlePos.y, 10, 0, Math.PI * 2);
+            orbitCtx.strokeStyle = '#ffffff';
+            orbitCtx.lineWidth = 1.5;
+            orbitCtx.stroke();
+        }
+
+        // Helper helper function to draw clean mathematical arrows
+        function drawArrow(start, end, color, width, label) {
+            const dx = end.x - start.x;
+            const dy = end.y - start.y;
+            const length = Math.sqrt(dx * dx + dy * dy);
+            
+            if (length < 3) return; // Do not render zero length arrows
+
+            orbitCtx.beginPath();
+            orbitCtx.moveTo(start.x, start.y);
+            orbitCtx.lineTo(end.x, end.y);
+            orbitCtx.strokeStyle = color;
+            orbitCtx.lineWidth = width;
+            orbitCtx.lineCap = 'round';
+            orbitCtx.stroke();
+
+            // Arrow tip calculations
+            const arrowHeadSize = 6 + width;
+            const angle = Math.atan2(dy, dx);
+            orbitCtx.beginPath();
+            orbitCtx.moveTo(end.x, end.y);
+            orbitCtx.lineTo(end.x - arrowHeadSize * Math.cos(angle - Math.PI / 6), end.y - arrowHeadSize * Math.sin(angle - Math.PI / 6));
+            orbitCtx.lineTo(end.x - arrowHeadSize * Math.cos(angle + Math.PI / 6), end.y - arrowHeadSize * Math.sin(angle + Math.PI / 6));
+            orbitCtx.fillStyle = color;
+            orbitCtx.fill();
+        }
+
+        function setupGraphCanvasSize() {
+            const rect = graphCanvas.parentNode.getBoundingClientRect();
+            const dpr = window.devicePixelRatio || 1;
+            graphCanvas.width = rect.width * dpr;
+            graphCanvas.height = 180 * dpr;
+            graphCanvas.style.width = `${rect.width}px`;
+            graphCanvas.style.height = `180px`;
+            graphCtx.scale(dpr, dpr);
+        }
+
+        // Renders acceleration, velocity, and distance plots side-by-side
+        function drawGraphs() {
+            const w = graphCanvas.width / (window.devicePixelRatio || 1);
+            const h = graphCanvas.height / (window.devicePixelRatio || 1);
+
+            graphCtx.clearRect(0, 0, w, h);
+
+            // Draw center coordinate boundary
+            graphCtx.beginPath();
+            graphCtx.moveTo(0, h / 2);
+            graphCtx.lineTo(w, h / 2);
+            graphCtx.strokeStyle = 'rgba(71, 85, 105, 0.4)';
+            graphCtx.lineWidth = 1;
+            graphCtx.stroke();
+
+            // Calculate curves of 10s timeline
+            const stepCount = 120;
+            const graphWidth = w;
+            const dt = 10.0 / stepCount;
+
+            const plotPoints = {
+                acc: [],
+                vel: [],
+                disp: []
+            };
+
+            for (let i = 0; i <= stepCount; i++) {
+                let tempT = i * dt;
+                let vals = getAnalyticalValues(tempT);
+                plotPoints.acc.push(vals.a_theta);
+                plotPoints.vel.push(vals.v_theta);
+                plotPoints.disp.push(vals.s);
+            }
+
+            // Draw Curve Helper
+            function drawPlotLine(points, color, maxExpectedVal) {
+                graphCtx.beginPath();
+                for (let i = 0; i < points.length; i++) {
+                    let x = (i / stepCount) * graphWidth;
+                    // Map value to coordinate inside heights
+                    // Center horizontal acts as zero value
+                    let ratio = points[i] / maxExpectedVal;
+                    let y = (h / 2) - (ratio * (h / 2) * 0.85); // buffer boundary
+
+                    if (i === 0) {
+                        graphCtx.moveTo(x, y);
+                    } else {
+                        graphCtx.lineTo(x, y);
+                    }
+                }
+                graphCtx.strokeStyle = color;
+                graphCtx.lineWidth = 2.5;
+                graphCtx.stroke();
+            }
+
+            // Normalization parameters for neat plot bounding
+            drawPlotLine(plotPoints.acc, '#22d3ee', 5.0); // Cyan line
+            drawPlotLine(plotPoints.vel, '#34d399', 8.0); // Emerald line
+            drawPlotLine(plotPoints.disp, '#f472b6', 15.0); // Pink line
+
+            // Draw timeline vertical scrub marker
+            let scrubX = (state.t / 10.0) * graphWidth;
+            graphCtx.beginPath();
+            graphCtx.moveTo(scrubX, 0);
+            graphCtx.lineTo(scrubX, h);
+            graphCtx.strokeStyle = 'rgba(168, 85, 247, 0.7)'; // Violet scrub line
+            graphCtx.lineWidth = 2;
+            graphCtx.stroke();
+
+            // Scrub handle indicator circle
+            graphCtx.beginPath();
+            graphCtx.arc(scrubX, h / 2, 4, 0, Math.PI * 2);
+            graphCtx.fillStyle = '#a855f7';
+            graphCtx.fill();
+        }
+
+        // Mouse/Touch Drag Events: Let user turn the particle to any angle manually
+        function getMouseAngle(e) {
+            const rect = orbitCanvas.getBoundingClientRect();
+            const clientX = e.touches ? e.touches[0].clientX : e.clientX;
+            const clientY = e.touches ? e.touches[0].clientY : e.clientY;
+            
+            const w = rect.width;
+            const h = rect.height;
+            const center = { x: rect.left + w / 2, y: rect.top + h / 2 };
+
+            const dx = clientX - center.x;
+            const dy = clientY - center.y;
+            
+            // Map graphics angle inverted Y to match standard standard trig directions
+            return Math.atan2(-dy, dx);
+        }
+
+        orbitCanvas.addEventListener('mousedown', (e) => {
+            state.isDragging = true;
+            state.isPlaying = false;
+            playText.textContent = "Play Simulation";
+            playIcon.innerHTML = `<path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM9.555 7.168A1 1 0 008 8v4a1 1 0 001.555.832l3-2a1 1 0 000-1.664l-3-2z" clip-rule="evenodd"/>`;
+            
+            const angle = getMouseAngle(e);
+            adjustTimeToAngle(angle);
+        });
+
+        window.addEventListener('mousemove', (e) => {
+            if (!state.isDragging) return;
+            const angle = getMouseAngle(e);
+            adjustTimeToAngle(angle);
+        });
+
+        window.addEventListener('mouseup', () => {
+            state.isDragging = false;
+        });
+
+        // Touch support
+        orbitCanvas.addEventListener('touchstart', (e) => {
+            state.isDragging = true;
+            state.isPlaying = false;
+            const angle = getMouseAngle(e);
+            adjustTimeToAngle(angle);
+        }, { passive: true });
+
+        window.addEventListener('touchmove', (e) => {
+            if (!state.isDragging) return;
+            const angle = getMouseAngle(e);
+            adjustTimeToAngle(angle);
+        }, { passive: true });
+
+        window.addEventListener('touchend', () => {
+            state.isDragging = false;
+        });
+
+        // Searches the timeline to match the user dragged coordinate angle
+        function adjustTimeToAngle(targetAngle) {
+            // Keep target angle positive
+            if (targetAngle < 0) targetAngle += Math.PI * 2;
+
+            let closestT = 0;
+            let minDiff = Infinity;
+
+            // Search for closest matching analytical angle in timeline range
+            for (let testT = 0; testT <= 10; testT += 0.05) {
+                let testVals = getAnalyticalValues(testT);
+                let normalizedTestAngle = testVals.theta % (Math.PI * 2);
+                if (normalizedTestAngle < 0) normalizedTestAngle += Math.PI * 2;
+
+                let diff = Math.abs(normalizedTestAngle - targetAngle);
+                if (diff < minDiff) {
+                    minDiff = diff;
+                    closestT = testT;
+                }
+            }
+
+            state.t = closestT;
+            timeSlider.value = closestT;
+            recalculateNumericalToTime(closestT);
+            updateHUD();
+        }
+
+        const quizButtons = document.querySelectorAll('.quiz-btn');
+        const quizFeedback = document.getElementById('quizFeedback');
+
+        quizButtons.forEach(btn => {
+            btn.addEventListener('click', () => {
+                // Clear previous state styling
+                quizButtons.forEach(b => {
+                    b.classList.remove('bg-emerald-950/40', 'border-emerald-500', 'text-emerald-300', 'bg-rose-950/40', 'border-rose-500', 'text-rose-300');
+                });
+
+                const isCorrect = btn.getAttribute('data-correct') === 'true';
+                if (isCorrect) {
+                    btn.classList.add('bg-emerald-950/40', 'border-emerald-500', 'text-emerald-300');
+                    quizFeedback.className = "p-3 rounded-lg text-xs leading-relaxed bg-emerald-500/10 text-emerald-400 border border-emerald-500/20";
+                    quizFeedback.innerHTML = `<strong>Correct!</strong> Beautiful deduction. When t = 5s, the acceleration formula evaluates to: a<sub>θ</sub> = 2.0 - 0.4(5) = 2.0 - 2.0 = 0 m/s². At this critical moment, velocity reaches its absolute maximum peak before starting to decelerate!`;
+                } else {
+                    btn.classList.add('bg-rose-950/40', 'border-rose-500', 'text-rose-300');
+                    quizFeedback.className = "p-3 rounded-lg text-xs leading-relaxed bg-rose-500/10 text-rose-400 border border-rose-500/20";
+                    quizFeedback.innerHTML = `<strong>Not quite.</strong> Let's use analytical mechanics: to find when acceleration drops to 0, set the equation: 0 = A - Bt. Rearranging gives: t = A / B. Plugging in your parameter values: t = 2.0 / 0.4 = 5.0 seconds. Try testing the timeline slider at exactly t = 5.0s to confirm!`;
+                }
+                quizFeedback.classList.remove('hidden');
+            });
+        });
+
+        /*
+         * CORE SIMULATION ANIMATION LOOP
+         */
+        function animate() {
+            // If playing, update time increment
+            if (state.isPlaying) {
+                state.t += state.dt;
+
+                // Stop at boundary end
+                if (state.t >= 10.0) {
+                    state.t = 0; // Loop or reset
+                    resetNumericalEngine();
+                } else {
+                    // Update computational Integration on the fly
+                    let a_theta = state.A - state.B * state.t;
+                    state.num_v += a_theta * state.dt;
+                    state.num_s += state.num_v * state.dt;
+                    state.num_theta += (state.num_v * state.dt) / state.R;
+                }
+
+                timeSlider.value = state.t;
+                updateHUD();
+            }
+
+            // Draw visual canvas elements
+            drawOrbit();
+            drawGraphs();
+
+            requestAnimationFrame(animate);
+        }
+
+        // Initialize App Engine on load
+        window.onload = function() {
+            setupCanvasSize();
+            setupGraphCanvasSize();
+            resetNumericalEngine();
+            updateHUD();
+            animate();
+        };
+    </script>
+</body>
+</html>

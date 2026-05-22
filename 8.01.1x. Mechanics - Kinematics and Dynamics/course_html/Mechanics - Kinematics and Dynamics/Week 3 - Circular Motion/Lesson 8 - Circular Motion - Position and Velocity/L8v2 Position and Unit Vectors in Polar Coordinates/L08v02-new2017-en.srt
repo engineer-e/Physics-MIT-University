@@ -1,0 +1,640 @@
+0
+00:00:00,000 --> 00:00:04,630
+
+
+1
+00:00:04,630 --> 00:00:06,790
+Today we'll discuss polar coordinate systems.
+
+2
+00:00:06,790 --> 00:00:08,790
+And we'll start from Cartesian coordinate system
+
+3
+00:00:08,790 --> 00:00:11,670
+and look at the correspondence of a position vector
+
+4
+00:00:11,670 --> 00:00:14,130
+in polar coordinate system.
+
+5
+00:00:14,130 --> 00:00:21,700
+So for point p, the position of this point p
+
+6
+00:00:21,700 --> 00:00:25,180
+in a Cartesian coordinate system is
+
+7
+00:00:25,180 --> 00:00:26,840
+uniquely defined by a vector.
+
+8
+00:00:26,840 --> 00:00:29,350
+So we draw our Cartesian coordinate system
+
+9
+00:00:29,350 --> 00:00:36,790
+starting with an origin o and a unit vector, i hat and j hat.
+
+10
+00:00:36,790 --> 00:00:41,930
+And we uniquely define the position vector
+
+11
+00:00:41,930 --> 00:00:44,920
+as this vector r that tells us where this particle
+
+12
+00:00:44,920 --> 00:00:48,470
+p is in our coordinate system.
+
+13
+00:00:48,470 --> 00:00:55,280
+This vector r is then defined as its component
+
+14
+00:00:55,280 --> 00:00:57,470
+in the i hat direction, which we'll call x.
+
+15
+00:00:57,470 --> 00:01:00,530
+So it will be x in the i hat direction.
+
+16
+00:01:00,530 --> 00:01:06,380
+And its component in the j hat direction, which we'll call y.
+
+17
+00:01:06,380 --> 00:01:09,675
+So it'll be plus y in the j hat direction.
+
+18
+00:01:09,675 --> 00:01:12,290
+
+
+19
+00:01:12,290 --> 00:01:14,870
+The magnitude of this position vector
+
+20
+00:01:14,870 --> 00:01:17,510
+is now just going to be the hypotenuse of this right angle
+
+21
+00:01:17,510 --> 00:01:20,750
+triangle, which side of magnitude
+
+22
+00:01:20,750 --> 00:01:23,900
+x here and magnitude y here.
+
+23
+00:01:23,900 --> 00:01:27,470
+So the magnitude of this vector is going to be,
+
+24
+00:01:27,470 --> 00:01:30,710
+then, the square root of this side square, that's
+
+25
+00:01:30,710 --> 00:01:34,840
+x square, plus this side square, which is y square.
+
+26
+00:01:34,840 --> 00:01:37,570
+
+
+27
+00:01:37,570 --> 00:01:40,720
+Now in the polar coordinate system,
+
+28
+00:01:40,720 --> 00:01:44,330
+we define a new unit vector, r hat,
+
+29
+00:01:44,330 --> 00:01:47,980
+which is pointing in the direction of the position
+
+30
+00:01:47,980 --> 00:01:50,140
+vector r.
+
+31
+00:01:50,140 --> 00:01:52,450
+Then the second unit vector, theta hat
+
+32
+00:01:52,450 --> 00:01:57,910
+will then be perpendicular to this r hat direction.
+
+33
+00:01:57,910 --> 00:02:03,850
+So let's rewrite the position of the point here.
+
+34
+00:02:03,850 --> 00:02:05,165
+And the point will be p.
+
+35
+00:02:05,165 --> 00:02:09,919
+
+
+36
+00:02:09,919 --> 00:02:15,230
+In this polar coordinate system, now the vector,
+
+37
+00:02:15,230 --> 00:02:18,240
+the position vector r would have a certain magnitude
+
+38
+00:02:18,240 --> 00:02:22,014
+r in the r hat direction.
+
+39
+00:02:22,014 --> 00:02:23,430
+But there should be correspondence
+
+40
+00:02:23,430 --> 00:02:25,440
+between the Cartesian coordinate system
+
+41
+00:02:25,440 --> 00:02:26,970
+and the polar coordinate system.
+
+42
+00:02:26,970 --> 00:02:29,280
+That is that this magnitude is still the same,
+
+43
+00:02:29,280 --> 00:02:34,080
+regardless of which unit vectors I choose to represent them in.
+
+44
+00:02:34,080 --> 00:02:37,980
+So this magnitude of r is exactly the square root
+
+45
+00:02:37,980 --> 00:02:39,530
+of x squared plus y squared.
+
+46
+00:02:39,530 --> 00:02:43,650
+
+
+47
+00:02:43,650 --> 00:02:46,170
+So for consistency, let's just take the magnitude
+
+48
+00:02:46,170 --> 00:02:49,770
+of the vector in polar coordinate system.
+
+49
+00:02:49,770 --> 00:02:53,280
+So we say that this has a magnitude which is r,
+
+50
+00:02:53,280 --> 00:02:54,720
+and it's in the r hat direction.
+
+51
+00:02:54,720 --> 00:02:56,910
+So we take the magnitude of r hat direction.
+
+52
+00:02:56,910 --> 00:03:00,360
+But since r hat is a unit vector, the magnitude of r hat
+
+53
+00:03:00,360 --> 00:03:01,440
+is just one.
+
+54
+00:03:01,440 --> 00:03:04,890
+So this is just going to be r times one, which is r.
+
+55
+00:03:04,890 --> 00:03:10,640
+So in fact, if we write down the magnitude of this vector
+
+56
+00:03:10,640 --> 00:03:14,370
+is r in polar coordinate system and it's exactly
+
+57
+00:03:14,370 --> 00:03:18,090
+square root of x square plus y square
+
+58
+00:03:18,090 --> 00:03:20,200
+in Cartesian coordinate system.
+
+59
+00:03:20,200 --> 00:03:24,510
+So this is one correspondence between polar coordinate system
+
+60
+00:03:24,510 --> 00:03:25,870
+and Cartesian coordinate system.
+
+61
+00:03:25,870 --> 00:03:30,469
+
+
+62
+00:03:30,469 --> 00:03:32,010
+To further look at the correspondence
+
+63
+00:03:32,010 --> 00:03:34,830
+between Cartesian and polar coordinate system,
+
+64
+00:03:34,830 --> 00:03:39,000
+let's consider this angle that the position vector r makes
+
+65
+00:03:39,000 --> 00:03:42,310
+with respect to the x-axis.
+
+66
+00:03:42,310 --> 00:03:45,700
+And let's define this angle as theta.
+
+67
+00:03:45,700 --> 00:03:48,710
+Then by looking at the same right angle triangle,
+
+68
+00:03:48,710 --> 00:03:51,960
+we will know that x is the adjacent.
+
+69
+00:03:51,960 --> 00:03:55,290
+Therefore, x can be written as the magnitude
+
+70
+00:03:55,290 --> 00:03:59,460
+of r times cosine of theta.
+
+71
+00:03:59,460 --> 00:04:01,710
+And y is the opposite.
+
+72
+00:04:01,710 --> 00:04:05,280
+So y is going to be the magnitude of the position
+
+73
+00:04:05,280 --> 00:04:09,660
+vector r times sine of theta.
+
+74
+00:04:09,660 --> 00:04:12,750
+Since we know that the magnitude can
+
+75
+00:04:12,750 --> 00:04:16,709
+be written as just a r as a quantity,
+
+76
+00:04:16,709 --> 00:04:19,410
+so we're just going to simplify this expression
+
+77
+00:04:19,410 --> 00:04:23,810
+and say it's r cosine theta, and here, r times sine of theta.
+
+78
+00:04:23,810 --> 00:04:27,800
+
+
+79
+00:04:27,800 --> 00:04:30,590
+All these expressions now are self-consistent.
+
+80
+00:04:30,590 --> 00:04:34,790
+If I take x square plus y square,
+
+81
+00:04:34,790 --> 00:04:37,730
+I get now r-squared cosine squared
+
+82
+00:04:37,730 --> 00:04:43,400
+theta plus r square sine squared theta.
+
+83
+00:04:43,400 --> 00:04:47,990
+I can factorize r square and get cosine square theta
+
+84
+00:04:47,990 --> 00:04:50,660
+plus sine square theta.
+
+85
+00:04:50,660 --> 00:04:54,510
+And this expression is 1.
+
+86
+00:04:54,510 --> 00:04:58,020
+Therefore, x square plus y square in fact
+
+87
+00:04:58,020 --> 00:04:59,750
+gives you, again, r square, which
+
+88
+00:04:59,750 --> 00:05:01,340
+is consistent with the expression
+
+89
+00:05:01,340 --> 00:05:02,975
+that we had just derived there.
+
+90
+00:05:02,975 --> 00:05:06,440
+
+
+91
+00:05:06,440 --> 00:05:09,550
+The next correspondence that we need to derive between polar
+
+92
+00:05:09,550 --> 00:05:11,512
+and Cartesian coordinate system is
+
+93
+00:05:11,512 --> 00:05:12,970
+the correspondence between the unit
+
+94
+00:05:12,970 --> 00:05:18,010
+vectors i hat j hat and r hat theta hat.
+
+95
+00:05:18,010 --> 00:05:22,990
+For that list, redraw the vectors i hat and j hat.
+
+96
+00:05:22,990 --> 00:05:27,960
+
+
+97
+00:05:27,960 --> 00:05:31,640
+A vector is fully defined by its magnitude and its direction.
+
+98
+00:05:31,640 --> 00:05:33,800
+So I can redraw r hat and theta hat
+
+99
+00:05:33,800 --> 00:05:38,060
+to have the same origin as i hat and j hat.
+
+100
+00:05:38,060 --> 00:05:42,230
+But notice that r hat is exactly in the direction
+
+101
+00:05:42,230 --> 00:05:45,830
+of the full position vector r, which is making an angle
+
+102
+00:05:45,830 --> 00:05:48,840
+theta with the x-axis.
+
+103
+00:05:48,840 --> 00:05:51,920
+Therefore, r hat is making an angle theta
+
+104
+00:05:51,920 --> 00:05:56,540
+with the x-axis, which is the i hat direction.
+
+105
+00:05:56,540 --> 00:06:02,800
+So I can draw my unit vector r hat
+
+106
+00:06:02,800 --> 00:06:08,710
+as making an angle theta with the i hat direction.
+
+107
+00:06:08,710 --> 00:06:11,500
+So it's easier to see, then, that the perpendicular
+
+108
+00:06:11,500 --> 00:06:15,917
+component which is theta hat will be pointing this way,
+
+109
+00:06:15,917 --> 00:06:17,500
+and it will be perpendicular to r hat.
+
+110
+00:06:17,500 --> 00:06:20,020
+
+
+111
+00:06:20,020 --> 00:06:23,850
+It's also helpful to know that if this is an angle theta,
+
+112
+00:06:23,850 --> 00:06:25,520
+this is 90 degrees.
+
+113
+00:06:25,520 --> 00:06:27,130
+Therefore this, by correspondence,
+
+114
+00:06:27,130 --> 00:06:32,310
+you can solve that this angle is also theta.
+
+115
+00:06:32,310 --> 00:06:35,690
+So let's decompose now r hat and theta hat
+
+116
+00:06:35,690 --> 00:06:38,480
+as a function of i hat j hat using this picture.
+
+117
+00:06:38,480 --> 00:06:41,990
+
+
+118
+00:06:41,990 --> 00:06:44,340
+So we can write down r hat.
+
+119
+00:06:44,340 --> 00:06:46,580
+Notice r hat is a unit vector.
+
+120
+00:06:46,580 --> 00:06:49,815
+So if I now look at the projection on the i hat and j
+
+121
+00:06:49,815 --> 00:06:56,550
+hat, if this is a unit vector, so it has a magnitude 1,
+
+122
+00:06:56,550 --> 00:06:58,740
+the component on the i hat direction
+
+123
+00:06:58,740 --> 00:07:00,940
+is just going to be the adjacent, which
+
+124
+00:07:00,940 --> 00:07:04,385
+is cosine of theta.
+
+125
+00:07:04,385 --> 00:07:08,660
+So cosine of theta times magnitude 1
+
+126
+00:07:08,660 --> 00:07:11,450
+in the i hat direction.
+
+127
+00:07:11,450 --> 00:07:13,400
+And then r hat is also going to have
+
+128
+00:07:13,400 --> 00:07:16,940
+a component in the positive j hat direction, which
+
+129
+00:07:16,940 --> 00:07:19,500
+is going to be the opposite.
+
+130
+00:07:19,500 --> 00:07:24,373
+So it's going to be sine of theta in the j hat direction.
+
+131
+00:07:24,373 --> 00:07:27,480
+
+
+132
+00:07:27,480 --> 00:07:32,530
+Now let's look at the theta hat vector.
+
+133
+00:07:32,530 --> 00:07:35,680
+Notice that theta hat actually projects
+
+134
+00:07:35,680 --> 00:07:40,100
+and has a component opposite of the i hat direction.
+
+135
+00:07:40,100 --> 00:07:42,440
+So i hat is pointing this way.
+
+136
+00:07:42,440 --> 00:07:45,530
+theta hat actually has a component in this direction,
+
+137
+00:07:45,530 --> 00:07:48,230
+so opposite of i hat direction.
+
+138
+00:07:48,230 --> 00:07:50,540
+So it's going to have a component in the minus i hat
+
+139
+00:07:50,540 --> 00:07:51,504
+direction.
+
+140
+00:07:51,504 --> 00:07:54,110
+
+
+141
+00:07:54,110 --> 00:07:56,000
+And the magnitude of that component
+
+142
+00:07:56,000 --> 00:08:01,100
+is better seen by looking at this right angle triangle,
+
+143
+00:08:01,100 --> 00:08:04,890
+where this is the angle theta.
+
+144
+00:08:04,890 --> 00:08:08,810
+So the magnitude now is going to be the opposite side, which
+
+145
+00:08:08,810 --> 00:08:14,740
+is a sine of theta times the magnitude of theta hat.
+
+146
+00:08:14,740 --> 00:08:16,310
+So theta hat is a unit vector.
+
+147
+00:08:16,310 --> 00:08:20,170
+So it's a 1 times sine of theta, and this component
+
+148
+00:08:20,170 --> 00:08:24,200
+is in the minus i hat direction.
+
+149
+00:08:24,200 --> 00:08:27,220
+theta hat also has a component in the positive j hat
+
+150
+00:08:27,220 --> 00:08:30,250
+direction.
+
+151
+00:08:30,250 --> 00:08:32,230
+And the magnitude of that component
+
+152
+00:08:32,230 --> 00:08:37,429
+is going to be this much, which is the adjacent side.
+
+153
+00:08:37,429 --> 00:08:40,940
+So it's going to be cosine of theta in the j hat direction.
+
+154
+00:08:40,940 --> 00:08:43,530
+
+
+155
+00:08:43,530 --> 00:08:46,620
+We have now fully derived correspondences
+
+156
+00:08:46,620 --> 00:08:51,870
+between both the unit vectors, i hat j hat and r hat theta hat,
+
+157
+00:08:51,870 --> 00:08:58,260
+as well as the magnitude r and the relevant magnitudes
+
+158
+00:08:58,260 --> 00:09:04,280
+x and y for polar and Cartesian coordinate systems.
+
+159
+00:09:04,280 --> 00:09:05,003
+
+

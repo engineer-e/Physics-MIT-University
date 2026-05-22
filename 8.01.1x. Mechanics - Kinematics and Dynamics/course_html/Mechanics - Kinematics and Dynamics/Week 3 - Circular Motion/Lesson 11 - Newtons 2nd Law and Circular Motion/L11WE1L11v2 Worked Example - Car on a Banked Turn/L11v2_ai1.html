@@ -1,0 +1,812 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Physics Masterclass: Banked Frictionless Turn Simulator</title>
+    <!-- Tailwind CSS for high-quality utility styling -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        /* Custom styles to enhance visibility and guarantee accessibility */
+        .text-glow {
+            text-shadow: 0 0 8px rgba(59, 130, 246, 0.5);
+        }
+        input[type="range"]::-webkit-slider-thumb {
+            pointer-events: auto;
+            width: 18px;
+            height: 18px;
+            border-radius: 50%;
+            background: #3b82f6;
+            cursor: pointer;
+        }
+    </style>
+</head>
+<body class="bg-slate-950 text-slate-100 font-sans min-h-screen selection:bg-blue-600 selection:text-white">
+
+    <!-- Header & Navigation Bar -->
+    <header class="border-b border-slate-800 bg-slate-900/80 backdrop-blur sticky top-0 z-50 px-4 py-3">
+        <div class="max-w-7xl mx-auto flex flex-col md:flex-row items-center justify-between gap-4">
+            <div class="flex items-center gap-3">
+                <div class="bg-blue-600 text-white p-2 rounded-lg font-bold text-xl tracking-tight shadow-md">
+                    Φ
+                </div>
+                <div>
+                    <h1 class="text-xl font-extrabold text-white tracking-wide">Frictionless Banked Curve Simulator</h1>
+                    <p class="text-xs text-slate-400">Interactive Newtonian Lab & Dynamic Computational Explainer</p>
+                </div>
+            </div>
+            <div class="flex gap-2">
+                <button onclick="resetToIdeal()" class="px-3 py-1.5 bg-slate-800 hover:bg-slate-700 text-slate-200 text-xs font-semibold rounded border border-slate-700 transition">
+                    Reset to Ideal Speed
+                </button>
+                <button onclick="triggerSpeedBoost()" class="px-3 py-1.5 bg-blue-600 hover:bg-blue-500 text-white text-xs font-semibold rounded shadow transition">
+                    Boost Speed (v' > v)
+                </button>
+                <button onclick="triggerSpeedDrop()" class="px-3 py-1.5 bg-rose-600 hover:bg-rose-500 text-white text-xs font-semibold rounded shadow transition">
+                    Drop Speed (v'' &lt; v)
+                </button>
+            </div>
+        </div>
+    </header>
+
+    <main class="max-w-7xl mx-auto px-4 py-6 grid grid-cols-1 lg:grid-cols-12 gap-6">
+
+        <!-- LEFT SIDE: Simulator and Live Controls (7 Cols on LG) -->
+        <div class="lg:col-span-7 flex flex-col gap-6">
+            
+            <!-- Real-Time Interactive Canvas Card -->
+            <div class="bg-slate-900 rounded-xl border border-slate-800 p-4 shadow-xl overflow-hidden relative">
+                <div class="flex items-center justify-between mb-4 border-b border-slate-800 pb-2">
+                    <span class="text-sm font-bold uppercase tracking-wider text-blue-400 flex items-center gap-2">
+                        <span class="w-2.5 h-2.5 bg-blue-500 rounded-full animate-pulse"></span>
+                        Live Physics Visualizer (Dual-Viewport Sync)
+                    </span>
+                    <span id="state-badge" class="px-2 py-0.5 text-xs font-semibold rounded bg-emerald-500/10 text-emerald-400 border border-emerald-500/20">
+                        Perfectly Balanced
+                    </span>
+                </div>
+
+                <!-- Simulation canvases -->
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <!-- Viewport 1: Side View Force & Acceleration Profile -->
+                    <div class="bg-slate-950 rounded-lg p-3 border border-slate-800 flex flex-col items-center">
+                        <div class="w-full flex justify-between text-xs text-slate-400 mb-1">
+                            <span class="font-bold text-slate-200">Side View (Force Diagram)</span>
+                            <span id="canvas1-coordinates" class="font-mono">r-k frame</span>
+                        </div>
+                        <canvas id="canvas-side" class="w-full h-64 bg-slate-950 rounded border border-slate-900 cursor-crosshair"></canvas>
+                        <div class="mt-2 text-[11px] text-slate-400 text-center">
+                            Shows normal force <span class="text-emerald-400 font-semibold">N</span>, gravity <span class="text-amber-500 font-semibold">mg</span>, & radial acceleration <span class="text-blue-400 font-semibold">a_r</span> vectors.
+                        </div>
+                    </div>
+
+                    <!-- Viewport 2: Top-down Overhead Track Trajectory -->
+                    <div class="bg-slate-950 rounded-lg p-3 border border-slate-800 flex flex-col items-center">
+                        <div class="w-full flex justify-between text-xs text-slate-400 mb-1">
+                            <span class="font-bold text-slate-200">Overhead View (Circular Orbit)</span>
+                            <span id="canvas2-scale" class="font-mono">Track Radius (r)</span>
+                        </div>
+                        <canvas id="canvas-top" class="w-full h-64 bg-slate-950 rounded border border-slate-900"></canvas>
+                        <div class="mt-2 text-[11px] text-slate-400 text-center">
+                            Yellow path shows actual car orbit. Notice changes in orbit radius with speed deviation!
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Live Dashboard readout below canvases -->
+                <div class="mt-4 grid grid-cols-2 sm:grid-cols-4 gap-2 bg-slate-950 p-3 rounded-lg border border-slate-800 font-mono text-center">
+                    <div>
+                        <div class="text-[10px] text-slate-400 uppercase">Ideal Speed</div>
+                        <div id="val-ideal-speed" class="text-sm font-bold text-blue-400">0.00 m/s</div>
+                    </div>
+                    <div>
+                        <div class="text-[10px] text-slate-400 uppercase">Current Speed</div>
+                        <div id="val-current-speed" class="text-sm font-bold text-white">0.00 m/s</div>
+                    </div>
+                    <div>
+                        <div class="text-[10px] text-slate-400 uppercase">Current Radius</div>
+                        <div id="val-current-radius" class="text-sm font-bold text-amber-400">0.00 m</div>
+                    </div>
+                    <div>
+                        <div class="text-[10px] text-slate-400 uppercase">Net Radial Force</div>
+                        <div id="val-radial-force" class="text-sm font-bold text-rose-400">0.00 N</div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Live User Control Panel Card -->
+            <div class="bg-slate-900 rounded-xl border border-slate-800 p-5 shadow-xl">
+                <h3 class="text-md font-bold text-white mb-4 flex items-center gap-2">
+                    <svg class="w-5 h-5 text-blue-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6V4m0 2a2 2 0 100 4m0-4a2 2 0 110 4m-6 8a2 2 0 100-4m0 4a2 2 0 110-4m0 4v2m0-6V4m6 6v10m6-2a2 2 0 100-4m0 4a2 2 0 110-4m0 4v2m0-6V4"></path></svg>
+                    Real-Time Environment Controller
+                </h3>
+                
+                <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+                    <!-- Slider 1: Bank Angle (Phi) -->
+                    <div class="space-y-2">
+                        <div class="flex justify-between text-xs font-semibold">
+                            <span class="text-slate-300">Bank Angle (φ)</span>
+                            <span id="lbl-phi" class="text-blue-400 font-mono font-bold">25.0°</span>
+                        </div>
+                        <input type="range" id="slide-phi" min="5" max="60" step="0.5" value="25" class="w-full h-1 bg-slate-800 rounded-lg appearance-none cursor-pointer accent-blue-500">
+                        <div class="text-[10px] text-slate-500 flex justify-between">
+                            <span>5° (Flat)</span>
+                            <span>60° (Steep)</span>
+                        </div>
+                    </div>
+
+                    <!-- Slider 2: Current Car Velocity -->
+                    <div class="space-y-2">
+                        <div class="flex justify-between text-xs font-semibold">
+                            <span class="text-slate-300">Car Velocity (v)</span>
+                            <span id="lbl-v" class="text-blue-400 font-mono font-bold">12.0 m/s</span>
+                        </div>
+                        <input type="range" id="slide-v" min="2" max="30" step="0.1" value="12" class="w-full h-1 bg-slate-800 rounded-lg appearance-none cursor-pointer accent-blue-500">
+                        <div class="text-[10px] text-slate-500 flex justify-between">
+                            <span>2 m/s (Slow)</span>
+                            <span>30 m/s (Fast)</span>
+                        </div>
+                    </div>
+
+                    <!-- Slider 3: Base Track Radius -->
+                    <div class="space-y-2">
+                        <div class="flex justify-between text-xs font-semibold">
+                            <span class="text-slate-300">Base Radius (r_0)</span>
+                            <span id="lbl-r" class="text-blue-400 font-mono font-bold">25.0 m</span>
+                        </div>
+                        <input type="range" id="slide-r" min="10" max="60" step="0.5" value="25" class="w-full h-1 bg-slate-800 rounded-lg appearance-none cursor-pointer accent-blue-500">
+                        <div class="text-[10px] text-slate-500 flex justify-between">
+                            <span>10 m</span>
+                            <span>60 m</span>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="mt-4 pt-4 border-t border-slate-800 flex flex-wrap gap-4 items-center justify-between text-xs text-slate-400">
+                    <div class="flex items-center gap-4">
+                        <label class="flex items-center gap-1.5 cursor-pointer">
+                            <input type="checkbox" id="chk-oscillations" checked class="rounded border-slate-700 bg-slate-900 text-blue-600 focus:ring-blue-500 h-4.5 w-4.5">
+                            <span>Enable Dynamic Oscillations</span>
+                        </label>
+                        <label class="flex items-center gap-1.5 cursor-pointer">
+                            <input type="checkbox" id="chk-vectors" checked class="rounded border-slate-700 bg-slate-900 text-blue-600 focus:ring-blue-500 h-4.5 w-4.5">
+                            <span>Force Vectors</span>
+                        </label>
+                    </div>
+                    <div>
+                        <span class="italic">Slide v above or below the ideal speed to witness immediate orbital deviations!</span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Intuitive Mental Models & Critical Thinking -->
+            <div class="bg-slate-900 rounded-xl border border-slate-800 p-5 shadow-xl space-y-4">
+                <h3 class="text-md font-bold text-white border-b border-slate-800 pb-2 flex items-center gap-2">
+                    <span class="p-1 bg-amber-500/10 text-amber-400 rounded">💡</span>
+                    The Physics Intuition & Master Mental Models
+                </h3>
+                
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-4 text-xs leading-relaxed text-slate-300">
+                    <div class="bg-slate-950 p-3 rounded-lg border border-slate-800/80">
+                        <span class="font-bold text-amber-400 block mb-1">🔍 1. Why don't we resolve forces parallel to the incline?</span>
+                        In basic inclined plane problems, the acceleration points down the slope. Hence, we rotate the axis. 
+                        But on a banked circular turn, the acceleration is strictly **horizontal (radially inward)** towards the center of rotation. 
+                        Resolving parallel to the incline would require decomposing both the acceleration and gravitational force. Selecting horizontal (<span class="font-mono text-blue-400">r-hat</span>) and vertical (<span class="font-mono text-emerald-400">k-hat</span>) axes isolates acceleration to a single coordinate axis, dramatically simplifying calculations.
+                    </div>
+                    <div class="bg-slate-950 p-3 rounded-lg border border-slate-800/80">
+                        <span class="font-bold text-amber-400 block mb-1">🔄 2. The Feedback Loop of Frictionless Incline Balance</span>
+                        If there is no friction, the only force that can push the car inward is the horizontal component of the normal force, <span class="font-bold text-slate-200">N * sin(φ)</span>. 
+                        If the car travels too fast, the required centripetal force exceeds the horizontal normal component. 
+                        The excess momentum forces the car to climb the hill, increasing its orbit radius. As it climbs, the current radius <span class="font-bold text-slate-200">r</span> increases, reducing the required centripetal acceleration (<span class="font-bold text-blue-400">v^2/r</span>) until it matches what the normal force can supply!
+                    </div>
+                </div>
+                
+                <div class="bg-blue-950/20 border border-blue-900/40 p-3 rounded-lg text-xs">
+                    <span class="font-bold text-blue-400 block mb-1">🧠 Critical Thinking Checkpoint:</span>
+                    "What happens if φ is 90 degrees?" The track becomes a vertical wall. To stay pinned, you would need infinite centripetal force unless friction exists. In a frictionless universe, if φ is 0 (flat road), the ideal velocity is exactly 0. You cannot make a turn at any speed without slipping off!
+                </div>
+            </div>
+        </div>
+
+        <!-- RIGHT SIDE: Step-by-Step Educational Panel (5 Cols on LG) -->
+        <div class="lg:col-span-5 flex flex-col gap-6">
+            
+            <!-- Mathematical Engine Card -->
+            <div class="bg-slate-900 rounded-xl border border-slate-800 p-5 shadow-xl">
+                <h3 class="text-md font-bold text-white mb-4 flex items-center gap-2 border-b border-slate-800 pb-2">
+                    <span class="p-1 bg-blue-500/10 text-blue-400 rounded">🧮</span>
+                    Dynamic Step-by-Step Mathematical Engine
+                </h3>
+                
+                <div class="space-y-4 text-xs">
+                    <!-- Step 1: Force Balance -->
+                    <div class="bg-slate-950 p-3 rounded border border-slate-800">
+                        <div class="flex justify-between items-center mb-1">
+                            <span class="font-bold text-blue-400 uppercase tracking-wider text-[10px]">Step 1: Coordinate Frame & Balance</span>
+                            <span class="bg-blue-500/10 text-blue-400 px-1.5 py-0.5 rounded text-[10px]">Active</span>
+                        </div>
+                        <p class="text-slate-300 mb-2">We break the Normal force <span class="font-bold text-white">N</span> into horizontal and vertical components:</p>
+                        <div class="font-mono bg-slate-900 p-2 rounded text-slate-200 space-y-1">
+                            <div>• Vertical Balance: N * cos(φ) - m * g = 0</div>
+                            <div class="text-slate-400 pl-4">&rarr; N * cos(φ) = m * g</div>
+                            <div class="mt-1">• Horizontal (Radial) Force: F_r = - N * sin(φ)</div>
+                            <div class="text-slate-400 pl-4">&rarr; N * sin(φ) = m * v^2 / r</div>
+                        </div>
+                    </div>
+
+                    <!-- Step 2: Extracting Ideal Speed -->
+                    <div class="bg-slate-950 p-3 rounded border border-slate-800">
+                        <div class="flex justify-between items-center mb-1">
+                            <span class="font-bold text-blue-400 uppercase tracking-wider text-[10px]">Step 2: Ideal Balanced Speed Equation</span>
+                            <span class="bg-emerald-500/10 text-emerald-400 px-1.5 py-0.5 rounded text-[10px]">Solved</span>
+                        </div>
+                        <p class="text-slate-300 mb-2">Dividing the horizontal component by the vertical component eliminates mass <span class="font-mono text-slate-400">m</span> and normal force <span class="font-mono text-slate-400">N</span>:</p>
+                        <div class="font-mono bg-slate-900 p-2 rounded text-slate-200 space-y-1">
+                            <div>• tan(φ) = [N * sin(φ)] / [N * cos(φ)] = [m * v^2 / r] / [m * g]</div>
+                            <div class="text-blue-400 font-bold">• tan(φ) = v^2 / (r * g)</div>
+                            <div class="text-emerald-400 font-bold">• v_ideal = sqrt(r_0 * g * tan(φ))</div>
+                        </div>
+                        <div class="mt-2 text-slate-400 bg-slate-900/50 p-2 rounded border border-slate-800/80">
+                            <strong>Current Dynamic Calculation:</strong><br>
+                            v_ideal = sqrt(<span id="math-r0">25.0</span>m * 9.81m/s^2 * tan(<span id="math-phi">25</span>°))<br>
+                            &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;= sqrt(<span id="math-inside">114.3</span>) = <span class="text-emerald-400 font-bold" id="math-result-v">10.69 m/s</span>
+                        </div>
+                    </div>
+
+                    <!-- Step 3: Off-Design Dynamics & Oscillations -->
+                    <div class="bg-slate-950 p-3 rounded border border-slate-800">
+                        <div class="flex justify-between items-center mb-1">
+                            <span class="font-bold text-blue-400 uppercase tracking-wider text-[10px]">Step 3: Off-Design Mechanics (v' or v'')</span>
+                            <span class="bg-amber-500/10 text-amber-400 px-1.5 py-0.5 rounded text-[10px]">Active Trajectory</span>
+                        </div>
+                        <p class="text-slate-300 mb-2">If the driver sets an off-design velocity <span class="font-mono text-slate-300">v_actual</span>:</p>
+                        <div class="font-mono bg-slate-900 p-2 rounded text-slate-200 text-[11px] space-y-1.5">
+                            <div>
+                                <span class="text-amber-400 font-bold">1. Target Radius for Static Equilibrium:</span><br>
+                                r_eq = v_actual^2 / (g * tan(φ)) = <span class="text-amber-300" id="math-req">31.2 m</span>
+                            </div>
+                            <div>
+                                <span class="text-blue-400 font-bold">2. Differential Equation of Motion on Slope:</span><br>
+                                m * s''(t) = F_net_parallel = m * (v_actual^2 * cos(φ) / r(t) - g * sin(φ))
+                            </div>
+                            <div class="text-[10px] text-slate-400">
+                                Where s(t) represents the position coordinates along the incline. Because of mass inertia, the car overshoots the target radius <span class="font-bold text-slate-300">r_eq</span> and undergoes bounded oscillations!
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Computational Algorithm Explanation -->
+            <div class="bg-slate-900 rounded-xl border border-slate-800 p-5 shadow-xl">
+                <h3 class="text-md font-bold text-white mb-3 flex items-center gap-2 border-b border-slate-800 pb-2">
+                    <span class="p-1 bg-emerald-500/10 text-emerald-400 rounded">💻</span>
+                    Computational Engine & Integration Algorithm
+                </h3>
+                <div class="text-xs leading-relaxed text-slate-300 space-y-2">
+                    <p>To compute the trajectory of the vehicle on the frictionless slope in real time, the simulation implements an <strong>Euler-Cromer numerical integrator</strong>. We model the mechanical system using a one-dimensional coordinate <span class="font-mono text-blue-400">s</span> representing distance along the slope face:</p>
+                    
+                    <div class="bg-slate-950 p-2.5 rounded font-mono text-[11px] border border-slate-800 text-slate-300 space-y-2">
+                        <div>
+                            <span class="text-blue-400">// 1. Determine local instantaneous radius</span><br>
+                            let r_current = r_base + s * cos(phi);
+                        </div>
+                        <div>
+                            <span class="text-blue-400">// 2. Compute net force along slope</span><br>
+                            let centrifugal_component = (v_actual^2 / r_current) * cos(phi);<br>
+                            let gravity_component = g * sin(phi);<br>
+                            let a_slope = centrifugal_component - gravity_component;
+                        </div>
+                        <div>
+                            <span class="text-blue-400">// 3. Update velocity and position</span><br>
+                            s_vel = s_vel + a_slope * dt;<br>
+                            s_pos = s_pos + s_vel * dt;
+                        </div>
+                    </div>
+                    
+                    <p class="text-[11px] text-slate-400">
+                        An artificial dampening factor of <span class="font-mono text-slate-300">0.05</span> is applied to model small air drag, allowing the car to eventually settle into its new stable circular path rather than oscillating infinitely.
+                    </p>
+                </div>
+            </div>
+
+        </div>
+    </main>
+
+    <!-- Footer of Masterclass -->
+    <footer class="border-t border-slate-800 bg-slate-950 text-slate-500 text-xs py-8 mt-12">
+        <div class="max-w-7xl mx-auto px-4 flex flex-col md:flex-row items-center justify-between gap-4">
+            <div>
+                <p class="font-semibold text-slate-400">Interactive Newtonian Physics Masterclass</p>
+                <p>Designed for absolute precision, complete visual clarity, and standard accessibility.</p>
+            </div>
+            <div class="text-right text-[11px]">
+                <p>Built with native HTML5 Canvas & Web API. Zero external dependencies.</p>
+                <p class="text-slate-600">No math-latex rendering issues: standard typography ensures readability on all devices.</p>
+            </div>
+        </div>
+    </footer>
+
+    <!-- Main JavaScript Simulator Code -->
+    <script>
+        // Constants
+        const g = 9.81; // Gravitational acceleration (m/s^2)
+        const dt = 0.05; // Time step for computational integration
+
+        // Global State variables
+        let phiDeg = 25.0; // Incline angle in degrees
+        let vActual = 12.0; // Chosen car speed (m/s)
+        let r0 = 25.0; // Base track radius at center of incline (m)
+
+        // Dynamic State for integration
+        let sPos = 0.0; // Distance of car from base track center along incline (positive = up-slope, negative = down-slope)
+        let sVel = 0.0; // Speed of slide along the incline slope (m/s)
+        let angle3D = 0; // Current angular position in 3D orbit (radians)
+
+        // Canvas references
+        const canvasSide = document.getElementById('canvas-side');
+        const canvasTop = document.getElementById('canvas-top');
+        const ctxSide = canvasSide.getContext('2d');
+        const ctxTop = canvasTop.getContext('2d');
+
+        // Slider DOM Elements
+        const slidePhi = document.getElementById('slide-phi');
+        const slideV = document.getElementById('slide-v');
+        const slideR = document.getElementById('slide-r');
+
+        const lblPhi = document.getElementById('lbl-phi');
+        const lblV = document.getElementById('lbl-v');
+        const lblR = document.getElementById('lbl-r');
+
+        // Options
+        const chkOscillations = document.getElementById('chk-oscillations');
+        const chkVectors = document.getElementById('chk-vectors');
+
+        // Event Listeners for UI interaction
+        slidePhi.addEventListener('input', (e) => {
+            phiDeg = parseFloat(e.target.value);
+            lblPhi.textContent = phiDeg.toFixed(1) + '°';
+            resetSimulationState();
+            updateCalculations();
+        });
+
+        slideV.addEventListener('input', (e) => {
+            vActual = parseFloat(e.target.value);
+            lblV.textContent = vActual.toFixed(1) + ' m/s';
+            if (!chkOscillations.checked) {
+                resetSimulationState();
+            }
+            updateCalculations();
+        });
+
+        slideR.addEventListener('input', (e) => {
+            r0 = parseFloat(e.target.value);
+            lblR.textContent = r0.toFixed(1) + ' m';
+            resetSimulationState();
+            updateCalculations();
+        });
+
+        // Preset action buttons
+        function resetToIdeal() {
+            const phiRad = (phiDeg * Math.PI) / 180;
+            const idealSpeed = Math.sqrt(r0 * g * Math.tan(phiRad));
+            vActual = idealSpeed;
+            slideV.value = vActual.toFixed(1);
+            lblV.textContent = vActual.toFixed(1) + ' m/s';
+            sPos = 0;
+            sVel = 0;
+            updateCalculations();
+        }
+
+        function triggerSpeedBoost() {
+            const phiRad = (phiDeg * Math.PI) / 180;
+            const idealSpeed = Math.sqrt(r0 * g * Math.tan(phiRad));
+            // Boost speed to 40% above ideal
+            vActual = Math.min(idealSpeed * 1.4, 30.0);
+            slideV.value = vActual.toFixed(1);
+            lblV.textContent = vActual.toFixed(1) + ' m/s';
+            updateCalculations();
+        }
+
+        function triggerSpeedDrop() {
+            const phiRad = (phiDeg * Math.PI) / 180;
+            const idealSpeed = Math.sqrt(r0 * g * Math.tan(phiRad));
+            // Drop speed to 40% below ideal
+            vActual = Math.max(idealSpeed * 0.6, 2.0);
+            slideV.value = vActual.toFixed(1);
+            lblV.textContent = vActual.toFixed(1) + ' m/s';
+            updateCalculations();
+        }
+
+        // Reset the coordinate offsets
+        function resetSimulationState() {
+            sPos = 0.0;
+            sVel = 0.0;
+        }
+
+        // Handles resizing high-DPI canvases properly
+        function resizeCanvases() {
+            const dpr = window.devicePixelRatio || 1;
+            
+            // Adjust Side View Canvas
+            const rectSide = canvasSide.getBoundingClientRect();
+            canvasSide.width = rectSide.width * dpr;
+            canvasSide.height = rectSide.height * dpr;
+            ctxSide.scale(dpr, dpr);
+
+            // Adjust Top View Canvas
+            const rectTop = canvasTop.getBoundingClientRect();
+            canvasTop.width = rectTop.width * dpr;
+            canvasTop.height = rectTop.height * dpr;
+            ctxTop.scale(dpr, dpr);
+        }
+
+        // Mathematical dynamic text update
+        function updateCalculations() {
+            const phiRad = (phiDeg * Math.PI) / 180;
+            const vIdeal = Math.sqrt(r0 * g * Math.tan(phiRad));
+            const rEq = (vActual * vActual) / (g * Math.tan(phiRad));
+
+            // Inside HTML element updating
+            document.getElementById('val-ideal-speed').textContent = vIdeal.toFixed(2) + ' m/s';
+            document.getElementById('val-current-speed').textContent = vActual.toFixed(2) + ' m/s';
+            
+            const currentRadius = r0 + sPos * Math.cos(phiRad);
+            document.getElementById('val-current-radius').textContent = currentRadius.toFixed(2) + ' m';
+
+            // Real-time Centripetal Force estimate (m = 1000kg standard representation)
+            const mMock = 1000;
+            const fCentripetal = (mMock * vActual * vActual) / currentRadius;
+            document.getElementById('val-radial-force').textContent = Math.round(fCentripetal) + ' N';
+
+            // Update Formulas steps info text
+            document.getElementById('math-r0').textContent = r0.toFixed(1);
+            document.getElementById('math-phi').textContent = phiDeg.toFixed(1);
+            document.getElementById('math-inside').textContent = (r0 * g * Math.tan(phiRad)).toFixed(1);
+            document.getElementById('math-result-v').textContent = vIdeal.toFixed(2) + ' m/s';
+            document.getElementById('math-req').textContent = rEq.toFixed(1) + ' m';
+
+            // State Badge rendering
+            const badge = document.getElementById('state-badge');
+            const diff = vActual - vIdeal;
+            if (Math.abs(diff) < 0.25) {
+                badge.textContent = "Perfectly Balanced";
+                badge.className = "px-2 py-0.5 text-xs font-semibold rounded bg-emerald-500/10 text-emerald-400 border border-emerald-500/20";
+            } else if (diff > 0) {
+                badge.textContent = "Speeding: Sliding Up (v' > v)";
+                badge.className = "px-2 py-0.5 text-xs font-semibold rounded bg-amber-500/10 text-amber-400 border border-amber-500/20";
+            } else {
+                badge.textContent = "Too Slow: Sliding Down (v'' < v)";
+                badge.className = "px-2 py-0.5 text-xs font-semibold rounded bg-rose-500/10 text-rose-400 border border-rose-500/20";
+            }
+        }
+
+        // Computational physics loop
+        function physicsStep() {
+            const phiRad = (phiDeg * Math.PI) / 180;
+            
+            if (chkOscillations.checked) {
+                // Instataneous radius based on position on the bank
+                const rCurrent = r0 + sPos * Math.cos(phiRad);
+                
+                // Acceleration along the slope face (pointing up-slope is positive):
+                // component of circular centripetal outward momentum parallel to slope: a_outward = (v^2/r_current) * cos(phi)
+                // component of gravity pulling the car down-slope: a_gravity = g * sin(phi)
+                const aCentrifugal = ((vActual * vActual) / rCurrent) * Math.cos(phiRad);
+                const aGravityComp = g * Math.sin(phiRad);
+                
+                // Acceleration along the slope surface
+                let aSlope = aCentrifugal - aGravityComp;
+                
+                // Computational Euler-Cromer Integration
+                sVel += aSlope * dt;
+                
+                // Add minor computational damping to simulate physical equilibrium decay (preventing infinite oscillation)
+                sVel *= 0.95; 
+
+                sPos += sVel * dt;
+
+                // Restrict sliding to keep car physically on the track bounds (limit of incline plane width)
+                const maxSlide = 22; // max distance up the slope
+                if (sPos > maxSlide) {
+                    sPos = maxSlide;
+                    sVel = 0;
+                } else if (sPos < -maxSlide) {
+                    sPos = -maxSlide;
+                    sVel = 0;
+                }
+            } else {
+                // If oscillations are disabled, settle directly to static balance position or 0
+                const targetRadius = (vActual * vActual) / (g * Math.tan(phiRad));
+                const targetSlide = (targetRadius - r0) / Math.cos(phiRad);
+                // Smoothly slide to equilibrium position
+                sPos += (targetSlide - sPos) * 0.1;
+                sVel = 0;
+            }
+
+            // Move the car around its circular track (Overhead view step)
+            const currentRadius = r0 + sPos * Math.cos(phiRad);
+            // angular speed = v / r
+            const omega = vActual / currentRadius;
+            angle3D += omega * 0.03; // scaled speed for smoother visual animation
+            if (angle3D > Math.PI * 2) {
+                angle3D -= Math.PI * 2;
+            }
+        }
+
+        // Side-view drawing functions
+        function drawSideView() {
+            const width = canvasSide.width / (window.devicePixelRatio || 1);
+            const height = canvasSide.height / (window.devicePixelRatio || 1);
+            
+            ctxSide.clearRect(0, 0, width, height);
+
+            // Draw axis markers
+            ctxSide.lineWidth = 1;
+            ctxSide.strokeStyle = '#334155';
+            ctxSide.setLineDash([4, 4]);
+            
+            // Vertical axis line
+            ctxSide.beginPath();
+            ctxSide.moveTo(width - 50, 20);
+            ctxSide.lineTo(width - 50, height - 30);
+            ctxSide.stroke();
+
+            // Coordinate System Indicators (r-hat, k-hat)
+            ctxSide.setLineDash([]);
+            ctxSide.fillStyle = '#94a3b8';
+            ctxSide.font = 'bold 11px font-mono';
+            
+            // k-hat arrow
+            drawArrow(ctxSide, 35, 60, 35, 25, '#10b981');
+            ctxSide.fillStyle = '#10b981';
+            ctxSide.fillText('k̂ (up)', 20, 20);
+
+            // r-hat arrow (points outward to the left)
+            drawArrow(ctxSide, 35, 60, 75, 60, '#60a5fa');
+            ctxSide.fillStyle = '#60a5fa';
+            ctxSide.fillText('r̂ (out)', 70, 75);
+
+            // Draw Angle Arc
+            const phiRad = (phiDeg * Math.PI) / 180;
+            const pivotX = width - 40;
+            const pivotY = height - 40;
+
+            // Incline ground line
+            ctxSide.strokeStyle = '#475569';
+            ctxSide.lineWidth = 4;
+            ctxSide.beginPath();
+            ctxSide.moveTo(pivotX, pivotY);
+            ctxSide.lineTo(pivotX - (width - 100), pivotY); // flat road line
+            ctxSide.stroke();
+
+            // Banked Incline
+            ctxSide.strokeStyle = '#3b82f6';
+            ctxSide.lineWidth = 5;
+            ctxSide.beginPath();
+            ctxSide.moveTo(pivotX, pivotY);
+            const slopeX = pivotX - (width - 80) * Math.cos(phiRad);
+            const slopeY = pivotY - (width - 80) * Math.sin(phiRad);
+            ctxSide.lineTo(slopeX, slopeY);
+            ctxSide.stroke();
+
+            // Draw angle arc
+            ctxSide.beginPath();
+            ctxSide.arc(pivotX, pivotY, 50, Math.PI, Math.PI + phiRad);
+            ctxSide.strokeStyle = '#60a5fa';
+            ctxSide.lineWidth = 1.5;
+            ctxSide.stroke();
+            ctxSide.fillStyle = '#60a5fa';
+            ctxSide.font = '12px font-sans';
+            ctxSide.fillText(`φ = ${phiDeg.toFixed(1)}°`, pivotX - 85, pivotY - 15);
+
+            // Locate and draw the car on the incline slope
+            // sPos represents displacement along the incline from the center base r0
+            const centerInclineDist = (width - 150) * 0.45; // base offset
+            const carDistFromPivot = centerInclineDist + sPos * 4.5; // pixel scaling factor
+            const carX = pivotX - carDistFromPivot * Math.cos(phiRad);
+            const carY = pivotY - carDistFromPivot * Math.sin(phiRad);
+
+            // Draw Car body
+            ctxSide.save();
+            ctxSide.translate(carX, carY);
+            ctxSide.rotate(-phiRad);
+
+            // Draw shadow base
+            ctxSide.fillStyle = 'rgba(0,0,0,0.6)';
+            ctxSide.beginPath();
+            ctxSide.ellipse(0, 1, 14, 4, 0, 0, Math.PI * 2);
+            ctxSide.fill();
+
+            // Main vehicle chassis
+            ctxSide.fillStyle = '#3b82f6';
+            ctxSide.beginPath();
+            ctxSide.roundRect(-12, -7, 24, 8, 2);
+            ctxSide.fill();
+
+            // Wheels
+            ctxSide.fillStyle = '#0f172a';
+            ctxSide.beginPath();
+            ctxSide.arc(-8, 1, 3.5, 0, Math.PI * 2);
+            ctxSide.arc(8, 1, 3.5, 0, Math.PI * 2);
+            ctxSide.fill();
+
+            // Highlight windshield showing dynamic orientation (looking into plane)
+            ctxSide.fillStyle = '#93c5fd';
+            ctxSide.fillRect(-6, -6, 12, 3);
+
+            ctxSide.restore();
+
+            // Label the car radius on the screen dynamically
+            ctxSide.fillStyle = '#f59e0b';
+            ctxSide.font = 'bold 10px font-mono';
+            ctxSide.fillText('Car', carX - 10, carY - 20);
+
+            // Vectors Layer
+            if (chkVectors.checked) {
+                // Gravity vector (pointing straight down)
+                const forceScale = 5.0; // Scaler for visibility
+                const fgY = 9.81 * forceScale;
+                drawArrow(ctxSide, carX, carY, carX, carY + fgY, '#f59e0b', 2.5);
+                ctxSide.fillStyle = '#f59e0b';
+                ctxSide.fillText('mg', carX - 18, carY + fgY + 12);
+
+                // Normal Force Vector (perpendicular to incline plane pointing up-left)
+                const normalForceVal = 9.81 / Math.cos(phiRad);
+                const nX = -normalForceVal * Math.sin(phiRad) * forceScale;
+                const nY = -normalForceVal * Math.cos(phiRad) * forceScale;
+                drawArrow(ctxSide, carX, carY, carX + nX, carY + nY, '#10b981', 2.5);
+                ctxSide.fillStyle = '#10b981';
+                ctxSide.fillText('N', carX + nX - 8, carY + nY - 8);
+
+                // Instataneous Centripetal acceleration direction
+                const currentRadiusVal = r0 + sPos * Math.cos(phiRad);
+                const aCentripetalVal = (vActual * vActual) / currentRadiusVal;
+                // Points horizontally towards the track center (to the right inside plane view)
+                const acX = Math.min(aCentripetalVal * forceScale * 0.7, 90); 
+                drawArrow(ctxSide, carX, carY, carX + acX, carY, '#60a5fa', 2, true);
+                ctxSide.fillStyle = '#60a5fa';
+                ctxSide.fillText('a_c', carX + acX + 5, carY + 4);
+            }
+        }
+
+        // Top-view orbit simulator
+        function drawTopView() {
+            const width = canvasTop.width / (window.devicePixelRatio || 1);
+            const height = canvasTop.height / (window.devicePixelRatio || 1);
+            
+            ctxTop.clearRect(0, 0, width, height);
+
+            const centerX = width / 2;
+            const centerY = height / 2;
+
+            // Center Origin point
+            ctxTop.beginPath();
+            ctxTop.arc(centerX, centerY, 3, 0, Math.PI * 2);
+            ctxTop.fillStyle = '#f43f5e';
+            ctxTop.fill();
+            ctxTop.fillStyle = '#94a3b8';
+            ctxTop.font = '10px font-mono';
+            ctxTop.fillText('Center of Track', centerX - 42, centerY - 8);
+
+            // Draw Base Ideal Track Circle for comparison
+            ctxTop.beginPath();
+            ctxTop.arc(centerX, centerY, r0 * 2.2, 0, Math.PI * 2);
+            ctxTop.strokeStyle = 'rgba(148, 163, 184, 0.15)';
+            ctxTop.lineWidth = 14;
+            ctxTop.stroke();
+
+            // Label ideal base orbit
+            ctxTop.strokeStyle = '#475569';
+            ctxTop.lineWidth = 1;
+            ctxTop.setLineDash([5, 5]);
+            ctxTop.beginPath();
+            ctxTop.arc(centerX, centerY, r0 * 2.2, 0, Math.PI * 2);
+            ctxTop.stroke();
+            ctxTop.setLineDash([]);
+
+            // Draw Actual Dynamic Car Orbit Path (reflecting current sPos)
+            const phiRad = (phiDeg * Math.PI) / 180;
+            const dynamicRadius = r0 + sPos * Math.cos(phiRad);
+            const dynamicRadiusPx = dynamicRadius * 2.2;
+
+            ctxTop.beginPath();
+            ctxTop.arc(centerX, centerY, dynamicRadiusPx, 0, Math.PI * 2);
+            ctxTop.strokeStyle = 'rgba(245, 158, 11, 0.45)';
+            ctxTop.lineWidth = 2;
+            ctxTop.stroke();
+
+            // Draw Car Marker on Top View orbit
+            const carX = centerX + dynamicRadiusPx * Math.cos(angle3D);
+            const carY = centerY + dynamicRadiusPx * Math.sin(angle3D);
+
+            // Car icon representation in top view
+            ctxTop.save();
+            ctxTop.translate(carX, carY);
+            ctxTop.rotate(angle3D + Math.PI / 2); // Rotate to tangent direction
+
+            // Shadow
+            ctxTop.fillStyle = 'rgba(0,0,0,0.5)';
+            ctxTop.fillRect(-5, -7, 10, 14);
+
+            // Chassis
+            ctxTop.fillStyle = '#f59e0b';
+            ctxTop.fillRect(-4, -6, 8, 12);
+            
+            // Spoiler
+            ctxTop.fillStyle = '#1e293b';
+            ctxTop.fillRect(-6, 5, 12, 2);
+
+            ctxTop.restore();
+
+            // Visual Velocity Vector from car in top view
+            const velocityScale = 1.5;
+            const vx = -Math.sin(angle3D) * vActual * velocityScale;
+            const vy = Math.cos(angle3D) * vActual * velocityScale;
+            drawArrow(ctxTop, carX, carY, carX + vx, carY + vy, '#10b981', 1.8);
+
+            // Labels info
+            ctxTop.fillStyle = '#10b981';
+            ctxTop.font = 'bold 9px font-mono';
+            ctxTop.fillText(`v = ${vActual.toFixed(1)} m/s`, carX + vx/2 + 8, carY + vy/2 + 8);
+
+            ctxTop.fillStyle = '#94a3b8';
+            ctxTop.fillText(`r = ${dynamicRadius.toFixed(1)} m`, centerX + 10, centerY + dynamicRadiusPx - 8);
+        }
+
+        // Helper: Draw standard vector arrow on Canvas
+        function drawArrow(context, fromx, fromy, tox, toy, color, lineWidth = 2, dashed = false) {
+            const headlen = 8; // length of head in pixels
+            const dx = tox - fromx;
+            const dy = toy - fromy;
+            const angle = Math.atan2(dy, dx);
+            
+            context.save();
+            context.strokeStyle = color;
+            context.fillStyle = color;
+            context.lineWidth = lineWidth;
+            
+            if (dashed) {
+                context.setLineDash([2, 3]);
+            }
+
+            context.beginPath();
+            context.moveTo(fromx, fromy);
+            context.lineTo(tox, toy);
+            context.stroke();
+            
+            context.setLineDash([]); // clear dash for head
+            context.beginPath();
+            context.moveTo(tox, toy);
+            context.lineTo(tox - headlen * Math.cos(angle - Math.PI / 6), toy - headlen * Math.sin(angle - Math.PI / 6));
+            context.lineTo(tox - headlen * Math.cos(angle + Math.PI / 6), toy - headlen * Math.sin(angle + Math.PI / 6));
+            context.closePath();
+            context.fill();
+            
+            context.restore();
+        }
+
+        // Responsive adjustment on resize
+        window.addEventListener('resize', () => {
+            resizeCanvases();
+            updateCalculations();
+        });
+
+        // Initialize and Start Loops
+        window.onload = function() {
+            resizeCanvases();
+            resetToIdeal();
+            updateCalculations();
+
+            // Main real-time simulation update loop
+            function updateLoop() {
+                physicsStep();
+                drawSideView();
+                drawTopView();
+                requestAnimationFrame(updateLoop);
+            }
+            updateLoop();
+        }
+    </script>
+</body>
+</html>

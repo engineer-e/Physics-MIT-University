@@ -1,0 +1,911 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Newtonian Circular Motion: Why vs. How</title>
+  <!-- Tailwind CSS for modern premium styling -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  <!-- Lucide Icons for high-quality minimalist UI icons -->
+  <script src="https://unpkg.com/lucide@latest"></script>
+  <style>
+    @import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;500;700&display=swap');
+    body {
+      font-family: 'Plus Jakarta Sans', sans-serif;
+    }
+    .mono {
+      font-family: 'JetBrains Mono', monospace;
+    }
+    /* Custom scrollbars for clean dashboard look */
+    ::-webkit-scrollbar {
+      width: 6px;
+      height: 6px;
+    }
+    ::-webkit-scrollbar-track {
+      background: #0f172a;
+    }
+    ::-webkit-scrollbar-thumb {
+      background: #334155;
+      border-radius: 3px;
+    }
+    ::-webkit-scrollbar-thumb:hover {
+      background: #475569;
+    }
+  </style>
+</head>
+<body class="bg-slate-950 text-slate-100 min-h-screen flex flex-col justify-between selection:bg-indigo-500/30 selection:text-indigo-200">
+
+  <!-- Header -->
+  <header class="border-b border-slate-800 bg-slate-900/50 backdrop-blur-md sticky top-0 z-50 px-6 py-4">
+    <div class="max-w-7xl mx-auto flex flex-col md:flex-row md:items-center md:justify-between gap-4">
+      <div>
+        <div class="flex items-center gap-2">
+          <span class="px-2.5 py-1 text-xs font-semibold bg-indigo-500/10 text-indigo-400 rounded-full border border-indigo-500/20 uppercase tracking-wider">Physics Interactive</span>
+          <span class="text-xs text-slate-500">Based on Classical Mechanics Lectures</span>
+        </div>
+        <h1 class="text-2xl font-bold tracking-tight text-slate-50 mt-1">
+          Newton's 2nd Law in Circular Motion
+        </h1>
+      </div>
+      <div class="flex items-center gap-3">
+        <button id="presetUcm" class="px-3 py-1.5 text-xs font-semibold rounded-lg bg-indigo-600 hover:bg-indigo-500 text-white transition-all shadow-lg shadow-indigo-600/20">
+          Uniform Circular Motion
+        </button>
+        <button id="presetNucm" class="px-3 py-1.5 text-xs font-semibold rounded-lg bg-slate-800 hover:bg-slate-700 text-slate-200 border border-slate-700 transition-all">
+          Non-Uniform (Accelerating)
+        </button>
+        <button id="presetOsc" class="px-3 py-1.5 text-xs font-semibold rounded-lg bg-slate-800 hover:bg-slate-700 text-slate-200 border border-slate-700 transition-all">
+          Pendulum-like Swing
+        </button>
+      </div>
+    </div>
+  </header>
+
+  <!-- Main Content Layout -->
+  <main class="max-w-7xl mx-auto w-full p-4 lg:p-6 grid grid-cols-1 lg:grid-cols-12 gap-6 flex-grow">
+    
+    <!-- Left Column: Interactive Simulation (7 cols on large screens) -->
+    <div class="lg:col-span-7 flex flex-col gap-6">
+      
+      <!-- Canvas Card -->
+      <div class="bg-slate-900 border border-slate-800 rounded-2xl overflow-hidden shadow-2xl relative flex flex-col">
+        <!-- Canvas Toolbar -->
+        <div class="px-4 py-3 border-b border-slate-800 bg-slate-950/40 flex justify-between items-center text-xs text-slate-400">
+          <div class="flex items-center gap-2">
+            <span class="w-2.5 h-2.5 rounded-full bg-emerald-500 animate-pulse"></span>
+            <span class="font-medium tracking-wide text-slate-300">REAL-TIME PHYSICS RESOLVER</span>
+          </div>
+          <div class="flex items-center gap-4">
+            <label class="flex items-center gap-1.5 cursor-pointer select-none">
+              <input type="checkbox" id="showVectors" checked class="rounded border-slate-700 bg-slate-800 text-indigo-500 focus:ring-0">
+              <span>Show Vectors</span>
+            </label>
+            <label class="flex items-center gap-1.5 cursor-pointer select-none">
+              <input type="checkbox" id="showTrace" checked class="rounded border-slate-700 bg-slate-800 text-indigo-500 focus:ring-0">
+              <span>Path Trace</span>
+            </label>
+          </div>
+        </div>
+
+        <!-- The Canvas Body -->
+        <div class="relative w-full aspect-[4/3] bg-slate-950 flex items-center justify-center p-2 overflow-hidden">
+          <canvas id="physicsCanvas" class="w-full h-full max-h-[460px] rounded-lg cursor-grab active:cursor-grabbing"></canvas>
+          
+          <!-- Absolute Vector HUD Legend Overlay with Native Mathematical Subscripts -->
+          <div class="absolute bottom-4 left-4 right-4 bg-slate-900/95 border border-slate-800 rounded-xl p-3 grid grid-cols-2 sm:grid-cols-4 gap-3 text-xs shadow-lg backdrop-blur-sm">
+            <div class="flex items-center gap-2">
+              <div class="w-3 h-0.5 bg-emerald-400"></div>
+              <div>
+                <span class="font-bold text-emerald-400"><i>v</i> <span class="text-[10px] font-normal text-slate-300">(Velocity)</span></span>
+                <span class="text-[10px] text-slate-400 block">Tangent Vector</span>
+              </div>
+            </div>
+            <div class="flex items-center gap-2">
+              <div class="w-3 h-0.5 bg-cyan-400"></div>
+              <div>
+                <span class="font-bold text-cyan-400"><i>F</i><sub>r</sub> / <i>a</i><sub>r</sub></span>
+                <span class="text-[10px] text-slate-400 block">Radial (Inward)</span>
+              </div>
+            </div>
+            <div class="flex items-center gap-2">
+              <div class="w-3 h-0.5 bg-rose-400"></div>
+              <div>
+                <span class="font-bold text-rose-400"><i>F</i><sub>θ</sub> / <i>a</i><sub>θ</sub></span>
+                <span class="text-[10px] text-slate-400 block">Tangential</span>
+              </div>
+            </div>
+            <div class="flex items-center gap-2">
+              <div class="w-3 h-1 border-t border-dashed border-slate-400"></div>
+              <div>
+                <span class="font-bold text-slate-300"><b>r̂</b>, <b>θ̂</b></span>
+                <span class="text-[10px] text-slate-400 block">Polar Axes</span>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Interactive Control Panel & Inputs -->
+        <div class="p-6 border-t border-slate-800 bg-slate-900/60 grid grid-cols-1 md:grid-cols-2 gap-6">
+          
+          <!-- Physics Parameter Sliders -->
+          <div class="space-y-4">
+            <h3 class="text-xs font-semibold text-indigo-400 uppercase tracking-wider mb-2">System Parameters</h3>
+            
+            <!-- Mass (m) Slider -->
+            <div class="space-y-1.5">
+              <div class="flex justify-between text-xs font-medium">
+                <span class="text-slate-300">Mass (<i>m</i>)</span>
+                <span class="mono text-indigo-300" id="valMass">1.0 kg</span>
+              </div>
+              <input type="range" id="paramMass" min="0.2" max="3.0" step="0.1" value="1.0" class="w-full h-1.5 bg-slate-800 rounded-lg appearance-none cursor-pointer accent-indigo-500">
+            </div>
+
+            <!-- Radius (r) Slider -->
+            <div class="space-y-1.5">
+              <div class="flex justify-between text-xs font-medium">
+                <span class="text-slate-300">Radius (<i>r</i>)</span>
+                <span class="mono text-indigo-300" id="valRadius">1.5 m</span>
+              </div>
+              <input type="range" id="paramRadius" min="0.5" max="2.5" step="0.1" value="1.5" class="w-full h-1.5 bg-slate-800 rounded-lg appearance-none cursor-pointer accent-indigo-500">
+            </div>
+
+            <!-- Velocity / Force Controls -->
+            <div class="space-y-1.5">
+              <div class="flex justify-between text-xs font-medium">
+                <span class="text-slate-300">Angular Velocity (<i>ω</i>)</span>
+                <span class="mono text-indigo-300" id="valOmega">2.0 rad/s</span>
+              </div>
+              <input type="range" id="paramOmega" min="-5.0" max="5.0" step="0.1" value="2.0" class="w-full h-1.5 bg-slate-800 rounded-lg appearance-none cursor-pointer accent-indigo-500">
+            </div>
+          </div>
+
+          <div class="space-y-4">
+            <h3 class="text-xs font-semibold text-indigo-400 uppercase tracking-wider mb-2">Kinematics & Acceleration</h3>
+
+            <!-- Angular Acceleration (alpha) -->
+            <div class="space-y-1.5">
+              <div class="flex justify-between text-xs font-medium">
+                <span class="text-slate-300">Angular Accel. (<i>α</i><sub>z</sub>)</span>
+                <span class="mono text-indigo-300" id="valAlpha">0.0 rad/s²</span>
+              </div>
+              <input type="range" id="paramAlpha" min="-3.0" max="3.0" step="0.1" value="0.0" class="w-full h-1.5 bg-slate-800 rounded-lg appearance-none cursor-pointer accent-indigo-500">
+              <p class="text-[10px] text-slate-500">Enables non-uniform circular motion (changing speed).</p>
+            </div>
+
+            <!-- Simulation Controls -->
+            <div class="pt-2 flex items-center gap-3">
+              <button id="btnPlayPause" class="flex-1 flex items-center justify-center gap-2 py-2.5 px-4 bg-slate-800 hover:bg-slate-700 text-slate-200 border border-slate-700 rounded-xl font-medium text-sm transition-all active:scale-95">
+                <i data-lucide="pause" class="w-4 h-4"></i>
+                <span id="txtPlayPause">Pause</span>
+              </button>
+              <button id="btnReset" class="flex-1 flex items-center justify-center gap-2 py-2.5 px-4 bg-slate-800/40 hover:bg-slate-800 text-slate-400 hover:text-slate-200 border border-slate-800 hover:border-slate-700 rounded-xl font-medium text-sm transition-all">
+                <i data-lucide="rotate-ccw" class="w-4 h-4"></i>
+                <span>Reset Trace</span>
+              </button>
+            </div>
+          </div>
+
+        </div>
+      </div>
+
+      <!-- Real-time Balance Monitor (Dynamics vs Kinematics) -->
+      <div class="bg-slate-900 border border-slate-800 rounded-2xl p-5 shadow-xl">
+        <h3 class="text-xs font-bold text-indigo-400 uppercase tracking-widest mb-4 flex items-center gap-2">
+          <i data-lucide="activity" class="w-4 h-4 text-emerald-400"></i> 
+          REAL-TIME FORCE & KINEMATICS MONITOR
+        </h3>
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <!-- Radial Balance -->
+          <div class="bg-slate-950/60 border border-slate-800 rounded-xl p-4 flex flex-col justify-between">
+            <div class="flex items-center justify-between mb-2">
+              <span class="text-xs font-semibold text-slate-400">Radial Direction (<b>r̂</b>)</span>
+              <span class="text-[10px] px-1.5 py-0.5 rounded bg-cyan-500/10 text-cyan-400 font-bold border border-cyan-500/20">ALWAYS INWARD</span>
+            </div>
+            <div class="space-y-3">
+              <div class="flex justify-between items-baseline">
+                <span class="text-sm font-bold text-slate-200">Σ <i>F</i><sub>r</sub> <span class="text-xs font-normal text-slate-400">(Dynamics)</span></span>
+                <span class="mono text-lg font-bold text-cyan-400" id="hudFr">-6.00 N</span>
+              </div>
+              <div class="border-t border-slate-800/80 my-2"></div>
+              <div class="flex justify-between items-baseline">
+                <span class="text-xs text-slate-400"><i>m</i> · <i>a</i><sub>r</sub> <span class="text-[10px] text-slate-500">(Kinematics)</span></span>
+                <span class="mono text-xs text-cyan-400" id="hudMar">-6.00 N</span>
+              </div>
+              <p class="text-[11px] text-slate-500 leading-relaxed italic">
+                Equation (1): <i>F</i><sub>r</sub> = -<i>m</i> · <i>r</i> · <i>ω</i><sup>2</sup>
+              </p>
+            </div>
+          </div>
+
+          <!-- Tangential Balance -->
+          <div class="bg-slate-950/60 border border-slate-800 rounded-xl p-4 flex flex-col justify-between">
+            <div class="flex items-center justify-between mb-2">
+              <span class="text-xs font-semibold text-slate-400">Tangential Direction (<b>θ̂</b>)</span>
+              <span class="text-[10px] px-1.5 py-0.5 rounded bg-rose-500/10 text-rose-400 font-bold border border-rose-500/20" id="hudTangentialStatus">UCM (CONSTANT SPEED)</span>
+            </div>
+            <div class="space-y-3">
+              <div class="flex justify-between items-baseline">
+                <span class="text-sm font-bold text-slate-200">Σ <i>F</i><sub>θ</sub> <span class="text-xs font-normal text-slate-400">(Dynamics)</span></span>
+                <span class="mono text-lg font-bold text-rose-400" id="hudFt">0.00 N</span>
+              </div>
+              <div class="border-t border-slate-800/80 my-2"></div>
+              <div class="flex justify-between items-baseline">
+                <span class="text-xs text-slate-400"><i>m</i> · <i>a</i><sub>θ</sub> <span class="text-[10px] text-slate-500">(Kinematics)</span></span>
+                <span class="mono text-xs text-rose-400" id="hudMat">0.00 N</span>
+              </div>
+              <p class="text-[11px] text-slate-500 leading-relaxed italic">
+                Equation (2): <i>F</i><sub>θ</sub> = <i>m</i> · <i>r</i> · <i>α</i><sub>z</sub>
+              </p>
+            </div>
+          </div>
+        </div>
+      </div>
+
+    </div>
+
+    <!-- Right Column: Step-by-Step Mathematical & Mental Model Guide (5 cols) -->
+    <div class="lg:col-span-5 flex flex-col gap-6">
+      
+      <!-- Interactive Steps (Dynamic Progress Selector) -->
+      <div class="bg-slate-900 border border-slate-800 rounded-2xl p-5 shadow-xl">
+        <div class="flex items-center gap-2 mb-4">
+          <i data-lucide="book-open" class="w-5 h-5 text-indigo-400"></i>
+          <h2 class="text-base font-bold text-slate-100">Step-by-Step Dynamics Guide</h2>
+        </div>
+        
+        <!-- Step Numbers Indicator -->
+        <div class="grid grid-cols-4 gap-2 mb-6">
+          <button id="stepTab0" onclick="setStep(0)" class="step-btn py-2 text-xs font-bold rounded-lg border text-center transition-all bg-indigo-600 border-indigo-500 text-white">
+            1. Axis
+          </button>
+          <button id="stepTab1" onclick="setStep(1)" class="step-btn py-2 text-xs font-bold rounded-lg border text-center transition-all bg-slate-800 border-slate-700 text-slate-400 hover:text-slate-200">
+            2. How
+          </button>
+          <button id="stepTab2" onclick="setStep(2)" class="step-btn py-2 text-xs font-bold rounded-lg border text-center transition-all bg-slate-800 border-slate-700 text-slate-400 hover:text-slate-200">
+            3. Why
+          </button>
+          <button id="stepTab3" onclick="setStep(3)" class="step-btn py-2 text-xs font-bold rounded-lg border text-center transition-all bg-slate-800 border-slate-700 text-slate-400 hover:text-slate-200">
+            4. Equation
+          </button>
+        </div>
+
+        <!-- Dynamic Content Card based on active step -->
+        <div class="bg-slate-950 border border-slate-800/80 rounded-xl p-4 min-h-[260px] flex flex-col justify-between">
+          <div id="stepContent" class="space-y-4">
+            <!-- Step contents filled dynamically by JavaScript -->
+          </div>
+          <div class="flex justify-between items-center mt-6 pt-4 border-t border-slate-900">
+            <button id="btnPrevStep" class="flex items-center gap-1.5 text-xs text-slate-400 hover:text-slate-200 disabled:opacity-30 disabled:pointer-events-none">
+              <i data-lucide="chevron-left" class="w-4 h-4"></i> Back
+            </button>
+            <span class="text-xs text-slate-500" id="stepCounter">Step 1 of 4</span>
+            <button id="btnNextStep" class="flex items-center gap-1.5 text-xs text-indigo-400 hover:text-indigo-300 font-semibold disabled:opacity-30 disabled:pointer-events-none">
+              Next <i data-lucide="chevron-right" class="w-4 h-4"></i>
+            </button>
+          </div>
+        </div>
+      </div>
+
+      <!-- Expert Intuition Block -->
+      <div class="bg-gradient-to-br from-indigo-950/50 to-slate-900 border border-indigo-500/20 rounded-2xl p-5 shadow-xl space-y-4">
+        <div class="flex items-center gap-2">
+          <i data-lucide="brain" class="text-indigo-400 w-5 h-5"></i>
+          <h3 class="text-sm font-bold text-slate-100 tracking-wide uppercase">Professor's Mental Model</h3>
+        </div>
+        
+        <div class="space-y-3 text-xs leading-relaxed text-slate-300">
+          <p>
+            When writing Newton's Second Law for rotating systems, we treat the equation as a bridge between two fundamentally different concepts:
+          </p>
+          <div class="grid grid-cols-2 gap-3 my-2">
+            <div class="bg-indigo-900/30 border border-indigo-500/20 rounded-lg p-2.5">
+              <strong class="text-indigo-300 block mb-1">Left Side: Dynamics (Why)</strong>
+              This side contains the forces that physical things exert (friction, gravity, tension, normal force). You draw a Free-Body Diagram to find them.
+            </div>
+            <div class="bg-emerald-950/30 border border-emerald-500/20 rounded-lg p-2.5">
+              <strong class="text-emerald-300 block mb-1">Right Side: Kinematics (How)</strong>
+              This is the geometry of the circular path itself. It tells us how much acceleration is required to keep moving in that circle.
+            </div>
+          </div>
+          <div class="bg-amber-500/10 border border-amber-500/20 text-amber-300 rounded-lg p-3 flex items-start gap-2">
+            <i data-lucide="alert-circle" class="w-4.5 h-4.5 shrink-0 mt-0.5"></i>
+            <div>
+              <strong class="block mb-0.5">Crucial Insight:</strong>
+              For any true circular path, the radial force can <b>never</b> be zero. If the sum of <i>F</i><sub>r</sub> becomes zero, the object instantly flies off along a straight-line tangent, obeying Newton's first law!
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Critical Thinking Quiz Card -->
+      <div class="bg-slate-900 border border-slate-800 rounded-2xl p-5 shadow-xl space-y-4">
+        <h3 class="text-sm font-bold text-slate-200 flex items-center gap-2">
+          <i data-lucide="help-circle" class="text-emerald-400 w-5 h-5"></i>
+          Test Your Intuition
+        </h3>
+        <div class="space-y-3">
+          <p class="text-xs text-slate-300 leading-relaxed">
+            If a car goes around a flat, circular track and starts speeding up, what forces must act on it?
+          </p>
+          <div class="space-y-2">
+            <button onclick="checkAnswer(1, this)" class="w-full text-left p-3 text-xs rounded-xl bg-slate-950 hover:bg-slate-850 border border-slate-800 transition-all flex items-center justify-between">
+              <span>A) Only an inward radial force (friction).</span>
+              <span class="icon-placeholder"></span>
+            </button>
+            <button onclick="checkAnswer(2, this)" class="w-full text-left p-3 text-xs rounded-xl bg-slate-950 hover:bg-slate-850 border border-slate-800 transition-all flex items-center justify-between">
+              <span>B) An inward radial force AND a forward tangential force.</span>
+              <span class="icon-placeholder"></span>
+            </button>
+            <button onclick="checkAnswer(3, this)" class="w-full text-left p-3 text-xs rounded-xl bg-slate-950 hover:bg-slate-850 border border-slate-800 transition-all flex items-center justify-between">
+              <span>C) Just a forward tangential force from the engine.</span>
+              <span class="icon-placeholder"></span>
+            </button>
+          </div>
+          <div id="quizResult" class="hidden text-xs p-3 rounded-lg bg-emerald-500/10 border border-emerald-500/20 text-emerald-400 leading-relaxed">
+            <!-- Dynamic feedback -->
+          </div>
+        </div>
+      </div>
+
+    </div>
+
+  </main>
+
+  <!-- Footer -->
+  <footer class="border-t border-slate-800 bg-slate-950 py-4 text-center text-xs text-slate-500">
+    <div class="max-w-7xl mx-auto px-4 flex flex-col sm:flex-row items-center justify-between gap-4">
+      <p>© 2026 Interactive Physics Lab. Designed for visual dynamics mastery.</p>
+      <div class="flex items-center gap-3">
+        <span class="px-2 py-0.5 rounded bg-slate-900 border border-slate-800">HTML5 Engine</span>
+        <span class="px-2 py-0.5 rounded bg-slate-900 border border-slate-800 font-mono">100% Vector Math</span>
+      </div>
+    </div>
+  </footer>
+
+  <script>
+    // Initialize Lucide icons
+    lucide.createIcons();
+
+    // --- STATE MANAGEMENT ---
+    const state = {
+      mass: 1.0,        // kg
+      radius: 1.5,      // m
+      omega: 2.0,       // rad/s
+      alpha: 0.0,       // rad/s^2 (angular acceleration)
+      theta: 0.0,       // current angle in radians
+      isPlaying: true,
+      showVectors: true,
+      showTrace: true,
+      activeStep: 0,
+      tracePoints: [],  // Array of previous coordinates for trajectory trace
+      maxTraceLen: 120,
+      lastTime: null,
+      oscillationMode: false,
+      oscTime: 0
+    };
+
+    // --- DOM ELEMENTS ---
+    const canvas = document.getElementById('physicsCanvas');
+    const ctx = canvas.getContext('2d');
+    
+    const paramMass = document.getElementById('paramMass');
+    const paramRadius = document.getElementById('paramRadius');
+    const paramOmega = document.getElementById('paramOmega');
+    const paramAlpha = document.getElementById('paramAlpha');
+
+    const valMass = document.getElementById('valMass');
+    const valRadius = document.getElementById('valRadius');
+    const valOmega = document.getElementById('valOmega');
+    const valAlpha = document.getElementById('valAlpha');
+
+    const btnPlayPause = document.getElementById('btnPlayPause');
+    const txtPlayPause = document.getElementById('txtPlayPause');
+    const btnReset = document.getElementById('btnReset');
+
+    const hudFr = document.getElementById('hudFr');
+    const hudMar = document.getElementById('hudMar');
+    const hudFt = document.getElementById('hudFt');
+    const hudMat = document.getElementById('hudMat');
+    const hudTangentialStatus = document.getElementById('hudTangentialStatus');
+
+    const checkShowVectors = document.getElementById('showVectors');
+    const checkShowTrace = document.getElementById('showTrace');
+
+    // --- CONFIGURE PRESETS ---
+    document.getElementById('presetUcm').addEventListener('click', () => {
+      setPreset(1.0, 1.5, 2.0, 0.0, false);
+      highlightPresetButton('presetUcm');
+    });
+    document.getElementById('presetNucm').addEventListener('click', () => {
+      setPreset(1.0, 1.5, 1.0, 0.8, false);
+      highlightPresetButton('presetNucm');
+    });
+    document.getElementById('presetOsc').addEventListener('click', () => {
+      setPreset(1.0, 1.6, 0.0, 0.0, true);
+      highlightPresetButton('presetOsc');
+    });
+
+    function highlightPresetButton(activeId) {
+      ['presetUcm', 'presetNucm', 'presetOsc'].forEach(id => {
+        const el = document.getElementById(id);
+        if (id === activeId) {
+          el.className = "px-3 py-1.5 text-xs font-semibold rounded-lg bg-indigo-600 hover:bg-indigo-500 text-white transition-all shadow-lg shadow-indigo-600/20";
+        } else {
+          el.className = "px-3 py-1.5 text-xs font-semibold rounded-lg bg-slate-800 hover:bg-slate-700 text-slate-200 border border-slate-700 transition-all";
+        }
+      });
+    }
+
+    function setPreset(m, r, w, a, osc) {
+      state.mass = m;
+      state.radius = r;
+      state.omega = w;
+      state.alpha = a;
+      state.oscillationMode = osc;
+      state.oscTime = 0;
+      if (osc) {
+        state.theta = Math.PI / 2; // start at the bottom
+      } else {
+        state.theta = 0;
+      }
+      state.tracePoints = [];
+      
+      // Update inputs
+      paramMass.value = m;
+      paramRadius.value = r;
+      paramOmega.value = w;
+      paramAlpha.value = a;
+      
+      // Update slider displays
+      updateSliderHUDs();
+    }
+
+    // --- CANVAS SIZING AND RESPONSIVENESS ---
+    function resizeCanvas() {
+      // Get display size in CSS pixels
+      const width = canvas.parentElement.clientWidth;
+      const height = canvas.parentElement.clientHeight || (width * 0.75);
+      
+      // Set actual resolution to match device pixel ratio for crystal clear rendering
+      const dpr = window.devicePixelRatio || 1;
+      canvas.width = width * dpr;
+      canvas.height = height * dpr;
+      
+      // Scale back context
+      ctx.scale(dpr, dpr);
+    }
+    window.addEventListener('resize', resizeCanvas);
+    resizeCanvas();
+
+    // --- SLIDERS SYNC ---
+    function updateSliderHUDs() {
+      valMass.innerHTML = `${state.mass.toFixed(1)} kg`;
+      valRadius.innerHTML = `${state.radius.toFixed(1)} m`;
+      valOmega.innerHTML = `${state.omega.toFixed(1)} rad/s`;
+      valAlpha.innerHTML = `${state.alpha.toFixed(1)} rad/s²`;
+    }
+
+    paramMass.addEventListener('input', (e) => {
+      state.mass = parseFloat(e.target.value);
+      updateSliderHUDs();
+    });
+    paramRadius.addEventListener('input', (e) => {
+      state.radius = parseFloat(e.target.value);
+      updateSliderHUDs();
+    });
+    paramOmega.addEventListener('input', (e) => {
+      state.omega = parseFloat(e.target.value);
+      state.oscillationMode = false; // Override oscillation mode if manual changes
+      updateSliderHUDs();
+    });
+    paramAlpha.addEventListener('input', (e) => {
+      state.alpha = parseFloat(e.target.value);
+      state.oscillationMode = false;
+      updateSliderHUDs();
+    });
+
+    checkShowVectors.addEventListener('change', (e) => state.showVectors = e.target.checked);
+    checkShowTrace.addEventListener('change', (e) => {
+      state.showTrace = e.target.checked;
+      if(!state.showTrace) state.tracePoints = [];
+    });
+
+    // --- PLAY PAUSE CONTROL ---
+    btnPlayPause.addEventListener('click', () => {
+      state.isPlaying = !state.isPlaying;
+      if (state.isPlaying) {
+        txtPlayPause.innerText = 'Pause';
+        btnPlayPause.innerHTML = `<i data-lucide="pause" class="w-4 h-4"></i><span>Pause</span>`;
+      } else {
+        txtPlayPause.innerText = 'Play';
+        btnPlayPause.innerHTML = `<i data-lucide="play" class="w-4 h-4"></i><span>Play</span>`;
+      }
+      lucide.createIcons();
+    });
+
+    btnReset.addEventListener('click', () => {
+      state.tracePoints = [];
+    });
+
+    // --- CORE PHYSICS GAME LOOP ---
+    function updatePhysics(dt) {
+      if (!state.isPlaying) return;
+
+      if (state.oscillationMode) {
+        // Pendulum style oscillation simulation: angular acceleration is proportional to -sin(theta)
+        // alpha_z = -g/r * sin(theta)
+        const g = 9.81;
+        state.alpha = -(g / state.radius) * Math.sin(state.theta);
+        state.omega += state.alpha * dt;
+        state.theta += state.omega * dt;
+      } else {
+        // Standard Rotational Kinematics
+        state.omega += state.alpha * dt;
+        state.theta += state.omega * dt;
+      }
+
+      // Constrain theta within 0 to 2*PI range just for clean numbers
+      state.theta = state.theta % (2 * Math.PI);
+
+      // Save trace coordinate point
+      if (state.showTrace) {
+        const x = Math.cos(state.theta) * state.radius;
+        const y = Math.sin(state.theta) * state.radius;
+        state.tracePoints.push({ x, y });
+        if (state.tracePoints.length > state.maxTraceLen) {
+          state.tracePoints.shift();
+        }
+      }
+    }
+
+    // --- CANVAS RENDERING ENGINE ---
+    function draw() {
+      const viewWidth = canvas.width / (window.devicePixelRatio || 1);
+      const viewHeight = canvas.height / (window.devicePixelRatio || 1);
+
+      // Gold Standard Reset Clear: Reset transform, clear, and restore transform.
+      ctx.save();
+      ctx.setTransform(1, 0, 0, 1, 0, 0);
+      ctx.fillStyle = '#020617';
+      ctx.fillRect(0, 0, canvas.width, canvas.height);
+      ctx.restore();
+
+      // Origin at canvas center
+      const cx = viewWidth / 2;
+      const cy = viewHeight / 2 - 20;
+
+      // Pixels per meter conversion factor
+      const scale = Math.min(viewWidth, viewHeight) / 5.5;
+
+      // 1. Draw dashed grid background
+      ctx.strokeStyle = '#1e293b';
+      ctx.lineWidth = 1;
+      ctx.setLineDash([4, 6]);
+      // X Axis
+      ctx.beginPath();
+      ctx.moveTo(10, cy);
+      ctx.lineTo(viewWidth - 10, cy);
+      ctx.stroke();
+      // Y Axis
+      ctx.beginPath();
+      ctx.moveTo(cx, 10);
+      ctx.lineTo(cx, viewHeight - 10);
+      ctx.stroke();
+      ctx.setLineDash([]);
+
+      // 2. Draw circular trajectory orbit boundary
+      ctx.strokeStyle = '#334155';
+      ctx.lineWidth = 1.5;
+      ctx.beginPath();
+      ctx.arc(cx, cy, state.radius * scale, 0, 2 * Math.PI);
+      ctx.stroke();
+
+      // 3. Draw trace trail (gradient look)
+      if (state.showTrace && state.tracePoints.length > 1) {
+        ctx.lineWidth = 2.5;
+        for (let i = 1; i < state.tracePoints.length; i++) {
+          const pt1 = state.tracePoints[i - 1];
+          const pt2 = state.tracePoints[i];
+          const opacity = i / state.tracePoints.length;
+          ctx.strokeStyle = `rgba(99, 102, 241, ${opacity * 0.4})`;
+          ctx.beginPath();
+          ctx.moveTo(cx + pt1.x * scale, cy - pt1.y * scale);
+          ctx.lineTo(cx + pt2.x * scale, cy - pt2.y * scale);
+          ctx.stroke();
+        }
+      }
+
+      // 4. Coordinates of current orbiting mass
+      const rx = Math.cos(state.theta) * state.radius;
+      const ry = Math.sin(state.theta) * state.radius;
+      const px = cx + rx * scale;
+      const py = cy - ry * scale;
+
+      // Draw Radius arm line
+      ctx.strokeStyle = '#475569';
+      ctx.lineWidth = 1;
+      ctx.beginPath();
+      ctx.moveTo(cx, cy);
+      ctx.lineTo(px, py);
+      ctx.stroke();
+
+      const r_angle = state.theta;
+      const theta_angle = state.theta + Math.PI / 2;
+
+      // Compute dynamic physics parameters
+      const ar = -state.radius * Math.pow(state.omega, 2);
+      const at = state.radius * state.alpha;
+      const Fr = state.mass * ar;
+      const Ft = state.mass * at;
+
+      // Update Live UI HUD Display Panel
+      hudFr.innerText = `${Fr.toFixed(2)} N`;
+      hudMar.innerText = `${(state.mass * ar).toFixed(2)} N`;
+      hudFt.innerText = `${Ft.toFixed(2)} N`;
+      hudMat.innerText = `${(state.mass * at).toFixed(2)} N`;
+
+      if (Math.abs(state.alpha) < 0.01 && !state.oscillationMode) {
+        hudTangentialStatus.innerText = "UCM (CONSTANT SPEED)";
+        hudTangentialStatus.className = "text-[10px] px-1.5 py-0.5 rounded bg-emerald-500/10 text-emerald-400 font-bold border border-emerald-500/20";
+      } else if (state.oscillationMode) {
+        hudTangentialStatus.innerText = "OSCILLATING PENDULUM";
+        hudTangentialStatus.className = "text-[10px] px-1.5 py-0.5 rounded bg-amber-500/10 text-amber-400 font-bold border border-amber-500/20";
+      } else {
+        hudTangentialStatus.innerText = "NON-UNIFORM (ACCELERATING)";
+        hudTangentialStatus.className = "text-[10px] px-1.5 py-0.5 rounded bg-rose-500/10 text-rose-400 font-bold border border-rose-500/20";
+      }
+
+      // Draw vector arrows
+      if (state.showVectors) {
+        // Highly specialized canvas mathematical math typography parser
+        function drawCanvasMathText(ctx, x, y, baseText, subText, supText, hasHat) {
+          ctx.font = "italic 13px 'Plus Jakarta Sans', sans-serif";
+          ctx.fillText(baseText, x, y);
+          const baseWidth = ctx.measureText(baseText).width;
+          
+          if (hasHat) {
+            // Draw a physically perfect hat accent (^) exactly centered above the character
+            ctx.font = "bold 11px 'Plus Jakarta Sans', sans-serif";
+            ctx.fillText("^", x + (baseWidth / 2) - 3, y - 8);
+          }
+          
+          if (subText) {
+            ctx.font = "italic 9px 'Plus Jakarta Sans', sans-serif";
+            ctx.fillText(subText, x + baseWidth + 1, y + 4);
+          }
+          
+          if (supText) {
+            ctx.font = "italic 9px 'Plus Jakarta Sans', sans-serif";
+            ctx.fillText(supText, x + baseWidth + 1, y - 5);
+          }
+        }
+
+        // Helper to draw clean visual vectors with scaled/clamped dimensions
+        function drawVector(startX, startY, angle, rawMagnitude, color, typeLabel, sub, sup, hasHat) {
+          let visualLength = 0;
+          if (typeLabel === 'v') {
+            visualLength = rawMagnitude * 20; 
+          } else if (hasHat) {
+            visualLength = 40; 
+          } else {
+            // Forces
+            visualLength = rawMagnitude * 3.2; 
+          }
+
+          // Strict limits to prevent hardware accelerated canvas overflows and clipping bugs
+          const maxVisualLength = 130; 
+          const minVisualLength = 15;
+
+          if (visualLength > maxVisualLength) visualLength = maxVisualLength;
+          if (visualLength < minVisualLength && !hasHat) {
+            visualLength = minVisualLength; 
+          }
+
+          const endX = startX + Math.cos(angle) * visualLength;
+          const endY = startY - Math.sin(angle) * visualLength;
+
+          // Draw vector line
+          ctx.strokeStyle = color;
+          ctx.fillStyle = color;
+          ctx.lineWidth = 3;
+          ctx.beginPath();
+          ctx.moveTo(startX, startY);
+          ctx.lineTo(endX, endY);
+          ctx.stroke();
+
+          // Draw arrowhead
+          const arrowSize = 6;
+          ctx.beginPath();
+          ctx.moveTo(endX, endY);
+          ctx.lineTo(
+            endX - arrowSize * Math.cos(angle - Math.PI / 6),
+            endY + arrowSize * Math.sin(angle - Math.PI / 6)
+          );
+          ctx.lineTo(
+            endX - arrowSize * Math.cos(angle + Math.PI / 6),
+            endY + arrowSize * Math.sin(angle + Math.PI / 6)
+          );
+          ctx.fill();
+
+          // Render mathematical labels using the math renderer
+          const textX = endX + 8 * Math.cos(angle);
+          const textY = endY - 8 * Math.sin(angle) + 4;
+          drawCanvasMathText(ctx, textX, textY, typeLabel, sub, sup, hasHat);
+        }
+
+        // Draw Coordinate Unit Vectors at orbit point (Dashed/Light Grey)
+        if (state.activeStep === 0) {
+          drawVector(px, py, r_angle, 1, '#94a3b8', 'r', null, null, true);
+          drawVector(px, py, theta_angle, 1, '#94a3b8', 'θ', null, null, true);
+        }
+
+        // Draw Velocity Vector (emerald)
+        const velMag = Math.abs(state.omega * state.radius);
+        const velDir = state.omega >= 0 ? theta_angle : theta_angle + Math.PI;
+        drawVector(px, py, velDir, velMag, '#34d399', 'v', null, null, false);
+
+        // Draw Radial Force Vector pointing in (-r-hat direction)
+        if (state.activeStep === 1 || state.activeStep === 3 || state.activeStep === 2) {
+          drawVector(px, py, r_angle + Math.PI, Math.abs(Fr), '#22d3ee', 'F', 'r', null, false);
+        }
+
+        // Draw Tangential Force Vector
+        if ((state.activeStep === 1 || state.activeStep === 2 || state.activeStep === 3) && Math.abs(Ft) > 0.01) {
+          const tangDir = Ft >= 0 ? theta_angle : theta_angle + Math.PI;
+          drawVector(px, py, tangDir, Math.abs(Ft), '#fb7185', 'F', 'θ', null, false);
+        }
+      }
+
+      // 5. Draw the central axis pivot
+      ctx.fillStyle = '#1e293b';
+      ctx.beginPath();
+      ctx.arc(cx, cy, 5, 0, 2 * Math.PI);
+      ctx.fill();
+      ctx.strokeStyle = '#475569';
+      ctx.lineWidth = 1.5;
+      ctx.stroke();
+
+      // 6. Draw Orbiting Particle Mass
+      ctx.fillStyle = '#6366f1'; 
+      ctx.beginPath();
+      ctx.arc(px, py, 10 + state.mass * 2, 0, 2 * Math.PI);
+      ctx.fill();
+      ctx.strokeStyle = '#ffffff';
+      ctx.lineWidth = 2;
+      ctx.stroke();
+
+      // Step highlights
+      if (state.activeStep === 0) {
+        ctx.strokeStyle = 'rgba(99, 102, 241, 0.15)';
+        ctx.lineWidth = 6;
+        ctx.strokeRect(0, 0, viewWidth, viewHeight);
+      }
+    }
+
+    // --- ANIMATION LOOP EXECUTOR ---
+    function loop(timestamp) {
+      if (!state.lastTime) state.lastTime = timestamp;
+      const dt = (timestamp - state.lastTime) / 1000;
+      state.lastTime = timestamp;
+
+      const cappedDt = Math.min(dt, 0.1);
+
+      updatePhysics(cappedDt);
+      draw();
+      requestAnimationFrame(loop);
+    }
+    requestAnimationFrame(loop);
+
+
+    // --- STEP BY STEP MATH & LEARNING GUIDE LOGIC ---
+    const stepsData = [
+      {
+        title: "1. Polar Coordinate System (r-hat, θ-hat)",
+        text: "Unlike linear motion where we use constant <i>x</i> and <i>y</i> axes, circular systems are modeled using rotating coordinate unit vectors: <b>r-hat (radial)</b> and <b>θ-hat (tangential)</b>.<br><br>• <b>r-hat</b> always points straight outwards from the center pivot point.<br>• <b>θ-hat</b> points in the direction of increasing angle (tangential to the path).",
+        math: "Position vector: <b>r</b> = <i>r</i> · <b>r̂</b>",
+        action: "Look at the grey coordinate markers (r̂, θ̂) pointing away and tangent from the rotating mass."
+      },
+      {
+        title: "2. The Kinematic Description: HOW",
+        text: "Kinematics describes only the geometric path and acceleration vectors without looking at mass or physical causes. The total acceleration consists of two perpendicular components:<br><br>• <b>Radial Accel (<i>a</i><sub>r</sub>)</b>: -<i>r</i> · <i>ω</i><sup>2</sup> (always points inwards to hold the path).<br>• <b>Tangential Accel (<i>a</i><sub>θ</sub>)</b>: <i>r</i> · <i>α</i><sub>z</sub> (represents the rate of speeding up or slowing down).",
+        math: "<b>a</b> = <i>a</i><sub>r</sub><b>r̂</b> + <i>a</i><sub>θ</sub><b>θ̂</b> = (-<i>r</i> · <i>ω</i><sup>2</sup>)<b>r̂</b> + (<i>r</i> · <i>α</i><sub>z</sub>)<b>θ̂</b>",
+        action: "Note the cyan vector pointing inwards and (if accelerating) the pink tangential vector."
+      },
+      {
+        title: "3. The Dynamic Cause: WHY",
+        text: "The dynamics represent the true physical sources (friction, tension, gravity). By drawing a <b>Free-Body Force Diagram</b>, we sum up all actual forces acting in the radial and tangential directions.",
+        math: "Radial Forces: <b>Σ <i>F</i><sub>r</sub></b><br>Tangential Forces: <b>Σ <i>F</i><sub>θ</sub></b>",
+        action: "Adjust the Sliders for Mass and Radius to watch how the forces required to sustain the circular orbit change dynamically!"
+      },
+      {
+        title: "4. Equating Dynamic Why to Kinematic How",
+        text: "Newton's Second Law says that the net force applied (Why) must equal the mass times resulting acceleration (How) in each separate axis direction.",
+        math: "Radial: <b><i>F</i><sub>r</sub> = -<i>m</i> · <i>r</i> · <i>ω</i><sup>2</sup></b><br>Tangential: <b><i>F</i><sub>θ</sub> = <i>m</i> · <i>r</i> · <i>α</i><sub>z</sub></b>",
+        action: "Change the parameters in real time and see the balance sheet in the Live Monitor match perfectly."
+      }
+    ];
+
+    function setStep(index) {
+      state.activeStep = index;
+      
+      // Update Step Button states
+      document.querySelectorAll('.step-btn').forEach((btn, i) => {
+        if(i === index) {
+          btn.className = "step-btn py-2 text-xs font-bold rounded-lg border text-center transition-all bg-indigo-600 border-indigo-500 text-white";
+        } else {
+          btn.className = "step-btn py-2 text-xs font-bold rounded-lg border text-center transition-all bg-slate-800 border-slate-700 text-slate-400 hover:text-slate-200";
+        }
+      });
+
+      // Populate Text Card
+      const step = stepsData[index];
+      const stepContent = document.getElementById('stepContent');
+      stepContent.innerHTML = `
+        <h4 class="text-sm font-bold text-slate-100 flex items-center gap-2">
+          <span class="w-1.5 h-1.5 rounded-full bg-indigo-500"></span>
+          ${step.title}
+        </h4>
+        <p class="text-xs text-slate-300 leading-relaxed">${step.text}</p>
+        <div class="bg-indigo-950/40 border border-indigo-900/40 rounded-lg p-3 my-2 text-sm text-indigo-200 text-center leading-loose font-medium">
+          ${step.math}
+        </div>
+        <p class="text-[11px] text-slate-400 leading-normal italic flex items-center gap-1.5 bg-slate-900/60 p-2 rounded-lg">
+          <i data-lucide="eye" class="w-4 h-4 text-emerald-400 shrink-0"></i>
+          <span><b>Active Visual:</b> ${step.action}</span>
+        </p>
+      `;
+
+      // Update footer pagination
+      document.getElementById('stepCounter').innerText = `Step ${index + 1} of 4`;
+      document.getElementById('btnPrevStep').disabled = (index === 0);
+      document.getElementById('btnNextStep').disabled = (index === stepsData.length - 1);
+
+      lucide.createIcons();
+    }
+
+    // Step Pagination Buttons
+    document.getElementById('btnPrevStep').addEventListener('click', () => {
+      if(state.activeStep > 0) setStep(state.activeStep - 1);
+    });
+    document.getElementById('btnNextStep').addEventListener('click', () => {
+      if(state.activeStep < stepsData.length - 1) setStep(state.activeStep + 1);
+    });
+
+    // Initialize Step 1 default state
+    setStep(0);
+
+
+    // --- QUIZ GAME SYSTEM ---
+    function checkAnswer(optionSelected, element) {
+      const resultBox = document.getElementById('quizResult');
+      
+      // Reset button designs inside options
+      const buttons = element.parentElement.querySelectorAll('button');
+      buttons.forEach(btn => {
+        btn.className = "w-full text-left p-3 text-xs rounded-xl bg-slate-950 hover:bg-slate-850 border border-slate-800 transition-all flex items-center justify-between";
+        btn.querySelector('.icon-placeholder').innerHTML = "";
+      });
+
+      if (optionSelected === 2) {
+        element.className = "w-full text-left p-3 text-xs rounded-xl bg-emerald-500/10 border border-emerald-500/30 text-emerald-300 transition-all flex items-center justify-between font-medium";
+        element.querySelector('.icon-placeholder').innerHTML = `<i data-lucide="check" class="w-4.5 h-4.5 text-emerald-400"></i>`;
+        
+        resultBox.className = "text-xs p-3.5 rounded-lg bg-emerald-500/10 border border-emerald-500/20 text-emerald-300 leading-relaxed block";
+        resultBox.innerHTML = `
+          <strong>Correct! Excellent intuition.</strong><br>
+          An inward radial force (friction) is required to continuously steer the car into the circle. At the same time, a forward tangential force is needed to accelerate it to higher rotational velocity. Change to the <b>Non-Uniform Preset</b> above to visualize this exact phenomenon!
+        `;
+      } else {
+        element.className = "w-full text-left p-3 text-xs rounded-xl bg-rose-500/10 border border-rose-500/30 text-rose-300 transition-all flex items-center justify-between";
+        element.querySelector('.icon-placeholder').innerHTML = `<i data-lucide="x" class="w-4.5 h-4.5 text-rose-400"></i>`;
+        
+        resultBox.className = "text-xs p-3.5 rounded-lg bg-rose-500/10 border border-rose-500/20 text-rose-300 leading-relaxed block";
+        resultBox.innerHTML = `
+          <strong>Not quite.</strong> Remember that any object moving in a curved path requires a centripetal (radial) force. If it's also speeding up, it needs a tangential push! Try another answer.
+        `;
+      }
+      lucide.createIcons();
+    }
+  </script>
+</body>
+</html>

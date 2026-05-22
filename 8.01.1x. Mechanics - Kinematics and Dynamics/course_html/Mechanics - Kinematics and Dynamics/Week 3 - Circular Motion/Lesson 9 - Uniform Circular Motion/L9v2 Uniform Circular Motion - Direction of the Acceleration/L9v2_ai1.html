@@ -1,0 +1,825 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Uniform Circular Motion: Vector & Centripetal Acceleration Simulator</title>
+    <!-- Tailwind CSS for modern responsive styling -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- FontAwesome for icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <!-- KaTeX for beautiful LaTeX rendering in HTML -->
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.8/dist/katex.min.css">
+    <script src="https://cdn.jsdelivr.net/npm/katex@0.16.8/dist/katex.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/katex@0.16.8/dist/contrib/auto-render.min.js"></script>
+    
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Fira+Code:wght@400;500;600&family=Inter:wght@300;400;500;600;700;800&display=swap');
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: #0b0f19;
+            color: #f3f4f6;
+        }
+        .code-font {
+            font-family: 'Fira Code', monospace;
+        }
+        /* Custom styled range input */
+        input[type="range"]::-webkit-slider-thumb {
+            -webkit-appearance: none;
+            appearance: none;
+            width: 16px;
+            height: 16px;
+            border-radius: 50%;
+            background: #3b82f6;
+            cursor: pointer;
+            transition: background 0.15s ease-in-out;
+        }
+        input[type="range"]::-webkit-slider-thumb:hover {
+            background: #60a5fa;
+        }
+        /* Glassmorphism utility */
+        .glass-card {
+            background: rgba(17, 24, 39, 0.7);
+            backdrop-filter: blur(12px);
+            -webkit-backdrop-filter: blur(12px);
+            border: 1px solid rgba(255, 255, 255, 0.08);
+        }
+    </style>
+</head>
+<body class="min-h-screen pb-16">
+    <!-- Header Hero Banner -->
+    <header class="relative overflow-hidden border-b border-gray-800 bg-slate-950 py-8 px-6 lg:px-12 mb-8">
+        <div class="absolute inset-0 bg-[radial-gradient(circle_at_top_right,rgba(59,130,246,0.15),transparent_45%)]"></div>
+        <div class="max-w-7xl mx-auto flex flex-col md:flex-row items-center justify-between gap-6">
+            <div>
+                <span class="inline-flex items-center gap-1.5 px-3 py-1 text-xs font-semibold text-blue-400 bg-blue-500/10 border border-blue-500/20 rounded-full mb-3">
+                    <i class="fa-solid fa-circle-nodes animate-spin" style="animation-duration: 3s;"></i> Kinematics & Mechanics
+                </span>
+                <h1 class="text-3xl md:text-4xl lg:text-5xl font-extrabold tracking-tight text-white mb-2">
+                    Uniform Circular Motion
+                </h1>
+                <p class="text-gray-350 text-sm md:text-base max-w-2xl leading-relaxed">
+                    Master the geometric and dynamic intuition of centripetal acceleration. Learn why changing <span class="text-pink-400 font-semibold">direction</span> alone creates an inward-pointing acceleration vector \(\vec{a} = -r\left(\frac{d\theta}{dt}\right)^2\hat{r}\).
+                </p>
+            </div>
+            <div class="flex items-center gap-3">
+                <a href="#simulator" class="px-5 py-2.5 bg-blue-600 hover:bg-blue-500 text-white rounded-lg text-sm font-semibold shadow-lg shadow-blue-500/25 transition duration-150 ease-in-out">
+                    <i class="fa-solid fa-play mr-2"></i> Launch Sim
+                </a>
+                <a href="#math-derivation" class="px-5 py-2.5 bg-slate-800 hover:bg-slate-700 text-gray-200 rounded-lg text-sm font-semibold transition duration-150 ease-in-out">
+                    <i class="fa-solid fa-square-root-variable mr-2"></i> Math Proof
+                </a>
+            </div>
+        </div>
+    </header>
+
+    <main class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 space-y-8">
+        
+        <!-- GRID SECTION: SIMULATOR & CONTROL PANEL -->
+        <section id="simulator" class="grid grid-cols-1 lg:grid-cols-12 gap-8 scroll-mt-24">
+            <!-- Simulator Canvas (Left Column) -->
+            <div class="lg:col-span-8 flex flex-col gap-4">
+                <div class="glass-card rounded-2xl overflow-hidden p-4 flex flex-col justify-between h-[580px] shadow-2xl relative">
+                    <!-- Top Ribbon status -->
+                    <div class="flex items-center justify-between border-b border-gray-800/60 pb-3 mb-2">
+                        <div class="flex items-center gap-2">
+                            <span class="w-3 h-3 rounded-full bg-green-500 animate-pulse"></span>
+                            <span class="text-xs font-semibold text-gray-200 uppercase tracking-wider">Interactive Vector Lab</span>
+                        </div>
+                        <div class="flex items-center gap-4 text-xs">
+                            <span class="text-pink-400 font-semibold">Velocity: <strong class="code-font" id="val-v-disp">--</strong> m/s</span>
+                            <span class="text-blue-400 font-semibold">Centripetal Accel: <strong class="code-font" id="val-a-disp">--</strong> m/s²</span>
+                        </div>
+                    </div>
+
+                    <!-- Main Canvas wrapper -->
+                    <div class="flex-grow relative flex items-center justify-center overflow-hidden rounded-xl bg-slate-950/60 border border-slate-900">
+                        <canvas id="motionCanvas" class="max-w-full max-h-full cursor-crosshair"></canvas>
+                        
+                        <!-- Overlay Legend and Dynamic Vector Subtraction Sub-diagram -->
+                        <div class="absolute bottom-4 left-4 bg-slate-950/90 border border-gray-800 rounded-lg p-3 text-xs space-y-2 max-w-[240px] pointer-events-none">
+                            <div class="font-semibold text-gray-100 mb-1">Vector Color Map</div>
+                            <div class="flex items-center gap-2">
+                                <span class="w-3 h-0.5 bg-yellow-400 inline-block"></span>
+                                <span class="text-gray-200 font-medium">Position Vector \(\vec{r}\)</span>
+                            </div>
+                            <div class="flex items-center gap-2">
+                                <span class="w-3 h-0.5 bg-pink-500 inline-block"></span>
+                                <span class="text-gray-200 font-medium">Velocity \(\vec{v}\) (Tangential)</span>
+                            </div>
+                            <div class="flex items-center gap-2">
+                                <span class="w-3 h-0.5 bg-blue-500 inline-block"></span>
+                                <span class="text-gray-200 font-medium">Acceleration \(\vec{a}\) (Centripetal)</span>
+                            </div>
+                            <div class="flex items-center gap-2">
+                                <span class="w-3 h-0.5 bg-purple-500 inline-block"></span>
+                                <span class="text-gray-200 font-medium">Vector Change \(\Delta\vec{v} = \vec{v}_2 - \vec{v}_1\)</span>
+                            </div>
+                        </div>
+
+                        <!-- On-Screen Visual Indicator of Center -->
+                        <div class="absolute top-4 right-4 bg-slate-900/90 border border-gray-800 rounded-lg p-3 text-xs space-y-1.5 max-w-[200px] pointer-events-none">
+                            <div class="font-semibold text-gray-200">Dynamic State</div>
+                            <div class="flex justify-between items-center gap-2">
+                                <span class="text-gray-300">Angle \(\theta(t)\):</span>
+                                <span class="code-font text-white font-bold" id="state-theta">0.00 rad</span>
+                            </div>
+                            <div class="flex justify-between items-center gap-2">
+                                <span class="text-gray-300">\(\omega = \frac{d\theta}{dt}\):</span>
+                                <span class="code-font text-blue-400 font-bold" id="state-omega">1.00 rad/s</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Simulator Controls -->
+                    <div class="flex items-center justify-between border-t border-gray-800/60 pt-3 mt-1">
+                        <div class="flex items-center gap-2">
+                            <button id="btnPlayPause" class="p-2 w-10 h-10 bg-blue-600 hover:bg-blue-500 text-white rounded-lg flex items-center justify-center transition-colors shadow">
+                                <i id="playIcon" class="fa-solid fa-pause"></i>
+                            </button>
+                            <button id="btnReset" class="p-2 w-10 h-10 bg-slate-800 hover:bg-slate-700 text-gray-300 rounded-lg flex items-center justify-center transition-colors shadow" title="Reset angle">
+                                <i class="fa-solid fa-arrow-rotate-left"></i>
+                            </button>
+                            <button id="btnStep" class="p-2 w-10 h-10 bg-slate-800 hover:bg-slate-700 text-gray-300 rounded-lg flex items-center justify-center transition-colors shadow" title="Step Frame Forward">
+                                <i class="fa-solid fa-forward-step"></i>
+                            </button>
+                        </div>
+
+                        <!-- Custom Accessible Dropdown selector rendering mathematical symbols perfectly -->
+                        <div class="flex items-center gap-2 bg-slate-900/50 px-3 py-1.5 rounded-lg border border-gray-800 text-xs">
+                            <span class="text-gray-300 font-medium">Visual Mode:</span>
+                            
+                            <div class="relative inline-block text-left" id="customDropdownContainer">
+                                <button id="dropdownBtn" type="button" class="inline-flex justify-between items-center w-56 rounded-lg border border-gray-700 px-3 py-2 bg-slate-800 text-xs font-semibold text-white hover:bg-slate-750 focus:outline-none transition-all">
+                                    <span id="selectedOptionText">Standard Orbit View</span>
+                                    <i class="fa-solid fa-chevron-down ml-2 text-gray-400"></i>
+                                </button>
+                                <div id="dropdownMenu" class="origin-bottom-right absolute right-0 bottom-12 mt-2 w-56 rounded-lg shadow-2xl bg-slate-900 border border-gray-800 hidden z-50 transition-all">
+                                    <div class="py-1">
+                                        <button class="dropdown-item text-left w-full px-3 py-2 text-xs text-gray-300 hover:bg-slate-800 hover:text-white flex items-center justify-between transition-colors" data-value="standard">
+                                            <span>Standard Orbit View</span>
+                                        </button>
+                                        <button class="dropdown-item text-left w-full px-3 py-2 text-xs text-gray-300 hover:bg-slate-800 hover:text-white flex items-center justify-between transition-colors" data-value="delta-v-subtraction">
+                                            <span>Vector Subtraction \(\Delta \vec{v}\)</span>
+                                        </button>
+                                        <button class="dropdown-item text-left w-full px-3 py-2 text-xs text-gray-300 hover:bg-slate-800 hover:text-white flex items-center justify-between transition-colors" data-value="converge-limit">
+                                            <span>Limit Convergence \(\Delta t \to 0\)</span>
+                                        </button>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Configuration & Interactive Control Panel (Right Column) -->
+            <div class="lg:col-span-4 flex flex-col gap-6">
+                <!-- Physical Parameters Configuration -->
+                <div class="glass-card rounded-2xl p-6 shadow-xl space-y-6">
+                    <div class="border-b border-gray-800 pb-3">
+                        <h2 class="text-xl font-bold text-white flex items-center gap-2">
+                            <i class="fa-solid fa-sliders text-blue-500"></i> Physical Controls
+                        </h2>
+                        <p class="text-gray-400 text-xs mt-1">Modify dimensions and speeds in real time to observe vector scaling.</p>
+                    </div>
+
+                    <!-- Slider 1: Radius (r) -->
+                    <div class="space-y-2">
+                        <div class="flex justify-between text-sm">
+                            <span class="text-gray-255 font-semibold">Radius \(r\) (meters)</span>
+                            <span class="code-font text-blue-400 font-bold" id="val-r">1.50 m</span>
+                        </div>
+                        <input type="range" id="sliderR" min="0.5" max="2.8" step="0.1" value="1.8" class="w-full h-1.5 bg-slate-800 rounded-lg appearance-none cursor-pointer">
+                        <div class="flex justify-between text-xs text-gray-500">
+                            <span>0.5m</span>
+                            <span>2.8m</span>
+                        </div>
+                    </div>
+
+                    <!-- Slider 2: Angular Speed (d theta/dt) -->
+                    <div class="space-y-2">
+                        <div class="flex justify-between text-sm">
+                            <span class="text-gray-255 font-semibold">Angular Velocity \(\omega = \frac{d\theta}{dt}\)</span>
+                            <span class="code-font text-pink-400 font-bold" id="val-omega">1.20 rad/s</span>
+                        </div>
+                        <input type="range" id="sliderOmega" min="-3.0" max="3.0" step="0.1" value="1.2" class="w-full h-1.5 bg-slate-800 rounded-lg appearance-none cursor-pointer">
+                        <div class="flex justify-between text-xs text-gray-500">
+                            <span>-3.0 rad/s (CW)</span>
+                            <span>0.0 (Stopped)</span>
+                            <span>3.0 rad/s (CCW)</span>
+                        </div>
+                    </div>
+
+                    <!-- Interactive Vector Subtraction Helper -->
+                    <div class="bg-blue-950/20 border border-blue-900/40 p-4 rounded-xl space-y-2">
+                        <h3 class="text-xs font-bold text-blue-400 uppercase tracking-widest flex items-center gap-2">
+                            <i class="fa-solid fa-lightbulb"></i> Vector Intuition Helper
+                        </h3>
+                        <p class="text-gray-200 text-xs leading-relaxed" id="intuition-desc">
+                            Select the <strong>"Vector Subtraction \(\Delta \vec{v}\)"</strong> visual mode to overlay the tail-to-tail vector subtraction. Note that as the time interval shrinks, the purple chord vector \(\Delta\vec{v}\) points increasingly inward, aligned perfectly with centripetal force!
+                        </p>
+                    </div>
+                </div>
+
+                <!-- Live Vector Components Telemetry -->
+                <div class="glass-card rounded-2xl p-6 shadow-xl flex-grow">
+                    <h3 class="text-sm font-semibold text-gray-100 uppercase tracking-wider mb-4 border-b border-gray-800 pb-2">
+                        Live Vector Readout (Standard Coordinate Representation)
+                    </h3>
+                    <div class="space-y-3 text-xs">
+                        <div class="flex items-center justify-between p-2 rounded bg-slate-900/40">
+                            <span class="text-yellow-400 font-mono font-bold">Position Vector \(\vec{r}\):</span>
+                            <span class="code-font text-white font-semibold" id="tel-r-vec">[0.00, 0.00] m</span>
+                        </div>
+                        <div class="flex items-center justify-between p-2 rounded bg-slate-900/40">
+                            <span class="text-pink-400 font-mono font-bold">Velocity \(\vec{v}\):</span>
+                            <span class="code-font text-white font-semibold" id="tel-v-vec">[0.00, 0.00] m/s</span>
+                        </div>
+                        <div class="flex items-center justify-between p-2 rounded bg-slate-900/40">
+                            <span class="text-blue-400 font-mono font-bold">Centripetal Accel \(\vec{a}\):</span>
+                            <span class="code-font text-white font-semibold" id="tel-a-vec">[0.00, 0.00] m/s²</span>
+                        </div>
+                        <div class="p-3 bg-slate-950 rounded-lg border border-gray-800 space-y-1.5">
+                            <div class="font-bold text-gray-300 text-[10px] uppercase">Geometric Alignment Indicator</div>
+                            <div class="flex items-center justify-between">
+                                <span class="text-gray-450">Angle between \(\vec{r}\) & \(\vec{v}\):</span>
+                                <span class="text-green-400 font-bold code-font">90° (Ortho)</span>
+                            </div>
+                            <div class="flex items-center justify-between">
+                                <span class="text-gray-450">Direction of \(\vec{a}\) compared to \(\vec{r}\):</span>
+                                <span class="text-red-400 font-bold code-font">180° (Inward)</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- CARDS SECTION: THE STEP-BY-STEP INTUITIVE MENTAL MODELS -->
+        <section class="grid grid-cols-1 md:grid-cols-3 gap-6">
+            <!-- Mental Model 1 -->
+            <div class="glass-card rounded-2xl p-6 hover:border-blue-500/40 transition duration-300">
+                <div class="w-12 h-12 rounded-xl bg-blue-500/10 border border-blue-500/20 flex items-center justify-center mb-4 text-blue-500 text-lg">
+                    <i class="fa-solid fa-compass"></i>
+                </div>
+                <h3 class="text-lg font-bold text-white mb-2">1. Polar Coordinate Shift</h3>
+                <p class="text-gray-200 text-sm leading-relaxed">
+                    Instead of Cartesian coordinates \((x,y)\), circular motion is elegantly governed by Polar basis vectors:
+                    $$\hat{r} = \cos\theta \hat{i} + \sin\theta \hat{j}$$
+                    $$\hat{\theta} = -\sin\theta \hat{i} + \cos\theta \hat{j}$$
+                    The velocity vector \(\vec{v}\) points exclusively in the dynamic tangential \(\hat{\theta}\) direction.
+                </p>
+            </div>
+
+            <!-- Mental Model 2 -->
+            <div class="glass-card rounded-2xl p-6 hover:border-pink-500/40 transition duration-300">
+                <div class="w-12 h-12 rounded-xl bg-pink-500/10 border border-pink-500/20 flex items-center justify-center mb-4 text-pink-500 text-lg">
+                    <i class="fa-solid fa-arrows-spin"></i>
+                </div>
+                <h3 class="text-lg font-bold text-white mb-2">2. Tangential Speed Constant</h3>
+                <p class="text-gray-200 text-sm leading-relaxed">
+                    Under <strong>uniform</strong> circular motion, the angular sweep rate \(\omega = \frac{d\theta}{dt}\) is strictly constant. Because position is \(\vec{r} = r\hat{r}\), taking the first derivative gives the tangential velocity vector:
+                    $$\vec{v} = r\omega\hat{\theta}$$
+                    Its magnitude remains constant, but its direction alters continuously!
+                </p>
+            </div>
+
+            <!-- Mental Model 3 -->
+            <div class="glass-card rounded-2xl p-6 hover:border-purple-500/40 transition duration-300">
+                <div class="w-12 h-12 rounded-xl bg-purple-500/10 border border-purple-500/20 flex items-center justify-center mb-4 text-purple-500 text-lg">
+                    <i class="fa-solid fa-vector-square"></i>
+                </div>
+                <h3 class="text-lg font-bold text-white mb-2">3. The Inward Vector Pull</h3>
+                <p class="text-gray-200 text-sm leading-relaxed">
+                    Acceleration is the derivative of velocity: \(\vec{a} = \frac{d\vec{v}}{dt}\). Since the direction of \(\vec{v}\) turns towards the center, the vector delta \(\Delta\vec{v}\) over any small time \(\Delta t\) pulls straight inward, causing the inward component:
+                    $$\vec{a}_r = -r\left(\frac{d\theta}{dt}\right)^2 \hat{r}$$
+                </p>
+            </div>
+        </section>
+
+        <!-- MATH PROOF AND COMPUTATIONAL ALGORITHM SECTION -->
+        <section id="math-derivation" class="glass-card rounded-2xl p-6 lg:p-8 space-y-8 shadow-2xl">
+            <div class="border-b border-gray-800 pb-4">
+                <h2 class="text-2xl font-bold text-white flex items-center gap-3">
+                    <i class="fa-solid fa-graduation-cap text-yellow-500"></i> Mathematical Proof & Computational Algorithm
+                </h2>
+                <p class="text-gray-300 text-sm mt-1">
+                    An expert, step-by-step rigorous derivation linking geometric vector transformations with numerical state tracking algorithms.
+                </p>
+            </div>
+
+            <div class="grid grid-cols-1 lg:grid-cols-2 gap-8">
+                <!-- Left: Mathematical Proof -->
+                <div class="space-y-4">
+                    <h3 class="text-lg font-semibold text-white border-b border-gray-800 pb-2">The Elegant Mathematical Derivation</h3>
+                    <div class="text-gray-200 text-sm space-y-4 leading-relaxed">
+                        <p>
+                            1. Let the position of a particle tracing a circle of radius \(r\) be written in terms of cartesian coordinates:
+                            $$\vec{r}(t) = r\cos\theta(t)\hat{i} + r\sin\theta(t)\hat{j}$$
+                        </p>
+                        <p>
+                            2. To find the instantaneous velocity, we take the time derivative using the chain rule, recognizing that \(\theta(t)\) is a function of time:
+                            $$\vec{v}(t) = \frac{d\vec{r}}{dt} = r\left(-\sin\theta\frac{d\theta}{dt}\right)\hat{i} + r\left(\cos\theta\frac{d\theta}{dt}\right)\hat{j}$$
+                        </p>
+                        <p>
+                            Factoring out the constant rate of change \(\omega = \frac{d\theta}{dt}\):
+                            $$\vec{v}(t) = r\omega \underbrace{\left(-\sin\theta\hat{i} + \cos\theta\hat{j}\right)}_{\hat{\theta}} = r\omega\hat{\theta}$$
+                        </p>
+                        <p>
+                            3. Now, we compute the acceleration vector \(\vec{a}(t)\) by taking the derivative of velocity \(\vec{v}(t)\) with respect to time again:
+                            $$\vec{a}(t) = \frac{d\vec{v}}{dt} = \frac{d}{dt}\left[r\omega(-\sin\theta\hat{i} + \cos\theta\hat{j})\right]$$
+                            $$\vec{a}(t) = r\omega\left(-\cos\theta\frac{d\theta}{dt}\hat{i} - \sin\theta\frac{d\theta}{dt}\hat{j}\right)$$
+                        </p>
+                        <p>
+                            Factoring out another factor of \(\omega = \frac{d\theta}{dt}\):
+                            $$\vec{a}(t) = -r\omega^2 \underbrace{\left(\cos\theta\hat{i} + \sin\theta\hat{j}\right)}_{\hat{r}} = -r\omega^2\hat{r}$$
+                        </p>
+                        <div class="bg-slate-900 border border-gray-800 rounded-lg p-3 text-sm text-pink-400 font-bold">
+                            Thus, we prove the magnitude is \(a_r = r\omega^2\) and the direction is strictly in the $-\hat{r}$ (inward radial) direction.
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Right: Computational Algorithm (Simulation Code/Logic) -->
+                <div class="space-y-4">
+                    <h3 class="text-lg font-semibold text-white border-b border-gray-800 pb-2">The Computational Integration Algorithm</h3>
+                    <div class="text-gray-250 text-sm space-y-4 leading-relaxed">
+                        <p>
+                            To render this in real time on HTML5 canvas, the engine runs a numerical integration step every frame using the physics clock:
+                        </p>
+                        
+                        <!-- Pseudo Code Box -->
+                        <div class="bg-slate-950 p-4 rounded-xl border border-gray-800 space-y-3 font-mono text-[11px] text-gray-300">
+                            <div class="text-green-500 font-semibold">// Real-Time Physics Update Loop</div>
+                            <div>
+                                <span class="text-pink-500">const</span> dt = (currentTime - lastTime) / 1000; <span class="text-gray-500">// frame delta</span>
+                            </div>
+                            <div>
+                                <span class="text-pink-500">const</span> omega = sliderOmega.value; <span class="text-gray-500">// dθ/dt</span>
+                            </div>
+                            <div class="text-blue-400">
+                                <span class="text-pink-500">const</span> theta = state.theta + omega * dt; <span class="text-gray-500">// Linear integration</span>
+                            </div>
+                            <div class="mt-2 text-gray-200">
+                                <span class="text-green-500">// Compute vector coordinates relative to circle center (Cx, Cy)</span><br>
+                                <span class="text-pink-500">const</span> rx = r * Math.cos(theta);<br>
+                                <span class="text-pink-500">const</span> ry = r * Math.sin(theta);
+                            </div>
+                            <div class="mt-2 text-gray-200">
+                                <span class="text-green-500">// Velocity Vector: perpendicular to position</span><br>
+                                <span class="text-pink-500">const</span> vx = -r * omega * Math.sin(theta);<br>
+                                <span class="text-pink-500">const</span> vy = r * omega * Math.cos(theta);
+                            </div>
+                            <div class="mt-2 text-gray-200">
+                                <span class="text-green-500">// Acceleration Vector: opposite to position</span><br>
+                                <span class="text-pink-500">const</span> ax = -r * omega * omega * Math.cos(theta);<br>
+                                <span class="text-pink-500">const</span> ay = -r * omega * omega * Math.sin(theta);
+                            </div>
+                        </div>
+
+                        <p class="text-gray-400 text-xs">
+                            The visual rendering engine scales these dimensions carefully, projecting physical world meters into canvas pixels so vector arrows remain proportioned and aligned dynamically without visually overwhelming the user.
+                        </p>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- CRITICAL THINKING / Q&A CARD INTERFACE -->
+        <section class="glass-card rounded-2xl p-6 shadow-xl">
+            <h3 class="text-lg font-bold text-white mb-4 flex items-center gap-2">
+                <i class="fa-solid fa-circle-question text-emerald-400"></i> Interactive Critical Thinking Challenges
+            </h3>
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-4 text-sm">
+                <!-- Challenge 1 -->
+                <div class="bg-slate-900/60 border border-gray-800 p-4 rounded-xl hover:border-gray-700 transition">
+                    <span class="font-bold text-emerald-400 block mb-1">Q: Since speed is constant, why is there acceleration?</span>
+                    <p class="text-gray-200">
+                        Acceleration is a vector quantity defined as \(\vec{a} = \frac{d\vec{v}}{dt}\). Since velocity has both magnitude and direction, any change in direction requires a non-zero acceleration vector. In this case, the direction changes, creating inward acceleration without altering speed.
+                    </p>
+                </div>
+                <!-- Challenge 2 -->
+                <div class="bg-slate-900/60 border border-gray-800 p-4 rounded-xl hover:border-gray-700 transition">
+                    <span class="font-bold text-emerald-400 block mb-1">Q: What happens if the cord snaps?</span>
+                    <p class="text-gray-200">
+                        If the centripetal constraint is severed, the centripetal force immediately drops to zero (\(\vec{a} = 0\)). Following Newton's First Law (inertia), the particle will escape the circular orbit, travelling along a straight line tangent to the circle at the moment of release.
+                    </p>
+                </div>
+            </div>
+        </section>
+    </main>
+
+    <!-- FOOTER -->
+    <footer class="mt-16 text-center text-xs text-gray-500">
+        <div class="max-w-7xl mx-auto border-t border-gray-900 pt-8 px-4">
+            <p>Designed as an advanced vector physics interactive educational guide. Built with HTML5 Canvas, TailwindCSS, and KaTeX.</p>
+        </div>
+    </footer>
+
+    <!-- JavaScript Simulator Implementation -->
+    <script>
+        // DOM Elements
+        const canvas = document.getElementById('motionCanvas');
+        const ctx = canvas.getContext('2d');
+        const btnPlayPause = document.getElementById('btnPlayPause');
+        const btnReset = document.getElementById('btnReset');
+        const btnStep = document.getElementById('btnStep');
+        const playIcon = document.getElementById('playIcon');
+        
+        // Custom Dropdown Elements
+        const dropdownBtn = document.getElementById('dropdownBtn');
+        const dropdownMenu = document.getElementById('dropdownMenu');
+        const selectedOptionText = document.getElementById('selectedOptionText');
+        const dropdownItems = document.querySelectorAll('.dropdown-item');
+        
+        // Configuration Sliders
+        const sliderR = document.getElementById('sliderR');
+        const sliderOmega = document.getElementById('sliderOmega');
+        
+        // Output Elements
+        const valR = document.getElementById('valR');
+        const valOmega = document.getElementById('valOmega');
+        const valVDisp = document.getElementById('val-v-disp');
+        const valADisp = document.getElementById('val-a-disp');
+        const stateTheta = document.getElementById('state-theta');
+        const stateOmega = document.getElementById('state-omega');
+        const intuitionDesc = document.getElementById('intuition-desc');
+
+        // Telemetry Elements
+        const telRVec = document.getElementById('tel-r-vec');
+        const telVVec = document.getElementById('tel-v-vec');
+        const telAVec = document.getElementById('tel-a-vec');
+
+        // Simulator State
+        let isRunning = true;
+        let lastTime = performance.now();
+        let theta = 0; // current angle in radians
+        let currentMode = 'standard'; // standard, delta-v-subtraction, converge-limit
+        
+        // Physical state constants
+        const center = { x: 0, y: 0 };
+        const metersToPixels = 100; // scaling factor for rendering
+
+        // Reusable Safe KaTeX Math Formatter
+        function renderMath(element) {
+            if (typeof renderMathInElement === 'function' && element) {
+                renderMathInElement(element, {
+                    delimiters: [
+                        {left: '$$', right: '$$', display: true},
+                        {left: '$', right: '$', display: false},
+                        {left: '\\(', right: '\\)', display: false},
+                        {left: '\\[', right: '\\[', display: true}
+                    ],
+                    throwOnError: false
+                });
+            }
+        }
+
+        // Custom Dropdown UI Interaction
+        dropdownBtn.addEventListener('click', () => {
+            dropdownMenu.classList.toggle('hidden');
+        });
+
+        // Close dropdown when clicking outside
+        document.addEventListener('click', (e) => {
+            if (!dropdownBtn.contains(e.target) && !dropdownMenu.contains(e.target)) {
+                dropdownMenu.classList.add('hidden');
+            }
+        });
+
+        // Custom Dropdown Item Selection
+        dropdownItems.forEach(item => {
+            item.addEventListener('click', () => {
+                const value = item.getAttribute('data-value');
+                currentMode = value;
+                
+                // Set button text to the formatted LaTeX content of selected option
+                selectedOptionText.innerHTML = item.querySelector('span').innerHTML;
+                dropdownMenu.classList.add('hidden');
+                
+                // Trigger view mode transition updates
+                updateViewModeText(value);
+            });
+        });
+
+        // Handle View Mode Text Conversions Dynamically
+        function updateViewModeText(mode) {
+            if (mode === 'standard') {
+                intuitionDesc.innerHTML = "Standard interactive tracking of the position vector \\(\\vec{r}\\) (yellow), tangential velocity \\(\\vec{v}\\) (pink), and inward centripetal acceleration \\(\\vec{a}\\) (blue).";
+            } else if (mode === 'delta-v-subtraction') {
+                intuitionDesc.innerHTML = "Visualises the vector subtraction step. Displays two consecutive positions of the velocity vector placed <strong>tail-to-tail</strong> to show how the subtraction vector \\(\\Delta\\vec{v}\\) pulls directly inward!";
+            } else if (mode === 'converge-limit') {
+                intuitionDesc.innerHTML = "Demonstrates the mathematical limit \\(\\lim_{\\Delta t \\to 0} \\frac{\\Delta\\vec{v}}{\\Delta t}\\). Observe that as \\(\\Delta t\\) approaches 0, the difference chord vector directly aligns with the radial unit vector $-\\hat{r}$.";
+            }
+            renderMath(intuitionDesc);
+            if (!isRunning) draw();
+        }
+
+        // Handle Play/Pause
+        btnPlayPause.addEventListener('click', () => {
+            isRunning = !isRunning;
+            playIcon.className = isRunning ? 'fa-solid fa-pause' : 'fa-solid fa-play';
+        });
+
+        // Handle Reset
+        btnReset.addEventListener('click', () => {
+            theta = 0;
+            if (!isRunning) draw();
+        });
+
+        // Handle Manual Step Frame
+        btnStep.addEventListener('click', () => {
+            if (isRunning) {
+                isRunning = false;
+                playIcon.className = 'fa-solid fa-play';
+            }
+            theta += 0.05 * Math.sign(parseFloat(sliderOmega.value) || 1);
+            draw();
+        });
+
+        // Slider value monitors
+        sliderR.addEventListener('input', (e) => {
+            valR.innerText = parseFloat(e.target.value).toFixed(2) + " m";
+            if (!isRunning) draw();
+        });
+
+        // Slider omega monitors
+        sliderOmega.addEventListener('input', (e) => {
+            const val = parseFloat(e.target.value);
+            valOmega.innerText = val.toFixed(2) + " rad/s";
+            stateOmega.innerText = val.toFixed(2) + " rad/s";
+            if (!isRunning) draw();
+        });
+
+        // Responsive Canvas Resizer
+        function resizeCanvas() {
+            const parent = canvas.parentElement;
+            const size = Math.min(parent.clientWidth - 16, 500);
+            canvas.width = size;
+            canvas.height = size;
+            center.x = size / 2;
+            center.y = size / 2;
+            if (!isRunning) draw();
+        }
+
+        window.addEventListener('resize', resizeCanvas);
+        resizeCanvas();
+
+        // Helper: Draw Vector Arrow on Canvas
+        function drawArrow(ctx, fromX, fromY, toX, toY, color, width = 2, label = "", offsetMultiplier = 1.1) {
+            const headLength = 10; // length of head in pixels
+            const dx = toX - fromX;
+            const dy = toY - fromY;
+            const angle = Math.atan2(dy, dx);
+            
+            ctx.beginPath();
+            ctx.moveTo(fromX, fromY);
+            ctx.lineTo(toX, toY);
+            ctx.strokeStyle = color;
+            ctx.lineWidth = width;
+            ctx.stroke();
+
+            // Draw arrow head
+            ctx.beginPath();
+            ctx.moveTo(toX, toY);
+            ctx.lineTo(toX - headLength * Math.cos(angle - Math.PI / 6), toY - headLength * Math.sin(angle - Math.PI / 6));
+            ctx.lineTo(toX - headLength * Math.cos(angle + Math.PI / 6), toY - headLength * Math.sin(angle + Math.PI / 6));
+            ctx.closePath();
+            ctx.fillStyle = color;
+            ctx.fill();
+
+            // Label rendering
+            if (label) {
+                ctx.fillStyle = "#ffffff";
+                ctx.font = "bold 11px sans-serif";
+                const midX = fromX + dx * 0.5 + Math.cos(angle + Math.PI/2) * 12;
+                const midY = fromY + dy * 0.5 + Math.sin(angle + Math.PI/2) * 12;
+                ctx.fillText(label, midX, midY);
+            }
+        }
+
+        // Master Animation Frame Loop
+        function animate() {
+            const now = performance.now();
+            const dt = (now - lastTime) / 1000;
+            lastTime = now;
+
+            if (isRunning) {
+                const omega = parseFloat(sliderOmega.value);
+                theta += omega * dt;
+                
+                // Wrap theta between [0, 2pi]
+                if (theta > Math.PI * 2) theta -= Math.PI * 2;
+                if (theta < 0) theta += Math.PI * 2;
+                
+                draw();
+            }
+
+            requestAnimationFrame(animate);
+        }
+
+        // Draw Frame
+        function draw() {
+            // Clear Frame
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+            // Read physical parameters from controls
+            const r = parseFloat(sliderR.value);
+            const omega = parseFloat(sliderOmega.value);
+            const visualMode = currentMode;
+
+            const radiusInPixels = r * metersToPixels;
+
+            // Calculated parameters
+            const linearSpeed = Math.abs(r * omega);
+            const centripetalAcceleration = r * omega * omega;
+
+            // Display values inside DOM elements
+            valVDisp.innerText = linearSpeed.toFixed(2);
+            valADisp.innerText = centripetalAcceleration.toFixed(2);
+            stateTheta.innerText = theta.toFixed(2) + " rad";
+
+            // Draw Coordinate Grid in Background
+            ctx.strokeStyle = "rgba(255, 255, 255, 0.05)";
+            ctx.lineWidth = 1;
+            ctx.beginPath();
+            // Vertical axis
+            ctx.moveTo(center.x, 0);
+            ctx.lineTo(center.x, canvas.height);
+            // Horizontal axis
+            ctx.moveTo(0, center.y);
+            ctx.lineTo(canvas.width, center.y);
+            ctx.stroke();
+
+            // Draw Orbit Circle
+            ctx.strokeStyle = "rgba(59, 130, 246, 0.25)";
+            ctx.lineWidth = 2.5;
+            ctx.setLineDash([4, 4]); // Dashed orbit line
+            ctx.beginPath();
+            ctx.arc(center.x, center.y, radiusInPixels, 0, Math.PI * 2);
+            ctx.stroke();
+            ctx.setLineDash([]); // Reset dash state
+
+            // Calculate Position of Particle P(t)
+            const px = center.x + radiusInPixels * Math.cos(theta);
+            const py = center.y + radiusInPixels * Math.sin(theta);
+
+            // Calculate Vector Component Coordinates
+            const cosT = Math.cos(theta);
+            const sinT = Math.sin(theta);
+
+            // Update Telemetry panel
+            telRVec.innerText = `[${cosT.toFixed(2)} r, ${sinT.toFixed(2)} r]`;
+            telVVec.innerText = `[${(-sinT * r * omega).toFixed(2)}, ${(cosT * r * omega).toFixed(2)}]`;
+            telAVec.innerText = `[${(-cosT * centripetalAcceleration).toFixed(2)}, ${(-sinT * centripetalAcceleration).toFixed(2)}]`;
+
+            // Draw Position Vector r (Origin to Particle)
+            drawArrow(ctx, center.x, center.y, px, py, "#eab308", 2, "r");
+
+            // Draw Particle itself
+            ctx.beginPath();
+            ctx.arc(px, py, 7, 0, Math.PI * 2);
+            ctx.fillStyle = "#ffffff";
+            ctx.fill();
+            ctx.lineWidth = 2;
+            ctx.strokeStyle = "#3b82f6";
+            ctx.stroke();
+
+            // RENDER SPECIFIC VISUAL MODE EXTRA OVERLAYS
+            if (visualMode === 'standard') {
+                // VELOCITY VECTOR (Tangent to Circle, starting at particle)
+                // Scaling visual vector to avoid escaping viewport boundaries
+                const vScaleFactor = 35; 
+                const vx = -sinT * omega * r * vScaleFactor;
+                const vy = cosT * omega * r * vScaleFactor;
+                drawArrow(ctx, px, py, px + vx, py + vy, "#ec4899", 2.5, "v");
+
+                // ACCELERATION VECTOR (Inward, starting at particle, pointing to center)
+                const aScaleFactor = 15;
+                const ax = -cosT * centripetalAcceleration * aScaleFactor;
+                const ay = -sinT * centripetalAcceleration * aScaleFactor;
+                drawArrow(ctx, px, py, px + ax, py + ay, "#3b82f6", 2.5, "a");
+
+                // Polar coordinate label overlays near particle
+                ctx.fillStyle = "#a855f7";
+                ctx.font = "12px sans-serif";
+                ctx.fillText("θ-direction", px + vx * 1.15, py + vy * 1.15);
+                ctx.fillStyle = "#eab308";
+                ctx.fillText("r-direction", px - cosT * 30, py - sinT * 30);
+
+            } else if (visualMode === 'delta-v-subtraction') {
+                // Let's draw another state at t2 = t1 + deltaT
+                const deltaTheta = 0.5 * (Math.sign(omega) || 1); // fixed look-ahead interval
+                const theta2 = theta + deltaTheta;
+                
+                const px2 = center.x + radiusInPixels * Math.cos(theta2);
+                const py2 = center.y + radiusInPixels * Math.sin(theta2);
+
+                // Second particle state as reference (opaque ghost)
+                ctx.beginPath();
+                ctx.arc(px2, py2, 5, 0, Math.PI * 2);
+                ctx.fillStyle = "rgba(255, 255, 255, 0.3)";
+                ctx.fill();
+
+                // Velocity Vectors
+                const vScale = 45;
+                const v1x = -Math.sin(theta) * omega * r * vScale;
+                const v1y = Math.cos(theta) * omega * r * vScale;
+
+                const v2x = -Math.sin(theta2) * omega * r * vScale;
+                const v2y = Math.cos(theta2) * omega * r * vScale;
+
+                // Draw v1 at P1, v2 at P2
+                drawArrow(ctx, px, py, px + v1x, py + v1y, "rgba(236, 72, 153, 0.4)", 2, "v(t₁)");
+                drawArrow(ctx, px2, py2, px2 + v2x, py2 + v2y, "rgba(236, 72, 153, 0.8)", 2, "v(t₂)");
+
+                // Dynamic construction box in top left of canvas to show vector subtraction
+                const boxX = 60;
+                const boxY = 60;
+
+                // Draw background construction region
+                ctx.fillStyle = "rgba(15, 23, 42, 0.9)";
+                ctx.strokeStyle = "rgba(255, 255, 255, 0.1)";
+                ctx.lineWidth = 1;
+                ctx.beginPath();
+                ctx.rect(10, 10, 150, 150);
+                ctx.fill();
+                ctx.stroke();
+
+                ctx.fillStyle = "#94a3b8";
+                ctx.font = "bold 9px sans-serif";
+                ctx.fillText("Vector Subtraction Map", 15, 22);
+
+                // Draw v1 and v2 starting from common tail (boxX, boxY)
+                drawArrow(ctx, boxX, boxY, boxX + v1x, boxY + v1y, "rgba(236, 72, 153, 0.5)", 2, "v₁");
+                drawArrow(ctx, boxX, boxY, boxX + v2x, boxY + v2y, "rgba(236, 72, 153, 0.9)", 2, "v₂");
+
+                // Draw Δv = v2 - v1 (from tip of v1 to tip of v2)
+                drawArrow(ctx, boxX + v1x, boxY + v1y, boxX + v2x, boxY + v2y, "#a855f7", 2.5, "Δv");
+
+            } else if (visualMode === 'converge-limit') {
+                // Interactive visualization showing a sweep interval that user can see shrinking
+                const pulseTime = (Date.now() % 4000) / 4000; // normalized 0 to 1
+                const deltaTheta = (Math.PI / 3) * (1 - pulseTime * 0.95) * (Math.sign(omega) || 1); // sweeps dynamically to almost 0
+
+                const theta2 = theta + deltaTheta;
+                const px2 = center.x + radiusInPixels * Math.cos(theta2);
+                const py2 = center.y + radiusInPixels * Math.sin(theta2);
+
+                // Highlight the angular wedge swept
+                ctx.beginPath();
+                ctx.moveTo(center.x, center.y);
+                ctx.arc(center.x, center.y, radiusInPixels, theta, theta2, deltaTheta < 0);
+                ctx.fillStyle = "rgba(59, 130, 246, 0.1)";
+                ctx.fill();
+
+                // Velocity vectors
+                const vScale = 45;
+                const v1x = -Math.sin(theta) * omega * r * vScale;
+                const v1y = Math.cos(theta) * omega * r * vScale;
+                const v2x = -Math.sin(theta2) * omega * r * vScale;
+                const v2y = Math.cos(theta2) * omega * r * vScale;
+
+                // Render vector subtraction in-place on the orbit boundary
+                drawArrow(ctx, px, py, px + v1x, py + v1y, "rgba(236, 72, 153, 0.5)", 2, "v₁");
+                
+                // Draw v2 translated to the same start point (px, py) to demonstrate immediate convergence direction
+                drawArrow(ctx, px, py, px + v2x, py + v2y, "rgba(236, 72, 153, 0.9)", 2, "v₂");
+                
+                // Draw Δv directly on particle to show it points inwards
+                drawArrow(ctx, px + v1x, py + v1y, px + v2x, py + v2y, "#a855f7", 3, "Δv");
+
+                // Draw central radial line to show convergence alignment
+                ctx.strokeStyle = "rgba(168, 85, 247, 0.4)";
+                ctx.lineWidth = 1;
+                ctx.setLineDash([2, 2]);
+                ctx.beginPath();
+                ctx.moveTo(px, py);
+                ctx.lineTo(center.x, center.y);
+                ctx.stroke();
+                ctx.setLineDash([]);
+
+                // Small informative text
+                ctx.fillStyle = "#f43f5e";
+                ctx.font = "italic 11px sans-serif";
+                ctx.fillText(`dt convergence phase: ${(100 - pulseTime * 95).toFixed(0)}%`, 20, canvas.height - 20);
+            }
+        }
+
+        // Initialize Animation loop & Safe Math parser once assets and DOM are fully ready
+        window.onload = function () {
+            // First render math throughout the document
+            renderMath(document.body);
+            
+            // Sync default visual dropdown text with rendered content
+            const defaultSpan = document.querySelector('.dropdown-item[data-value="standard"] span');
+            if (defaultSpan) {
+                selectedOptionText.innerHTML = defaultSpan.innerHTML;
+            }
+            
+            animate();
+        }
+    </script>
+</body>
+</html>

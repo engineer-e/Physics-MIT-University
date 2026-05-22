@@ -1,0 +1,1034 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Polar Coordinates Circular Motion Derivation & Simulator</title>
+    <!-- Tailwind CSS for modern responsive layout and premium styling -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Google Fonts: Inter for clean typography -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=Fira+Code:wght@400;500&display=swap" rel="stylesheet">
+    <!-- FontAwesome for high-quality SVG icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <!-- KaTeX CDN for mathematical typesetting -->
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.8/dist/katex.min.css">
+    <script src="https://cdn.jsdelivr.net/npm/katex@0.16.8/dist/katex.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/katex@0.16.8/dist/contrib/auto-render.min.js"></script>
+    
+    <style>
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: #0b0f19;
+            color: #f1f5f9;
+        }
+        /* Custom scrollbar styling */
+        ::-webkit-scrollbar {
+            width: 6px;
+            height: 6px;
+        }
+        ::-webkit-scrollbar-track {
+            background: #1e293b;
+        }
+        ::-webkit-scrollbar-thumb {
+            background: #475569;
+            border-radius: 3px;
+        }
+        ::-webkit-scrollbar-thumb:hover {
+            background: #64748b;
+        }
+        /* Mathematical label overrides to ensure absolute visibility */
+        .katex {
+            color: #ffffff !important;
+            font-weight: 600;
+        }
+        .katex-display {
+            background: rgba(15, 23, 42, 0.6);
+            padding: 12px;
+            border-radius: 8px;
+            border-left: 3px solid #3b82f6;
+            margin: 0.5em 0 !important;
+            overflow-x: auto;
+            color: #ffffff !important;
+        }
+        /* Vector legend indicators */
+        .dot-r { background-color: #10b981; }      /* Green for Position Vector */
+        .dot-rhat { background-color: #eab308; }   /* Yellow for r_hat */
+        .dot-thetahat { background-color: #06b6d4; } /* Cyan for theta_hat */
+        .dot-v { background-color: #f43f5e; }      /* Pink/Red for Velocity Vector */
+        
+        /* Interactive Card Hover Effects */
+        .interactive-card {
+            transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+        .interactive-card:hover {
+            transform: translateY(-2px);
+            border-color: #3b82f6;
+            box-shadow: 0 10px 20px -10px rgba(59, 130, 246, 0.3);
+        }
+    </style>
+</head>
+<body class="min-h-screen flex flex-col antialiased">
+
+    <!-- Header/Navigation -->
+    <header class="border-b border-slate-800 bg-slate-950/80 backdrop-blur-md sticky top-0 z-50 px-6 py-4">
+        <div class="max-w-7xl mx-auto flex flex-col md:flex-row items-center justify-between gap-4">
+            <div class="flex items-center gap-3">
+                <div class="bg-gradient-to-tr from-blue-600 to-indigo-500 p-2.5 rounded-xl shadow-lg shadow-indigo-500/20">
+                    <i class="fa-solid fa-compass-drafting text-white text-xl"></i>
+                </div>
+                <div>
+                    <h1 class="text-xl font-bold tracking-tight bg-gradient-to-r from-white via-slate-200 to-slate-400 bg-clip-text text-transparent">
+                        Velocity Vectors in Polar Coordinates
+                    </h1>
+                    <p class="text-xs text-slate-400 font-medium">Kinematics Simulator & Dynamic Geometric Derivation</p>
+                </div>
+            </div>
+            <div class="flex items-center gap-4 text-xs">
+                <span class="flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-emerald-500/10 text-emerald-400 font-semibold border border-emerald-500/20">
+                    <span class="h-2 w-2 rounded-full bg-emerald-400 animate-pulse"></span>
+                    Interactive Sandbox Live
+                </span>
+                <span class="text-slate-500">|</span>
+                <a href="#derivation-tabs" class="text-blue-400 hover:text-blue-300 font-medium transition flex items-center gap-1">
+                    <i class="fa-solid fa-graduation-cap"></i> View Mathematical Proof
+                </a>
+            </div>
+        </div>
+    </header>
+
+    <!-- Main Workspace -->
+    <main class="flex-grow max-w-7xl w-full mx-auto px-4 md:px-6 py-6 grid grid-cols-1 lg:grid-cols-12 gap-6">
+
+        <!-- Left Column: Visual Simulator (7/12 width on large screens) -->
+        <div class="lg:col-span-7 flex flex-col gap-6">
+            
+            <!-- Simulator Canvas Window -->
+            <div class="bg-slate-900 border border-slate-800 rounded-2xl overflow-hidden shadow-2xl flex flex-col relative">
+                <div class="bg-slate-950/60 px-5 py-3 border-b border-slate-800 flex items-center justify-between">
+                    <div class="flex items-center gap-2">
+                        <i class="fa-solid fa-atom text-blue-500 animate-spin" style="animation-duration: 6s;"></i>
+                        <span class="font-semibold text-sm tracking-wide text-slate-200">Kinematics Viewport</span>
+                    </div>
+                    <div class="flex items-center gap-2">
+                        <span class="text-xs text-slate-400">Drag particle to change position dynamically!</span>
+                    </div>
+                </div>
+
+                <!-- Canvas Wrapper -->
+                <div class="relative flex-grow flex items-center justify-center bg-slate-950 min-h-[400px] md:min-h-[460px] cursor-grab active:cursor-grabbing" id="canvas-container">
+                    <canvas id="primary-simulator" class="w-full h-full block"></canvas>
+                    
+                    <!-- Floating Vector Legend Box -->
+                    <div class="absolute bottom-4 left-4 bg-slate-900/90 backdrop-blur-md p-4 rounded-xl border border-slate-800/80 text-xs shadow-xl space-y-2 max-w-[240px]">
+                        <div class="font-bold text-slate-300 mb-1 flex items-center gap-1.5">
+                            <i class="fa-solid fa-list-check text-indigo-400"></i> Active Vectors
+                        </div>
+                        <div class="flex items-center justify-between hover:bg-slate-800/50 p-1 rounded transition">
+                            <span class="flex items-center gap-2">
+                                <span class="h-2.5 w-2.5 rounded-full dot-r"></span>
+                                <span class="text-slate-200">Position $\vec{r}$</span>
+                            </span>
+                            <span class="font-mono text-slate-400" id="val-r-vec"></span>
+                        </div>
+                        <div class="flex items-center justify-between hover:bg-slate-800/50 p-1 rounded transition">
+                            <span class="flex items-center gap-2">
+                                <span class="h-2.5 w-2.5 rounded-full dot-rhat"></span>
+                                <span class="text-slate-200">Radial Unit $\hat{r}$</span>
+                            </span>
+                            <span class="font-mono text-slate-400" id="val-rhat-vec"></span>
+                        </div>
+                        <div class="flex items-center justify-between hover:bg-slate-800/50 p-1 rounded transition">
+                            <span class="flex items-center gap-2">
+                                <span class="h-2.5 w-2.5 rounded-full dot-thetahat"></span>
+                                <span class="text-slate-200">Tangential $\hat{\theta}$</span>
+                            </span>
+                            <span class="font-mono text-slate-400" id="val-thetahat-vec"></span>
+                        </div>
+                        <div class="flex items-center justify-between hover:bg-slate-800/50 p-1 rounded transition">
+                            <span class="flex items-center gap-2">
+                                <span class="h-2.5 w-2.5 rounded-full dot-v"></span>
+                                <span class="text-slate-200">Velocity $\vec{v}$</span>
+                            </span>
+                            <span class="font-mono text-slate-400" id="val-v-vec"></span>
+                        </div>
+                    </div>
+
+                    <!-- Instantaneous State Badge -->
+                    <div class="absolute top-4 right-4 bg-slate-900/95 backdrop-blur-md px-3 py-2 rounded-lg border border-slate-800 text-xs font-mono space-y-1 shadow-lg text-slate-300 min-w-[140px]">
+                        <div class="text-blue-400 font-bold border-b border-slate-800 pb-1 mb-1">State Variables</div>
+                        <div class="flex justify-between"><span>Angle $\theta$:</span> <span id="state-theta" class="text-slate-100 font-bold">0.00 rad</span></div>
+                        <div class="flex justify-between"><span>Radius $r$:</span> <span id="state-radius" class="text-emerald-400">1.50 m</span></div>
+                        <div class="flex justify-between"><span>$\omega = d\theta/dt$:</span> <span id="state-omega" class="text-yellow-400">1.00 rad/s</span></div>
+                        <div class="flex justify-between"><span>$|v|$:</span> <span id="state-vmag" class="text-rose-400 font-semibold">1.50 m/s</span></div>
+                    </div>
+                </div>
+
+                <!-- Interactive Dashboard Controls -->
+                <div class="bg-slate-950 border-t border-slate-800 p-5 space-y-4">
+                    <!-- Main simulation playback buttons -->
+                    <div class="flex flex-wrap items-center justify-between gap-4">
+                        <div class="flex items-center gap-2">
+                            <button id="btn-play" class="bg-blue-600 hover:bg-blue-500 active:scale-95 text-white px-5 py-2.5 rounded-xl font-semibold text-sm transition flex items-center gap-2 shadow-lg shadow-blue-500/20">
+                                <i class="fa-solid fa-play" id="play-icon"></i> <span id="play-text">Play Motion</span>
+                            </button>
+                            <button id="btn-reset" class="bg-slate-800 hover:bg-slate-700 active:scale-95 text-slate-200 px-4 py-2.5 rounded-xl font-semibold text-sm transition flex items-center gap-1.5">
+                                <i class="fa-solid fa-arrow-rotate-left"></i> Reset
+                            </button>
+                        </div>
+                        
+                        <div class="flex items-center gap-4 bg-slate-900/80 px-4 py-2 rounded-xl border border-slate-800">
+                            <span class="text-xs font-semibold text-slate-400">Vector Visibility:</span>
+                            <label class="inline-flex items-center gap-1.5 cursor-pointer text-xs">
+                                <input type="checkbox" id="chk-show-components" checked class="rounded border-slate-700 text-blue-600 focus:ring-blue-600/20 bg-slate-800">
+                                <span class="text-slate-300">Cartesian Components</span>
+                            </label>
+                            <label class="inline-flex items-center gap-1.5 cursor-pointer text-xs">
+                                <input type="checkbox" id="chk-show-trace" checked class="rounded border-slate-700 text-blue-600 focus:ring-blue-600/20 bg-slate-800">
+                                <span class="text-slate-300">Path Trace</span>
+                            </label>
+                        </div>
+                    </div>
+
+                    <!-- Sliders panel -->
+                    <div class="grid grid-cols-1 md:grid-cols-3 gap-4 pt-2 border-t border-slate-900">
+                        <!-- Angle Slider -->
+                        <div class="space-y-1.5">
+                            <div class="flex justify-between text-xs">
+                                <span class="text-slate-400 font-medium font-semibold">Angle Position ($\theta$)</span>
+                                <span id="lbl-slider-theta" class="text-slate-300 font-mono">0.00 rad</span>
+                            </div>
+                            <input type="range" id="slider-theta" min="0" max="6.283" step="0.01" value="1.0" class="w-full accent-blue-500 bg-slate-800 h-1.5 rounded-lg appearance-none cursor-pointer">
+                        </div>
+
+                        <!-- Radius Slider -->
+                        <div class="space-y-1.5">
+                            <div class="flex justify-between text-xs">
+                                <span class="text-slate-400 font-medium font-semibold">Radius ($r$)</span>
+                                <span id="lbl-slider-r" class="text-slate-300 font-mono">150 px</span>
+                            </div>
+                            <input type="range" id="slider-r" min="80" max="200" step="1" value="140" class="w-full accent-emerald-500 bg-slate-800 h-1.5 rounded-lg appearance-none cursor-pointer">
+                        </div>
+
+                        <!-- Angular Velocity Slider -->
+                        <div class="space-y-1.5">
+                            <div class="flex justify-between text-xs">
+                                <span class="text-slate-400 font-medium font-semibold">Angular Velocity ($\omega = \frac{d\theta}{dt}$)</span>
+                                <span id="lbl-slider-omega" class="text-slate-300 font-mono">1.0 rad/s</span>
+                            </div>
+                            <input type="range" id="slider-omega" min="-3" max="3" step="0.1" value="1.0" class="w-full accent-yellow-500 bg-slate-800 h-1.5 rounded-lg appearance-none cursor-pointer">
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Mathematical Intuition Insights Sandbox -->
+            <div class="bg-gradient-to-br from-slate-900 to-indigo-950/40 border border-slate-800 rounded-2xl p-6 shadow-xl space-y-4">
+                <div class="flex items-center gap-3 border-b border-slate-800/80 pb-3">
+                    <div class="bg-yellow-500/10 p-2 rounded-lg text-yellow-400">
+                        <i class="fa-solid fa-lightbulb text-lg"></i>
+                    </div>
+                    <div>
+                        <h3 class="font-bold text-slate-100">Critical Intuition Checkpoint</h3>
+                        <p class="text-xs text-slate-400">Deep mental model about coordinate changes over time</p>
+                    </div>
+                </div>
+
+                <div class="text-sm text-slate-300 leading-relaxed space-y-3">
+                    <p>
+                        In a Cartesian system, your reference vectors <span class="text-indigo-300 font-semibold">$\hat{i}$</span> and <span class="text-indigo-300 font-semibold">$\hat{j}$</span> are locked static to the universe. Their derivative with respect to time is exactly zero:
+                    </p>
+                    <div id="latex-cartesian-deriv" class="my-2">$$\frac{d\hat{i}}{dt} = 0, \quad \frac{d\hat{j}}{dt} = 0$$</div>
+                    <p>
+                        However, in a **Polar System**, the radial axis <span class="text-yellow-400 font-semibold">$\hat{r}$</span> and angular axis <span class="text-cyan-400 font-semibold">$\hat{\theta}$</span> lock onto the <em>moving particle</em>! As the particle completes its sweep, the vectors tilt, warp, and spin. This is why:
+                    </p>
+                    <div id="latex-polar-deriv-concept" class="my-2">$$\frac{d\hat{r}}{dt} = \frac{d\theta}{dt}\hat{\theta} = \omega\hat{\theta}$$</div>
+                </div>
+            </div>
+
+        </div>
+
+        <!-- Right Column: Interactive Theory & Computational Algorithm (5/12 width) -->
+        <div class="lg:col-span-5 flex flex-col gap-6">
+            
+            <!-- Navigation Tabs for Mathematical Content -->
+            <div class="bg-slate-900 border border-slate-800 rounded-2xl p-2 flex gap-1 shadow-lg" id="derivation-tabs">
+                <button data-tab="deriv" class="tab-btn flex-1 py-2.5 px-3 rounded-xl font-semibold text-xs tracking-wide transition flex items-center justify-center gap-1.5 bg-blue-600 text-white shadow">
+                    <i class="fa-solid fa-calculator"></i> Step-By-Step Derivation
+                </button>
+                <button data-tab="intuition" class="tab-btn flex-1 py-2.5 px-3 rounded-xl font-semibold text-xs tracking-wide transition text-slate-400 hover:text-slate-200 flex items-center justify-center gap-1.5">
+                    <i class="fa-solid fa-shapes"></i> Geometric Limit Intuition
+                </button>
+                <button data-tab="sandbox" class="tab-btn flex-1 py-2.5 px-3 rounded-xl font-semibold text-xs tracking-wide transition text-slate-400 hover:text-slate-200 flex items-center justify-center gap-1.5">
+                    <i class="fa-solid fa-brain"></i> Concept Sandbox
+                </button>
+            </div>
+
+            <!-- Tab Content Panel: Derivation -->
+            <div id="tab-deriv" class="tab-content flex flex-col gap-4">
+                
+                <!-- Step 1 Card -->
+                <div class="bg-slate-900/60 border border-slate-800 rounded-2xl p-5 interactive-card space-y-3 cursor-pointer" onclick="setSimState(1.0, 140, 1.0)">
+                    <div class="flex items-center justify-between">
+                        <span class="px-2.5 py-1 text-[10px] font-bold tracking-wider uppercase bg-blue-500/10 text-blue-400 border border-blue-500/20 rounded-md">Step 1</span>
+                        <span class="text-xs text-slate-500 font-medium flex items-center gap-1"><i class="fa-solid fa-crosshairs"></i> Position Representation</span>
+                    </div>
+                    <h4 class="font-bold text-slate-200 text-sm">Defining Position in Polar Space</h4>
+                    <p class="text-xs text-slate-400">
+                        In the polar coordinate system, the position vector $\vec{r}$ pointing from the origin directly to the particle's coordinate is defined simply as its magnitude $r$ in the radial unit direction $\hat{r}$.
+                    </p>
+                    <div id="latex-step1" class="py-1">$$\vec{r} = r \hat{r}$$</div>
+                </div>
+
+                <!-- Step 2 Card -->
+                <div class="bg-slate-900/60 border border-slate-800 rounded-2xl p-5 interactive-card space-y-3 cursor-pointer" onclick="setSimState(2.1, 140, 1.2)">
+                    <div class="flex items-center justify-between">
+                        <span class="px-2.5 py-1 text-[10px] font-bold tracking-wider uppercase bg-indigo-500/10 text-indigo-400 border border-indigo-500/20 rounded-md">Step 2</span>
+                        <span class="text-xs text-slate-500 font-medium flex items-center gap-1"><i class="fa-solid fa-anchor"></i> Bridge To Cartesian Space</span>
+                    </div>
+                    <h4 class="font-bold text-slate-200 text-sm">Decomposing Polar Unit Vectors</h4>
+                    <p class="text-xs text-slate-400">
+                        To compute the derivative of moving polar vectors, we map them onto stationary Cartesian unit vectors $\hat{i}$ and $\hat{j}$:
+                    </p>
+                    <div id="latex-step2-rhat" class="py-1">$$\hat{r} = \cos\theta\hat{i} + \sin\theta\hat{j}$$</div>
+                    <div id="latex-step2-thetahat" class="py-1">$$\hat{\theta} = -\sin\theta\hat{i} + \cos\theta\hat{j}$$</div>
+                </div>
+
+                <!-- Step 3 Card -->
+                <div class="bg-slate-900/60 border border-slate-800 rounded-2xl p-5 interactive-card space-y-3 cursor-pointer" onclick="triggerDerivativeSweep()">
+                    <div class="flex items-center justify-between">
+                        <span class="px-2.5 py-1 text-[10px] font-bold tracking-wider uppercase bg-yellow-500/10 text-yellow-400 border border-yellow-500/20 rounded-md">Step 3</span>
+                        <span class="text-xs text-slate-500 font-medium flex items-center gap-1 animate-pulse"><i class="fa-solid fa-wand-magic-sparkles"></i> Calculus Chain Rule</span>
+                    </div>
+                    <h4 class="font-bold text-slate-200 text-sm">Differentiating the Unit Radial Vector</h4>
+                    <p class="text-xs text-slate-400">
+                        We apply the chain rule of differentiation. Note that as the angle $\theta(t)$ changes with time, we take the derivative of $\hat{r}$ with respect to $\theta$, then multiply by the rate of change $\frac{d\theta}{dt}$:
+                    </p>
+                    <div id="latex-step3-calc" class="py-1">$$\frac{d\hat{r}}{dt} = \frac{d}{dt}\left(\cos\theta\hat{i} + \sin\theta\hat{j}\right) = \left(-\sin\theta\hat{i} + \cos\theta\hat{j}\right) \frac{d\theta}{dt}$$</div>
+                    <p class="text-xs text-slate-400">
+                        Notice that the expression in brackets matches our definition of $\hat{\theta}$ exactly! Thus:
+                    </p>
+                    <div id="latex-step3-result" class="py-1">$$\frac{d\hat{r}}{dt} = \frac{d\theta}{dt}\hat{\theta}$$</div>
+                </div>
+
+                <!-- Step 4 Card -->
+                <div class="bg-slate-900/60 border border-slate-800 rounded-2xl p-5 interactive-card space-y-3 cursor-pointer" onclick="setSimState(3.5, 150, 2.0)">
+                    <div class="flex items-center justify-between">
+                        <span class="px-2.5 py-1 text-[10px] font-bold tracking-wider uppercase bg-rose-500/10 text-rose-400 border border-rose-500/20 rounded-md">Step 4</span>
+                        <span class="text-xs text-slate-500 font-medium flex items-center gap-1"><i class="fa-solid fa-gauge"></i> Velocity Result</span>
+                    </div>
+                    <h4 class="font-bold text-slate-200 text-sm">The Final Velocity Vector Formulation</h4>
+                    <p class="text-xs text-slate-400">
+                        Substituting our computed derivative of $\hat{r}$ back into our velocity formula (since magnitude $r$ remains a constant in perfect circular motion):
+                    </p>
+                    <div id="latex-step4" class="py-1">$$\vec{v} = \frac{d\vec{r}}{dt} = r \frac{d\hat{r}}{dt} = r \frac{d\theta}{dt} \hat{\theta} = r \omega \hat{\theta}$$</div>
+                    <div class="bg-slate-950 p-3 rounded-lg border border-slate-800 text-xs flex items-start gap-2 text-rose-300">
+                        <i class="fa-solid fa-circle-info mt-0.5 text-rose-400"></i>
+                        <span>This proves that velocity is purely tangential in circular motion, and its magnitude scales directly with both radius and angular speed!</span>
+                    </div>
+                </div>
+
+            </div>
+
+            <!-- Tab Content Panel: Intuition & Geometry -->
+            <div id="tab-intuition" class="tab-content hidden flex flex-col gap-4">
+                <div class="bg-slate-900 border border-slate-800 rounded-2xl p-5 space-y-4">
+                    <h4 class="font-bold text-slate-200 text-base flex items-center gap-2">
+                        <i class="fa-solid fa-vector-square text-cyan-400"></i>
+                        Why does $d\hat{r}$ point along $\hat{\theta}$?
+                    </h4>
+                    <p class="text-xs text-slate-400 leading-relaxed">
+                        To truly grasp the calculus visually, look at what happens when we increment $\theta$ by a small displacement $\Delta \theta$. The unit radial vector changes from $\hat{r}(\theta)$ to $\hat{r}(\theta + \Delta \theta)$.
+                    </p>
+
+                    <!-- Interactive Micro-proof Canvas -->
+                    <div class="bg-slate-950 rounded-xl border border-slate-800 p-4 flex flex-col items-center justify-center relative">
+                        <canvas id="micro-intuition-canvas" class="w-full max-w-[280px] h-[220px] block"></canvas>
+                        
+                        <!-- Mini Controller inside the intuitive tab -->
+                        <div class="w-full mt-3 space-y-2 border-t border-slate-900 pt-3">
+                            <div class="flex justify-between text-xs">
+                                <span class="text-slate-400 font-medium font-semibold">Increment Step size ($\Delta \theta$)</span>
+                                <span id="lbl-micro-delta" class="text-cyan-400 font-mono">0.60 rad</span>
+                            </div>
+                            <input type="range" id="slider-micro-delta" min="0.05" max="1.5" step="0.01" value="0.60" class="w-full accent-cyan-500 bg-slate-800 h-1 rounded-lg appearance-none cursor-pointer">
+                        </div>
+                    </div>
+
+                    <!-- Step-by-Step Geometric Analysis -->
+                    <div class="space-y-3 text-xs text-slate-300 bg-slate-950/40 p-4 rounded-xl border border-slate-800/60">
+                        <div class="flex gap-2">
+                            <span class="font-bold text-cyan-400">1.</span>
+                            <p>Both vectors $\hat{r}(\theta)$ and $\hat{r}(\theta + \Delta \theta)$ have a constant length of exactly **1**.</p>
+                        </div>
+                        <div class="flex gap-2">
+                            <span class="font-bold text-cyan-400">2.</span>
+                            <p>The vector difference is defined as: $\Delta\hat{r} = \hat{r}(\theta + \Delta \theta) - \hat{r}(\theta)$.</p>
+                        </div>
+                        <div class="flex gap-2">
+                            <span class="font-bold text-cyan-400">3.</span>
+                            <p>As we drag the slider to make $\Delta \theta \to 0$, the chord length matches the circular arc: $|\Delta \hat{r}| \to \Delta \theta$.</p>
+                        </div>
+                        <div class="flex gap-2">
+                            <span class="font-bold text-cyan-400">4.</span>
+                            <p>As $\Delta \theta \to 0$, the angle of $\Delta \hat{r}$ with $\hat{r}$ approaches exactly **90°** (tangential, pointing in the exact direction of $\hat{\theta}$).</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Tab Content Panel: Sandbox & Conceptual Challenge -->
+            <div id="tab-sandbox" class="tab-content hidden flex flex-col gap-4">
+                <div class="bg-slate-900 border border-slate-800 rounded-2xl p-5 space-y-4">
+                    <h4 class="font-bold text-slate-200 text-base flex items-center gap-2">
+                        <i class="fa-solid fa-microchip text-yellow-400"></i>
+                        Critical Question Sandbox
+                    </h4>
+                    <p class="text-xs text-slate-400 leading-relaxed">
+                        In the video transcript, the instructor states: <em>"The magnitude r being a constant with time will come out of the derivative..."</em> Let's think beyond the simplification.
+                    </p>
+
+                    <!-- Interactive Challenge Accordion 1 -->
+                    <div class="border border-slate-800 bg-slate-950/60 rounded-xl overflow-hidden">
+                        <button class="w-full text-left px-4 py-3 flex items-center justify-between font-semibold text-xs text-slate-200 hover:bg-slate-900 transition" onclick="toggleAccordion('acc-1')">
+                            <span>What if the particle is NOT on a fixed circle? (i.e. $\frac{dr}{dt} \neq 0$)</span>
+                            <i id="acc-1-icon" class="fa-solid fa-chevron-down text-slate-500 transition-transform"></i>
+                        </button>
+                        <div id="acc-1" class="hidden p-4 border-t border-slate-900 text-xs text-slate-400 space-y-2">
+                            <p>
+                                If the radius changes over time (such as in a spiral or elliptical trajectory), we must apply the **product rule** of differentiation when taking the derivative of $\vec{r} = r \hat{r}$.
+                            </p>
+                            <p class="text-slate-300">The full general derivative formula becomes:</p>
+                            <div id="latex-spiral-math">$$\vec{v} = \frac{d}{dt}(r\\hat{r}) = \frac{dr}{dt}\hat{r} + r \frac{d\hat{r}}{dt} = \dot{r}\hat{r} + r\omega\hat{\theta}$$</div>
+                            <p>
+                                This yields two distinct velocity components: a radial speed component ($\dot{r}$) along $\hat{r}$, plus the tangential speed component ($r \dot{\theta}$) along $\hat{\theta}$. Try simulating high speed or changing the coordinates to visualize this!
+                            </p>
+                        </div>
+                    </div>
+
+                    <!-- Interactive Challenge Accordion 2 -->
+                    <div class="border border-slate-800 bg-slate-950/60 rounded-xl overflow-hidden">
+                        <button class="w-full text-left px-4 py-3 flex items-center justify-between font-semibold text-xs text-slate-200 hover:bg-slate-900 transition" onclick="toggleAccordion('acc-2')">
+                            <span>Why is $\hat{\theta}$ written as $-\sin\theta\hat{i} + \cos\theta\hat{j}$?</span>
+                            <i id="acc-2-icon" class="fa-solid fa-chevron-down text-slate-500 transition-transform"></i>
+                        </button>
+                        <div id="acc-2" class="hidden p-4 border-t border-slate-900 text-xs text-slate-400 space-y-2">
+                            <p>
+                                The unit tangential vector $\hat{\theta}$ is perpendicular to $\hat{r}$ in the counter-clockwise direction (increasing $\theta$).
+                            </p>
+                            <p>
+                                To shift a vector counter-clockwise by $90^\circ$ ($\frac{\pi}{2}$ radians), we add $\frac{\pi}{2}$ to the angle arguments:
+                            </p>
+                            <div id="latex-thetahat-trig">$$\hat{\theta} = \cos\left(\theta + \frac{\pi}{2}\right)\hat{i} + \sin\left(\theta + \frac{\pi}{2}\right)\hat{j}$$</div>
+                            <p>
+                                Using trigonometric identities: $\cos(\theta + \frac{\pi}{2}) = -\sin\theta$ and $\sin(\theta + \frac{\pi}{2}) = \cos\theta$. This yields the exact formula!
+                            </p>
+                        </div>
+                    </div>
+
+                    <!-- Interactive Simulation Presets -->
+                    <div class="space-y-3 pt-3">
+                        <h5 class="text-xs font-bold text-slate-300">Quick-Launch Simulator Scenarios</h5>
+                        <div class="grid grid-cols-2 gap-2">
+                            <button onclick="applyScenario('fast-spin')" class="p-2 bg-slate-800/50 hover:bg-slate-800 border border-slate-700/50 text-slate-200 rounded-lg text-left text-xs transition flex items-center gap-2">
+                                <i class="fa-solid fa-gauge-high text-rose-400"></i>
+                                <div>
+                                    <div class="font-semibold">Fast Spin</div>
+                                    <div class="text-[10px] text-slate-500">High $\omega$, Small R</div>
+                                </div>
+                            </button>
+                            <button onclick="applyScenario('large-orbit')" class="p-2 bg-slate-800/50 hover:bg-slate-800 border border-slate-700/50 text-slate-200 rounded-lg text-left text-xs transition flex items-center gap-2">
+                                <i class="fa-solid fa-globe text-emerald-400"></i>
+                                <div>
+                                    <div class="font-semibold">Large Orbit</div>
+                                    <div class="text-[10px] text-slate-500">Max R, Small $\omega$</div>
+                                </div>
+                            </button>
+                            <button onclick="applyScenario('reverse-orbit')" class="p-2 bg-slate-800/50 hover:bg-slate-800 border border-slate-700/50 text-slate-200 rounded-lg text-left text-xs transition flex items-center gap-2">
+                                <i class="fa-solid fa-rotate-left text-blue-400"></i>
+                                <div>
+                                    <div class="font-semibold">Reverse Spin</div>
+                                    <div class="text-[10px] text-slate-500">Negative $\omega$</div>
+                                </div>
+                            </button>
+                            <button onclick="applyScenario('pure-static')" class="p-2 bg-slate-800/50 hover:bg-slate-800 border border-slate-700/50 text-slate-200 rounded-lg text-left text-xs transition flex items-center gap-2">
+                                <i class="fa-solid fa-pause text-yellow-400"></i>
+                                <div>
+                                    <div class="font-semibold">Static Exploration</div>
+                                    <div class="text-[10px] text-slate-500">Manual Drag Control</div>
+                                </div>
+                            </button>
+                        </div>
+                    </div>
+
+                </div>
+            </div>
+
+        </div>
+    </main>
+
+    <!-- Footer -->
+    <footer class="border-t border-slate-800 bg-slate-950 px-6 py-6 mt-8">
+        <div class="max-w-7xl mx-auto flex flex-col sm:flex-row items-center justify-between gap-4 text-xs text-slate-500">
+            <p>Designed for educational conceptualization of dynamics and coordinate mapping systems.</p>
+            <p>© 2026 Interactive Physics Lab. Fully runnable single-file module.</p>
+        </div>
+    </footer>
+
+    <script>
+        // Core Simulation State
+        const state = {
+            theta: 1.0,           // Current angle position (rad)
+            r: 140,              // Circle radius in canvas coordinates (px)
+            omega: 1.0,          // Angular velocity dθ/dt (rad/s)
+            isPlaying: false,    // Simulation run state
+            showComponents: true, // Render Cartesian projection lines
+            showTrace: true,     // Render trajectory line trace
+            lastTime: 0,         // Frame delta timer
+            isDragging: false,   // Mouse interaction lock
+            
+            // Micro Intuition simulation specific state
+            microDelta: 0.60
+        };
+
+        // Path trace storage (stored as physics angles and radii so it is immune to canvas resize offsets)
+        const tracePoints = [];
+        const MAX_TRACE_POINTS = 150;
+
+        // Colors
+        const COLORS = {
+            grid: 'rgba(51, 65, 85, 0.25)',
+            axis: '#334155',
+            circle: 'rgba(71, 85, 105, 0.4)',
+            trace: 'rgba(16, 185, 129, 0.5)',
+            r: '#10b981',        // Green
+            rhat: '#eab308',     // Yellow
+            thetahat: '#06b6d4', // Cyan
+            v: '#f43f5e',        // Pink/Red
+            i: '#818cf8',        // Purple i_hat
+            j: '#a78bfa',        // Purple j_hat
+            shadow: 'rgba(148, 163, 184, 0.1)'
+        };
+
+        // Setup DOM Canvas and Resizing
+        const canvas = document.getElementById('primary-simulator');
+        const ctx = canvas.getContext('2d');
+        const container = document.getElementById('canvas-container');
+
+        const microCanvas = document.getElementById('micro-intuition-canvas');
+        const mctx = microCanvas.getContext('2d');
+
+        function resizeCanvas() {
+            const rect = container.getBoundingClientRect();
+            canvas.width = rect.width;
+            canvas.height = rect.height || 450;
+            draw();
+        }
+
+        window.addEventListener('resize', resizeCanvas);
+
+        // Initialize State & Controllers
+        document.addEventListener('DOMContentLoaded', () => {
+            // Render KaTeX throughout the page DOM once on load
+            renderAllMath();
+            
+            // Set slider values to state
+            updateSlidersUI();
+            
+            // Bind input controls
+            setupEventListeners();
+            
+            // Initial resize & render
+            resizeCanvas();
+            drawMicroIntuition();
+            
+            // Start simulation frame loop
+            requestAnimationFrame(animateLoop);
+        });
+
+        // Auto-render math utilizing KaTeX engine
+        function renderAllMath() {
+            renderMathInElement(document.body, {
+                delimiters: [
+                    {left: '$$', right: '$$', display: true},
+                    {left: '$', right: '$', inline: true},
+                    {left: '\\(', right: '\\)', inline: true},
+                    {left: '\\[', right: '\\]', display: true}
+                ],
+                throwOnError: false
+            });
+        }
+
+        // Setup All Event Listeners
+        function setupEventListeners() {
+            // Play/Pause button
+            const playBtn = document.getElementById('btn-play');
+            playBtn.addEventListener('click', () => {
+                state.isPlaying = !state.isPlaying;
+                const playIcon = document.getElementById('play-icon');
+                const playText = document.getElementById('play-text');
+                if (state.isPlaying) {
+                    playIcon.className = 'fa-solid fa-pause';
+                    playText.innerText = 'Pause Motion';
+                } else {
+                    playIcon.className = 'fa-solid fa-play';
+                    playText.innerText = 'Play Motion';
+                }
+            });
+
+            // Reset Button
+            document.getElementById('btn-reset').addEventListener('click', () => {
+                state.theta = 1.0;
+                state.isPlaying = false;
+                const playIcon = document.getElementById('play-icon');
+                const playText = document.getElementById('play-text');
+                playIcon.className = 'fa-solid fa-play';
+                playText.innerText = 'Play Motion';
+                tracePoints.length = 0;
+                updateSlidersUI();
+                draw();
+            });
+
+            // Checkbox options
+            document.getElementById('chk-show-components').addEventListener('change', (e) => {
+                state.showComponents = e.target.checked;
+                draw();
+            });
+            document.getElementById('chk-show-trace').addEventListener('change', (e) => {
+                state.showTrace = e.target.checked;
+                if(!state.showTrace) tracePoints.length = 0;
+                draw();
+            });
+
+            // Sliders interaction
+            const sliderTheta = document.getElementById('slider-theta');
+            sliderTheta.addEventListener('input', (e) => {
+                state.theta = parseFloat(e.target.value);
+                state.isPlaying = false; // Pause when editing angle position manually
+                document.getElementById('play-icon').className = 'fa-solid fa-play';
+                document.getElementById('play-text').innerText = 'Play Motion';
+                updateSlidersUI();
+                draw();
+            });
+
+            const sliderR = document.getElementById('slider-r');
+            sliderR.addEventListener('input', (e) => {
+                state.r = parseFloat(e.target.value);
+                updateSlidersUI();
+                draw();
+            });
+
+            const sliderOmega = document.getElementById('slider-omega');
+            sliderOmega.addEventListener('input', (e) => {
+                state.omega = parseFloat(e.target.value);
+                updateSlidersUI();
+                draw();
+            });
+
+            // Micro Intuition slider
+            const sliderMicro = document.getElementById('slider-micro-delta');
+            sliderMicro.addEventListener('input', (e) => {
+                state.microDelta = parseFloat(e.target.value);
+                document.getElementById('lbl-micro-delta').innerText = state.microDelta.toFixed(2) + ' rad';
+                drawMicroIntuition();
+            });
+
+            // Main Canvas drag particle mechanics (mouse & touch support)
+            canvas.addEventListener('mousedown', startDrag);
+            canvas.addEventListener('mousemove', dragMove);
+            window.addEventListener('mouseup', stopDrag);
+
+            canvas.addEventListener('touchstart', startDrag, { passive: true });
+            canvas.addEventListener('touchmove', dragMove, { passive: true });
+            window.addEventListener('touchend', stopDrag);
+
+            // Tabs Switching Engine
+            const tabButtons = document.querySelectorAll('.tab-btn');
+            tabButtons.forEach(btn => {
+                btn.addEventListener('click', () => {
+                    const tabId = btn.getAttribute('data-tab');
+                    
+                    // Reset active tabs buttons
+                    tabButtons.forEach(b => {
+                        b.classList.remove('bg-blue-600', 'text-white', 'shadow');
+                        b.classList.add('text-slate-400', 'hover:text-slate-200');
+                    });
+                    
+                    // Set active to clicked tab
+                    btn.classList.add('bg-blue-600', 'text-white', 'shadow');
+                    btn.classList.remove('text-slate-400', 'hover:text-slate-200');
+                    
+                    // Toggle views
+                    document.querySelectorAll('.tab-content').forEach(content => {
+                        content.classList.add('hidden');
+                    });
+                    document.getElementById(`tab-${tabId}`).classList.remove('hidden');
+                });
+            });
+        }
+
+        function startDrag(e) {
+            const pos = getMousePos(e);
+            const center = { x: canvas.width / 2, y: canvas.height / 2 };
+            const dist = Math.hypot(pos.x - center.x, pos.y - center.y);
+            
+            // Check if user clicked reasonably close to the boundary of the particle path circle
+            if (Math.abs(dist - state.r) < 30) {
+                state.isDragging = true;
+                state.isPlaying = false;
+                document.getElementById('play-icon').className = 'fa-solid fa-play';
+                document.getElementById('play-text').innerText = 'Play Motion';
+                dragMove(e);
+            }
+        }
+
+        function dragMove(e) {
+            if (!state.isDragging) return;
+            const pos = getMousePos(e);
+            const center = { x: canvas.width / 2, y: canvas.height / 2 };
+            
+            // Compute angle from center of circle to mouse cursor location (+y up mapping)
+            let angle = Math.atan2(center.y - pos.y, pos.x - center.x);
+            if (angle < 0) angle += 2 * Math.PI; // Map onto 0 to 2π
+            
+            state.theta = angle;
+            updateSlidersUI();
+            draw();
+        }
+
+        function stopDrag() {
+            state.isDragging = false;
+        }
+
+        function getMousePos(e) {
+            const rect = canvas.getBoundingClientRect();
+            const clientX = e.touches ? e.touches[0].clientX : e.clientX;
+            const clientY = e.touches ? e.touches[0].clientY : e.clientY;
+            return {
+                x: clientX - rect.left,
+                y: clientY - rect.top
+            };
+        }
+
+        // Fast Preset Trigger Configuration helper
+        function setSimState(theta, r, omega) {
+            state.theta = theta;
+            state.r = r;
+            state.omega = omega;
+            state.isPlaying = false;
+            document.getElementById('play-icon').className = 'fa-solid fa-play';
+            document.getElementById('play-text').innerText = 'Play Motion';
+            updateSlidersUI();
+            draw();
+        }
+
+        function triggerDerivativeSweep() {
+            state.theta = 0.5;
+            state.isPlaying = true;
+            state.omega = 0.6;
+            const playIcon = document.getElementById('play-icon');
+            const playText = document.getElementById('play-text');
+            playIcon.className = 'fa-solid fa-pause';
+            playText.innerText = 'Pause Motion';
+            updateSlidersUI();
+        }
+
+        // Apply specialized simulator presets
+        function applyScenario(type) {
+            switch(type) {
+                case 'fast-spin':
+                    setSimState(1.2, 90, 2.5);
+                    state.isPlaying = true;
+                    break;
+                case 'large-orbit':
+                    setSimState(0.5, 190, 0.4);
+                    state.isPlaying = true;
+                    break;
+                case 'reverse-orbit':
+                    setSimState(3.0, 140, -1.2);
+                    state.isPlaying = true;
+                    break;
+                case 'pure-static':
+                    setSimState(1.0, 140, 0.0);
+                    break;
+            }
+            updateSlidersUI();
+            draw();
+        }
+
+        // Synchronize state back onto UI controller nodes
+        function updateSlidersUI() {
+            document.getElementById('slider-theta').value = state.theta.toFixed(3);
+            document.getElementById('lbl-slider-theta').innerText = `${state.theta.toFixed(2)} rad (${(state.theta * 180 / Math.PI).toFixed(0)}°)`;
+            
+            document.getElementById('slider-r').value = state.r;
+            document.getElementById('lbl-slider-r').innerText = `${state.r} px`;
+            
+            document.getElementById('slider-omega').value = state.omega.toFixed(2);
+            document.getElementById('lbl-slider-omega').innerText = `${state.omega.toFixed(1)} rad/s`;
+
+            // Display numerical telemetry calculations
+            const rx = Math.cos(state.theta);
+            const ry = Math.sin(state.theta);
+            
+            document.getElementById('val-r-vec').innerText = `[${(rx * (state.r/100)).toFixed(2)}, ${(ry * (state.r/100)).toFixed(2)}]`;
+            document.getElementById('val-rhat-vec').innerText = `[${rx.toFixed(2)}, ${ry.toFixed(2)}]`;
+            document.getElementById('val-thetahat-vec').innerText = `[${(-ry).toFixed(2)}, ${rx.toFixed(2)}]`;
+            
+            const vmag = Math.abs(state.r/100 * state.omega);
+            document.getElementById('val-v-vec').innerText = `[${(-ry * (state.r/100) * state.omega).toFixed(2)}, ${(rx * (state.r/100) * state.omega).toFixed(2)}]`;
+
+            // State indicators
+            document.getElementById('state-theta').innerText = `${state.theta.toFixed(2)} rad`;
+            document.getElementById('state-radius').innerText = `${(state.r/100).toFixed(2)} m`;
+            document.getElementById('state-omega').innerText = `${state.omega.toFixed(2)} rad/s`;
+            document.getElementById('state-vmag').innerText = `${vmag.toFixed(2)} m/s`;
+        }
+
+        // Frame execution cycle
+        function animateLoop(timestamp) {
+            if (!state.lastTime) state.lastTime = timestamp;
+            const dt = (timestamp - state.lastTime) / 1000;
+            state.lastTime = timestamp;
+
+            if (state.isPlaying) {
+                // Update angular displacement
+                state.theta += state.omega * dt;
+                
+                // Clamp within 0 to 2π space boundary
+                if (state.theta > 2 * Math.PI) state.theta -= 2 * Math.PI;
+                if (state.theta < 0) state.theta += 2 * Math.PI;
+
+                updateSlidersUI();
+                draw();
+            }
+
+            requestAnimationFrame(animateLoop);
+        }
+
+        // Arrow drawing vector utility function
+        function drawArrow(ctx, fromX, fromY, toX, toY, color, width = 3, arrowSize = 8) {
+            const angle = Math.atan2(toY - fromY, toX - fromX);
+            ctx.beginPath();
+            ctx.moveTo(fromX, fromY);
+            ctx.lineTo(toX, toY);
+            ctx.strokeStyle = color;
+            ctx.lineWidth = width;
+            ctx.lineCap = 'round';
+            ctx.stroke();
+
+            // Arrow Head
+            ctx.beginPath();
+            ctx.moveTo(toX, toY);
+            ctx.lineTo(toX - arrowSize * Math.cos(angle - Math.PI / 6), toY - arrowSize * Math.sin(angle - Math.PI / 6));
+            ctx.lineTo(toX - arrowSize * Math.cos(angle + Math.PI / 6), toY - arrowSize * Math.sin(angle + Math.PI / 6));
+            ctx.closePath();
+            ctx.fillStyle = color;
+            ctx.fill();
+        }
+
+        // Helper function to draw readable, high-contrast labels on Canvas
+        function drawTextWithOutline(ctx, text, x, y, font = 'bold 12px system-ui', fill = '#ffffff', stroke = '#0b0f19', width = 4) {
+            ctx.font = font;
+            ctx.strokeStyle = stroke;
+            ctx.lineWidth = width;
+            ctx.lineJoin = 'round';
+            ctx.miterLimit = 2;
+            ctx.strokeText(text, x, y);
+            ctx.fillStyle = fill;
+            ctx.fillText(text, x, y);
+        }
+
+        // Primary Engine Rendering Function
+        function draw() {
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+            
+            const centerX = canvas.width / 2;
+            const centerY = canvas.height / 2;
+            const r = state.r;
+            
+            // Draw Coordinate Grid Lines
+            ctx.strokeStyle = COLORS.grid;
+            ctx.lineWidth = 1;
+            
+            ctx.beginPath();
+            ctx.moveTo(0, centerY); ctx.lineTo(canvas.width, centerY);
+            ctx.moveTo(centerX, 0); ctx.lineTo(centerX, canvas.height);
+            ctx.stroke();
+
+            // Draw Cartesian Unit Vectors reference arrows near origin (+y points UP)
+            const unitOffset = 45;
+            drawArrow(ctx, centerX, centerY, centerX + unitOffset, centerY, COLORS.i, 2.5, 6);
+            drawArrow(ctx, centerX, centerY, centerX, centerY - unitOffset, COLORS.j, 2.5, 6); // Points Upwards
+            
+            drawTextWithOutline(ctx, 'î', centerX + unitOffset + 4, centerY + 4, '11px monospace', COLORS.i);
+            drawTextWithOutline(ctx, 'ĵ', centerX - 12, centerY - unitOffset - 4, '11px monospace', COLORS.j);
+
+            // Draw circular particle orbital pathway
+            ctx.beginPath();
+            ctx.arc(centerX, centerY, r, 0, 2 * Math.PI);
+            ctx.strokeStyle = COLORS.circle;
+            ctx.lineWidth = 1.5;
+            ctx.setLineDash([4, 4]);
+            ctx.stroke();
+            ctx.setLineDash([]); // Reset dashed lines
+
+            // Particle polar mapping position coordinates (+y is mapped UP)
+            const px = centerX + r * Math.cos(state.theta);
+            const py = centerY - r * Math.sin(state.theta);
+
+            // Add point to path trace if playing or dragging, filtering duplicates
+            if (state.showTrace) {
+                if (tracePoints.length === 0 || 
+                    Math.abs(tracePoints[tracePoints.length - 1].theta - state.theta) > 0.005 || 
+                    Math.abs(tracePoints[tracePoints.length - 1].r - state.r) > 0.5) {
+                    tracePoints.push({ theta: state.theta, r: state.r });
+                    if (tracePoints.length > MAX_TRACE_POINTS) tracePoints.shift();
+                }
+
+                ctx.beginPath();
+                for (let i = 0; i < tracePoints.length; i++) {
+                    const pt = tracePoints[i];
+                    const tx = centerX + pt.r * Math.cos(pt.theta);
+                    const ty = centerY - pt.r * Math.sin(pt.theta);
+                    if (i === 0) ctx.moveTo(tx, ty);
+                    else ctx.lineTo(tx, ty);
+                }
+                ctx.strokeStyle = COLORS.trace;
+                ctx.lineWidth = 3;
+                ctx.stroke();
+            }
+
+            // Draw projection guidelines if enabled
+            if (state.showComponents) {
+                ctx.strokeStyle = 'rgba(148, 163, 184, 0.4)';
+                ctx.lineWidth = 1;
+                ctx.setLineDash([3, 3]);
+                
+                // Projection onto horizontal axis
+                ctx.beginPath();
+                ctx.moveTo(px, py);
+                ctx.lineTo(px, centerY);
+                ctx.stroke();
+
+                // Projection onto vertical axis
+                ctx.beginPath();
+                ctx.moveTo(px, py);
+                ctx.lineTo(centerX, py);
+                ctx.stroke();
+                ctx.setLineDash([]);
+            }
+
+            // 1. Draw main radial position vector (r) pointing to the particle
+            drawArrow(ctx, centerX, centerY, px, py, COLORS.r, 3, 10);
+            
+            // 2. Draw unit vector r_hat (pointing outwards radially along r)
+            const unitLength = 50;
+            const rhatX = px + unitLength * Math.cos(state.theta);
+            const rhatY = py - unitLength * Math.sin(state.theta);
+            drawArrow(ctx, px, py, rhatX, rhatY, COLORS.rhat, 2.5, 8);
+
+            // 3. Draw unit vector theta_hat (perpendicular to r_hat, counter-clockwise)
+            const thetahatX = px - unitLength * Math.sin(state.theta);
+            const thetahatY = py - unitLength * Math.cos(state.theta);
+            drawArrow(ctx, px, py, thetahatX, thetahatY, COLORS.thetahat, 2.5, 8);
+
+            // 4. Draw Tangential Velocity Vector
+            const vScalar = 0.5; // Scale visual representation
+            const velocityMagnitude = r * state.omega * vScalar;
+            const vx = px - velocityMagnitude * Math.sin(state.theta);
+            const vy = py - velocityMagnitude * Math.cos(state.theta);
+            drawArrow(ctx, px, py, vx, vy, COLORS.v, 4, 12);
+
+            // Draw actual orbiting particle sphere
+            ctx.beginPath();
+            ctx.arc(px, py, 9, 0, 2 * Math.PI);
+            ctx.fillStyle = '#f8fafc';
+            ctx.shadowBlur = 10;
+            ctx.shadowColor = 'rgba(255,255,255,0.4)';
+            ctx.fill();
+            ctx.shadowBlur = 0; // Reset shadows
+            
+            ctx.strokeStyle = '#0f172a';
+            ctx.lineWidth = 2.5;
+            ctx.stroke();
+
+            // Overlay vector labels cleanly with high-contrast background strokes
+            drawTextWithOutline(ctx, 'v⃗', vx + 8, vy - 2, 'bold 12px system-ui', COLORS.v);
+            drawTextWithOutline(ctx, 'r̂', rhatX + 8, rhatY + 4, 'bold 12px system-ui', COLORS.rhat);
+            drawTextWithOutline(ctx, 'θ̂', thetahatX - 14, thetahatY - 4, 'bold 12px system-ui', COLORS.thetahat);
+            
+            // Draw coordinate labels cleanly
+            const rxMid = centerX + (px - centerX) / 2;
+            const ryMid = centerY + (py - centerY) / 2;
+            drawTextWithOutline(ctx, 'r⃗', rxMid - 14, ryMid - 8, 'bold 12px system-ui', COLORS.r);
+        }
+
+        // Micro Intuition Canvas renderer to show difference vectors visually
+        function drawMicroIntuition() {
+            mctx.clearRect(0, 0, microCanvas.width, microCanvas.height);
+            
+            const cx = microCanvas.width / 2;
+            const cy = microCanvas.height / 2 + 10;
+            const size = 90; // Vector magnification size
+            
+            // Base angle θ
+            const theta = 0.5;
+            const dTheta = state.microDelta;
+
+            // Coordinate grid reference axes
+            mctx.strokeStyle = 'rgba(51, 65, 85, 0.4)';
+            mctx.lineWidth = 1;
+            mctx.beginPath();
+            mctx.moveTo(10, cy); mctx.lineTo(microCanvas.width - 10, cy);
+            mctx.moveTo(cx, 10); mctx.lineTo(cx, microCanvas.height - 10);
+            mctx.stroke();
+
+            // 1. Vector r_hat at θ (+y up system)
+            const r1x = cx + size * Math.cos(theta);
+            const r1y = cy - size * Math.sin(theta);
+            drawArrow(mctx, cx, cy, r1x, r1y, COLORS.rhat, 2, 6);
+
+            // 2. Vector r_hat at θ + Δθ
+            const r2x = cx + size * Math.cos(theta + dTheta);
+            const r2y = cy - size * Math.sin(theta + dTheta);
+            drawArrow(mctx, cx, cy, r2x, r2y, '#a1a1aa', 1.5, 6);
+
+            // 3. Difference Vector Δr_hat (from tip of r_1 to tip of r_2)
+            drawArrow(mctx, r1x, r1y, r2x, r2y, '#ef4444', 2.5, 8);
+
+            // 4. Reference theta_hat vector drawn at the tip of r_1 for reference
+            const tX = r1x - 50 * Math.sin(theta);
+            const tY = r1y - 50 * Math.cos(theta);
+            drawArrow(mctx, r1x, r1y, tX, tY, COLORS.thetahat, 1.5, 5);
+
+            // Labels with outlined background strokes for maximum readability
+            drawTextWithOutline(mctx, 'r̂(θ)', r1x + 6, r1y + 4, '10px monospace', COLORS.rhat);
+            drawTextWithOutline(mctx, 'r̂(θ + Δθ)', r2x - 52, r2y - 10, '10px monospace', '#a1a1aa');
+            drawTextWithOutline(mctx, 'Δr̂', r1x + (r2x - r1x)/2 - 14, r1y + (r2y - r1y)/2 - 12, 'bold 10px monospace', '#ef4444');
+            drawTextWithOutline(mctx, 'θ̂ (Tangential Direction)', tX + 4, tY - 4, '10px monospace', COLORS.thetahat);
+
+            // Draw trace arc of the swept path
+            mctx.beginPath();
+            mctx.arc(cx, cy, size, -theta - dTheta, -theta);
+            mctx.strokeStyle = 'rgba(234, 179, 8, 0.2)';
+            mctx.lineWidth = 1.5;
+            mctx.stroke();
+        }
+
+        // Accordion toggle helpers for Conceptual Sandbox
+        function toggleAccordion(id) {
+            const el = document.getElementById(id);
+            const icon = document.getElementById(id + '-icon');
+            if (el.classList.contains('hidden')) {
+                el.classList.remove('hidden');
+                icon.style.transform = 'rotate(180deg)';
+            } else {
+                el.classList.add('hidden');
+                icon.style.transform = 'rotate(0deg)';
+            }
+        }
+    </script>
+</body>
+</html>

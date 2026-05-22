@@ -1,0 +1,894 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Angular Velocity & Rotational Kinematics Simulator</title>
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- FontAwesome for Icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <!-- MathJax for high-quality mathematical LaTeX rendering -->
+    <script>
+        window.MathJax = {
+            tex: {
+                inlineMath: [['$', '$'], ['\\(', '\\)']],
+                displayMath: [['$$', '$$'], ['\\[', '\\]']],
+                processEscapes: true
+            },
+            options: {
+                skipHtmlTags: ['script', 'noscript', 'style', 'textarea', 'pre']
+            }
+        };
+    </script>
+    <script id="MathJax-script" async src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
+    <!-- Three.js for 3D visualization -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+    <style>
+        /* Custom dark theme aesthetics */
+        body {
+            background-color: #0f172a;
+            color: #f8fafc;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+        .custom-scrollbar::-webkit-scrollbar {
+            width: 6px;
+        }
+        .custom-scrollbar::-webkit-scrollbar-track {
+            background: #1e293b;
+        }
+        .custom-scrollbar::-webkit-scrollbar-thumb {
+            background: #475569;
+            border-radius: 3px;
+        }
+        .custom-scrollbar::-webkit-scrollbar-thumb:hover {
+            background: #64748b;
+        }
+        canvas {
+            border-radius: 0.5rem;
+        }
+    </style>
+</head>
+<body class="min-h-screen flex flex-col custom-scrollbar">
+
+    <!-- Header -->
+    <header class="bg-slate-900 border-b border-slate-800 py-4 px-6 sticky top-0 z-50 shadow-md">
+        <div class="max-w-7xl mx-auto flex flex-col md:flex-row justify-between items-center gap-4">
+            <div class="flex items-center gap-3">
+                <div class="bg-gradient-to-tr from-cyan-500 to-indigo-500 p-2 rounded-lg text-white">
+                    <i class="fa-solid fa-rotate text-xl animate-spin-slow"></i>
+                </div>
+                <div>
+                    <h1 class="text-xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-cyan-400 to-indigo-200">
+                        Angular Velocity & Rotational Kinematics
+                    </h1>
+                    <p class="text-xs text-slate-400">Interactive Mental Models, Proofs, & Multi-Perspective Simulators</p>
+                </div>
+            </div>
+            <div class="flex items-center gap-2">
+                <span class="px-2.5 py-1 text-xs font-semibold rounded-full bg-cyan-500/10 text-cyan-400 border border-cyan-500/20">
+                    Physics Lab v2.5
+                </span>
+                <span class="px-2.5 py-1 text-xs font-semibold rounded-full bg-indigo-500/10 text-indigo-400 border border-indigo-500/20">
+                    Right-Hand Rule Master
+                </span>
+            </div>
+        </div>
+    </header>
+
+    <!-- Main Content Grid -->
+    <main class="flex-grow max-w-7xl w-full mx-auto p-4 md:p-6 grid grid-cols-1 lg:grid-cols-12 gap-6">
+        
+        <!-- Left Column: Controls & Simulators (8 cols) -->
+        <div class="lg:col-span-8 flex flex-col gap-6">
+            
+            <!-- Controls Panel -->
+            <div class="bg-slate-900/80 backdrop-blur border border-slate-800 p-5 rounded-2xl shadow-xl flex flex-col gap-4">
+                <div class="flex justify-between items-center border-b border-slate-800 pb-3">
+                    <h2 class="text-md font-semibold text-slate-200 flex items-center gap-2">
+                        <i class="fa-solid fa-sliders text-cyan-400"></i> Simulator Controls
+                    </h2>
+                    <span class="text-xs text-slate-400">Tweak parameters to see dynamic changes</span>
+                </div>
+                
+                <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+                    <!-- Slider: Omega_z -->
+                    <div class="flex flex-col gap-2">
+                        <div class="flex justify-between items-center">
+                            <label class="text-xs font-medium text-slate-300">
+                                Angular Velocity component $\omega_z = \frac{d\theta}{dt}$
+                            </label>
+                            <span id="omega-val" class="text-sm font-bold text-cyan-400">1.00 rad/s</span>
+                        </div>
+                        <input type="range" id="omega-slider" min="-3" max="3" step="0.1" value="1.0" 
+                               class="w-full h-1.5 bg-slate-800 rounded-lg appearance-none cursor-pointer accent-cyan-500">
+                        <div class="flex justify-between text-[10px] text-slate-500">
+                            <span>Clockwise (< 0)</span>
+                            <span>0 (Stationary)</span>
+                            <span>Counter-Clockwise (> 0)</span>
+                        </div>
+                    </div>
+
+                    <!-- Slider: Radius -->
+                    <div class="flex flex-col gap-2">
+                        <div class="flex justify-between items-center">
+                            <label class="text-xs font-medium text-slate-300">
+                                Radius $r$
+                            </label>
+                            <span id="radius-val" class="text-sm font-bold text-emerald-400">1.20 m</span>
+                        </div>
+                        <input type="range" id="radius-slider" min="0.5" max="2.0" step="0.05" value="1.2" 
+                               class="w-full h-1.5 bg-slate-800 rounded-lg appearance-none cursor-pointer accent-emerald-500">
+                        <div class="flex justify-between text-[10px] text-slate-500">
+                            <span>Small (0.5m)</span>
+                            <span>Large (2.0m)</span>
+                        </div>
+                    </div>
+
+                    <!-- Speed & Direction Readouts -->
+                    <div class="bg-slate-950 p-3 rounded-xl border border-slate-800/60 flex flex-col justify-between">
+                        <div class="flex justify-between items-center">
+                            <span class="text-[11px] text-slate-400 font-medium">Tangential Velocity $v_\theta$</span>
+                            <span id="tangential-val" class="text-sm font-extrabold text-indigo-400">1.20 m/s</span>
+                        </div>
+                        <div class="flex justify-between items-center border-t border-slate-800/80 pt-2 mt-2">
+                            <span class="text-[11px] text-slate-400 font-medium">Rotation Sense</span>
+                            <span id="rotation-sense" class="px-2 py-0.5 rounded text-[10px] font-bold bg-cyan-500/10 text-cyan-400 border border-cyan-500/20">
+                                COUNTER-CLOCKWISE
+                            </span>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="flex flex-wrap gap-2 pt-2 border-t border-slate-800/40">
+                    <button id="btn-pause" class="px-4 py-1.5 text-xs font-semibold rounded bg-slate-800 text-slate-200 hover:bg-slate-700 transition flex items-center gap-1.5">
+                        <i class="fa-solid fa-pause"></i> Pause Motion
+                    </button>
+                    <button id="btn-reset" class="px-4 py-1.5 text-xs font-semibold rounded bg-slate-800 text-slate-200 hover:bg-slate-700 transition flex items-center gap-1.5">
+                        <i class="fa-solid fa-arrows-rotate"></i> Reset Phase
+                    </button>
+                    <button id="btn-view-toggle" class="px-4 py-1.5 text-xs font-semibold rounded bg-indigo-600/30 text-indigo-300 border border-indigo-500/30 hover:bg-indigo-600/50 transition ml-auto flex items-center gap-1.5">
+                        <i class="fa-solid fa-video"></i> Switch 3D Perspective
+                    </button>
+                </div>
+            </div>
+
+            <!-- Double Simulator Panels -->
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                
+                <!-- 2D Canvas Simulator -->
+                <div class="bg-slate-900/80 backdrop-blur border border-slate-800 p-4 rounded-2xl shadow-xl flex flex-col">
+                    <div class="flex justify-between items-center mb-3">
+                        <span class="text-xs font-bold text-slate-300 tracking-wider uppercase flex items-center gap-1.5">
+                            <span class="w-2 h-2 rounded-full bg-cyan-400 animate-pulse"></span>
+                            2D XY-Plane Representation
+                        </span>
+                        <span class="text-[10px] text-slate-500">Board View (Looking straight at $\hat{k}$)</span>
+                    </div>
+                    
+                    <div class="relative bg-slate-950 rounded-xl overflow-hidden aspect-square flex items-center justify-center border border-slate-800">
+                        <canvas id="canvas-2d" class="w-full h-full"></canvas>
+                        <!-- Dynamic vector badge overlay -->
+                        <div class="absolute bottom-3 left-3 bg-slate-900/90 border border-slate-800 px-2.5 py-1.5 rounded-lg text-[10px] text-slate-300 flex flex-col gap-0.5">
+                            <div><span class="text-emerald-400 font-bold">Radial unit:</span> $\hat{r}$ (Outward)</div>
+                            <div><span class="text-cyan-400 font-bold">Tangential unit:</span> $\hat{\theta}$ (Perpendicular)</div>
+                            <div><span class="text-indigo-400 font-bold">Z-unit:</span> $\hat{k}$ (<span id="z-symbol-text">Out of Board</span>)</div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- 3D Canvas Simulator (Plane & Perspectives) -->
+                <div class="bg-slate-900/80 backdrop-blur border border-slate-800 p-4 rounded-2xl shadow-xl flex flex-col">
+                    <div class="flex justify-between items-center mb-3">
+                        <span class="text-xs font-bold text-indigo-400 tracking-wider uppercase flex items-center gap-1.5">
+                            <i class="fa-solid fa-cubes"></i>
+                            3D Rotational Perspective
+                        </span>
+                        <span id="cam-indicator" class="text-[10px] text-slate-400 bg-slate-800 px-2 py-0.5 rounded">
+                            Observer: Isometric
+                        </span>
+                    </div>
+
+                    <div class="relative bg-slate-950 rounded-xl overflow-hidden aspect-square flex items-center justify-center border border-slate-800">
+                        <div id="canvas-3d-container" class="w-full h-full"></div>
+                        
+                        <!-- Right Hand Rule Widget Overlaid on 3D -->
+                        <div class="absolute top-3 right-3 bg-slate-900/90 border border-slate-800 p-2.5 rounded-lg text-[10px] flex flex-col gap-1 max-w-[150px]">
+                            <span class="font-bold text-slate-200 border-b border-slate-800 pb-1 flex items-center gap-1">
+                                <i class="fa-solid fa-hands"></i> Right-Hand Rule
+                            </span>
+                            <div class="text-slate-400">
+                                Curl fingers clockwise or CCW. Your thumb points along <span class="text-orange-400 font-bold">$\vec{\omega}$</span>!
+                            </div>
+                        </div>
+
+                        <!-- 3D camera controls indicator -->
+                        <div class="absolute bottom-3 right-3 bg-slate-900/90 border border-slate-800 px-2.5 py-1 rounded-full text-[9px] text-slate-400 flex items-center gap-1">
+                            <i class="fa-solid fa-computer-mouse"></i> Drag to orbit camera view
+                        </div>
+                    </div>
+                </div>
+
+            </div>
+
+            <!-- Mathematical Proof Dashboard (Unified Infographic & Dynamic Graphing) -->
+            <div class="bg-slate-900/80 backdrop-blur border border-slate-800 p-6 rounded-2xl shadow-xl flex flex-col gap-4">
+                <h3 class="text-base font-semibold text-slate-200 flex items-center gap-2 border-b border-slate-800 pb-3">
+                    <i class="fa-solid fa-calculator text-emerald-400"></i> Step-by-Step Computational & Mathematical Algorithm
+                </h3>
+                
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    <div>
+                        <h4 class="text-xs font-bold text-indigo-400 uppercase tracking-widest mb-2">1. The Coordinate Transformation</h4>
+                        <p class="text-xs text-slate-300 leading-relaxed mb-4">
+                            To compute circular coordinates, we define a radial unit vector $\hat{r}$ and a tangential unit vector $\hat{\theta}$:
+                            $$\hat{r} = \cos\theta\hat{i} + \sin\theta\hat{j}$$
+                            $$\hat{\theta} = -\sin\theta\hat{i} + \cos\theta\hat{j}$$
+                            Because these coordinate axes rotate with the particle, taking the derivative yields:
+                            $$\frac{d\hat{r}}{dt} = \frac{d\theta}{dt}(-\sin\theta\hat{i} + \cos\theta\hat{j}) = \frac{d\theta}{dt}\hat{\theta}$$
+                        </p>
+                        
+                        <h4 class="text-xs font-bold text-indigo-400 uppercase tracking-widest mb-2">2. Velocity Derivation</h4>
+                        <p class="text-xs text-slate-300 leading-relaxed">
+                            The position is defined as $\vec{r} = r\hat{r}$. Assuming constant radius $r$, the velocity is:
+                            $$\vec{v} = \frac{d\vec{r}}{dt} = r\frac{d\hat{r}}{dt} = r\frac{d\theta}{dt}\hat{\theta}$$
+                            Substituting $\omega_z = \frac{d\theta}{dt}$, we write:
+                            $$\vec{v} = r\omega_z\hat{\theta}$$
+                        </p>
+                    </div>
+
+                    <div class="bg-slate-950 p-4 rounded-xl border border-slate-800 flex flex-col gap-3 justify-between">
+                        <div>
+                            <h4 class="text-xs font-bold text-emerald-400 uppercase tracking-widest mb-2">3. The 3D Cross Product Vector Definition</h4>
+                            <p class="text-xs text-slate-400 leading-relaxed">
+                                Angular velocity is a pseudovector $\vec{\omega} = \omega_z\hat{k}$. 
+                                The tangential velocity can be computed in 3D using the vector cross product:
+                                $$\vec{v} = \vec{\omega} \times \vec{r}$$
+                            </p>
+                        </div>
+                        
+                        <!-- Dynamic Cross Product Calculator Panel -->
+                        <div class="bg-slate-900 p-3 rounded-lg border border-slate-800 text-[11px] font-mono flex flex-col gap-2">
+                            <span class="text-slate-400 font-bold border-b border-slate-800 pb-1">Real-Time Vector Engine:</span>
+                            <div class="flex justify-between">
+                                <span class="text-indigo-300">Position Vector $\vec{r}$:</span>
+                                <span id="vec-r" class="text-slate-300">[1.20, 0.00, 0.00]</span>
+                            </div>
+                            <div class="flex justify-between">
+                                <span class="text-orange-300">Angular Vel $\vec{\omega}$:</span>
+                                <span id="vec-omega" class="text-slate-300">[0.00, 0.00, 1.00]</span>
+                            </div>
+                            <div class="flex justify-between border-t border-slate-800 pt-1 mt-1 font-bold">
+                                <span class="text-cyan-300">Velocity $\vec{\omega}\times\vec{r}$:</span>
+                                <span id="vec-cross" class="text-emerald-400">[0.00, 1.20, 0.00]</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+        </div>
+
+        <!-- Right Column: Interactive Courseware & Cognitive Maps (4 cols) -->
+        <div class="lg:col-span-4 flex flex-col gap-6">
+            
+            <!-- Cognitive Map / Explainer Cards -->
+            <div class="bg-slate-900/80 backdrop-blur border border-slate-800 p-5 rounded-2xl shadow-xl flex flex-col gap-4">
+                <div class="border-b border-slate-800 pb-3">
+                    <h3 class="text-base font-semibold text-slate-200 flex items-center gap-2">
+                        <i class="fa-solid fa-graduation-cap text-indigo-400"></i> Course Syllabus & Intuition
+                    </h3>
+                    <p class="text-xs text-slate-400">Let's build a solid mental model step-by-step</p>
+                </div>
+
+                <!-- Step 1: Why Vector Direction Matters -->
+                <div class="group border border-slate-800 bg-slate-950/60 p-3.5 rounded-xl hover:border-slate-700 transition">
+                    <div class="flex items-center gap-2.5 mb-2">
+                        <span class="w-5 h-5 rounded-full bg-cyan-500/20 text-cyan-400 text-xs flex items-center justify-center font-bold">1</span>
+                        <h4 class="text-xs font-bold text-slate-200 uppercase tracking-wider">The "Perspective" Paradox</h4>
+                    </div>
+                    <p class="text-xs text-slate-400 leading-relaxed">
+                        An observer looking from <strong class="text-emerald-400">above</strong> a rotating plate sees a counterclockwise circle. 
+                        An observer looking from <strong class="text-pink-400">below</strong> the plate sees a clockwise circle! 
+                        Words like "clockwise" depend entirely on your vantage point. We need a vector that remains invariant under perspective changes.
+                    </p>
+                </div>
+
+                <!-- Step 2: Vector Solution & Normal Vector -->
+                <div class="group border border-slate-800 bg-slate-950/60 p-3.5 rounded-xl hover:border-slate-700 transition">
+                    <div class="flex items-center gap-2.5 mb-2">
+                        <span class="w-5 h-5 rounded-full bg-emerald-500/20 text-emerald-400 text-xs flex items-center justify-center font-bold">2</span>
+                        <h4 class="text-xs font-bold text-slate-200 uppercase tracking-wider">The Normal Unit Vector $\hat{n}$</h4>
+                    </div>
+                    <p class="text-xs text-slate-400 leading-relaxed">
+                        Any flat plane is uniquely defined by a vector perpendicular to it (the <strong>normal vector</strong>). 
+                        By defining our coordinate axis along the plane normal, we can resolve orientation unambiguously.
+                    </p>
+                </div>
+
+                <!-- Step 3: The Right Hand Rule -->
+                <div class="group border border-slate-800 bg-slate-950/60 p-3.5 rounded-xl hover:border-slate-700 transition">
+                    <div class="flex items-center gap-2.5 mb-2">
+                        <span class="w-5 h-5 rounded-full bg-orange-500/20 text-orange-400 text-xs flex items-center justify-center font-bold">3</span>
+                        <h4 class="text-xs font-bold text-slate-200 uppercase tracking-wider">The Right-Hand Rule</h4>
+                    </div>
+                    <p class="text-xs text-slate-400 leading-relaxed mb-2">
+                        How do we match rotational direction to a physical axis?
+                    </p>
+                    <ul class="text-[11px] text-slate-400 list-disc list-inside space-y-1 bg-slate-900 p-2 rounded">
+                        <li><strong>Curl fingers</strong> of your right hand along the orbital velocity $\vec{v}$.</li>
+                        <li>Your <strong>thumb</strong> naturally points in the direction of the angular velocity vector $\vec{\omega}$.</li>
+                    </ul>
+                </div>
+
+                <!-- Vector symbols card -->
+                <div class="border border-slate-800 bg-slate-950 p-4 rounded-xl flex flex-col gap-3">
+                    <span class="text-xs font-bold text-slate-300 uppercase tracking-widest border-b border-slate-800 pb-1.5 flex items-center gap-1">
+                        <i class="fa-solid fa-bullseye text-orange-500"></i> Vector Notation Guide
+                    </span>
+                    <div class="grid grid-cols-2 gap-4 text-center">
+                        <div class="bg-slate-900/60 p-2.5 rounded-lg border border-slate-800 flex flex-col items-center">
+                            <!-- SVG dot representing out of page -->
+                            <svg width="40" height="40" class="mb-2">
+                                <circle cx="20" cy="20" r="15" stroke="#38bdf8" stroke-width="2" fill="none" />
+                                <circle cx="20" cy="20" r="3" fill="#38bdf8" />
+                            </svg>
+                            <span class="text-[11px] font-bold text-cyan-400">$\odot$ Out of Page</span>
+                            <span class="text-[9px] text-slate-500">Like looking at arrow tip</span>
+                        </div>
+                        <div class="bg-slate-900/60 p-2.5 rounded-lg border border-slate-800 flex flex-col items-center">
+                            <!-- SVG X representing into page -->
+                            <svg width="40" height="40" class="mb-2">
+                                <circle cx="20" cy="20" r="15" stroke="#ec4899" stroke-width="2" fill="none" />
+                                <line x1="12" y1="12" x2="28" y2="28" stroke="#ec4899" stroke-width="2" />
+                                <line x1="28" y1="12" x2="12" y2="28" stroke="#ec4899" stroke-width="2" />
+                            </svg>
+                            <span class="text-[11px] font-bold text-pink-400">$\otimes$ Into Page</span>
+                            <span class="text-[9px] text-slate-500">Like looking at arrow fletching</span>
+                        </div>
+                    </div>
+                </div>
+
+            </div>
+
+            <!-- Conceptual Quiz Card -->
+            <div class="bg-slate-900/80 backdrop-blur border border-slate-800 p-5 rounded-2xl shadow-xl flex flex-col gap-4">
+                <div class="border-b border-slate-800 pb-3">
+                    <h3 class="text-sm font-semibold text-slate-200 flex items-center gap-1.5">
+                        <i class="fa-solid fa-lightbulb text-yellow-400 animate-pulse"></i> Quick Concept Check
+                    </h3>
+                </div>
+                
+                <div id="quiz-container" class="flex flex-col gap-3">
+                    <p class="text-xs text-slate-300 font-medium">
+                        If a particle revolves clockwise in the horizontal $XY$-plane when viewed from above, what is the vector direction of its angular velocity $\vec{\omega}$?
+                    </p>
+                    
+                    <button class="quiz-option text-left text-xs p-2.5 rounded-lg bg-slate-950 border border-slate-800 hover:border-indigo-500/50 hover:bg-slate-900 transition flex items-center gap-2" data-correct="false">
+                        <span class="w-4 h-4 rounded-full border border-slate-700 flex items-center justify-center text-[10px]">A</span>
+                        <span>$+\hat{k}$ (Out of the page / upward)</span>
+                    </button>
+                    
+                    <button class="quiz-option text-left text-xs p-2.5 rounded-lg bg-slate-950 border border-slate-800 hover:border-indigo-500/50 hover:bg-slate-900 transition flex items-center gap-2" data-correct="true">
+                        <span class="w-4 h-4 rounded-full border border-slate-700 flex items-center justify-center text-[10px]">B</span>
+                        <span>$-\hat{k}$ (Into the page / downward)</span>
+                    </button>
+
+                    <button class="quiz-option text-left text-xs p-2.5 rounded-lg bg-slate-950 border border-slate-800 hover:border-indigo-500/50 hover:bg-slate-900 transition flex items-center gap-2" data-correct="false">
+                        <span class="w-4 h-4 rounded-full border border-slate-700 flex items-center justify-center text-[10px]">C</span>
+                        <span>$\hat{i}$ (Along the x-axis)</span>
+                    </button>
+
+                    <div id="quiz-feedback" class="text-xs p-3 rounded-lg hidden"></div>
+                </div>
+            </div>
+
+        </div>
+
+    </main>
+
+    <!-- Footer -->
+    <footer class="bg-slate-950 border-t border-slate-800 py-4 px-6 mt-8">
+        <div class="max-w-7xl mx-auto flex flex-col sm:flex-row justify-between items-center text-xs text-slate-500 gap-2">
+            <span>Developed for Interactive Physics Education</span>
+            <span>&copy; 2026 Rotational Dynamics Lab. All Rights Reserved.</span>
+        </div>
+    </footer>
+
+    <!-- Interactive JS Scripting -->
+    <script>
+        // Parameters & State Setup
+        let omega = 1.0; // rad/s (dtheta/dt)
+        let radius = 1.2; // meters
+        let theta = 0; // current phase (radians)
+        let isPlaying = true;
+        let activePerspective = 'isometric'; // 'isometric' | 'top' | 'bottom'
+        let lastTime = performance.now();
+
+        // Canvas 2D Elements
+        const canvas2d = document.getElementById('canvas-2d');
+        const ctx2d = canvas2d.getContext('2d');
+
+        // Three.js 3D Setup
+        const container3d = document.getElementById('canvas-3d-container');
+        let scene, camera, renderer, particleMesh, orbitCircle, omegaVectorArrow, radialArrow, velocityArrow, coordinateGrid, plateMesh;
+        
+        // Setup slider & value nodes
+        const omegaSlider = document.getElementById('omega-slider');
+        const radiusSlider = document.getElementById('radius-slider');
+        const omegaVal = document.getElementById('omega-val');
+        const radiusVal = document.getElementById('radius-val');
+        const tangentialVal = document.getElementById('tangential-val');
+        const rotationSense = document.getElementById('rotation-sense');
+        const zSymbolText = document.getElementById('z-symbol-text');
+        
+        const btnPause = document.getElementById('btn-pause');
+        const btnReset = document.getElementById('btn-reset');
+        const btnViewToggle = document.getElementById('btn-view-toggle');
+        const camIndicator = document.getElementById('cam-indicator');
+
+        // Vector engines updates
+        const vecR = document.getElementById('vec-r');
+        const vecOmega = document.getElementById('vec-omega');
+        const vecCross = document.getElementById('vec-cross');
+
+        // Resize Canvas nicely
+        function resizeCanvases() {
+            // 2D Canvas setup
+            const dpr = window.devicePixelRatio || 1;
+            const rect = canvas2d.parentNode.getBoundingClientRect();
+            canvas2d.width = rect.width * dpr;
+            canvas2d.height = rect.height * dpr;
+            ctx2d.scale(dpr, dpr);
+
+            // 3D Setup
+            if (renderer) {
+                const width = container3d.clientWidth;
+                const height = container3d.clientHeight;
+                renderer.setSize(width, height);
+                camera.aspect = width / height;
+                camera.updateProjectionMatrix();
+            }
+        }
+
+        // Initialize 3D Engine
+        function init3D() {
+            const width = container3d.clientWidth || 300;
+            const height = container3d.clientHeight || 300;
+            
+            scene = new THREE.Scene();
+            scene.background = new THREE.Color(0x020617); // bg slate-950
+
+            camera = new THREE.PerspectiveCamera(45, width / height, 0.1, 50);
+            updateCameraAngle();
+
+            renderer = new THREE.WebGLRenderer({ antialias: true });
+            renderer.setSize(width, height);
+            container3d.innerHTML = '';
+            container3d.appendChild(renderer.domElement);
+
+            // Lighting
+            const ambientLight = new THREE.AmbientLight(0xffffff, 0.6);
+            scene.add(ambientLight);
+
+            const dirLight = new THREE.DirectionalLight(0xffffff, 0.8);
+            dirLight.position.set(5, 10, 7);
+            scene.add(dirLight);
+
+            // Grid representing plane
+            const gridHelper = new THREE.GridHelper(6, 20, 0x334155, 0x1e293b);
+            gridHelper.position.y = -0.01; // slightly below flat plane
+            scene.add(gridHelper);
+
+            // Translucent Plate representing rotation plane
+            const geometryPlate = new THREE.CylinderGeometry(2, 2, 0.02, 32);
+            const materialPlate = new THREE.MeshStandardMaterial({
+                color: 0x1e1b4b, // Indigo
+                transparent: true,
+                opacity: 0.35,
+                roughness: 0.4
+            });
+            plateMesh = new THREE.Mesh(geometryPlate, materialPlate);
+            scene.add(plateMesh);
+
+            // Orbit path
+            const circleGeometry = new THREE.RingGeometry(radius * 1.5, radius * 1.5 + 0.03, 64);
+            const circleMaterial = new THREE.MeshBasicMaterial({ color: 0x06b6d4, side: THREE.DoubleSide });
+            orbitCircle = new THREE.Mesh(circleGeometry, circleMaterial);
+            orbitCircle.rotation.x = Math.PI / 2;
+            scene.add(orbitCircle);
+
+            // Orbiting particle sphere
+            const sphereGeom = new THREE.SphereGeometry(0.1, 16, 16);
+            const sphereMat = new THREE.MeshStandardMaterial({ color: 0x10b981, roughness: 0.1, metalness: 0.5 });
+            particleMesh = new THREE.Mesh(sphereGeom, sphereMat);
+            scene.add(particleMesh);
+
+            // Vector arrow representations
+            // 1. Angular velocity vector arrow (Z Axis / Purple-Orange)
+            updateOmegaArrow();
+
+            // Setup Mouse Controls inside canvas
+            let isDragging = false;
+            let prevMouseX = 0;
+            let prevMouseY = 0;
+            let rotX = Math.PI / 4;
+            let rotY = Math.PI / 4;
+
+            renderer.domElement.addEventListener('mousedown', (e) => {
+                isDragging = true;
+                prevMouseX = e.clientX;
+                prevMouseY = e.clientY;
+            });
+
+            window.addEventListener('mouseup', () => { isDragging = false; });
+
+            window.addEventListener('mousemove', (e) => {
+                if (!isDragging || activePerspective !== 'isometric') return;
+                const deltaX = e.clientX - prevMouseX;
+                const deltaY = e.clientY - prevMouseY;
+                prevMouseX = e.clientX;
+                prevMouseY = e.clientY;
+
+                rotY -= deltaX * 0.007;
+                rotX -= deltaY * 0.007;
+                rotX = Math.max(0.1, Math.min(Math.PI / 2 - 0.05, rotX)); // clamp looking down
+
+                // Update isometric camera positions based on angles
+                const dist = 6;
+                camera.position.x = dist * Math.sin(rotY) * Math.cos(rotX);
+                camera.position.z = dist * Math.cos(rotY) * Math.cos(rotX);
+                camera.position.y = dist * Math.sin(rotX);
+                camera.lookAt(0, 0.5, 0);
+            });
+        }
+
+        // Camera viewpoint logic helper
+        function updateCameraAngle() {
+            if (!camera) return;
+            if (activePerspective === 'isometric') {
+                camera.position.set(4, 3, 4);
+                camIndicator.innerText = "Observer: Isometric (3D View)";
+            } else if (activePerspective === 'top') {
+                camera.position.set(0, 6, 0);
+                camIndicator.innerText = "Observer: TOP View (Counter-Clockwise Sense)";
+            } else if (activePerspective === 'bottom') {
+                camera.position.set(0, -6, 0);
+                camIndicator.innerText = "Observer: BOTTOM View (Clockwise Sense)";
+            }
+            camera.lookAt(0, 0, 0);
+        }
+
+        // Generate / Update the Angular Velocity Vector Arrow based on omega's sign and size
+        function updateOmegaArrow() {
+            if (!scene) return;
+            if (omegaVectorArrow) scene.remove(omegaVectorArrow);
+
+            // Define directional unit vector for angular velocity
+            const dir = new THREE.Vector3(0, omega >= 0 ? 1 : -1, 0);
+            const origin = new THREE.Vector3(0, 0, 0);
+            // Height proportional to the absolute omega speed
+            const length = Math.max(0.2, Math.abs(omega) * 1.2);
+            const hex = omega >= 0 ? 0xf97316 : 0xec4899; // Orange for +Z (up), Pink for -Z (down)
+
+            omegaVectorArrow = new THREE.ArrowHelper(dir, origin, length, hex, 0.2, 0.15);
+            scene.add(omegaVectorArrow);
+        }
+
+        // Calculate analytical dynamic updates
+        function updateOutputs() {
+            const speed = Math.abs(omega * radius);
+            
+            // Text reads
+            omegaVal.innerHTML = `${omega.toFixed(2)} rad/s`;
+            radiusVal.innerHTML = `${radius.toFixed(2)} m`;
+            tangentialVal.innerHTML = `${speed.toFixed(2)} m/s`;
+
+            // State sense visual classes
+            if (omega > 0) {
+                rotationSense.innerText = "COUNTER-CLOCKWISE (CCW)";
+                rotationSense.className = "px-2 py-0.5 rounded text-[10px] font-bold bg-cyan-500/10 text-cyan-400 border border-cyan-500/20";
+                zSymbolText.innerHTML = "Out of Board ($\u2299$)";
+            } else if (omega < 0) {
+                rotationSense.innerText = "CLOCKWISE (CW)";
+                rotationSense.className = "px-2 py-0.5 rounded text-[10px] font-bold bg-pink-500/10 text-pink-400 border border-pink-500/20";
+                zSymbolText.innerHTML = "Into Board ($\u2297$)";
+            } else {
+                rotationSense.innerText = "STATIONARY";
+                rotationSense.className = "px-2 py-0.5 rounded text-[10px] font-bold bg-slate-500/10 text-slate-400 border border-slate-500/20";
+                zSymbolText.innerHTML = "Neutral";
+            }
+
+            // Real-Time Vector math printouts
+            const x = radius * Math.cos(theta);
+            const y = radius * Math.sin(theta);
+            vecR.innerText = `[${x.toFixed(2)}, ${y.toFixed(2)}, 0.00]`;
+            vecOmega.innerText = `[0.00, 0.00, ${omega.toFixed(2)}]`;
+
+            // Computing Cross product: v = omega_v x r_v
+            // v_x = omega_y * r_z - omega_z * r_y = -omega_z * r_y
+            // v_y = omega_z * r_x - omega_x * r_z = omega_z * r_x
+            // v_z = omega_x * r_y - omega_y * r_x = 0
+            const vx = -omega * y;
+            const vy = omega * x;
+            vecCross.innerText = `[${vx.toFixed(2)}, ${vy.toFixed(2)}, 0.00]`;
+
+            // Update MathJax outputs smoothly on slider interaction
+            if (window.MathJax && window.MathJax.typesetPromise) {
+                window.MathJax.typesetPromise();
+            }
+        }
+
+        // Draw the detailed 2D Circular Motion diagram
+        function draw2DScene() {
+            const width = canvas2d.width / (window.devicePixelRatio || 1);
+            const height = canvas2d.height / (window.devicePixelRatio || 1);
+            
+            ctx2d.clearRect(0, 0, width, height);
+
+            const centerX = width / 2;
+            const centerY = height / 2;
+            const scale = Math.min(width, height) / 4.8; // Scale factor for meters to pixels
+
+            // Draw Background Grids
+            ctx2d.strokeStyle = '#1e293b';
+            ctx2d.lineWidth = 1;
+            
+            ctx2d.beginPath();
+            ctx2d.moveTo(0, centerY); ctx2d.lineTo(width, centerY);
+            ctx2d.moveTo(centerX, 0); ctx2d.lineTo(centerX, height);
+            ctx2d.stroke();
+
+            // Radial concentric circles
+            ctx2d.strokeStyle = '#1e293b';
+            [0.5, 1.0, 1.5, 2.0].forEach(rVal => {
+                ctx2d.beginPath();
+                ctx2d.arc(centerX, centerY, rVal * scale, 0, Math.PI * 2);
+                ctx2d.stroke();
+            });
+
+            // Draw Rotation Orbit Path
+            ctx2d.strokeStyle = '#1e1b4b';
+            ctx2d.lineWidth = 3;
+            ctx2d.beginPath();
+            ctx2d.arc(centerX, centerY, radius * scale, 0, Math.PI * 2);
+            ctx2d.stroke();
+
+            // Calculate current particle coordinates
+            const px = centerX + radius * scale * Math.cos(theta);
+            const py = centerY - radius * scale * Math.sin(theta); // Flip Y to match Cartesian quadrant systems
+
+            // Draw Radius Line (r-axis)
+            ctx2d.strokeStyle = '#10b981'; // Green
+            ctx2d.lineWidth = 2;
+            ctx2d.beginPath();
+            ctx2d.moveTo(centerX, centerY);
+            ctx2d.lineTo(px, py);
+            ctx2d.stroke();
+
+            // Draw Particle representation
+            ctx2d.fillStyle = '#10b981';
+            ctx2d.beginPath();
+            ctx2d.arc(px, py, 8, 0, Math.PI * 2);
+            ctx2d.fill();
+
+            // Vector math outputs
+            // 1. Radial unit vector r-hat (extends outwards from particle)
+            const rhatX = Math.cos(theta);
+            const rhatY = -Math.sin(theta);
+            drawVector(px, py, px + rhatX * 45, py + rhatY * 45, '#10b981', 'r\u0302');
+
+            // 2. Tangential unit vector theta-hat (perpendicular to radius)
+            // theta-hat points in direction of increasing theta (counter-clockwise)
+            const thetahatX = -Math.sin(theta);
+            const thetahatY = -Math.cos(theta);
+            drawVector(px, py, px + thetahatX * 45, py + thetahatY * 45, '#38bdf8', '\u03B8\u0302');
+
+            // 3. Tangential Velocity vector v_vector (scaled by omega magnitude)
+            if (Math.abs(omega) > 0.05) {
+                // Direction depends on the sign of dtheta/dt
+                const sign = omega > 0 ? 1 : -1;
+                const v_dirX = thetahatX * sign;
+                const v_dirY = thetahatY * sign;
+                const speedScale = Math.abs(omega) * radius * 35; // velocity vector scale
+                drawVector(px, py, px + v_dirX * speedScale, py + v_dirY * speedScale, '#a5b4fc', 'v\u20D7', 3);
+            }
+
+            // 4. Vector direction indicators at center (Right Hand Rule context)
+            if (omega !== 0) {
+                ctx2d.strokeStyle = omega > 0 ? '#38bdf8' : '#ec4899';
+                ctx2d.fillStyle = omega > 0 ? '#38bdf8' : '#ec4899';
+                ctx2d.lineWidth = 2.5;
+
+                const indicatorX = centerX - 40;
+                const indicatorY = centerY - 40;
+
+                ctx2d.beginPath();
+                ctx2d.arc(indicatorX, indicatorY, 12, 0, Math.PI * 2);
+                ctx2d.stroke();
+
+                if (omega > 0) {
+                    // Dot inside circle representing out of board vector (CCW)
+                    ctx2d.beginPath();
+                    ctx2d.arc(indicatorX, indicatorY, 3, 0, Math.PI * 2);
+                    ctx2d.fill();
+                    ctx2d.fillStyle = '#f8fafc';
+                    ctx2d.font = 'bold 10px Courier';
+                    ctx2d.fillText('k\u0302 (Out of Board)', indicatorX + 18, indicatorY + 4);
+                } else {
+                    // Cross inside circle representing into board vector (CW)
+                    const offset = 5;
+                    ctx2d.beginPath();
+                    ctx2d.moveTo(indicatorX - offset, indicatorY - offset);
+                    ctx2d.lineTo(indicatorX + offset, indicatorY + offset);
+                    ctx2d.moveTo(indicatorX + offset, indicatorY - offset);
+                    ctx2d.lineTo(indicatorX - offset, indicatorY + offset);
+                    ctx2d.stroke();
+                    ctx2d.fillStyle = '#f8fafc';
+                    ctx2d.font = 'bold 10px Courier';
+                    ctx2d.fillText('-k\u0302 (Into Board)', indicatorX + 18, indicatorY + 4);
+                }
+            }
+
+            // Theta Angle sector visualization at center
+            ctx2d.strokeStyle = '#f97316';
+            ctx2d.lineWidth = 2;
+            ctx2d.beginPath();
+            ctx2d.arc(centerX, centerY, 25, 0, -theta);
+            ctx2d.stroke();
+            ctx2d.fillStyle = '#f97316';
+            ctx2d.font = '11px Segoe UI';
+            ctx2d.fillText('\u03B8', centerX + 12, centerY - 12);
+        }
+
+        // Draw interactive vector arrow on 2D canvas helper
+        function drawVector(fromX, fromY, toX, toY, color, label, strokeWidth = 2) {
+            const headlen = 8; // length of head in pixels
+            const dx = toX - fromX;
+            const dy = toY - fromY;
+            const angle = Math.atan2(dy, dx);
+
+            ctx2d.strokeStyle = color;
+            ctx2d.fillStyle = color;
+            ctx2d.lineWidth = strokeWidth;
+
+            // Draw line
+            ctx2d.beginPath();
+            ctx2d.moveTo(fromX, fromY);
+            ctx2d.lineTo(toX, toY);
+            ctx2d.stroke();
+
+            // Draw arrowhead
+            ctx2d.beginPath();
+            ctx2d.moveTo(toX, toY);
+            ctx2d.lineTo(toX - headlen * Math.cos(angle - Math.PI / 6), toY - headlen * Math.sin(angle - Math.PI / 6));
+            ctx2d.lineTo(toX - headlen * Math.cos(angle + Math.PI / 6), toY - headlen * Math.sin(angle + Math.PI / 6));
+            ctx2d.closePath();
+            ctx2d.fill();
+
+            // Draw Label text shadow
+            ctx2d.fillStyle = '#020617';
+            ctx2d.font = 'bold 11px sans-serif';
+            ctx2d.fillText(label, toX + 6, toY - 2);
+            ctx2d.fillText(label, toX + 6, toY + 2);
+            ctx2d.fillText(label, toX + 4, toY + 2);
+            
+            ctx2d.fillStyle = color;
+            ctx2d.fillText(label, toX + 5, toY);
+        }
+
+        // Synchronized physical tick loops
+        function animateLoop() {
+            requestAnimationFrame(animateLoop);
+
+            const now = performance.now();
+            const dt = (now - lastTime) / 1000;
+            lastTime = now;
+
+            if (isPlaying) {
+                // Increment integration step
+                theta += omega * dt;
+                
+                // Clamp/modulo theta inside [0, 2pi]
+                if (theta > Math.PI * 2) theta -= Math.PI * 2;
+                if (theta < 0) theta += Math.PI * 2;
+            }
+
+            // Update 2D Canvas Scene
+            draw2DScene();
+
+            // Update 3D Canvas Scene
+            if (particleMesh && orbitCircle) {
+                // Sync positions in 3D (X-Z plane is the circular rotational plane in ThreeJS)
+                // Position vectors map: X = r*cos(theta), Z = -r*sin(theta) (to match inverted Y-axes in 2D coordinate space)
+                const px3d = radius * 1.5 * Math.cos(theta);
+                const pz3d = -radius * 1.5 * Math.sin(theta);
+                particleMesh.position.set(px3d, 0.1, pz3d);
+
+                // Update orbit radius geometries
+                orbitCircle.scale.set(radius, radius, 1);
+            }
+
+            // Render 3D Canvas
+            if (renderer && scene && camera) {
+                renderer.render(scene, camera);
+            }
+        }
+
+        // Action controls bindings
+        omegaSlider.addEventListener('input', (e) => {
+            omega = parseFloat(e.target.value);
+            updateOmegaArrow();
+            updateOutputs();
+        });
+
+        radiusSlider.addEventListener('input', (e) => {
+            radius = parseFloat(e.target.value);
+            updateOutputs();
+        });
+
+        btnPause.addEventListener('click', () => {
+            isPlaying = !isPlaying;
+            btnPause.innerHTML = isPlaying ? '<i class="fa-solid fa-pause"></i> Pause Motion' : '<i class="fa-solid fa-play"></i> Resume Motion';
+            btnPause.className = isPlaying 
+                ? "px-4 py-1.5 text-xs font-semibold rounded bg-slate-800 text-slate-200 hover:bg-slate-700 transition flex items-center gap-1.5"
+                : "px-4 py-1.5 text-xs font-semibold rounded bg-cyan-600 text-slate-50 hover:bg-cyan-500 transition flex items-center gap-1.5";
+        });
+
+        btnReset.addEventListener('click', () => {
+            theta = 0;
+            updateOutputs();
+        });
+
+        btnViewToggle.addEventListener('click', () => {
+            if (activePerspective === 'isometric') {
+                activePerspective = 'top';
+            } else if (activePerspective === 'top') {
+                activePerspective = 'bottom';
+            } else {
+                activePerspective = 'isometric';
+            }
+            updateCameraAngle();
+        });
+
+        // Interactive Cognitive Quiz setup
+        const quizOptions = document.querySelectorAll('.quiz-option');
+        const quizFeedback = document.getElementById('quiz-feedback');
+
+        quizOptions.forEach(opt => {
+            opt.addEventListener('click', () => {
+                // Reset styling
+                quizOptions.forEach(o => {
+                    o.classList.remove('border-emerald-500', 'bg-emerald-500/10', 'border-red-500', 'bg-red-500/10');
+                });
+
+                const isCorrect = opt.getAttribute('data-correct') === 'true';
+                if (isCorrect) {
+                    opt.classList.add('border-emerald-500', 'bg-emerald-500/10');
+                    quizFeedback.className = "text-xs p-3 rounded-lg bg-emerald-500/15 text-emerald-400 border border-emerald-500/30 font-medium block";
+                    quizFeedback.innerHTML = "<i class='fa-solid fa-circle-check'></i> <strong>Correct!</strong> Since the motion is clockwise, curling the fingers of your right hand in the clockwise direction points your thumb downward, which is along the $-k$ direction (into the page).";
+                } else {
+                    opt.classList.add('border-red-500', 'bg-red-500/10');
+                    quizFeedback.className = "text-xs p-3 rounded-lg bg-red-500/15 text-red-400 border border-red-500/30 font-medium block";
+                    quizFeedback.innerHTML = "<i class='fa-solid fa-circle-xmark'></i> <strong>Incorrect!</strong> Try using the right hand rule: curl the fingers of your right hand along the direction of clockwise motion. Your thumb will point downward (into the plane).";
+                }
+            });
+        });
+
+        // Start everything on Window Load
+        window.onload = function () {
+            // Setup dynamic sizes
+            resizeCanvases();
+            // Start 3D environment
+            init3D();
+            // Compute first mathematical layout
+            updateOutputs();
+            // Set animation tick loop active
+            animateLoop();
+        };
+
+        // Resize listeners
+        window.addEventListener('resize', resizeCanvases);
+    </script>
+</body>
+</html>
