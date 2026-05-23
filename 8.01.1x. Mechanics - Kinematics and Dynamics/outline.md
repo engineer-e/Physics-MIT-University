@@ -208,36 +208,36 @@
 6. Week 4 - Drag Forces, Constraints and Continuous Systems
 
     1. Introduction
-        1. W04intro: Week 4 Introduction
+        1. [W04intro](https://engineer-e.github.io/Physics-MIT-University/8.01.1x.%20Mechanics%20-%20Kinematics%20and%20Dynamics/course_html/Mechanics%20-%20Kinematics%20and%20Dynamics/Week%204%20-%20Drag%20Forces,%20Constraints%20and%20Continuous%20Systems/Introduction/W04intro%20Week%204%20Introduction/W04_intro.html): Week 4 Introduction
 
     2. Lesson 12 - Pulleys and Constraints
         1. Intro to Pulleys and Constraints
-        2. L12v1: Pulley Problems - Part I, Set up the Equations
-        3. L12v2: Pulley Problem - Part II, Constraint Condition
-        4. L12v3: Pulley Problem - Part III, Constraints and Virtual Displacement Arguments
-        5. L12v4: Pulley Problem - Part IV, Solving the System of Equations
+        2. [L12v1](https://engineer-e.github.io/Physics-MIT-University/8.01.1x.%20Mechanics%20-%20Kinematics%20and%20Dynamics/course_html/Mechanics%20-%20Kinematics%20and%20Dynamics/Week%204%20-%20Drag%20Forces,%20Constraints%20and%20Continuous%20Systems/Lesson%2012%20-%20Pulleys%20and%20Constraints/L12v1%20Pulley%20Problems%20-%20Part%20I,%20Set%20up%20the%20Equations/L12v1_ai1.html): Pulley Problems - Part I, Set up the Equations
+        3. [L12v2](https://engineer-e.github.io/Physics-MIT-University/8.01.1x.%20Mechanics%20-%20Kinematics%20and%20Dynamics/course_html/Mechanics%20-%20Kinematics%20and%20Dynamics/Week%204%20-%20Drag%20Forces,%20Constraints%20and%20Continuous%20Systems/Lesson%2012%20-%20Pulleys%20and%20Constraints/L12v2%20Pulley%20Problem%20-%20Part%20II,%20Constraint%20Condition/L12v2_ai1.html): Pulley Problem - Part II, Constraint Condition
+        4. [L12v3](https://engineer-e.github.io/Physics-MIT-University/8.01.1x.%20Mechanics%20-%20Kinematics%20and%20Dynamics/course_html/Mechanics%20-%20Kinematics%20and%20Dynamics/Week%204%20-%20Drag%20Forces,%20Constraints%20and%20Continuous%20Systems/Lesson%2012%20-%20Pulleys%20and%20Constraints/L12v3%20Pulley%20Problem%20-%20Part%20III,%20Constraints%20and%20Virtual%20Displacement%20Arguments/L12_v3_ai1.html): Pulley Problem - Part III, Constraints and Virtual Displacement Arguments
+        5. [L12v4](https://engineer-e.github.io/Physics-MIT-University/8.01.1x.%20Mechanics%20-%20Kinematics%20and%20Dynamics/course_html/Mechanics%20-%20Kinematics%20and%20Dynamics/Week%204%20-%20Drag%20Forces,%20Constraints%20and%20Continuous%20Systems/Lesson%2012%20-%20Pulleys%20and%20Constraints/L12v4%20Pulley%20Problem%20-%20Part%20IV,%20Solving%20the%20System%20of%20Equations/L12v4_ai1.html): Pulley Problem - Part IV, Solving the System of Equations
         6. L12WE2: Three Pulleys
-        7. L12WE3/L12v5 Worked Example 2 Blocks and 2 Pulleys
+        7. L12WE3/[L12v5](https://engineer-e.github.io/Physics-MIT-University/8.01.1x.%20Mechanics%20-%20Kinematics%20and%20Dynamics/course_html/Mechanics%20-%20Kinematics%20and%20Dynamics/Week%204%20-%20Drag%20Forces,%20Constraints%20and%20Continuous%20Systems/Lesson%2012%20-%20Pulleys%20and%20Constraints/L12WE3L12v5%20Worked%20Example%202%20Blocks%20and%202%20Pulleys/L12v5_ai1.html) Worked Example 2 Blocks and 2 Pulleys
         8. L12Q1: Two Blocks, Three Pulleys and an Incline
 
     3. Lesson 13 - Massive Rope
         1. Intro to Differential Analysis
-        2. L13WE1/L13v1: Massive Rope Hanging Betweetn Trees
+        2. L13WE1/[L13v1](https://engineer-e.github.io/Physics-MIT-University/8.01.1x.%20Mechanics%20-%20Kinematics%20and%20Dynamics/course_html/Mechanics%20-%20Kinematics%20and%20Dynamics/Week%204%20-%20Drag%20Forces,%20Constraints%20and%20Continuous%20Systems/Lesson%2013%20-%20Massive%20Rope/L13WE1L13v1%20Massive%20Rope%20Hanging%20Betweetn%20Trees/L13v1_ai1.html): Massive Rope Hanging Betweetn Trees
         3. L13Q1: Tension in a Suspended Rope - Part I
-        4. L13v2: Differential Analysis of a Massive Rope
+        4. [L13v2](https://engineer-e.github.io/Physics-MIT-University/8.01.1x.%20Mechanics%20-%20Kinematics%20and%20Dynamics/course_html/Mechanics%20-%20Kinematics%20and%20Dynamics/Week%204%20-%20Drag%20Forces,%20Constraints%20and%20Continuous%20Systems/Lesson%2013%20-%20Massive%20Rope/L13v2%20Differential%20Analysis%20of%20a%20Massive%20Rope/L13v2_ai.html): Differential Analysis of a Massive Rope
         5. L13Q2: Tension in a Suspended Rope - Part II
-        6. L13v3: Differential Elements
-        7. L13v4: Density
+        6. [L13v3](https://engineer-e.github.io/Physics-MIT-University/8.01.1x.%20Mechanics%20-%20Kinematics%20and%20Dynamics/course_html/Mechanics%20-%20Kinematics%20and%20Dynamics/Week%204%20-%20Drag%20Forces,%20Constraints%20and%20Continuous%20Systems/Lesson%2013%20-%20Massive%20Rope/L13v3%20Differential%20Elements/L13v3_ai1.html): Differential Elements
+        7. [L13v4](https://engineer-e.github.io/Physics-MIT-University/8.01.1x.%20Mechanics%20-%20Kinematics%20and%20Dynamics/course_html/Mechanics%20-%20Kinematics%20and%20Dynamics/Week%204%20-%20Drag%20Forces,%20Constraints%20and%20Continuous%20Systems/Lesson%2013%20-%20Massive%20Rope/L13v4%20Density/L13v4_ai1.html): Density
         8. L13Q3: Differential Elements
         9. Demo: Wrapping Friction
         10. L13Q4: Wrapping Friction
-        11. L13v05: Summary of Differential Analysis
+        11. [L13v05](https://engineer-e.github.io/Physics-MIT-University/8.01.1x.%20Mechanics%20-%20Kinematics%20and%20Dynamics/course_html/Mechanics%20-%20Kinematics%20and%20Dynamics/Week%204%20-%20Drag%20Forces,%20Constraints%20and%20Continuous%20Systems/Lesson%2013%20-%20Massive%20Rope/L13v05%20Summary%20of%20Differential%20Analysis/L13v05_ai1.html): Summary of Differential Analysis
 
     4. Lesson 14 - Resistive Force
         1. Intro to Resistive Forces
-        2. L14v1: Intro to Resistive forces
-        3. L14v2: Resistive Forces - Low Speed Case
-        4. L14v3: Resistive Forces - High Speed Case
+        2. [L14v1](https://engineer-e.github.io/Physics-MIT-University/8.01.1x.%20Mechanics%20-%20Kinematics%20and%20Dynamics/course_html/Mechanics%20-%20Kinematics%20and%20Dynamics/Week%204%20-%20Drag%20Forces,%20Constraints%20and%20Continuous%20Systems/Lesson%2014%20-%20Resistive%20Force/L14v1%20Intro%20to%20Resistive%20forces/L14v1_ai.html): Intro to Resistive forces
+        3. [L14v2](https://engineer-e.github.io/Physics-MIT-University/8.01.1x.%20Mechanics%20-%20Kinematics%20and%20Dynamics/course_html/Mechanics%20-%20Kinematics%20and%20Dynamics/Week%204%20-%20Drag%20Forces,%20Constraints%20and%20Continuous%20Systems/Lesson%2014%20-%20Resistive%20Force/L14v2%20Resistive%20Forces%20-%20Low%20Speed%20Case/L14v2_ai1.html): Resistive Forces - Low Speed Case
+        4. [L14v3](https://engineer-e.github.io/Physics-MIT-University/8.01.1x.%20Mechanics%20-%20Kinematics%20and%20Dynamics/course_html/Mechanics%20-%20Kinematics%20and%20Dynamics/Week%204%20-%20Drag%20Forces,%20Constraints%20and%20Continuous%20Systems/Lesson%2014%20-%20Resistive%20Force/L14v3%20Resistive%20Forces%20-%20High%20Speed%20Case/L14v3_ai1.html): Resistive Forces - High Speed Case
         5. L14Q1: Differential Equations and Drag
 
     5. Deep Dive - Stellar Structure
