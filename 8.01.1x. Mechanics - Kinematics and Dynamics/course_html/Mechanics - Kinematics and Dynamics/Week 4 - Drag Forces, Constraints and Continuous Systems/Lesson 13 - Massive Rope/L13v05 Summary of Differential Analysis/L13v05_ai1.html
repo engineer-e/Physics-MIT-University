@@ -1,0 +1,1075 @@
+<!DOCTYPE html>
+<html lang="en" class="dark">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Continuous Mass & Differential Analysis Simulator</title>
+    <!-- Tailwind CSS for modern styling -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Inter Font -->
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;500;700&display=swap" rel="stylesheet">
+    <style>
+        body {
+            font-family: 'Inter', sans-serif;
+        }
+        .code-font {
+            font-family: 'JetBrains Mono', monospace;
+        }
+        /* Custom scrollbars for clean UI */
+        ::-webkit-scrollbar {
+            width: 6px;
+            height: 6px;
+        }
+        ::-webkit-scrollbar-track {
+            background: #0f172a;
+        }
+        ::-webkit-scrollbar-thumb {
+            background: #334155;
+            border-radius: 3px;
+        }
+        ::-webkit-scrollbar-thumb:hover {
+            background: #475569;
+        }
+        /* Mathematical notation styling */
+        .math-frac {
+            display: inline-flex;
+            flex-direction: column;
+            align-items: center;
+            vertical-align: middle;
+            padding: 0 4px;
+        }
+        .math-num {
+            border-bottom: 1.5px solid currentColor;
+            padding-bottom: 1px;
+            text-align: center;
+            font-size: 0.9em;
+        }
+        .math-den {
+            text-align: center;
+            font-size: 0.9em;
+            padding-top: 1px;
+        }
+    </style>
+</head>
+<body class="bg-slate-950 text-slate-100 min-h-screen flex flex-col selection:bg-indigo-500 selection:text-white overflow-x-hidden">
+
+    <!-- Navigation / Header -->
+    <header class="border-b border-slate-800 bg-slate-900/80 backdrop-blur sticky top-0 z-50 px-6 py-4">
+        <div class="max-w-7xl mx-auto flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
+            <div>
+                <span class="px-2.5 py-1 text-xs font-semibold tracking-wider text-indigo-400 uppercase bg-indigo-500/10 rounded-full border border-indigo-500/20">
+                    Physics & Applied Mathematics
+                </span>
+                <h1 class="text-2xl font-extrabold text-transparent bg-clip-text bg-gradient-to-r from-white via-slate-200 to-indigo-400 mt-1">
+                    Continuous Mass & Differential Analysis
+                </h1>
+                <p class="text-sm text-slate-400 mt-0.5">An interactive masterclass on deriving and solving physical systems using infinitesimal calculus.</p>
+            </div>
+            <div class="flex items-center gap-3 bg-slate-950/50 p-1.5 rounded-lg border border-slate-800">
+                <span class="text-xs text-slate-400 px-2 font-medium">System State:</span>
+                <span id="active-step-badge" class="px-2.5 py-1 rounded-md text-xs font-bold bg-amber-500/10 text-amber-400 border border-amber-500/20 animate-pulse">
+                    Step 1: Arbitrary Element
+                </span>
+            </div>
+        </div>
+    </header>
+
+    <!-- Main Content Grid -->
+    <main class="flex-grow max-w-7xl w-full mx-auto p-4 lg:p-6 grid grid-cols-1 lg:grid-cols-12 gap-6">
+        
+        <!-- Left Side: Interactive Lab & Simulation Canvas (7 Columns) -->
+        <section class="lg:col-span-7 flex flex-col gap-6">
+            
+            <!-- Simulator Canvas Panel -->
+            <div class="bg-slate-900 border border-slate-800 rounded-2xl overflow-hidden shadow-2xl flex flex-col">
+                <div class="p-4 bg-slate-900/50 border-b border-slate-800 flex justify-between items-center flex-wrap gap-2">
+                    <div class="flex items-center gap-2">
+                        <span class="w-3 h-3 rounded-full bg-emerald-500"></span>
+                        <h2 class="text-sm font-bold tracking-wide uppercase text-slate-300">Active Laboratory View</h2>
+                    </div>
+                    <!-- Quick Preset Selectors -->
+                    <div class="flex gap-1.5 text-xs">
+                        <button onclick="applyPreset('heavy')" class="px-2.5 py-1 rounded bg-slate-800 hover:bg-slate-700 transition border border-slate-700 font-medium">Heavy Rope</button>
+                        <button onclick="applyPreset('light-heavy')" class="px-2.5 py-1 rounded bg-slate-800 hover:bg-slate-700 transition border border-slate-700 font-medium">Light Rope + Big Load</button>
+                        <button onclick="applyPreset('zero-g')" class="px-2.5 py-1 rounded bg-slate-800 hover:bg-slate-700 transition border border-slate-700 font-medium">Zero Gravity</button>
+                    </div>
+                </div>
+
+                <div class="grid grid-cols-1 md:grid-cols-12 h-[450px] relative bg-slate-950/40">
+                    <!-- Column 1: Rope Visualization Canvas -->
+                    <div class="md:col-span-5 relative flex flex-col justify-between items-center border-b md:border-b-0 md:border-r border-slate-800 p-4">
+                        <div class="absolute top-2 left-2 text-[10px] text-slate-500 font-mono tracking-widest uppercase">1. Physical Space</div>
+                        
+                        <!-- Fixed top boundary label -->
+                        <div class="text-xs font-bold text-slate-400 bg-slate-900 px-2 py-0.5 rounded border border-slate-800 shadow-sm z-10 mt-1">
+                            Fixed End (y = L)
+                        </div>
+
+                        <!-- Physics Canvas -->
+                        <div class="relative w-full flex-grow flex justify-center py-2 h-0">
+                            <canvas id="rope-canvas" class="h-full w-full max-w-[200px] cursor-ns-resize" title="Drag to slide the analysis slice"></canvas>
+                        </div>
+
+                        <!-- Free bottom boundary label + Load -->
+                        <div class="flex flex-col items-center z-10 mb-1">
+                            <div class="text-xs font-bold text-slate-400 bg-slate-900 px-2 py-0.5 rounded border border-slate-800 shadow-sm">
+                                Free End (y = 0)
+                            </div>
+                            <!-- Small dynamic weight visual -->
+                            <div id="visual-load" class="w-10 h-6 bg-indigo-600 rounded-b shadow-lg border border-indigo-400 mt-1 flex items-center justify-center text-[10px] font-bold text-white transition-all duration-300">
+                                5kg
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Column 2: Dynamically Scaled Free-Body Diagram (FBD) -->
+                    <div class="md:col-span-7 relative flex flex-col bg-slate-950/20 p-4">
+                        <div class="absolute top-2 left-2 text-[10px] text-slate-500 font-mono tracking-widest uppercase">2. Free-Body Diagram (FBD) of Mass Element (Δm)</div>
+                        
+                        <!-- FBD Canvas -->
+                        <div class="flex-grow flex items-center justify-center relative my-4">
+                            <canvas id="fbd-canvas" class="h-full w-full max-h-[300px] max-w-[320px]"></canvas>
+                        </div>
+
+                        <div class="bg-slate-900/90 p-3 rounded-lg border border-slate-800 text-xs">
+                            <div class="flex justify-between font-semibold text-slate-300 mb-1">
+                                <span>Newton's 2nd Law for Element:</span>
+                                <span class="text-indigo-400">ΣF<sub>y</sub> = m · a<sub>y</sub> = 0 (Static)</span>
+                            </div>
+                            <p class="text-slate-400 leading-relaxed text-[11px]">
+                                The forces must balance perfectly: 
+                                <span class="text-indigo-300 font-semibold">T(y + Δy)</span> (upward pull) minus 
+                                <span class="text-rose-400 font-semibold">T(y)</span> (downward tension) minus 
+                                <span class="text-amber-400 font-semibold">Δm · g</span> (weight) equals zero.
+                            </p>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Interactive Controllers -->
+                <div class="p-6 bg-slate-900 border-t border-slate-800 grid grid-cols-1 md:grid-cols-2 gap-6">
+                    <!-- Left Control Column -->
+                    <div class="flex flex-col gap-4">
+                        <div>
+                            <div class="flex justify-between text-xs font-bold mb-1.5">
+                                <span class="text-slate-300">Rope Linear Density (μ = M/L)</span>
+                                <span id="val-density" class="text-indigo-400 font-mono">1.50 kg/m</span>
+                            </div>
+                            <input type="range" id="slider-density" min="0.1" max="5.0" step="0.1" value="1.5" class="w-full accent-indigo-500 bg-slate-800 rounded-lg h-1.5 cursor-pointer">
+                            <p class="text-[10px] text-slate-500 mt-1">Simulates rope mass concentration per unit length.</p>
+                        </div>
+
+                        <div>
+                            <div class="flex justify-between text-xs font-bold mb-1.5">
+                                <span class="text-slate-300">Bottom Tip Load (M<sub>load</sub>) <span class="text-[10px] text-slate-500 font-normal">(Boundary Condition)</span></span>
+                                <span id="val-load" class="text-indigo-400 font-mono">5.00 kg</span>
+                            </div>
+                            <input type="range" id="slider-load" min="0.0" max="20.0" step="0.5" value="5.0" class="w-full accent-indigo-500 bg-slate-800 rounded-lg h-1.5 cursor-pointer">
+                            <p class="text-[10px] text-slate-500 mt-1">Establishes the system state at the free bottom endpoint (y = 0).</p>
+                        </div>
+
+                        <div>
+                            <div class="flex justify-between text-xs font-bold mb-1.5">
+                                <span class="text-slate-300">Gravity (g)</span>
+                                <span id="val-gravity" class="text-indigo-400 font-mono">9.81 m/s²</span>
+                            </div>
+                            <input type="range" id="slider-gravity" min="0.0" max="25.0" step="0.1" value="9.8" class="w-full accent-indigo-500 bg-slate-800 rounded-lg h-1.5 cursor-pointer">
+                        </div>
+                    </div>
+
+                    <!-- Right Control Column -->
+                    <div class="flex flex-col gap-4">
+                        <div>
+                            <div class="flex justify-between text-xs font-bold mb-1.5">
+                                <span class="text-slate-300">Slice Position (y)</span>
+                                <span id="val-slice-y" class="text-amber-400 font-mono">4.50 m</span>
+                            </div>
+                            <input type="range" id="slider-slice-y" min="0.1" max="9.9" step="0.05" value="4.5" class="w-full accent-amber-500 bg-slate-800 rounded-lg h-1.5 cursor-pointer">
+                            <p class="text-[10px] text-slate-500 mt-1">Arbitrary point of investigation along the rope's total length (L = 10m).</p>
+                        </div>
+
+                        <div>
+                            <div class="flex justify-between text-xs font-bold mb-1.5">
+                                <span class="text-slate-300">Slice Size (Δy)</span>
+                                <span id="val-slice-dy" class="text-amber-400 font-mono">1.20 m</span>
+                            </div>
+                            <input type="range" id="slider-slice-dy" min="0.05" max="3.0" step="0.05" value="1.2" class="w-full accent-amber-500 bg-slate-800 rounded-lg h-1.5 cursor-pointer">
+                            <p class="text-[10px] text-slate-500 mt-1">Thickness of selected chunk. Shrink this to take the infinitesimal limit!</p>
+                        </div>
+
+                        <!-- Action Buttons -->
+                        <div class="grid grid-cols-2 gap-3 pt-2">
+                            <button onclick="triggerLimitAnimation()" class="px-3 py-2 bg-amber-500 hover:bg-amber-600 active:scale-95 text-slate-950 font-bold rounded-lg text-xs transition duration-200 flex items-center justify-center gap-2 shadow-lg shadow-amber-500/10">
+                                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M19 13l-7 7-7-7m14-6l-7 7-7-7"/></svg>
+                                Take Limit (Δy → 0)
+                            </button>
+                            <button onclick="resetSimulator()" class="px-3 py-2 bg-slate-800 hover:bg-slate-700 text-slate-200 font-semibold rounded-lg text-xs transition border border-slate-700 flex items-center justify-center gap-1">
+                                Reset Variables
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Mathematical & Computational Sync Block -->
+            <div class="bg-slate-900 border border-slate-800 rounded-2xl p-6 shadow-xl">
+                <h3 class="text-base font-bold text-slate-200 mb-4 flex items-center gap-2">
+                    <svg class="w-5 h-5 text-indigo-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 7h6m0 10v-3m-3 3h.01M9 17h.01M9 14h.01M12 14h.01M15 11h.01M12 11h.01M9 11h.01M7 21h10a2 2 0 002-2V5a2 2 0 00-2-2H7a2 2 0 00-2 2v14a2 2 0 002 2z"/></svg>
+                    Real-Time Computational Solver Verification
+                </h3>
+                
+                <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+                    <!-- Computational Block 1: Analytical Result -->
+                    <div class="bg-slate-950 p-4 rounded-xl border border-indigo-950 relative overflow-hidden">
+                        <div class="absolute top-0 right-0 bg-indigo-500/10 text-indigo-400 text-[9px] font-bold px-2 py-0.5 rounded-bl uppercase font-mono tracking-widest">Exact Formula</div>
+                        <div class="text-xs text-slate-400 font-semibold">Analytical Value T(y)</div>
+                        <div id="analytical-val-display" class="text-2xl font-black text-indigo-400 my-1 font-mono">112.82 N</div>
+                        <p class="text-[10px] text-slate-500 leading-tight">T(y) = μgy + M<sub>load</sub>g</p>
+                    </div>
+
+                    <!-- Computational Block 2: Numerical Integration Result -->
+                    <div class="bg-slate-950 p-4 rounded-xl border border-amber-950 relative overflow-hidden">
+                        <div class="absolute top-0 right-0 bg-amber-500/10 text-amber-400 text-[9px] font-bold px-2 py-0.5 rounded-bl uppercase font-mono tracking-widest">Numerical Solver</div>
+                        <div class="text-xs text-slate-400 font-semibold">Numerical Integral T<sub>num</sub>(y)</div>
+                        <div id="numerical-val-display" class="text-2xl font-black text-amber-400 my-1 font-mono">112.82 N</div>
+                        <p class="text-[10px] text-slate-500 leading-tight">Calculated via Finite Element summation.</p>
+                    </div>
+
+                    <!-- Computational Block 3: Verification Error -->
+                    <div class="bg-slate-950 p-4 rounded-xl border border-slate-800 relative overflow-hidden">
+                        <div class="absolute top-0 right-0 bg-emerald-500/10 text-emerald-400 text-[9px] font-bold px-2 py-0.5 rounded-bl uppercase font-mono tracking-widest">Accuracy Check</div>
+                        <div class="text-xs text-slate-400 font-semibold">Absolute Discrepancy</div>
+                        <div id="discrepancy-display" class="text-2xl font-black text-emerald-400 my-1 font-mono">0.00%</div>
+                        <p class="text-[10px] text-slate-500 leading-tight">Proves Calculus matches discretized computer math perfectly!</p>
+                    </div>
+                </div>
+
+                <!-- Step progress track -->
+                <div class="mt-5 bg-slate-950/40 p-3 rounded-lg border border-slate-800 flex justify-between items-center text-xs flex-wrap gap-2">
+                    <span class="text-slate-400 font-medium">Step-by-Step Methodology Flow:</span>
+                    <div class="flex gap-1.5">
+                        <span id="step-dot-1" class="w-3.5 h-3.5 rounded-full flex items-center justify-center font-bold text-[9px] bg-indigo-500 text-slate-950 font-mono shadow-md">1</span>
+                        <span id="step-dot-2" class="w-3.5 h-3.5 rounded-full flex items-center justify-center font-bold text-[9px] bg-slate-800 text-slate-400 font-mono">2</span>
+                        <span id="step-dot-3" class="w-3.5 h-3.5 rounded-full flex items-center justify-center font-bold text-[9px] bg-slate-800 text-slate-400 font-mono">3</span>
+                        <span id="step-dot-4" class="w-3.5 h-3.5 rounded-full flex items-center justify-center font-bold text-[9px] bg-slate-800 text-slate-400 font-mono">4</span>
+                        <span id="step-dot-5" class="w-3.5 h-3.5 rounded-full flex items-center justify-center font-bold text-[9px] bg-slate-800 text-slate-400 font-mono">5</span>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Right Side: Step-by-Step Expert Explainer & Infographics (5 Columns) -->
+        <section class="lg:col-span-5 flex flex-col gap-6">
+            
+            <!-- Tab Controls -->
+            <div class="bg-slate-900 border border-slate-800 rounded-2xl shadow-xl overflow-hidden flex flex-col flex-grow">
+                <div class="flex border-b border-slate-800 bg-slate-950/60 p-1">
+                    <button onclick="switchTab('guide')" id="tab-btn-guide" class="flex-1 py-3 text-xs font-bold uppercase tracking-wider text-center transition-all rounded-xl text-indigo-400 bg-slate-900 shadow border border-slate-800">
+                        1. Interactive Guide
+                    </button>
+                    <button onclick="switchTab('mental')" id="tab-btn-mental" class="flex-1 py-3 text-xs font-bold uppercase tracking-wider text-center transition-all rounded-xl text-slate-400 hover:text-slate-200">
+                        2. Mental Model
+                    </button>
+                    <button onclick="switchTab('code')" id="tab-btn-code" class="flex-1 py-3 text-xs font-bold uppercase tracking-wider text-center transition-all rounded-xl text-slate-400 hover:text-slate-200">
+                        3. Algorithm
+                    </button>
+                </div>
+
+                <!-- Tab 1 Container (Interactive Guide) -->
+                <div id="tab-content-guide" class="p-6 flex flex-col gap-6 overflow-y-auto max-h-[750px] scroll-smooth">
+                    <div class="text-xs text-indigo-400 font-bold uppercase tracking-widest">Active Step Walkthrough</div>
+                    
+                    <!-- Interactive Steps (Accordion style) -->
+                    <!-- Step 1 Card -->
+                    <div id="card-step-1" class="border border-indigo-500/30 bg-indigo-500/5 rounded-xl p-4 transition duration-300 hover:border-indigo-400 cursor-pointer" onclick="setActiveStep(1)">
+                        <div class="flex justify-between items-center">
+                            <h4 class="text-sm font-extrabold text-slate-100 flex items-center gap-2">
+                                <span class="w-5 h-5 flex items-center justify-center bg-indigo-500 text-slate-950 font-mono text-xs rounded-full font-black">1</span>
+                                Pick an Arbitrary Mass Element
+                            </h4>
+                            <span class="text-xs text-indigo-400 font-mono font-bold">Active</span>
+                        </div>
+                        <div class="mt-3 text-xs text-slate-300 leading-relaxed space-y-2">
+                            <p>
+                                Locate a small mass element <span class="bg-slate-800 px-1 py-0.5 rounded text-indigo-300 font-mono">Δm</span> of finite height 
+                                <span class="bg-slate-800 px-1 py-0.5 rounded text-indigo-300 font-mono">Δy</span> somewhere <strong>inside</strong> the distribution.
+                            </p>
+                            <div class="bg-slate-950/60 p-2.5 rounded border border-indigo-900/30 font-semibold text-slate-400">
+                                <strong class="text-amber-400">Critical Insight:</strong> Avoid the boundaries (the endpoints y=0 and y=L) right now. The endpoints are subject to physical boundary constraints. Investigating an arbitrary slice in the middle reveals the general physical law governing any part of the system.
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Step 2 Card -->
+                    <div id="card-step-2" class="border border-slate-800 bg-slate-900/40 rounded-xl p-4 transition duration-300 hover:border-slate-700 cursor-pointer" onclick="setActiveStep(2)">
+                        <div class="flex justify-between items-center">
+                            <h4 class="text-sm font-bold text-slate-300 flex items-center gap-2">
+                                <span class="w-5 h-5 flex items-center justify-center bg-slate-800 text-slate-400 font-mono text-xs rounded-full">2</span>
+                                Analyze Physical Forces (FBD)
+                            </h4>
+                            <span class="text-[10px] text-slate-500 font-mono">Click to Inspect</span>
+                        </div>
+                        <div class="mt-3 text-xs text-slate-400 leading-relaxed space-y-2 hidden" id="card-body-step-2">
+                            <p>
+                                Write Newton's Second Law (<span class="font-mono">ΣF = m·a</span>) for your finite mass element. The element is static, so net force is zero.
+                            </p>
+                            <div class="bg-slate-950/80 p-3 rounded-lg border border-slate-800 flex flex-col gap-2">
+                                <div class="flex items-center gap-1.5">
+                                    <span class="text-emerald-400 font-bold">T(y + Δy)</span>
+                                    <span>-</span>
+                                    <span class="text-rose-400 font-bold">T(y)</span>
+                                    <span>-</span>
+                                    <span class="text-amber-400 font-bold">Δm · g</span>
+                                    <span>= 0</span>
+                                </div>
+                                <div class="text-[10.5px] text-slate-500">
+                                    Where: <br>
+                                    - <strong class="text-emerald-400">T(y + Δy)</strong>: Pulling up at the top face of the element.<br>
+                                    - <strong class="text-rose-400">T(y)</strong>: Dragging down at the bottom face.<br>
+                                    - <strong class="text-amber-400">Δm · g</strong>: Weight of the element.
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Step 3 Card -->
+                    <div id="card-step-3" class="border border-slate-800 bg-slate-900/40 rounded-xl p-4 transition duration-300 hover:border-slate-700 cursor-pointer" onclick="setActiveStep(3)">
+                        <div class="flex justify-between items-center">
+                            <h4 class="text-sm font-bold text-slate-300 flex items-center gap-2">
+                                <span class="w-5 h-5 flex items-center justify-center bg-slate-800 text-slate-400 font-mono text-xs rounded-full">3</span>
+                                Go to the Infinitesimal Limit
+                            </h4>
+                            <span class="text-[10px] text-slate-500 font-mono">Click to Inspect</span>
+                        </div>
+                        <div class="mt-3 text-xs text-slate-400 leading-relaxed space-y-2 hidden" id="card-body-step-3">
+                            <p>
+                                Define the local mass as linear density: <span class="font-mono font-semibold text-indigo-300">Δm = μ · Δy</span>.
+                                Substitute and rearrange the force equation to prepare for calculus:
+                            </p>
+                            <div class="bg-slate-950/80 p-3 rounded-lg border border-slate-800 flex flex-col gap-2 items-center text-center">
+                                <div class="flex items-center">
+                                    <div class="math-frac">
+                                        <span class="math-num">T(y + Δy) - T(y)</span>
+                                        <span class="math-den">Δy</span>
+                                    </div>
+                                    <span class="mx-2">=</span>
+                                    <span>μ · g</span>
+                                </div>
+                                <p class="text-[10.5px] text-slate-500">
+                                    Now, squeeze <span class="text-amber-400">Δy → 0</span>. The left side becomes the exact definition of a derivative!
+                                </p>
+                                <div class="flex items-center text-sm font-bold text-emerald-400 bg-emerald-500/10 px-3 py-1.5 rounded border border-emerald-500/20">
+                                    <div class="math-frac">
+                                        <span class="math-num">dT</span>
+                                        <span class="math-den">dy</span>
+                                    </div>
+                                    <span class="mx-2">=</span>
+                                    <span>μ · g</span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Step 4 Card -->
+                    <div id="card-step-4" class="border border-slate-800 bg-slate-900/40 rounded-xl p-4 transition duration-300 hover:border-slate-700 cursor-pointer" onclick="setActiveStep(4)">
+                        <div class="flex justify-between items-center">
+                            <h4 class="text-sm font-bold text-slate-300 flex items-center gap-2">
+                                <span class="w-5 h-5 flex items-center justify-center bg-slate-800 text-slate-400 font-mono text-xs rounded-full">4</span>
+                                Separate Variables & Integrate
+                            </h4>
+                            <span class="text-[10px] text-slate-500 font-mono">Click to Inspect</span>
+                        </div>
+                        <div class="mt-3 text-xs text-slate-400 leading-relaxed space-y-2 hidden" id="card-body-step-4">
+                            <p>
+                                Move differential terms of the same variable to opposite sides:
+                                <span class="bg-slate-850 px-1 py-0.5 rounded text-amber-300 font-mono">dT = μ · g · dy</span>.
+                            </p>
+                            <p>Now, perform integration across the domain:</p>
+                            <div class="bg-slate-950/80 p-3 rounded-lg border border-slate-800 flex flex-col gap-1 items-center font-semibold text-slate-300">
+                                <div>∫ dT = ∫ μ · g · dy</div>
+                                <div class="text-indigo-400 text-base mt-1">T(y) = μ · g · y + C</div>
+                            </div>
+                            <p class="text-[11px] text-slate-500">
+                                The integration constant <strong class="text-indigo-400 font-mono">C</strong> represents the boundary condition, which is currently unknown. We must solve for it!
+                            </p>
+                        </div>
+                    </div>
+
+                    <!-- Step 5 Card -->
+                    <div id="card-step-5" class="border border-slate-800 bg-slate-900/40 rounded-xl p-4 transition duration-300 hover:border-slate-700 cursor-pointer" onclick="setActiveStep(5)">
+                        <div class="flex justify-between items-center">
+                            <h4 class="text-sm font-bold text-slate-300 flex items-center gap-2">
+                                <span class="w-5 h-5 flex items-center justify-center bg-slate-800 text-slate-400 font-mono text-xs rounded-full">5</span>
+                                Apply Endpoint Boundary Condition
+                            </h4>
+                            <span class="text-[10px] text-slate-500 font-mono">Click to Inspect</span>
+                        </div>
+                        <div class="mt-3 text-xs text-slate-400 leading-relaxed space-y-2 hidden" id="card-body-step-5">
+                            <p>
+                                Look at a known physical limit of our system. The bottom end of the rope at <strong class="text-amber-400 font-mono">y = 0</strong> only has to hold the suspended mass <strong class="text-indigo-400 font-mono">M<sub>load</sub></strong>.
+                            </p>
+                            <div class="bg-slate-950/80 p-3 rounded-lg border border-slate-800 space-y-2 text-slate-300 font-medium">
+                                <div>At <span class="font-mono text-amber-400">y = 0</span>:</div>
+                                <div class="text-indigo-400 font-bold pl-4">T(0) = M<sub>load</sub> · g</div>
+                                <div>Substitute into general integrated formula:</div>
+                                <div class="bg-slate-900 p-2 rounded text-emerald-400 text-center font-bold">
+                                    M<sub>load</sub> · g = μ · g · (0) + C  ➔  C = M<sub>load</sub> · g
+                                </div>
+                            </div>
+                            <p>Our complete mathematical tension equation for any height is:</p>
+                            <div class="bg-indigo-950/40 border border-indigo-500/20 text-indigo-300 p-2.5 rounded text-center text-sm font-bold">
+                                T(y) = (μ · y + M<sub>load</sub>) · g
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Tab 2 Container (Mental Model) -->
+                <div id="tab-content-mental" class="p-6 flex flex-col gap-6 overflow-y-auto max-h-[750px] hidden">
+                    <div class="text-xs text-emerald-400 font-bold uppercase tracking-widest">Expert Mental Model & Analogies</div>
+                    
+                    <div class="space-y-4">
+                        <div class="bg-slate-950 p-4 rounded-xl border border-slate-800">
+                            <h4 class="text-sm font-bold text-slate-200 mb-2">The Bucket Brigade Analogy</h4>
+                            <p class="text-xs text-slate-400 leading-relaxed">
+                                Think of a line of people holding hands to lift a weight. 
+                                The person at the bottom (y=0) is only holding the weight of the load itself. 
+                                Every person higher up must support the load <strong class="text-indigo-400">PLUS</strong> the combined weight of every person below them!
+                            </p>
+                            <div class="mt-3 bg-indigo-500/5 p-2 rounded border border-indigo-500/20 text-[11px] text-slate-300">
+                                This is why tension <strong class="text-amber-400">T(y)</strong> increases linearly as we go up. The topmost person (fixed ceiling) carries the entire burden.
+                            </div>
+                        </div>
+
+                        <div class="bg-slate-950 p-4 rounded-xl border border-slate-800">
+                            <h4 class="text-sm font-bold text-slate-200 mb-2">Discrete vs. Continuous Intuition</h4>
+                            <p class="text-xs text-slate-400 leading-relaxed">
+                                Continuous mass is difficult to visualize intuitively because there are infinite microscopic parts. 
+                                To conquer this:
+                            </p>
+                            <div class="grid grid-cols-2 gap-3 mt-3 text-[11px]">
+                                <div class="p-2.5 bg-slate-900 border border-slate-800 rounded">
+                                    <span class="block text-amber-400 font-bold mb-1">Discrete approximation</span>
+                                    Think of 10 blocks connected by light strings. We can calculate forces on block 5 easily.
+                                </div>
+                                <div class="p-2.5 bg-slate-900 border border-slate-800 rounded">
+                                    <span class="block text-indigo-400 font-bold mb-1">Continuous Limit</span>
+                                    Shrink the blocks to size zero and make their count infinite. This transition converts summation to Integration (∫).
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="bg-slate-950 p-4 rounded-xl border border-slate-800">
+                            <h4 class="text-sm font-bold text-slate-200 mb-2">Critical Thinking Prompt</h4>
+                            <p class="text-xs text-slate-300 italic leading-relaxed">
+                                "What happens if we choose our arbitrary mass element at the absolute bottom endpoint (y = 0) from the very beginning?"
+                            </p>
+                            <p class="text-xs text-slate-400 mt-2">
+                                If you analyze the endpoint first, you obtain a single numeric value (Tension = Load weight), but you miss out on how tension varies as a function of height. You must work with an arbitrary slice first to capture the differential relationships (rates of change) across the entire domain.
+                            </p>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Tab 3 Container (Computational Algorithm) -->
+                <div id="tab-content-code" class="p-6 flex flex-col gap-6 overflow-y-auto max-h-[750px] hidden">
+                    <div class="text-xs text-amber-400 font-bold uppercase tracking-widest">Computational Finite Element Algorithm</div>
+                    
+                    <div class="space-y-4">
+                        <div class="bg-slate-950 p-4 rounded-xl border border-slate-800">
+                            <h4 class="text-sm font-bold text-slate-200 mb-2">Discretized Computer Solver Model</h4>
+                            <p class="text-xs text-slate-400 leading-relaxed">
+                                Computers can't naturally perform symbolic limits. Instead, they approximate differential analysis using finite steps. This is known as the <strong>Finite Element Method</strong> or <strong>Euler Integration</strong>.
+                            </p>
+                        </div>
+
+                        <!-- Pseudo code snippet -->
+                        <div class="bg-slate-950 rounded-xl border border-slate-800 overflow-hidden">
+                            <div class="bg-slate-900 px-4 py-1.5 border-b border-slate-800 flex justify-between items-center">
+                                <span class="text-[10px] text-indigo-400 font-mono font-bold">FE_SOLVER_ROPE.js</span>
+                                <span class="text-[9px] text-slate-500 uppercase tracking-wider">Dynamic Simulator Logic</span>
+                            </div>
+                            <pre class="p-4 text-[11px] code-font text-indigo-300 leading-relaxed overflow-x-auto">
+<span class="text-slate-500">// Solve numerically from bottom up</span>
+function solveTensionNumerical(y, dy, μ, g, load_mass) {
+    let tension = load_mass * g; <span class="text-emerald-500">// boundary condition</span>
+    
+    <span class="text-slate-500">// Discretize and accumulate elements below y</span>
+    for (let current_y = 0; current_y < y; current_y += dy) {
+        let dm = μ * dy;
+        let dWeight = dm * g;
+        tension += dWeight; <span class="text-emerald-500">// dT = μ * g * dy</span>
+    }
+    return tension;
+}</pre>
+                        </div>
+
+                        <div class="bg-indigo-950/30 p-4 rounded-xl border border-indigo-500/10">
+                            <h4 class="text-xs font-bold text-slate-200 mb-1.5 flex items-center gap-1.5">
+                                <span class="w-1.5 h-1.5 bg-indigo-400 rounded-full animate-ping"></span>
+                                Numerical Precision & Convergence
+                            </h4>
+                            <p class="text-xs text-slate-400 leading-relaxed">
+                                Watch the **Real-Time Computational Solver Verification** on the left. If you shrink the slice size (<span class="text-amber-400">Δy</span>), the error drops to practically zero. This teaches how physical calculus corresponds precisely to computational resolution.
+                            </p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+    </main>
+
+    <!-- Footer -->
+    <footer class="border-t border-slate-900 bg-slate-950 px-6 py-4 text-center mt-auto">
+        <p class="text-xs text-slate-500">&copy; 2026 Interactive Physics Lab. Created for deep conceptual intuition.</p>
+    </footer>
+
+    <!-- Interactive Canvas & Core Logic Script -->
+    <script>
+        // DOM Elements
+        const canvasRope = document.getElementById('rope-canvas');
+        const canvasFbd = document.getElementById('fbd-canvas');
+        const ctxRope = canvasRope.getContext('2d');
+        const ctxFbd = canvasFbd.getContext('2d');
+
+        // Slider Controls
+        const sliderDensity = document.getElementById('slider-density');
+        const sliderLoad = document.getElementById('slider-load');
+        const sliderGravity = document.getElementById('slider-gravity');
+        const sliderSliceY = document.getElementById('slider-slice-y');
+        const sliderSliceDy = document.getElementById('slider-slice-dy');
+
+        // Dynamic value displays
+        const valDensity = document.getElementById('val-density');
+        const valLoad = document.getElementById('val-load');
+        const valGravity = document.getElementById('val-gravity');
+        const valSliceY = document.getElementById('val-slice-y');
+        const valSliceDy = document.getElementById('val-slice-dy');
+        const visualLoad = document.getElementById('visual-load');
+
+        const activeStepBadge = document.getElementById('active-step-badge');
+
+        // Solver displays
+        const analyticalValDisplay = document.getElementById('analytical-val-display');
+        const numericalValDisplay = document.getElementById('numerical-val-display');
+        const discrepancyDisplay = document.getElementById('discrepancy-display');
+
+        // Physics State Variables (Default values)
+        const L = 10.0; // Total length of rope (meters)
+        let μ = 1.5;   // Linear density (kg/m)
+        let M_load = 5.0; // Load mass hanging from the bottom (kg)
+        let g = 9.81;  // Gravity (m/s^2)
+        let sliceY = 4.5; // Element height position (m)
+        let sliceDy = 1.2; // Element width/thickness (m)
+
+        let isAnimatingLimit = false;
+        let currentStep = 1;
+
+        // Apply visual presets
+        function applyPreset(type) {
+            if (type === 'heavy') {
+                sliderDensity.value = "3.5";
+                sliderLoad.value = "2.0";
+                sliderGravity.value = "9.81";
+            } else if (type === 'light-heavy') {
+                sliderDensity.value = "0.2";
+                sliderLoad.value = "15.0";
+                sliderGravity.value = "9.81";
+            } else if (type === 'zero-g') {
+                sliderDensity.value = "2.0";
+                sliderLoad.value = "10.0";
+                sliderGravity.value = "0.0";
+            }
+            updatePhysicsFromInputs();
+        }
+
+        function resetSimulator() {
+            sliderDensity.value = "1.5";
+            sliderLoad.value = "5.0";
+            sliderGravity.value = "9.8";
+            sliderSliceY.value = "4.5";
+            sliderSliceDy.value = "1.2";
+            updatePhysicsFromInputs();
+        }
+
+        // Handle Active Tabs on the Explainer panel
+        function switchTab(tabId) {
+            const tabs = ['guide', 'mental', 'code'];
+            tabs.forEach(t => {
+                const btn = document.getElementById(`tab-btn-${t}`);
+                const content = document.getElementById(`tab-content-${t}`);
+                if (t === tabId) {
+                    btn.classList.add('text-indigo-400', 'bg-slate-900', 'shadow', 'border', 'border-slate-800');
+                    btn.classList.remove('text-slate-400', 'hover:text-slate-200');
+                    content.classList.remove('hidden');
+                } else {
+                    btn.classList.remove('text-indigo-400', 'bg-slate-900', 'shadow', 'border', 'border-slate-800');
+                    btn.classList.add('text-slate-400', 'hover:text-slate-200');
+                    content.classList.add('hidden');
+                }
+            });
+        }
+
+        // Handle Step Highlight Navigation
+        function setActiveStep(stepNum) {
+            currentStep = stepNum;
+            
+            // Update step badge label
+            const stepTitles = [
+                "Step 1: Arbitrary Element",
+                "Step 2: Force Analysis",
+                "Step 3: Infinitesimal Limit",
+                "Step 4: Integration Stage",
+                "Step 5: Apply Boundaries"
+            ];
+            activeStepBadge.innerText = stepTitles[stepNum - 1];
+
+            // Toggle classes on cards & dot indicators
+            for (let i = 1; i <= 5; i++) {
+                const card = document.getElementById(`card-step-${i}`);
+                const body = document.getElementById(`card-body-step-${i}`);
+                const dot = document.getElementById(`step-dot-${i}`);
+
+                if (i === stepNum) {
+                    // Make active highlight
+                    card.className = "border border-indigo-500/40 bg-indigo-500/10 rounded-xl p-4 transition duration-300 shadow-md";
+                    if (body) body.classList.remove('hidden');
+                    dot.className = "w-4 h-4 rounded-full flex items-center justify-center font-bold text-[9px] bg-indigo-500 text-slate-950 font-mono shadow-md scale-110 transition-all";
+                } else {
+                    // Revert to inactive styling
+                    card.className = "border border-slate-800 bg-slate-900/40 rounded-xl p-4 transition duration-300 hover:border-slate-700 cursor-pointer";
+                    if (body) body.classList.add('hidden');
+                    dot.className = "w-3.5 h-3.5 rounded-full flex items-center justify-center font-bold text-[9px] bg-slate-850 text-slate-500 font-mono";
+                }
+            }
+
+            // Trigger visual side-effects based on active tutorial step
+            if (stepNum === 3) {
+                // Focus on making Δy small
+                sliderSliceDy.focus();
+            } else if (stepNum === 5) {
+                // Highlight boundary load slider
+                sliderLoad.focus();
+            }
+
+            draw();
+        }
+
+        // Squeeze limit simulation animation
+        function triggerLimitAnimation() {
+            if (isAnimatingLimit) return;
+            isAnimatingLimit = true;
+            setActiveStep(3); // Direct to Step 3 limit card
+
+            let startDy = parseFloat(sliderSliceDy.value);
+            const targetDy = 0.05;
+            const steps = 30;
+            let currentFrame = 0;
+
+            function animate() {
+                if (currentFrame < steps) {
+                    currentFrame++;
+                    const progress = currentFrame / steps;
+                    // Exponential ease-out decay to zero limit
+                    const val = startDy - (startDy - targetDy) * progress;
+                    sliderSliceDy.value = val.toFixed(2);
+                    updatePhysicsFromInputs();
+                    requestAnimationFrame(animate);
+                } else {
+                    isAnimatingLimit = false;
+                    // Automatically transition to step 4 integration
+                    setActiveStep(4);
+                }
+            }
+            animate();
+        }
+
+        // Physics logic sync
+        function updatePhysicsFromInputs() {
+            μ = parseFloat(sliderDensity.value);
+            M_load = parseFloat(sliderLoad.value);
+            g = parseFloat(sliderGravity.value);
+            sliceY = parseFloat(sliderSliceY.value);
+            sliceDy = parseFloat(sliderSliceDy.value);
+
+            // Constraint: ensure element fits within rope length bounds
+            if (sliceY - sliceDy/2 < 0) {
+                sliceY = sliceDy/2;
+                sliderSliceY.value = sliceY;
+            }
+            if (sliceY + sliceDy/2 > L) {
+                sliceY = L - sliceDy/2;
+                sliderSliceY.value = sliceY;
+            }
+
+            // Update user text elements
+            valDensity.innerText = `${μ.toFixed(2)} kg/m`;
+            valLoad.innerText = `${M_load.toFixed(2)} kg`;
+            valGravity.innerText = `${g.toFixed(2)} m/s²`;
+            valSliceY.innerText = `${sliceY.toFixed(2)} m`;
+            valSliceDy.innerText = `${sliceDy.toFixed(2)} m`;
+
+            // Adjust the bottom hanging weight visual mass text
+            visualLoad.style.transform = `scale(${1 + M_load * 0.02})`;
+            visualLoad.innerText = `${M_load.toFixed(1)}kg`;
+
+            calculateAndVerify();
+            draw();
+        }
+
+        // Perform numerical vs analytical comparison
+        function calculateAndVerify() {
+            // Analytical solution: T(y) = (μ * y + M_load) * g
+            const tensionAnalytical = (μ * sliceY + M_load) * g;
+
+            // Numerical integration via discretized summation: T(y) = T(0) + Sum(dm * g)
+            const numStepSize = 0.005; // Fixed computational integration steps
+            let tensionNumerical = M_load * g; // Boundary condition initial state at y = 0
+            
+            for (let currentY = 0; currentY < sliceY; currentY += numStepSize) {
+                // mass of tiny slice
+                const dm = μ * numStepSize;
+                tensionNumerical += dm * g;
+            }
+
+            // Apply outputs to real-time solver display cards
+            analyticalValDisplay.innerText = `${tensionAnalytical.toFixed(2)} N`;
+            numericalValDisplay.innerText = `${tensionNumerical.toFixed(2)} N`;
+
+            // Percent discrepancy
+            const diff = Math.abs(tensionAnalytical - tensionNumerical);
+            const percentError = tensionAnalytical > 0 ? (diff / tensionAnalytical) * 100 : 0;
+            
+            discrepancyDisplay.innerText = `${percentError.toFixed(3)}%`;
+            if (percentError < 0.05) {
+                discrepancyDisplay.className = "text-2xl font-black text-emerald-400 my-1 font-mono";
+            } else {
+                discrepancyDisplay.className = "text-2xl font-black text-amber-400 my-1 font-mono";
+            }
+        }
+
+        // Responsive Canvas setup
+        function resizeCanvas() {
+            // Dynamic high-DPI scaling
+            const dpr = window.devicePixelRatio || 1;
+            
+            // Setup Rope Canvas
+            const rectR = canvasRope.getBoundingClientRect();
+            canvasRope.width = rectR.width * dpr;
+            canvasRope.height = rectR.height * dpr;
+            ctxRope.scale(dpr, dpr);
+
+            // Setup FBD Canvas
+            const rectF = canvasFbd.getBoundingClientRect();
+            canvasFbd.width = rectF.width * dpr;
+            canvasFbd.height = rectF.height * dpr;
+            ctxFbd.scale(dpr, dpr);
+
+            draw();
+        }
+
+        // Drawing central router
+        function draw() {
+            drawRopeCanvas();
+            drawFbdCanvas();
+        }
+
+        // Render the physical rope visual representation
+        function drawRopeCanvas() {
+            const width = canvasRope.width / (window.devicePixelRatio || 1);
+            const height = canvasRope.height / (window.devicePixelRatio || 1);
+            ctxRope.clearRect(0, 0, width, height);
+
+            const xPos = width / 2;
+            const topY = 30;
+            const bottomY = height - 30;
+            const ropeHeight = bottomY - topY;
+
+            // Coordinate conversion functions (from physical meters to canvas pixels)
+            // Physical bottom (y=0) is at bottomY, ceiling (y=L) is at topY
+            function physToPixelY(physY) {
+                return bottomY - (physY / L) * ropeHeight;
+            }
+
+            // Draw ceiling mount anchor
+            ctxRope.fillStyle = '#475569';
+            ctxRope.fillRect(xPos - 30, topY - 10, 60, 10);
+            ctxRope.strokeStyle = '#334155';
+            ctxRope.lineWidth = 2;
+            ctxRope.strokeRect(xPos - 30, topY - 10, 60, 10);
+
+            // Draw whole rope with a subtle multi-color tension gradient (top is red/heavy tension, bottom is green/light tension)
+            const gradient = ctxRope.createLinearGradient(xPos, topY, xPos, bottomY);
+            // Calculate real Tension values at bottom & top to map visual colors
+            const topTension = (μ * L + M_load) * g;
+            const bottomTension = M_load * g;
+            
+            // Color map helper
+            function getTensionColor(tension) {
+                // normalize tension scale for visualization (max normal scale ~ 300N)
+                const maxExpected = 250;
+                const norm = Math.min(tension / maxExpected, 1.0);
+                // blend green (low tension) to amber/red (high tension)
+                const r = Math.floor(100 + norm * 155);
+                const gColor = Math.floor(200 - norm * 150);
+                const b = Math.floor(100 - norm * 50);
+                return `rgb(${r}, ${gColor}, ${b})`;
+            }
+
+            gradient.addColorStop(0, getTensionColor(topTension)); // Top Tension (y = L)
+            gradient.addColorStop(1, getTensionColor(bottomTension)); // Bottom Tension (y = 0)
+
+            ctxRope.strokeStyle = gradient;
+            ctxRope.lineWidth = 6 + (μ * 2); // thicker mass density = thicker rope line
+            ctxRope.lineCap = 'round';
+            ctxRope.beginPath();
+            ctxRope.moveTo(xPos, topY);
+            ctxRope.lineTo(xPos, bottomY);
+            ctxRope.stroke();
+
+            // Highlight the selected element (arbitrary slice Δm)
+            const sliceMinY = sliceY - sliceDy / 2;
+            const sliceMaxY = sliceY + sliceDy / 2;
+
+            const pixelSliceTop = physToPixelY(sliceMaxY);
+            const pixelSliceBottom = physToPixelY(sliceMinY);
+
+            // Glowing indicator highlights on active element
+            ctxRope.save();
+            ctxRope.strokeStyle = '#f59e0b'; // Amber glow
+            ctxRope.lineWidth = (6 + (μ * 2)) + 6;
+            ctxRope.shadowColor = '#f59e0b';
+            ctxRope.shadowBlur = 10;
+            ctxRope.lineCap = 'square';
+            ctxRope.beginPath();
+            ctxRope.moveTo(xPos, pixelSliceTop);
+            ctxRope.lineTo(xPos, pixelSliceBottom);
+            ctxRope.stroke();
+            ctxRope.restore();
+
+            // Text tag for arbitrary element mass (Δm) next to rope
+            ctxRope.fillStyle = '#f59e0b';
+            ctxRope.font = 'bold 11px JetBrains Mono, monospace';
+            ctxRope.textAlign = 'left';
+            const textY = (pixelSliceTop + pixelSliceBottom) / 2;
+            ctxRope.fillText(`Δm = ${(μ * sliceDy).toFixed(2)} kg`, xPos + 25, textY + 3);
+
+            // Horizontal measurement lines for boundaries of slice element
+            ctxRope.strokeStyle = 'rgba(245, 158, 11, 0.4)';
+            ctxRope.lineWidth = 1;
+            ctxRope.setLineDash([2, 2]);
+            // top line of slice
+            ctxRope.beginPath();
+            ctxRope.moveTo(xPos - 40, pixelSliceTop);
+            ctxRope.lineTo(xPos + 20, pixelSliceTop);
+            ctxRope.stroke();
+            // bottom line of slice
+            ctxRope.beginPath();
+            ctxRope.moveTo(xPos - 40, pixelSliceBottom);
+            ctxRope.lineTo(xPos + 20, pixelSliceBottom);
+            ctxRope.stroke();
+            ctxRope.setLineDash([]);
+
+            // Label the vertical bounds of our slice element
+            ctxRope.fillStyle = '#94a3b8';
+            ctxRope.font = '9px JetBrains Mono, monospace';
+            ctxRope.textAlign = 'right';
+            ctxRope.fillText(`y + Δy`, xPos - 45, pixelSliceTop + 3);
+            ctxRope.fillText(`y`, xPos - 45, pixelSliceBottom + 3);
+        }
+
+        // Render the magnified Free-Body Diagram of the slice element
+        function drawFbdCanvas() {
+            const width = canvasFbd.width / (window.devicePixelRatio || 1);
+            const height = canvasFbd.height / (window.devicePixelRatio || 1);
+            ctxFbd.clearRect(0, 0, width, height);
+
+            const centerX = width / 2;
+            const centerY = height / 2;
+            const elementHeight = 60;
+            const elementWidth = 100;
+
+            // Draw the analytical & physical forces on the element
+            // Tension up: T(y + Δy)
+            const T_top = (μ * (sliceY + sliceDy/2) + M_load) * g;
+            // Tension down: T(y)
+            const T_bottom = (μ * (sliceY - sliceDy/2) + M_load) * g;
+            // Mass/Weight element: Δm * g
+            const massElement = μ * sliceDy;
+            const weightElement = massElement * g;
+
+            // Scale factor for force vector lengths dynamically
+            const maxForceVal = 300;
+            const minPx = 25;
+            const maxPx = 95;
+            function forceToPixelLength(force) {
+                if (force === 0) return 0;
+                return minPx + (Math.min(force / maxForceVal, 1.0)) * (maxPx - minPx);
+            }
+
+            const lenT_top = forceToPixelLength(T_top);
+            const lenT_bottom = forceToPixelLength(T_bottom);
+            const lenWeight = forceToPixelLength(weightElement);
+
+            // Draw active slice representation block
+            ctxFbd.fillStyle = '#1e1b4b'; // Deep indigo element body
+            ctxFbd.strokeStyle = '#f59e0b'; // Amber outline
+            ctxFbd.lineWidth = 3;
+            ctxFbd.shadowColor = '#f59e0b';
+            ctxFbd.shadowBlur = currentStep === 1 ? 8 : 0; // highlighting based on tutorial step
+            ctxFbd.fillRect(centerX - elementWidth/2, centerY - elementHeight/2, elementWidth, elementHeight);
+            ctxFbd.strokeRect(centerX - elementWidth/2, centerY - elementHeight/2, elementWidth, elementHeight);
+            ctxFbd.shadowBlur = 0;
+
+            // Slice text metadata label inside element block
+            ctxFbd.fillStyle = '#f59e0b';
+            ctxFbd.font = 'bold 11px Inter, sans-serif';
+            ctxFbd.textAlign = 'center';
+            ctxFbd.fillText(`Mass Element`, centerX, centerY - 6);
+            ctxFbd.fillStyle = '#ffffff';
+            ctxFbd.fillText(`Δm = ${massElement.toFixed(2)} kg`, centerX, centerY + 10);
+
+            // Vector drawing helper function
+            function drawForceVector(startX, startY, endX, endY, color, labelText, valueText, isUpward) {
+                ctxFbd.strokeStyle = color;
+                ctxFbd.fillStyle = color;
+                ctxFbd.lineWidth = 3;
+
+                // Main arrow line
+                ctxFbd.beginPath();
+                ctxFbd.moveTo(startX, startY);
+                ctxFbd.lineTo(endX, endY);
+                ctxFbd.stroke();
+
+                // Arrowhead angle pointers
+                const arrowSize = 6;
+                const angle = isUpward ? Math.PI / 2 : -Math.PI / 2;
+                ctxFbd.beginPath();
+                ctxFbd.moveTo(endX, endY);
+                ctxFbd.lineTo(endX - arrowSize * Math.cos(angle - 0.5), endY + arrowSize * Math.sin(angle - 0.5));
+                ctxFbd.lineTo(endX - arrowSize * Math.cos(angle + 0.5), endY + arrowSize * Math.sin(angle + 0.5));
+                ctxFbd.fill();
+
+                // Text Labels positioned nicely alongside vector arrows
+                ctxFbd.font = 'bold 11px Inter, sans-serif';
+                ctxFbd.textAlign = 'left';
+                const textOffset = 10;
+                const labelY = (startY + endY) / 2;
+
+                ctxFbd.fillText(labelText, endX + textOffset, labelY - 2);
+                ctxFbd.fillStyle = '#94a3b8';
+                ctxFbd.font = '10px JetBrains Mono, monospace';
+                ctxFbd.fillText(valueText, endX + textOffset, labelY + 10);
+            }
+
+            // Draw upward tension: T(y + Δy)
+            if (T_top > 0) {
+                const upStartY = centerY - elementHeight/2;
+                const upEndY = upStartY - lenT_top;
+                drawForceVector(
+                    centerX, upStartY, 
+                    centerX, upEndY, 
+                    '#10b981', // Emerald Upward Force
+                    'T(y + Δy)', `${T_top.toFixed(1)} N`, true
+                );
+            }
+
+            // Draw downward tension: T(y)
+            if (T_bottom > 0) {
+                const downStartY = centerY + elementHeight/2;
+                const downEndY = downStartY + lenT_bottom;
+                drawForceVector(
+                    centerX - 15, downStartY, 
+                    centerX - 15, downEndY, 
+                    '#f43f5e', // Rose Downward Drag Force
+                    'T(y)', `${T_bottom.toFixed(1)} N`, false
+                );
+            }
+
+            // Draw downward weight force: Δm * g
+            if (weightElement > 0) {
+                const weightStartY = centerY + elementHeight/2;
+                const weightEndY = weightStartY + lenWeight;
+                drawForceVector(
+                    centerX + 15, weightStartY, 
+                    centerX + 15, weightEndY, 
+                    '#f59e0b', // Amber Gravity/Weight Vector
+                    'Δm · g', `${weightElement.toFixed(1)} N`, false
+                );
+            }
+        }
+
+        // Drag interaction on Rope Canvas to smoothly change slide position
+        let isDraggingRope = false;
+
+        function handleDragMove(clientY) {
+            const rect = canvasRope.getBoundingClientRect();
+            const clickY = clientY - rect.top;
+            const topBoundary = 30;
+            const bottomBoundary = rect.height - 30;
+            const ropeRange = bottomBoundary - topBoundary;
+
+            // Interpolate click vertical position to physical height y [0 to L]
+            let relativeY = (bottomBoundary - clickY) / ropeRange;
+            relativeY = Math.max(0, Math.min(1, relativeY)); // clamp [0, 1]
+            
+            let targetY = relativeY * L;
+            
+            // Constrain within physical bounds allowing room for Δy size
+            const minBound = sliceDy / 2;
+            const maxBound = L - sliceDy / 2;
+            targetY = Math.max(minBound, Math.min(maxBound, targetY));
+
+            sliderSliceY.value = targetY.toFixed(2);
+            updatePhysicsFromInputs();
+        }
+
+        canvasRope.addEventListener('mousedown', (e) => {
+            isDraggingRope = true;
+            handleDragMove(e.clientY);
+        });
+
+        window.addEventListener('mousemove', (e) => {
+            if (isDraggingRope) {
+                handleDragMove(e.clientY);
+            }
+        });
+
+        window.addEventListener('mouseup', () => {
+            isDraggingRope = false;
+        });
+
+        // Touch support for tablets/mobile phones
+        canvasRope.addEventListener('touchstart', (e) => {
+            if (e.touches.length > 0) {
+                isDraggingRope = true;
+                handleDragMove(e.touches[0].clientY);
+            }
+        });
+
+        canvasRope.addEventListener('touchmove', (e) => {
+            if (isDraggingRope && e.touches.length > 0) {
+                handleDragMove(e.touches[0].clientY);
+                e.preventDefault(); // prevent natural page scroll while playing
+            }
+        });
+
+        canvasRope.addEventListener('touchend', () => {
+            isDraggingRope = false;
+        });
+
+        // Set slider dynamic change events
+        [sliderDensity, sliderLoad, sliderGravity, sliderSliceY, sliderSliceDy].forEach(slider => {
+            slider.addEventListener('input', updatePhysicsFromInputs);
+        });
+
+        // Initial setup on window load
+        window.addEventListener('resize', resizeCanvas);
+        window.onload = function() {
+            resizeCanvas();
+            updatePhysicsFromInputs();
+            setActiveStep(1); // load default starting step
+        };
+    </script>
+</body>
+</html>

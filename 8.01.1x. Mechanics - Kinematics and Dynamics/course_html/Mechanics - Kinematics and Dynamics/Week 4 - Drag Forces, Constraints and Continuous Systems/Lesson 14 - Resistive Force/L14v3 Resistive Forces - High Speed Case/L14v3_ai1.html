@@ -1,0 +1,1059 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Quadratic Drag Physics Masterclass</title>
+    <!-- Tailwind CSS for modern responsive styling -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;500;700&display=swap" rel="stylesheet">
+    <style>
+        body {
+            font-family: 'Inter', sans-serif;
+        }
+        .math-font {
+            font-family: 'Georgia', serif;
+        }
+        .code-font {
+            font-family: 'JetBrains Mono', monospace;
+        }
+        /* Custom scrollbar for derivation panel */
+        ::-webkit-scrollbar {
+            width: 6px;
+        }
+        ::-webkit-scrollbar-track {
+            background: #1e293b;
+        }
+        ::-webkit-scrollbar-thumb {
+            background: #475569;
+            border-radius: 3px;
+        }
+        ::-webkit-scrollbar-thumb:hover {
+            background: #64748b;
+        }
+    </style>
+</head>
+<body class="bg-slate-950 text-slate-100 min-h-screen flex flex-col overflow-x-hidden selection:bg-indigo-500 selection:text-white">
+
+    <!-- Header -->
+    <header class="border-b border-slate-800 bg-slate-900/80 backdrop-blur sticky top-0 z-50 px-4 py-3 lg:px-8">
+        <div class="max-w-7xl mx-auto flex flex-col md:flex-row md:items-center md:justify-between gap-4">
+            <div>
+                <div class="flex items-center gap-2">
+                    <span class="px-2.5 py-1 text-xs font-semibold bg-indigo-500/10 text-indigo-400 rounded-full border border-indigo-500/20">Advanced Mechanics</span>
+                    <span class="text-xs text-emerald-400 font-medium flex items-center gap-1">
+                        <span class="w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></span> Dynamic Solver Active
+                    </span>
+                </div>
+                <h1 class="text-xl md:text-2xl font-extrabold tracking-tight mt-1 bg-gradient-to-r from-white via-slate-200 to-indigo-400 bg-clip-text text-transparent">
+                    Quadratic Drag & Nonlinear Equations of Motion
+                </h1>
+            </div>
+            <!-- Preset controls and fast-glance variables -->
+            <div class="flex flex-wrap items-center gap-2">
+                <span class="text-xs text-slate-400 mr-1 font-medium">Select Environment:</span>
+                <button onclick="applyPreset('skydiver')" class="px-3 py-1.5 text-xs font-semibold rounded-lg bg-slate-800 hover:bg-slate-700 text-slate-200 transition border border-slate-700">🪂 Skydiver</button>
+                <button onclick="applyPreset('feather')" class="px-3 py-1.5 text-xs font-semibold rounded-lg bg-slate-800 hover:bg-slate-700 text-slate-200 transition border border-slate-700">🪶 Feather</button>
+                <button onclick="applyPreset('cannonball')" class="px-3 py-1.5 text-xs font-semibold rounded-lg bg-slate-800 hover:bg-slate-700 text-slate-200 transition border border-slate-700">☄️ Heavy Sphere</button>
+                <button onclick="applyPreset('jupiter')" class="px-3 py-1.5 text-xs font-semibold rounded-lg bg-indigo-900/40 hover:bg-indigo-900/60 text-indigo-300 border border-indigo-500/30 transition">🪐 Jupiter Drop</button>
+            </div>
+        </div>
+    </header>
+
+    <!-- Main Interactive Dashboard -->
+    <main class="flex-1 max-w-7xl w-full mx-auto px-4 py-6 lg:px-8 grid grid-cols-1 lg:grid-cols-12 gap-6 items-start">
+        
+        <!-- LEFT COLUMN: Simulator, Physics Parameters & Realtime Plotter (5/12 widths) -->
+        <section class="lg:col-span-5 flex flex-col gap-6">
+            
+            <!-- Dynamic Simulator Box -->
+            <div class="bg-slate-900 rounded-2xl border border-slate-800 overflow-hidden shadow-2xl flex flex-col">
+                <!-- Visualizer Header -->
+                <div class="bg-slate-950 px-4 py-3 border-b border-slate-800 flex items-center justify-between">
+                    <h2 class="text-sm font-bold uppercase tracking-wider text-slate-400 flex items-center gap-2">
+                        <span class="w-2.5 h-2.5 rounded bg-indigo-500"></span> 2D Visualizer & Force Vector Display
+                    </h2>
+                    <span id="sim-status-badge" class="text-xs bg-amber-500/10 text-amber-400 px-2 py-0.5 rounded border border-amber-500/20">At Rest</span>
+                </div>
+
+                <!-- Simulation Viewport -->
+                <div class="relative bg-gradient-to-b from-slate-950 via-slate-900 to-slate-950 h-[320px] w-full overflow-hidden flex items-center justify-center">
+                    
+                    <!-- Altitude Grid Background lines -->
+                    <div class="absolute inset-0 flex flex-col justify-between opacity-10 pointer-events-none text-[10px] p-2 select-none">
+                        <div class="border-b border-slate-400 w-full pt-4">300m</div>
+                        <div class="border-b border-slate-400 w-full">200m</div>
+                        <div class="border-b border-slate-400 w-full">100m</div>
+                        <div class="w-full">Ground Level (0m)</div>
+                    </div>
+
+                    <!-- Side Particle / Air stream lines moving up dynamically when speed > 0 -->
+                    <div id="air-flow" class="absolute inset-0 pointer-events-none opacity-30">
+                        <!-- Simulated streaming lines injected via JS -->
+                    </div>
+
+                    <!-- Main Falling Physics Object Container -->
+                    <div id="falling-object-container" class="absolute top-12 transition-transform duration-75">
+                        <!-- Falling body (sphere) -->
+                        <div id="falling-body" class="w-14 h-14 rounded-full bg-gradient-to-tr from-indigo-600 to-indigo-400 shadow-[0_0_25px_rgba(99,102,241,0.5)] flex items-center justify-center border-2 border-indigo-300 relative">
+                            <span class="text-xs font-extrabold text-white" id="live-mass-badge">2.0 kg</span>
+                            
+                            <!-- Force Vector Gravitational Force (Fg) - Downward Arrow -->
+                            <div id="vector-fg" class="absolute top-full left-1/2 -translate-x-1/2 w-1.5 bg-red-500 origin-top flex flex-col items-center shadow-lg transition-all duration-75" style="height: 60px;">
+                                <div class="w-3 h-3 bg-red-500 rotate-45 transform origin-center absolute bottom-0 translate-y-1"></div>
+                                <span class="absolute top-4 left-3 text-[10px] font-bold text-red-400 whitespace-nowrap bg-slate-950/80 px-1 py-0.5 rounded">F_g = m·g</span>
+                            </div>
+
+                            <!-- Force Vector Drag Resistance (Fd) - Upward Arrow -->
+                            <div id="vector-fd" class="absolute bottom-full left-1/2 -translate-x-1/2 w-1.5 bg-cyan-400 origin-bottom flex flex-col items-center shadow-lg transition-all duration-75" style="height: 0px;">
+                                <div class="w-3 h-3 bg-cyan-400 rotate-45 transform origin-center absolute top-0 -translate-y-1"></div>
+                                <span class="absolute bottom-4 left-3 text-[10px] font-bold text-cyan-300 whitespace-nowrap bg-slate-950/80 px-1 py-0.5 rounded">F_d = β·v²</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Impact dust effect elements -->
+                    <div id="impact-glow" class="absolute bottom-0 inset-x-0 h-8 bg-indigo-500/20 filter blur-xl opacity-0 transition-opacity"></div>
+                </div>
+
+                <!-- Live readout stats panel -->
+                <div class="grid grid-cols-4 bg-slate-950 border-t border-slate-800 text-center divide-x divide-slate-800 py-3">
+                    <div>
+                        <div class="text-[10px] font-semibold text-slate-400 uppercase tracking-wider">Velocity</div>
+                        <div class="text-lg font-bold code-font text-indigo-300 mt-0.5" id="live-vel">0.00 <span class="text-xs font-normal">m/s</span></div>
+                    </div>
+                    <div>
+                        <div class="text-[10px] font-semibold text-slate-400 uppercase tracking-wider">Drag Force</div>
+                        <div class="text-lg font-bold code-font text-cyan-300 mt-0.5" id="live-drag">0.00 <span class="text-xs font-normal">N</span></div>
+                    </div>
+                    <div>
+                        <div class="text-[10px] font-semibold text-slate-400 uppercase tracking-wider">Net Accel</div>
+                        <div class="text-lg font-bold code-font text-rose-400 mt-0.5" id="live-accel">9.81 <span class="text-xs font-normal">m/s²</span></div>
+                    </div>
+                    <div>
+                        <div class="text-[10px] font-semibold text-slate-400 uppercase tracking-wider">Altitude</div>
+                        <div class="text-lg font-bold code-font text-emerald-400 mt-0.5" id="live-alt">300.0 <span class="text-xs font-normal">m</span></div>
+                    </div>
+                </div>
+
+                <!-- Simulator Control Dashboard (Play/Pause, Reset, Speed Modifier) -->
+                <div class="p-4 bg-slate-900 border-t border-slate-800 flex flex-col gap-3">
+                    <div class="flex items-center gap-2">
+                        <button id="btn-play-pause" onclick="toggleSim()" class="flex-1 py-2 px-4 rounded-xl font-bold bg-indigo-600 hover:bg-indigo-500 text-white transition shadow-lg shadow-indigo-600/20 active:scale-[0.98] flex items-center justify-center gap-2">
+                            <span id="play-icon">▶</span> <span id="play-text">Drop Object</span>
+                        </button>
+                        <button onclick="resetSim()" class="py-2 px-4 rounded-xl font-bold bg-slate-800 hover:bg-slate-700 text-slate-300 border border-slate-700 transition active:scale-[0.98]">
+                            🔄 Reset
+                        </button>
+                    </div>
+
+                    <!-- Time & Realtime scaling -->
+                    <div class="flex justify-between items-center text-xs text-slate-400">
+                        <span class="flex items-center gap-1">Simulation Clock: <strong id="sim-clock" class="code-font text-white">0.00s</strong></span>
+                        <div class="flex items-center gap-2">
+                            <span>Time scale:</span>
+                            <select id="time-scale" onchange="setTimeScale(this.value)" class="bg-slate-950 border border-slate-800 rounded px-1.5 py-0.5 text-xs text-white">
+                                <option value="1">1.0x Realtime</option>
+                                <option value="0.5">0.5x Slow-mo</option>
+                                <option value="0.25">0.25x High-precision</option>
+                            </select>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Physical Parameters Adjustments Box -->
+            <div class="bg-slate-900 rounded-2xl border border-slate-800 p-5 shadow-xl flex flex-col gap-4">
+                <h3 class="text-sm font-bold uppercase tracking-wider text-slate-400 flex items-center gap-2">
+                    🔧 Tuning & Coefficients Parameters
+                </h3>
+                
+                <!-- Mass m Slider -->
+                <div class="space-y-1.5">
+                    <div class="flex justify-between text-xs">
+                        <span class="text-slate-300 font-medium">Mass (m)</span>
+                        <span class="code-font text-indigo-400 font-bold" id="val-mass">2.0 kg</span>
+                    </div>
+                    <input type="range" id="input-mass" min="0.1" max="15.0" step="0.1" value="2.0" oninput="updateParam('mass', this.value)" class="w-full accent-indigo-500 bg-slate-950 h-2 rounded-lg cursor-pointer">
+                    <p class="text-[10px] text-slate-500 leading-relaxed">Increasing mass expands terminal velocity because the downward force increases relative to cross-sectional drag.</p>
+                </div>
+
+                <!-- Gravity g Slider -->
+                <div class="space-y-1.5">
+                    <div class="flex justify-between text-xs">
+                        <span class="text-slate-300 font-medium">Gravity Constant (g)</span>
+                        <span class="code-font text-rose-400 font-bold" id="val-gravity">9.81 m/s²</span>
+                    </div>
+                    <input type="range" id="input-gravity" min="1.0" max="25.0" step="0.1" value="9.81" oninput="updateParam('gravity', this.value)" class="w-full accent-rose-500 bg-slate-950 h-2 rounded-lg cursor-pointer">
+                    <p class="text-[10px] text-slate-500 leading-relaxed">Represents gravitational field acceleration strength. Changes initial acceleration linearly.</p>
+                </div>
+
+                <!-- Drag Coefficient Beta Slider -->
+                <div class="space-y-1.5">
+                    <div class="flex justify-between text-xs">
+                        <span class="text-slate-300 font-medium">Drag Coefficient (β)</span>
+                        <span class="code-font text-cyan-400 font-bold" id="val-beta">0.15 kg/m</span>
+                    </div>
+                    <input type="range" id="input-beta" min="0.01" max="2.0" step="0.01" value="0.15" oninput="updateParam('beta', this.value)" class="w-full accent-cyan-400 bg-slate-950 h-2 rounded-lg cursor-pointer">
+                    <p class="text-[10px] text-slate-500 leading-relaxed">Accounts for air density, object geometry cross-section, and fluid turbulence. Governs the drag scale.</p>
+                </div>
+            </div>
+
+            <!-- Real-time Plotter Card -->
+            <div class="bg-slate-900 rounded-2xl border border-slate-800 p-5 shadow-xl flex flex-col">
+                <div class="flex items-center justify-between mb-3">
+                    <h3 class="text-sm font-bold uppercase tracking-wider text-slate-400">
+                        📈 Real-time Velocity Comparison Plot
+                    </h3>
+                    <div class="flex gap-2 text-[10px]">
+                        <span class="flex items-center gap-1 text-indigo-400"><span class="w-2 h-2 rounded bg-indigo-500"></span> Quadratic (v²)</span>
+                        <span class="flex items-center gap-1 text-teal-400"><span class="w-2 h-2 rounded bg-teal-500"></span> Linear (v)</span>
+                        <span class="flex items-center gap-1 text-rose-400"><span class="w-2 h-2 rounded bg-rose-500"></span> Zero Drag</span>
+                    </div>
+                </div>
+                <!-- Interactive Plotting Canvas -->
+                <div class="relative bg-slate-950 rounded-xl overflow-hidden border border-slate-800 p-1 flex-1 min-h-[180px]">
+                    <canvas id="plot-canvas" class="w-full h-full block"></canvas>
+                </div>
+                <div class="mt-2 text-[10px] text-slate-400 text-center leading-relaxed">
+                    Compare the trajectory profiles. Observe how the <strong>Quadratic Drag Curve (Purple)</strong> asymptotes rapidly to terminal speed, unlike pure gravity (Red) or linear resistance (Green).
+                </div>
+            </div>
+
+        </section>
+
+        <!-- RIGHT COLUMN: Pedagogical Panel (7/12 widths) -->
+        <section class="lg:col-span-7 flex flex-col gap-6">
+            
+            <!-- Key Highlight Overview Panel -->
+            <div class="bg-gradient-to-r from-indigo-900/40 via-purple-950/20 to-slate-900 rounded-2xl border border-indigo-500/20 p-5 shadow-xl flex flex-col md:flex-row gap-5 items-center">
+                <div class="bg-indigo-500/10 border border-indigo-500/30 p-3 rounded-xl text-indigo-300 text-3xl shrink-0">
+                    🔬
+                </div>
+                <div class="space-y-1">
+                    <h4 class="font-bold text-white text-base">Expert Mathematical Intuition Hub</h4>
+                    <p class="text-xs text-slate-300 leading-relaxed">
+                        When an object falls in air at high speed, turbulence causes drag force to scale quadratically with velocity (<strong class="text-cyan-400">F_d = -β v²</strong>). This triggers a highly non-linear differential equation. Dive into the mathematical derivation tabs below to learn how we crack it!
+                    </p>
+                </div>
+            </div>
+
+            <!-- Tabbed Pedagogical Derivation Panel -->
+            <div class="bg-slate-900 rounded-2xl border border-slate-800 shadow-2xl overflow-hidden">
+                <!-- Tabs Selector -->
+                <div class="flex border-b border-slate-800 overflow-x-auto bg-slate-950 select-none">
+                    <button id="tab-btn-1" onclick="setActiveTab(1)" class="px-5 py-3 text-xs font-bold border-b-2 border-indigo-500 text-indigo-400 whitespace-nowrap transition">
+                        1. Dimensional Analysis
+                    </button>
+                    <button id="tab-btn-2" onclick="setActiveTab(2)" class="px-5 py-3 text-xs font-bold border-b-2 border-transparent text-slate-400 hover:text-slate-200 whitespace-nowrap transition">
+                        2. The Diff EQ
+                    </button>
+                    <button id="tab-btn-3" onclick="setActiveTab(3)" class="px-5 py-3 text-xs font-bold border-b-2 border-transparent text-slate-400 hover:text-slate-200 whitespace-nowrap transition">
+                        3. Variable Separation
+                    </button>
+                    <button id="tab-btn-4" onclick="setActiveTab(4)" class="px-5 py-3 text-xs font-bold border-b-2 border-transparent text-slate-400 hover:text-slate-200 whitespace-nowrap transition">
+                        4. Substitution Integral
+                    </button>
+                    <button id="tab-btn-5" onclick="setActiveTab(5)" class="px-5 py-3 text-xs font-bold border-b-2 border-transparent text-slate-400 hover:text-slate-200 whitespace-nowrap transition">
+                        5. Final v(t) & V_term
+                    </button>
+                </div>
+
+                <!-- Tab Content 1 -->
+                <div id="tab-content-1" class="p-6 space-y-5">
+                    <div class="flex items-center justify-between border-b border-slate-800 pb-3">
+                        <h3 class="text-base font-bold text-white">Evaluating the Units of Drag Coefficient β</h3>
+                        <span class="text-xs text-slate-400">Step 1 of 5</span>
+                    </div>
+                    <p class="text-sm text-slate-300 leading-relaxed">
+                        Before attempting to solve complex integration, we must inspect the physical meaning of our drag coefficient. The model dictates that the resistive drag force is:
+                    </p>
+                    
+                    <!-- Styled Unicode Equation Container -->
+                    <div class="bg-slate-950 p-4 rounded-xl border border-slate-800 text-center flex flex-col gap-1 items-center justify-center">
+                        <div class="text-cyan-400 font-bold text-lg math-font tracking-wide">
+                            F_drag = -β · v²
+                        </div>
+                        <div class="text-[10px] text-slate-400">Quadratic Drag Law for Newtonian fluid flow regimes</div>
+                    </div>
+
+                    <p class="text-sm text-slate-300 leading-relaxed">
+                        Solving directly for the units of coefficient <strong class="text-cyan-400">β</strong>:
+                    </p>
+
+                    <div class="bg-slate-950/60 p-5 rounded-xl border border-slate-800 space-y-4">
+                        <div class="flex items-center justify-between text-xs text-slate-400">
+                            <span>Step-by-step Unit Balance:</span>
+                            <span class="font-bold text-indigo-400">SI Units System</span>
+                        </div>
+                        
+                        <!-- Mathematical flow using beautiful styled HTML and unicode -->
+                        <div class="flex flex-col gap-3 items-center text-sm font-medium">
+                            <div class="flex items-center gap-2">
+                                <span class="text-slate-400">[ β ] =</span>
+                                <span class="bg-slate-900 border border-slate-800 px-2 py-1 rounded">[ Force ] / [ Velocity² ]</span>
+                            </div>
+                            <div class="text-xs text-slate-500">⇣ Substituing standard SI dimensional units ⇣</div>
+                            <div class="flex items-center gap-2">
+                                <span class="text-slate-400">[ β ] =</span>
+                                <div class="flex flex-col items-center">
+                                    <span class="border-b border-slate-700 pb-0.5">kg · m / s²</span>
+                                    <span class="pt-0.5">m² / s²</span>
+                                </div>
+                            </div>
+                            <div class="text-xs text-emerald-500 font-semibold">✓ Note how s² (seconds squared) cancels out completely!</div>
+                            <div class="flex items-center gap-2 bg-slate-900 border border-slate-800 px-3 py-1.5 rounded-lg text-emerald-400">
+                                <span class="text-slate-300 font-bold">[ β ] =</span>
+                                <span class="font-bold">kg / m (Kilograms per Meter)</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Dynamic sandbox display -->
+                    <div class="bg-indigo-950/30 rounded-xl p-4 border border-indigo-500/20 space-y-2">
+                        <h4 class="text-xs font-bold text-indigo-300 uppercase tracking-wide">Live Math Parameter Coupling</h4>
+                        <p class="text-xs text-slate-300">
+                            Under the current active parameters, <strong>β = <span class="curr-beta text-cyan-400 font-semibold">0.15</span> kg/m</strong>. This means for every single meter our falling object drops, it interacts dynamically with air particles offering density scale properties proportional to this value.
+                        </p>
+                    </div>
+                </div>
+
+                <!-- Tab Content 2 -->
+                <div id="tab-content-2" class="p-6 space-y-5 hidden">
+                    <div class="flex items-center justify-between border-b border-slate-800 pb-3">
+                        <h3 class="text-base font-bold text-white">Constructing Newton's 2nd Law Differential Equation</h3>
+                        <span class="text-xs text-slate-400">Step 2 of 5</span>
+                    </div>
+                    <p class="text-sm text-slate-300 leading-relaxed">
+                        We represent the one-dimensional downward vertical motion of the mass under the force of gravity and quadratic resistance. Downward is positive for clarity:
+                    </p>
+
+                    <!-- Beautiful HTML Equation representation -->
+                    <div class="bg-slate-950 p-4 rounded-xl border border-slate-800 flex flex-col gap-2 items-center text-center">
+                        <div class="text-xs text-slate-400 font-semibold uppercase tracking-wider">Net Forces Formulation</div>
+                        <div class="text-lg math-font flex items-center gap-2 font-bold">
+                            <span class="text-indigo-400">Σ F = F_gravity - F_drag</span>
+                            <span class="text-slate-500">=</span>
+                            <span class="text-emerald-400">m·g - β·v²</span>
+                        </div>
+                    </div>
+
+                    <p class="text-sm text-slate-300 leading-relaxed">
+                        Applying Newton's second law (<strong class="text-slate-200">Σ F = m · a</strong>), and rewriting acceleration as the derivative of velocity over time (<strong class="text-slate-200">a = dv / dt</strong>):
+                    </p>
+
+                    <div class="bg-slate-950/60 p-4 rounded-xl border border-slate-800 flex flex-col items-center justify-center gap-3">
+                        <div class="flex items-center gap-3 math-font text-base font-bold text-indigo-300">
+                            <span>m · (dv/dt) = m·g - β·v²</span>
+                        </div>
+                        <div class="text-xs text-slate-500">Divide through by mass (m) to isolate the derivative term:</div>
+                        <div class="bg-indigo-900/10 border border-indigo-500/20 px-4 py-2 rounded-xl text-center">
+                            <div class="text-lg math-font text-indigo-200 font-bold tracking-wide">
+                                dv/dt = g - (β/m) · v²
+                            </div>
+                        </div>
+                        <span class="text-xs text-rose-400 font-bold bg-rose-500/10 border border-rose-500/20 px-2 py-1 rounded">
+                            ⚠️ This is a First-Order, NON-LINEAR Differential Equation
+                        </span>
+                    </div>
+
+                    <!-- Critical intuition card -->
+                    <div class="bg-slate-800/80 p-4 rounded-xl border border-slate-700 space-y-2">
+                        <div class="flex items-center gap-2 text-amber-400 text-xs font-bold">
+                            <span>💡 Critical Conceptual Insight</span>
+                        </div>
+                        <p class="text-xs text-slate-300 leading-relaxed">
+                            Unlike simpler linear air resistance models, the velocity term in this ODE appears as a square (<strong class="text-cyan-400">v²</strong>). This means that as speed doubles, resisting force quadruples! This rapid force surge drives the system to terminal equilibrium much quicker than linear drag models.
+                        </p>
+                    </div>
+                </div>
+
+                <!-- Tab Content 3 -->
+                <div id="tab-content-3" class="p-6 space-y-5 hidden">
+                    <div class="flex items-center justify-between border-b border-slate-800 pb-3">
+                        <h3 class="text-base font-bold text-white">Applying the Method of Separation of Variables</h3>
+                        <span class="text-xs text-slate-400">Step 3 of 5</span>
+                    </div>
+                    <p class="text-sm text-slate-300 leading-relaxed">
+                        To solve the non-linear equation, we group all terms containing velocity (<strong class="text-indigo-400">v</strong>) on the left side, and time variable (<strong class="text-slate-200">dt</strong>) on the right:
+                    </p>
+
+                    <!-- Step-by-step math layout -->
+                    <div class="bg-slate-950 p-5 rounded-xl border border-slate-800 space-y-4 text-center">
+                        <div class="flex flex-col items-center gap-1">
+                            <span class="text-[10px] text-slate-400 uppercase tracking-widest">Recalling our Diff EQ</span>
+                            <span class="text-sm font-semibold code-font text-slate-300">dv/dt = g - (β/m)·v²</span>
+                        </div>
+
+                        <div class="text-xs text-slate-500">Divide the entire right-hand side group over to the left side:</div>
+                        
+                        <!-- Fraction display -->
+                        <div class="flex items-center justify-center gap-3 text-base font-bold math-font">
+                            <div class="flex flex-col items-center">
+                                <span class="border-b border-slate-700 pb-1 px-3">dv</span>
+                                <span class="pt-1 px-2 text-indigo-400">g - (β/m)·v²</span>
+                            </div>
+                            <span class="text-slate-500">=</span>
+                            <span class="text-emerald-400">dt</span>
+                        </div>
+
+                        <div class="text-xs text-slate-500">Factor out gravity (<strong class="text-rose-400">g</strong>) from the denominator to simplify the subsequent substitution:</div>
+
+                        <div class="flex items-center justify-center gap-3 text-base font-bold math-font bg-slate-900 border border-slate-800 p-3 rounded-xl max-w-sm mx-auto">
+                            <div class="flex flex-col items-center">
+                                <span class="border-b border-slate-700 pb-1 px-3">dv</span>
+                                <span class="pt-1 px-2 text-indigo-300">1 - (β / (m·g))·v²</span>
+                            </div>
+                            <span class="text-slate-500">=</span>
+                            <span class="text-rose-400">g · dt</span>
+                        </div>
+                    </div>
+
+                    <!-- Dynamic Value Integration Box -->
+                    <div class="bg-indigo-950/30 p-4 rounded-xl border border-indigo-500/20 space-y-2">
+                        <h4 class="text-xs font-bold text-indigo-300 uppercase tracking-wide">Active Integration Coefficients:</h4>
+                        <div class="grid grid-cols-2 gap-4 text-xs">
+                            <div class="bg-slate-950/60 p-2.5 rounded border border-slate-800">
+                                <span class="text-slate-400 block mb-0.5">Scale coefficient [ β / m·g ]:</span>
+                                <strong id="math-coef-scale" class="code-font text-cyan-400">0.0076 s²/m²</strong>
+                            </div>
+                            <div class="bg-slate-950/60 p-2.5 rounded border border-slate-800">
+                                <span class="text-slate-400 block mb-0.5">Gravity step multiplier [ g ]:</span>
+                                <strong id="math-coef-g" class="code-font text-rose-400">9.81 m/s²</strong>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Tab Content 4 -->
+                <div id="tab-content-4" class="p-6 space-y-5 hidden">
+                    <div class="flex items-center justify-between border-b border-slate-800 pb-3">
+                        <h3 class="text-base font-bold text-white">Variable Substitution & Limits Transformation</h3>
+                        <span class="text-xs text-slate-400">Step 4 of 5</span>
+                    </div>
+                    <p class="text-sm text-slate-300 leading-relaxed">
+                        The left-hand denominator looks like <strong class="text-slate-200">1 - u²</strong> if we introduce a specialized substitute variable. Let's make a change of variable:
+                    </p>
+
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        <div class="bg-slate-950 p-4 rounded-xl border border-slate-800 space-y-2">
+                            <span class="text-xs text-slate-400 font-bold block uppercase tracking-wide">Define Substitution [ u ]</span>
+                            <div class="text-md font-bold text-indigo-300 math-font">
+                                u = √ ( β / (m·g) ) · v
+                            </div>
+                            <p class="text-[11px] text-slate-400 leading-normal">
+                                This groups physical properties mass, gravity, and drag coefficients into a single unified dimensionless ratio.
+                            </p>
+                        </div>
+
+                        <div class="bg-slate-950 p-4 rounded-xl border border-slate-800 space-y-2">
+                            <span class="text-xs text-slate-400 font-bold block uppercase tracking-wide">Differential Derivative [ du ]</span>
+                            <div class="text-md font-bold text-emerald-300 math-font">
+                                du = √ ( β / (m·g) ) · dv
+                            </div>
+                            <p class="text-[11px] text-slate-400 leading-normal">
+                                Rewriting differential term dv in terms of du simplifies the integration step.
+                            </p>
+                        </div>
+                    </div>
+
+                    <p class="text-sm text-slate-300 leading-relaxed">
+                        Substituting this definition into our separated variable integral equations from 0 to current state yields:
+                    </p>
+
+                    <!-- Substitution Integral Formula Block -->
+                    <div class="bg-slate-950 p-5 rounded-xl border border-slate-800 text-center space-y-3">
+                        <div class="text-xs text-slate-400 font-semibold uppercase tracking-wider">The Transformed Calculus Integral</div>
+                        <div class="flex items-center justify-center gap-2 text-base font-bold math-font text-indigo-200">
+                            <span class="text-lg">∫</span> 
+                            <span class="text-xs text-slate-400 -translate-x-1 -translate-y-2">u(t)</span>
+                            <span class="text-xs text-slate-400 -translate-x-2 translate-y-2">0</span>
+                            <div class="flex flex-col items-center">
+                                <span class="border-b border-slate-700 pb-0.5">du</span>
+                                <span class="pt-0.5">1 - u²</span>
+                            </div>
+                            <span class="text-slate-400 mx-2">=</span>
+                            <span class="text-rose-400">√ ( β·g / m )</span>
+                            <span class="text-lg">∫</span>
+                            <span class="text-xs text-slate-400 -translate-x-1 -translate-y-2">t</span>
+                            <span class="text-xs text-slate-400 -translate-x-2 translate-y-2">0</span>
+                            <span class="text-emerald-400">dt</span>
+                        </div>
+                        <p class="text-[11px] text-slate-400">
+                            By utilizing partial fractions, we know that <span class="bg-slate-900 border border-slate-800 text-xs px-2 py-0.5 rounded">∫ du/(1-u²) = ½ ln( (1+u)/(1-u) )</span>.
+                        </p>
+                    </div>
+
+                    <!-- Dynamic parameter feedback -->
+                    <div class="bg-indigo-950/30 p-4 rounded-xl border border-indigo-500/20 text-xs space-y-1">
+                        <div class="font-bold text-indigo-300">Live Equation Status:</div>
+                        <div>Current Substitute <strong class="text-indigo-400">u(t)</strong> evaluated at active speed: <strong id="live-u-val" class="code-font text-white">0.00</strong></div>
+                    </div>
+                </div>
+
+                <!-- Tab Content 5 -->
+                <div id="tab-content-5" class="p-6 space-y-5 hidden">
+                    <div class="flex items-center justify-between border-b border-slate-800 pb-3">
+                        <h3 class="text-base font-bold text-white">The Analytical Closed-Form Solution</h3>
+                        <span class="text-xs text-slate-400">Step 5 of 5</span>
+                    </div>
+                    <p class="text-sm text-slate-300 leading-relaxed">
+                        After evaluating the natural log integral limits, exponentiating both sides, and algebraically isolating velocity <strong class="text-indigo-400">v(t)</strong>, we yield this elegant solution:
+                    </p>
+
+                    <!-- Large final formula display -->
+                    <div class="bg-slate-950 p-5 rounded-2xl border border-indigo-500/20 flex flex-col items-center justify-center gap-3 shadow-inner">
+                        <span class="text-xs font-semibold text-slate-400 uppercase tracking-widest">Velocity as a Function of Time</span>
+                        
+                        <div class="text-lg font-bold math-font text-indigo-300 tracking-wide flex flex-col md:flex-row items-center gap-2">
+                            <span>v(t) = v_term ·</span>
+                            <div class="flex flex-col items-center">
+                                <span class="border-b border-slate-700 pb-1">1 - e^(-t / τ)</span>
+                                <span class="pt-1">1 + e^(-t / τ)</span>
+                            </div>
+                        </div>
+
+                        <!-- Sub-definitions -->
+                        <div class="grid grid-cols-2 gap-4 w-full text-xs border-t border-slate-800/80 pt-4 mt-2">
+                            <div class="text-center">
+                                <div class="text-slate-400 font-semibold mb-1">Terminal Velocity Asymptote (v_term)</div>
+                                <div class="bg-slate-900 border border-slate-800 py-1.5 px-3 rounded-lg font-bold text-cyan-400 math-font">
+                                    v_term = √ ( m·g / β )
+                                </div>
+                            </div>
+                            <div class="text-center">
+                                <div class="text-slate-400 font-semibold mb-1">System Timescale Constant (τ)</div>
+                                <div class="bg-slate-900 border border-slate-800 py-1.5 px-3 rounded-lg font-bold text-emerald-400 math-font">
+                                    τ = ½ √( m / (β·g) )
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Live calculated analytical results dynamically sync'd -->
+                    <div class="bg-slate-950/60 border border-slate-800 rounded-xl p-4 space-y-2">
+                        <div class="text-xs font-bold text-slate-300 uppercase tracking-wider flex items-center justify-between">
+                            <span>Dynamic Calculation Engine Output</span>
+                            <span class="text-[10px] text-emerald-400 font-mono">Status: Connected</span>
+                        </div>
+                        <div class="grid grid-cols-2 gap-3 text-xs font-medium">
+                            <div class="bg-slate-900 p-2.5 rounded border border-slate-800">
+                                <span class="text-slate-400 block mb-0.5">Calculated Terminal Velocity:</span>
+                                <strong id="math-out-vterm" class="code-font text-cyan-300 text-sm">11.44 m/s</strong>
+                            </div>
+                            <div class="bg-slate-900 p-2.5 rounded border border-slate-800">
+                                <span class="text-slate-400 block mb-0.5">Characteristic Timescale (τ):</span>
+                                <strong id="math-out-tau" class="code-font text-emerald-300 text-sm">0.58 seconds</strong>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Expert Physical Verification -->
+                    <div class="bg-indigo-950/20 border border-indigo-500/20 rounded-xl p-4 space-y-2 text-xs">
+                        <h4 class="font-bold text-indigo-300">🔍 Verifying Boundary Limits (Asymptotic Proof)</h4>
+                        <p class="text-slate-300 leading-relaxed">
+                            Let's test the physics boundaries. As time goes to infinity (<strong class="text-slate-200">t → ∞</strong>), the exponential term <strong class="text-emerald-400">e^(-t/τ)</strong> decays completely to zero:
+                        </p>
+                        <div class="font-bold text-center text-sm math-font text-indigo-400 py-1">
+                            v(t → ∞) = v_term · (1 - 0) / (1 + 0) = v_term = √ (m·g / β)
+                        </div>
+                        <p class="text-slate-300 leading-relaxed">
+                            This perfectly mirrors our steady-state algebraic result from setting Newton's 2nd law derivative to zero (<strong class="text-rose-400">dv/dt = 0</strong>), proving our lengthy integration holds flawless physical validity.
+                        </p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- FAQ and Mental Model Builder -->
+            <div class="bg-slate-900 rounded-2xl border border-slate-800 p-6 shadow-xl space-y-4">
+                <h3 class="text-sm font-bold uppercase tracking-wider text-slate-400">
+                    💡 Deep Dive: Conceptual Comparison (Quadratic vs. Linear Drag)
+                </h3>
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div class="space-y-2 border-l-2 border-indigo-500 pl-3">
+                        <h4 class="text-xs font-bold text-indigo-400 uppercase tracking-wide">Quadratic Drag (Current)</h4>
+                        <p class="text-xs text-slate-300 leading-relaxed">
+                            Applies to larger objects moving fast through normal air density (turbulent flow regime). Resistance scales with speed squared. Reaches terminal velocity quickly, stabilizing into a solid constant velocity curve.
+                        </p>
+                    </div>
+                    <div class="space-y-2 border-l-2 border-teal-500 pl-3">
+                        <h4 class="text-xs font-bold text-teal-400 uppercase tracking-wide">Linear Drag</h4>
+                        <p class="text-xs text-slate-300 leading-relaxed">
+                            Typically models small microscopic particles moving in dense viscous fluids (laminar flow regime). Resistance is linearly proportional to speed (<strong class="text-slate-200">F_d = -b·v</strong>). Approach to terminal velocity is slower and more gradual.
+                        </p>
+                    </div>
+                </div>
+            </div>
+
+        </section>
+    </main>
+
+    <!-- Footer -->
+    <footer class="border-t border-slate-900 bg-slate-950/80 py-6 px-4 text-center text-xs text-slate-500 mt-auto">
+        <div class="max-w-7xl mx-auto space-y-1">
+            <p>Designed for Physics Educators and Advanced Mechanics Study Groups. Dynamic calculation engines running in real-time in JS.</p>
+            <p>© 2026 Advanced Mechanical Simulations. Full Analytical and Numeric Sync Enabled.</p>
+        </div>
+    </footer>
+
+    <script>
+        // --- PHYSICS STATE VARIABLES ---
+        let mass = 2.0;       // kg
+        let gravity = 9.81;   // m/s^2
+        let beta = 0.15;      // kg/m
+        let velocity = 0.0;   // m/s
+        let altitude = 300.0; // m
+        let time = 0.0;       // s
+        let isSimRunning = false;
+        let scaleFactor = 1.0; // simulation slow-motion multiplier
+
+        // Graph data containers for tracking values over time
+        let historyQuad = [];
+        let historyLinear = [];
+        let historyZero = [];
+
+        // Animation frame tracker
+        let animFrameId = null;
+        let lastTimestamp = null;
+
+        // Custom canvas graph definitions
+        const plotCanvas = document.getElementById('plot-canvas');
+        const ctxPlot = plotCanvas.getContext('2d');
+
+        // Linear drag equivalent coefficient chosen to match terminal velocity for visual comparison
+        function getLinearB() {
+            // Fg = m*g, Fd = b*v_term => b = m*g/v_term
+            const vterm = Math.sqrt((mass * gravity) / beta);
+            return (mass * gravity) / vterm;
+        }
+
+        // --- DYNAMIC MATH UPDATER ---
+        // Keeps mathematical notations synced with the UI sliders in real-time
+        function syncMathCalculations() {
+            const vterm = Math.sqrt((mass * gravity) / beta);
+            const tau = 0.5 * Math.sqrt(mass / (beta * gravity));
+            const ratioScale = beta / (mass * gravity);
+
+            // Update live readouts on math cards
+            const mathVtermElements = document.querySelectorAll('#math-out-vterm');
+            const mathTauElements = document.querySelectorAll('#math-out-tau');
+            const mathCoefScale = document.getElementById('math-coef-scale');
+            const mathCoefG = document.getElementById('math-coef-g');
+            const currentBetaElements = document.querySelectorAll('.curr-beta');
+            const liveUVal = document.getElementById('live-u-val');
+
+            // Set content
+            mathVtermElements.forEach(el => el.textContent = `${vterm.toFixed(3)} m/s`);
+            mathTauElements.forEach(el => el.textContent = `${tau.toFixed(3)} seconds`);
+            if (mathCoefScale) mathCoefScale.textContent = `${ratioScale.toFixed(5)} s²/m²`;
+            if (mathCoefG) mathCoefG.textContent = `${gravity.toFixed(2)} m/s²`;
+            
+            currentBetaElements.forEach(el => el.textContent = beta.toFixed(2));
+
+            // Calculate active 'u' value
+            const u = Math.sqrt(ratioScale) * velocity;
+            if (liveUVal) liveUVal.textContent = u.toFixed(4);
+
+            // Also redraw graph axes and theoretical limits
+            drawGraph();
+        }
+
+        // --- SIMULATOR PARAMETER SLIDER UPDATE HANDLERS ---
+        function updateParam(type, val) {
+            const numVal = parseFloat(val);
+            if (type === 'mass') {
+                mass = numVal;
+                document.getElementById('val-mass').textContent = `${numVal.toFixed(1)} kg`;
+                document.getElementById('live-mass-badge').textContent = `${numVal.toFixed(1)} kg`;
+            } else if (type === 'gravity') {
+                gravity = numVal;
+                document.getElementById('val-gravity').textContent = `${numVal.toFixed(2)} m/s²`;
+            } else if (type === 'beta') {
+                beta = numVal;
+                document.getElementById('val-beta').textContent = `${numVal.toFixed(2)} kg/m`;
+            }
+            syncMathCalculations();
+        }
+
+        // --- PRESET SELECTOR HOOKS ---
+        function applyPreset(presetName) {
+            resetSim();
+            if (presetName === 'skydiver') {
+                document.getElementById('input-mass').value = 80.0;
+                document.getElementById('input-gravity').value = 9.81;
+                document.getElementById('input-beta').value = 0.24;
+            } else if (presetName === 'feather') {
+                document.getElementById('input-mass').value = 0.01;
+                document.getElementById('input-gravity').value = 9.81;
+                document.getElementById('input-beta').value = 0.02;
+            } else if (presetName === 'cannonball') {
+                document.getElementById('input-mass').value = 10.0;
+                document.getElementById('input-gravity').value = 9.81;
+                document.getElementById('input-beta').value = 0.05;
+            } else if (presetName === 'jupiter') {
+                document.getElementById('input-mass').value = 5.0;
+                document.getElementById('input-gravity').value = 24.79; // Jupiter Gravity m/s^2
+                document.getElementById('input-beta').value = 0.40;
+            }
+
+            // Fire updates
+            updateParam('mass', document.getElementById('input-mass').value);
+            updateParam('gravity', document.getElementById('input-gravity').value);
+            updateParam('beta', document.getElementById('input-beta').value);
+            
+            syncMathCalculations();
+        }
+
+        // --- GRAPH CANVAS DRAWER ---
+        // Draws axes, gridlines, labels, and velocity history lines
+        function drawGraph() {
+            const dpr = window.devicePixelRatio || 1;
+            const rect = plotCanvas.getBoundingClientRect();
+            plotCanvas.width = rect.width * dpr;
+            plotCanvas.height = rect.height * dpr;
+            ctxPlot.scale(dpr, dpr);
+
+            const width = rect.width;
+            const height = rect.height;
+
+            // Clear Plot with dark background
+            ctxPlot.fillStyle = '#020617';
+            ctxPlot.fillRect(0, 0, width, height);
+
+            // Draw grid lines
+            ctxPlot.strokeStyle = '#1e293b';
+            ctxPlot.lineWidth = 1;
+            const gridCount = 5;
+            for (let i = 1; i < gridCount; i++) {
+                // Horizontal grid lines
+                const y = (height / gridCount) * i;
+                ctxPlot.beginPath();
+                ctxPlot.moveTo(35, y);
+                ctxPlot.lineTo(width - 15, y);
+                ctxPlot.stroke();
+
+                // Vertical grid lines
+                const x = 35 + ((width - 50) / gridCount) * i;
+                ctxPlot.beginPath();
+                ctxPlot.moveTo(x, 10);
+                ctxPlot.lineTo(x, height - 25);
+                ctxPlot.stroke();
+            }
+
+            // Draw Axes lines
+            ctxPlot.strokeStyle = '#475569';
+            ctxPlot.lineWidth = 1.5;
+            ctxPlot.beginPath();
+            ctxPlot.moveTo(35, 10);
+            ctxPlot.lineTo(35, height - 25); // Y-axis
+            ctxPlot.lineTo(width - 15, height - 25); // X-axis
+            ctxPlot.stroke();
+
+            // Axis labels text formatting
+            ctxPlot.fillStyle = '#94a3b8';
+            ctxPlot.font = '10px Inter, sans-serif';
+            ctxPlot.fillText('Vel (m/s)', 5, 20);
+            ctxPlot.fillText('Time (s)', width - 50, height - 8);
+
+            // Calculate graph scales dynamically based on terminal velocity and max time
+            const vterm = Math.sqrt((mass * gravity) / beta);
+            const maxValY = Math.max(vterm * 1.5, 20); // Dynamic scale
+            const maxValX = 8.0; // Viewport width representing 8 seconds of simulation
+
+            // Draw Y-axis tick marks & indicators
+            ctxPlot.fillText('0', 20, height - 22);
+            ctxPlot.fillText((maxValY / 2).toFixed(1), 15, height / 2);
+            ctxPlot.fillText((maxValY).toFixed(1), 15, 30);
+
+            // Draw Terminal Velocity Asymptotic Dotted Indicator Line (Cyan)
+            const yTermPos = height - 25 - (vterm / maxValY) * (height - 35);
+            if (yTermPos > 10 && yTermPos < height - 25) {
+                ctxPlot.strokeStyle = 'rgba(6, 182, 212, 0.4)';
+                ctxPlot.lineWidth = 1;
+                ctxPlot.setLineDash([4, 4]);
+                ctxPlot.beginPath();
+                ctxPlot.moveTo(35, yTermPos);
+                ctxPlot.lineTo(width - 15, yTermPos);
+                ctxPlot.stroke();
+                ctxPlot.setLineDash([]); // Reset
+                ctxPlot.fillStyle = 'rgba(6, 182, 212, 0.8)';
+                ctxPlot.fillText('V_term', width - 55, yTermPos - 4);
+            }
+
+            // Helper function to plot individual trajectory curves
+            function drawTrajectoryCurve(history, color) {
+                if (history.length < 2) return;
+                ctxPlot.strokeStyle = color;
+                ctxPlot.lineWidth = 2.5;
+                ctxPlot.beginPath();
+
+                for (let i = 0; i < history.length; i++) {
+                    const dataTime = history[i].t;
+                    const dataVel = history[i].v;
+
+                    const x = 35 + (dataTime / maxValX) * (width - 50);
+                    const y = height - 25 - (dataVel / maxValY) * (height - 35);
+
+                    if (x >= 35 && x <= width - 15 && y <= height - 25 && y >= 10) {
+                        if (i === 0) ctxPlot.moveTo(x, y);
+                        else ctxPlot.lineTo(x, y);
+                    }
+                }
+                ctxPlot.stroke();
+            }
+
+            // Draw simulated trajectory datasets
+            drawTrajectoryCurve(historyZero, '#ef4444');  // Pure gravity curve (Red)
+            drawTrajectoryCurve(historyLinear, '#0ea5e9'); // Linear resistance curve (Blue)
+            drawTrajectoryCurve(historyQuad, '#6366f1');   // Quadratic drag curve (Indigo)
+        }
+
+        // --- SIMULATION PHYSICS ENGINE (RUNGE-KUTTA SUB-STEPPING INTERPOLATION) ---
+        function runSimulationStep(dt) {
+            if (altitude <= 0) {
+                // Object hit the ground boundary
+                altitude = 0;
+                velocity = 0;
+                isSimRunning = false;
+                document.getElementById('sim-status-badge').textContent = 'Impact Achieved';
+                document.getElementById('sim-status-badge').className = 'text-xs bg-emerald-500/10 text-emerald-400 px-2 py-0.5 rounded border border-emerald-500/20';
+                document.getElementById('play-text').textContent = 'Drop Object';
+                document.getElementById('play-icon').textContent = '▶';
+                
+                // Visual impact indicator
+                const impactGlow = document.getElementById('impact-glow');
+                impactGlow.classList.remove('opacity-0');
+                impactGlow.classList.add('opacity-100');
+                setTimeout(() => {
+                    impactGlow.classList.remove('opacity-100');
+                    impactGlow.classList.add('opacity-0');
+                }, 500);
+                return;
+            }
+
+            // Apply timescale scaling
+            const scaledDt = dt * scaleFactor;
+            time += scaledDt;
+
+            // Compute forces for active quadratic model
+            const forceGrav = mass * gravity;
+            const forceDragQuad = beta * velocity * velocity;
+            const netAccel = gravity - (forceDragQuad / mass);
+
+            // Substepping integration for absolute numerical solver accuracy (Euler-Cromer)
+            const substeps = 10;
+            const sDt = scaledDt / substeps;
+            for (let i = 0; i < substeps; i++) {
+                // 1. Quadratic drag calculations
+                const dynamicFd = beta * velocity * velocity;
+                const dv = (gravity - (dynamicFd / mass)) * sDt;
+                velocity += dv;
+                altitude -= velocity * sDt;
+                if (altitude < 0) {
+                    altitude = 0;
+                    velocity = 0;
+                    break;
+                }
+            }
+
+            // Populate trajectories logs for graph overlay
+            // Theoretical Linear Drag matching terminal scale
+            const linearB = getLinearB();
+            let vLinear = (mass * gravity / linearB) * (1 - Math.exp(-linearB * time / mass));
+
+            // Theoretical pure gravity zero-drag
+            let vZeroDrag = gravity * time;
+
+            // Push current evaluations to plotting arrays
+            if (time < 8.0) {
+                historyQuad.push({ t: time, v: velocity });
+                historyLinear.push({ t: time, v: vLinear });
+                historyZero.push({ t: time, v: vZeroDrag });
+            }
+
+            // Dynamic UI updates
+            document.getElementById('live-vel').innerHTML = `${velocity.toFixed(2)} <span class="text-xs font-normal">m/s</span>`;
+            document.getElementById('live-drag').innerHTML = `${(beta * velocity * velocity).toFixed(2)} <span class="text-xs font-normal">N</span>`;
+            document.getElementById('live-accel').innerHTML = `${netAccel.toFixed(2)} <span class="text-xs font-normal">m/s²</span>`;
+            document.getElementById('live-alt').innerHTML = `${altitude.toFixed(1)} <span class="text-xs font-normal">m</span>`;
+            document.getElementById('sim-clock').textContent = `${time.toFixed(2)}s`;
+
+            // Adjust graphical vector heights visually
+            const vectorFg = document.getElementById('vector-fg');
+            const vectorFd = document.getElementById('vector-fd');
+            const visualObject = document.getElementById('falling-object-container');
+
+            // Map altitude to percentage height viewport drop (range 300m down to ground)
+            const containerHeight = 220; // safe window margin
+            const offsetTop = 40 + ((300 - altitude) / 300) * containerHeight;
+            visualObject.style.transform = `translateY(${offsetTop}px)`;
+
+            // Force vectors scale representation mapping
+            const fgPxHeight = Math.min(forceGrav * 1.5, 120);
+            const fdPxHeight = Math.min(forceDragQuad * 1.5, 120);
+
+            vectorFg.style.height = `${fgPxHeight}px`;
+            vectorFd.style.height = `${fdPxHeight}px`;
+
+            // Generate active visual air particles speeding upward to replicate velocity experience
+            updateAirflowParticles();
+
+            // Re-render Graph Frame
+            drawGraph();
+        }
+
+        // Animated air stream background particles to represent speed visually
+        function updateAirflowParticles() {
+            const airflow = document.getElementById('air-flow');
+            airflow.innerHTML = '';
+            
+            // Scaled based on velocity
+            const particleCount = Math.min(Math.floor(velocity * 0.8), 25);
+            for (let i = 0; i < particleCount; i++) {
+                const particle = document.createElement('div');
+                const leftPos = Math.random() * 100;
+                const speed = 0.5 + Math.random() * 1.5;
+                const height = 10 + Math.random() * 40;
+                
+                particle.className = `absolute bg-gradient-to-t from-transparent via-slate-400 to-transparent w-[1px] rounded-full opacity-60 animate-infinite`;
+                particle.style.left = `${leftPos}%`;
+                particle.style.height = `${height}px`;
+                particle.style.bottom = `-100px`;
+                
+                // Animate rising past falling camera object
+                const animDuration = (3 - speed) / (velocity * 0.1 || 1);
+                particle.style.animation = `riseUp ${Math.max(animDuration, 0.2)}s linear infinite`;
+                airflow.appendChild(particle);
+            }
+        }
+
+        // Custom Keyframe injection for particle streaming animation
+        const styleSheet = document.createElement("style");
+        styleSheet.innerText = `
+            @keyframes riseUp {
+                0% { transform: translateY(0); opacity: 0; }
+                50% { opacity: 0.6; }
+                100% { transform: translateY(-450px); opacity: 0; }
+            }
+        `;
+        document.head.appendChild(styleSheet);
+
+        // --- SIMULATOR CONTROLS & TIMELOOP ---
+        function loop(timestamp) {
+            if (!isSimRunning) return;
+            if (!lastTimestamp) lastTimestamp = timestamp;
+            const elapsed = (timestamp - lastTimestamp) / 1000; // seconds
+
+            // Guard against massive frame skips
+            if (elapsed < 0.1) {
+                runSimulationStep(elapsed);
+            }
+
+            lastTimestamp = timestamp;
+            animFrameId = requestAnimationFrame(loop);
+        }
+
+        function toggleSim() {
+            if (isSimRunning) {
+                // Pause State
+                isSimRunning = false;
+                document.getElementById('sim-status-badge').textContent = 'Suspended';
+                document.getElementById('sim-status-badge').className = 'text-xs bg-amber-500/10 text-amber-400 px-2 py-0.5 rounded border border-amber-500/20';
+                document.getElementById('play-text').textContent = 'Resume Drop';
+                document.getElementById('play-icon').textContent = '▶';
+                cancelAnimationFrame(animFrameId);
+            } else {
+                // Play State
+                if (altitude <= 0) {
+                    resetSim();
+                }
+                isSimRunning = true;
+                document.getElementById('sim-status-badge').textContent = 'Falling';
+                document.getElementById('sim-status-badge').className = 'text-xs bg-indigo-500/10 text-indigo-400 px-2 py-0.5 rounded border border-indigo-500/20';
+                document.getElementById('play-text').textContent = 'Pause Drop';
+                document.getElementById('play-icon').textContent = '⏸';
+                lastTimestamp = null;
+                animFrameId = requestAnimationFrame(loop);
+            }
+        }
+
+        function resetSim() {
+            isSimRunning = false;
+            cancelAnimationFrame(animFrameId);
+            
+            // Reset numerical counters
+            velocity = 0.0;
+            altitude = 300.0;
+            time = 0.0;
+
+            // Reset graphs datasets
+            historyQuad = [];
+            historyLinear = [];
+            historyZero = [];
+
+            // Reset UI readouts
+            document.getElementById('sim-clock').textContent = '0.00s';
+            document.getElementById('live-vel').innerHTML = `0.00 <span class="text-xs font-normal">m/s</span>`;
+            document.getElementById('live-drag').innerHTML = `0.00 <span class="text-xs font-normal">N</span>`;
+            document.getElementById('live-accel').innerHTML = `${gravity.toFixed(2)} <span class="text-xs font-normal">m/s²</span>`;
+            document.getElementById('live-alt').innerHTML = `300.0 <span class="text-xs font-normal">m</span>`;
+            document.getElementById('sim-status-badge').textContent = 'At Rest';
+            document.getElementById('sim-status-badge').className = 'text-xs bg-amber-500/10 text-amber-400 px-2 py-0.5 rounded border border-amber-500/20';
+            document.getElementById('play-text').textContent = 'Drop Object';
+            document.getElementById('play-icon').textContent = '▶';
+
+            // Reset vectors heights
+            document.getElementById('vector-fg').style.height = `${mass * gravity * 1.5}px`;
+            document.getElementById('vector-fd').style.height = `0px`;
+            document.getElementById('falling-object-container').style.transform = `translateY(40px)`;
+            document.getElementById('air-flow').innerHTML = '';
+
+            syncMathCalculations();
+        }
+
+        function setTimeScale(scale) {
+            scaleFactor = parseFloat(scale);
+        }
+
+        // --- PEDAGOGICAL TABS SELECTOR SYSTEM ---
+        function setActiveTab(tabIndex) {
+            // Deactivate all buttons & hide tabs content
+            for (let i = 1; i <= 5; i++) {
+                const btn = document.getElementById(`tab-btn-${i}`);
+                const content = document.getElementById(`tab-content-${i}`);
+                
+                if (btn) {
+                    btn.classList.remove('border-indigo-500', 'text-indigo-400');
+                    btn.classList.add('border-transparent', 'text-slate-400');
+                }
+                if (content) {
+                    content.classList.add('hidden');
+                }
+            }
+
+            // Activate chosen target
+            const targetBtn = document.getElementById(`tab-btn-${tabIndex}`);
+            const targetContent = document.getElementById(`tab-content-${tabIndex}`);
+            
+            if (targetBtn) {
+                targetBtn.classList.remove('border-transparent', 'text-slate-400');
+                targetBtn.classList.add('border-indigo-500', 'text-indigo-400');
+            }
+            if (targetContent) {
+                targetContent.classList.remove('hidden');
+            }
+        }
+
+        // Handle canvas auto-resizing smoothly
+        window.addEventListener('resize', () => {
+            drawGraph();
+        });
+
+        // Initialize state on page load
+        window.onload = function() {
+            syncMathCalculations();
+            resetSim();
+        };
+    </script>
+</body>
+</html>

@@ -1,0 +1,1234 @@
+<!DOCTYPE html>
+<html lang="en" class="dark">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Fluid Drag Forces Interactive Workspace</title>
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            darkMode: 'class',
+            theme: {
+                extend: {
+                    colors: {
+                        brand: {
+                            50: '#f0f9ff',
+                            100: '#e0f2fe',
+                            500: '#0ea5e9',
+                            600: '#0284c7',
+                            700: '#0369a1',
+                        }
+                    },
+                    fontFamily: {
+                        sans: ['Inter', 'sans-serif'],
+                    }
+                }
+            }
+        }
+    </script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;500;700&display=swap" rel="stylesheet">
+    <style>
+        body {
+            font-family: 'Inter', sans-serif;
+        }
+        .code-font {
+            font-family: 'JetBrains Mono', monospace;
+        }
+        /* Custom scrollbars */
+        ::-webkit-scrollbar {
+            width: 6px;
+            height: 6px;
+        }
+        ::-webkit-scrollbar-track {
+            background: #1e293b;
+        }
+        ::-webkit-scrollbar-thumb {
+            background: #475569;
+            border-radius: 4px;
+        }
+        ::-webkit-scrollbar-thumb:hover {
+            background: #64748b;
+        }
+    </style>
+</head>
+<body class="bg-slate-950 text-slate-100 min-h-screen flex flex-col antialiased selection:bg-brand-500 selection:text-white">
+
+    <!-- Header/Navigation -->
+    <header class="border-b border-slate-800 bg-slate-900/80 backdrop-blur sticky top-0 z-50 px-4 py-4 sm:px-6">
+        <div class="max-w-7xl mx-auto flex flex-col md:flex-row md:items-center md:justify-between gap-4">
+            <div>
+                <div class="flex items-center gap-2">
+                    <span class="px-2.5 py-1 text-xs font-semibold bg-brand-500/10 text-brand-400 rounded-full border border-brand-500/20">Physics Lab</span>
+                    <span class="text-xs text-slate-400">Dynamic Fluid Dynamics Simulator</span>
+                </div>
+                <h1 class="text-2xl font-bold bg-gradient-to-r from-white via-slate-200 to-slate-400 bg-clip-text text-transparent mt-1">
+                    The Mechanics of Drag Forces in Fluids
+                </h1>
+            </div>
+            <div class="flex items-center gap-3">
+                <span class="text-xs text-slate-400 hidden sm:inline">Regime Mode:</span>
+                <div class="inline-flex rounded-lg p-0.5 bg-slate-950 border border-slate-800">
+                    <button id="btn-regime-quad" class="px-3 py-1.5 rounded-md text-xs font-medium transition-all bg-brand-500 text-white shadow-sm" onclick="setRegime('quadratic')">
+                        Quadratic (Air/High Speed)
+                    </button>
+                    <button id="btn-regime-linear" class="px-3 py-1.5 rounded-md text-xs font-medium transition-all text-slate-400 hover:text-white" onclick="setRegime('linear')">
+                        Linear (Stokes' Law/Slow)
+                    </button>
+                </div>
+            </div>
+        </div>
+    </header>
+
+    <!-- Main Workspace Container -->
+    <main class="flex-grow max-w-7xl w-full mx-auto p-4 sm:p-6 grid grid-cols-1 lg:grid-cols-12 gap-6">
+
+        <!-- LEFT COLUMN: Simulator + Controls (7/12 width) -->
+        <div class="lg:col-span-7 flex flex-col gap-6">
+            
+            <!-- Physics Sandbox Container -->
+            <div class="bg-slate-900 border border-slate-800 rounded-2xl overflow-hidden flex flex-col shadow-xl">
+                <!-- Sandbox Header -->
+                <div class="p-4 border-b border-slate-800 flex items-center justify-between bg-slate-900/50">
+                    <div class="flex items-center gap-2">
+                        <span class="w-3 h-3 rounded-full bg-brand-500 animate-pulse"></span>
+                        <span class="font-semibold text-sm tracking-wide text-slate-200">Interactive Simulation</span>
+                    </div>
+                    <div class="flex items-center gap-3">
+                        <button id="btn-pause" onclick="togglePlay()" class="px-3 py-1.5 bg-slate-800 hover:bg-slate-700 text-slate-200 text-xs font-semibold rounded-lg flex items-center gap-1.5 transition">
+                            <svg class="w-3.5 h-3.5 text-brand-400" fill="currentColor" viewBox="0 0 24 24"><path d="M6 19h4V5H6v14zm8-14v14h4V5h-4z"/></svg>
+                            <span>Pause</span>
+                        </button>
+                        <button onclick="resetSimulation()" class="px-3 py-1.5 bg-slate-800 hover:bg-slate-700 text-slate-200 text-xs font-semibold rounded-lg flex items-center gap-1.5 transition">
+                            <svg class="w-3.5 h-3.5 text-slate-400" fill="currentColor" viewBox="0 0 24 24"><path d="M17.65 6.35C16.2 4.9 14.21 4 12 4c-4.42 0-7.99 3.58-7.99 8s3.57 8 7.99 8c3.73 0 6.84-2.55 7.73-6h-2.08c-.82 2.33-3.04 4-5.65 4-3.31 0-6-2.69-6-6s2.69-6 6-6c1.66 0 3.14.69 4.22 1.78L13 11h7V4l-2.35 2.35z"/></svg>
+                            <span>Reset Drop</span>
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Simulation Rendering Frame -->
+                <div class="relative grid grid-cols-12 bg-slate-950 h-[420px]">
+                    
+                    <!-- Vertical Fluid Column (Visual Sandbox) -->
+                    <div class="col-span-5 relative border-r border-slate-800 overflow-hidden flex items-center justify-center">
+                        <!-- Column Dynamic Fluid Background -->
+                        <div id="fluid-column-bg" class="absolute inset-0 bg-gradient-to-b from-sky-950/20 to-sky-900/40 transition-all duration-500"></div>
+                        
+                        <!-- Measurement Ticks -->
+                        <div class="absolute right-2 top-0 bottom-0 flex flex-col justify-between text-[10px] text-slate-600 select-none py-4 font-mono pointer-events-none">
+                            <span>0m (Surface)</span>
+                            <span>2m</span>
+                            <span>4m</span>
+                            <span>6m</span>
+                            <span>8m</span>
+                            <span>10m (Floor)</span>
+                        </div>
+
+                        <!-- Physics Main Canvas -->
+                        <canvas id="physics-canvas" class="absolute inset-0 w-full h-full z-10 cursor-pointer"></canvas>
+                        
+                        <!-- Fluid Viscosity/Density Indicator Overlay -->
+                        <div class="absolute top-3 left-3 bg-slate-900/90 border border-slate-800 text-[10px] text-slate-300 rounded px-2 py-1 z-20 backdrop-blur font-mono">
+                            Medium: <span id="overlay-fluid-name" class="text-brand-400 font-bold">Air</span>
+                        </div>
+                    </div>
+
+                    <!-- Live Forces & Metrics Dashboard -->
+                    <div class="col-span-7 p-5 flex flex-col justify-between overflow-y-auto">
+                        
+                        <!-- Live Force Vectors Widget -->
+                        <div>
+                            <span class="text-xs font-semibold text-slate-400 tracking-wider uppercase block mb-3">Live Dynamic Force Balance</span>
+                            <div class="space-y-3 bg-slate-900/60 p-4 rounded-xl border border-slate-800">
+                                
+                                <!-- Gravity Force Meter -->
+                                <div class="flex items-center justify-between text-xs">
+                                    <div class="flex items-center gap-1.5 text-red-400 font-medium">
+                                        <span class="w-2 h-2 rounded-full bg-red-500"></span>
+                                        <span>Gravity (Fg = m · g)</span>
+                                    </div>
+                                    <span id="val-fg-meter" class="font-mono text-slate-300">0.000 N</span>
+                                </div>
+                                <div class="w-full bg-slate-950 h-2 rounded-full overflow-hidden border border-slate-800/50">
+                                    <div id="bar-fg" class="bg-red-500 h-full transition-all duration-75" style="width: 0%"></div>
+                                </div>
+
+                                <!-- Buoyancy Force Meter -->
+                                <div class="flex items-center justify-between text-xs">
+                                    <div class="flex items-center gap-1.5 text-cyan-400 font-medium">
+                                        <span class="w-2 h-2 rounded-full bg-cyan-500"></span>
+                                        <span>Buoyancy (Fb = ρf · V · g)</span>
+                                    </div>
+                                    <span id="val-fb-meter" class="font-mono text-slate-300">0.000 N</span>
+                                </div>
+                                <div class="w-full bg-slate-950 h-2 rounded-full overflow-hidden border border-slate-800/50">
+                                    <div id="bar-fb" class="bg-cyan-500 h-full transition-all duration-75" style="width: 0%"></div>
+                                </div>
+
+                                <!-- Drag Force Meter -->
+                                <div class="flex items-center justify-between text-xs">
+                                    <div class="flex items-center gap-1.5 text-emerald-400 font-medium">
+                                        <span class="w-2 h-2 rounded-full bg-emerald-500"></span>
+                                        <span>Fluid Drag (Fd)</span>
+                                    </div>
+                                    <span id="val-fd-meter" class="font-mono text-slate-300">0.000 N</span>
+                                </div>
+                                <div class="w-full bg-slate-950 h-2 rounded-full overflow-hidden border border-slate-800/50">
+                                    <div id="bar-fd" class="bg-emerald-500 h-full transition-all duration-75" style="width: 0%"></div>
+                                </div>
+
+                                <!-- Net Acceleration Indicator -->
+                                <div class="pt-2 border-t border-slate-800 flex justify-between items-center text-xs">
+                                    <span class="text-slate-400">Net Acceleration (a):</span>
+                                    <span id="val-accel" class="font-mono font-bold text-amber-400">0.00 m/s²</span>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Real-time Numerical Stats -->
+                        <div class="grid grid-cols-2 gap-3 mt-4">
+                            <div class="bg-slate-900/40 border border-slate-800 p-3 rounded-lg text-center">
+                                <span class="text-[10px] text-slate-400 uppercase tracking-wider block mb-1">Current Velocity (v)</span>
+                                <span id="stat-velocity" class="text-lg font-bold text-brand-400 font-mono">0.00 m/s</span>
+                            </div>
+                            <div class="bg-slate-900/40 border border-slate-800 p-3 rounded-lg text-center">
+                                <span class="text-[10px] text-slate-400 uppercase tracking-wider block mb-1">Terminal Velocity (Vt)</span>
+                                <span id="stat-vt" class="text-lg font-bold text-pink-400 font-mono">0.00 m/s</span>
+                            </div>
+                            <div class="bg-slate-900/40 border border-slate-800 p-3 rounded-lg text-center">
+                                <span class="text-[10px] text-slate-400 uppercase tracking-wider block mb-1">Elapsed Time (t)</span>
+                                <span id="stat-time" class="text-lg font-bold text-slate-300 font-mono">0.00 s</span>
+                            </div>
+                            <div class="bg-slate-900/40 border border-slate-800 p-3 rounded-lg text-center">
+                                <span class="text-[10px] text-slate-400 uppercase tracking-wider block mb-1">Reynolds Number (Re)</span>
+                                <span id="stat-reynolds" class="text-lg font-bold text-purple-400 font-mono">0.0</span>
+                            </div>
+                        </div>
+
+                    </div>
+                </div>
+            </div>
+
+            <!-- Parameter Control Panel -->
+            <div class="bg-slate-900 border border-slate-800 rounded-2xl p-5 shadow-lg">
+                <h3 class="text-sm font-semibold text-slate-200 uppercase tracking-wider mb-4 flex items-center gap-2">
+                    <svg class="w-4 h-4 text-brand-400" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M12 6V4m0 2a2 2 0 100 4m0-4a2 2 0 110 4m-6 8a2 2 0 100-4m0 4a2 2 0 110-4m0 4v2m0-6V4m6 6v10m6-2a2 2 0 100-4m0 4a2 2 0 110-4m0 4v2m0-6V4"/></svg>
+                    Adjust Physical Parameters
+                </h3>
+                
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-x-6 gap-y-4">
+                    
+                    <!-- Sphere Radius -->
+                    <div>
+                        <div class="flex justify-between items-center text-xs mb-1.5">
+                            <span class="text-slate-300 font-medium">Sphere Radius (r):</span>
+                            <span id="lbl-radius" class="text-brand-400 font-mono">0.15 m</span>
+                        </div>
+                        <input id="slider-radius" type="range" min="0.05" max="0.5" step="0.01" value="0.15" oninput="updateSliders()" class="w-full h-1.5 bg-slate-800 rounded-lg appearance-none cursor-pointer accent-brand-500">
+                        <span class="text-[10px] text-slate-500 block mt-0.5">Controls cross-sectional area A = &pi;r² and volume V = (4/3)&pi;r³.</span>
+                    </div>
+
+                    <!-- Sphere Material Density -->
+                    <div>
+                        <div class="flex justify-between items-center text-xs mb-1.5">
+                            <span class="text-slate-300 font-medium">Object Density (&rho;<sub>obj</sub>):</span>
+                            <span id="lbl-density-obj" class="text-brand-400 font-mono">2500 kg/m³</span>
+                        </div>
+                        <input id="slider-density-obj" type="range" min="200" max="8000" step="100" value="2500" oninput="updateSliders()" class="w-full h-1.5 bg-slate-800 rounded-lg appearance-none cursor-pointer accent-brand-500">
+                        <span class="text-[10px] text-slate-500 block mt-0.5">Wood ~700, Glass/Concrete ~2500, Iron ~7800. Adjusts mass.</span>
+                    </div>
+
+                    <!-- Fluid Density -->
+                    <div>
+                        <div class="flex justify-between items-center text-xs mb-1.5">
+                            <span class="text-slate-300 font-medium">Fluid Density (&rho;<sub>fluid</sub>):</span>
+                            <span id="lbl-density-fluid" class="text-brand-400 font-mono">1.2 kg/m³</span>
+                        </div>
+                        <input id="slider-density-fluid" type="range" min="0.5" max="1500" step="0.5" value="1.2" oninput="updateSliders()" class="w-full h-1.5 bg-slate-800 rounded-lg appearance-none cursor-pointer accent-brand-500">
+                        <span class="text-[10px] text-slate-500 block mt-0.5">Air ~1.2, Water ~1000, Honey ~1400. Affects buoyancy and air drag.</span>
+                    </div>
+
+                    <!-- Viscosity / Drag Coefficient (Context Dependent) -->
+                    <div>
+                        <div class="flex justify-between items-center text-xs mb-1.5">
+                            <span id="lbl-context-coef-title" class="text-slate-300 font-medium">Drag Coefficient (Cd):</span>
+                            <span id="lbl-context-coef" class="text-brand-400 font-mono">0.47</span>
+                        </div>
+                        <input id="slider-context-coef" type="range" min="0.1" max="2.0" step="0.01" value="0.47" oninput="updateSliders()" class="w-full h-1.5 bg-slate-800 rounded-lg appearance-none cursor-pointer accent-brand-500">
+                        <span id="lbl-context-coef-desc" class="text-[10px] text-slate-500 block mt-0.5">Dimensionless rating of shape geometry (Sphere is ~0.47).</span>
+                    </div>
+
+                </div>
+
+                <!-- Quick Presets -->
+                <div class="mt-4 pt-4 border-t border-slate-800/50 flex flex-wrap items-center gap-2">
+                    <span class="text-[10px] text-slate-400 font-semibold uppercase tracking-wider mr-2">Environment Presets:</span>
+                    <button onclick="applyPreset('basejump')" class="px-2.5 py-1 bg-slate-800 hover:bg-slate-700 hover:text-white text-[11px] rounded transition">
+                        🪂 Skydiver (Air Drag)
+                    </button>
+                    <button onclick="applyPreset('marble-molasses')" class="px-2.5 py-1 bg-slate-800 hover:bg-slate-700 hover:text-white text-[11px] rounded transition">
+                        🍯 Marble in Molasses (Stokes)
+                    </button>
+                    <button onclick="applyPreset('steel-water')" class="px-2.5 py-1 bg-slate-800 hover:bg-slate-700 hover:text-white text-[11px] rounded transition">
+                        💧 Steel Ball in Water
+                    </button>
+                </div>
+            </div>
+
+            <!-- Dynamic Graphing Tool -->
+            <div class="bg-slate-900 border border-slate-800 rounded-2xl p-5 shadow-lg">
+                <div class="flex justify-between items-center mb-3">
+                    <h3 class="text-sm font-semibold text-slate-200 uppercase tracking-wider flex items-center gap-2">
+                        <svg class="w-4 h-4 text-pink-400" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"/></svg>
+                        Real-time Phase Plot (v vs. t)
+                    </h3>
+                    <span class="text-[10px] text-pink-400 bg-pink-500/10 px-2 py-0.5 rounded font-semibold border border-pink-500/20">Live Plotting</span>
+                </div>
+                <div class="bg-slate-950 p-2 rounded-xl border border-slate-800/80 h-[140px] relative">
+                    <canvas id="chart-canvas" class="w-full h-full"></canvas>
+                </div>
+            </div>
+
+        </div>
+
+        <!-- RIGHT COLUMN: Pedagogical Guide & Computational Engine (5/12 width) -->
+        <div class="lg:col-span-5 flex flex-col gap-6">
+            
+            <!-- Explanatory Core Widget (Tabbed Document Panel) -->
+            <div class="bg-slate-900 border border-slate-800 rounded-2xl overflow-hidden flex flex-col shadow-xl flex-grow min-h-[500px]">
+                
+                <!-- Pedagogical Navigation Bar -->
+                <div class="flex border-b border-slate-800 bg-slate-950">
+                    <button id="tab-btn-intuition" onclick="switchPedagogicalTab('intuition')" class="flex-1 py-3 text-center text-xs font-semibold border-b-2 border-brand-500 text-brand-400 transition">
+                        Intuition & Model
+                    </button>
+                    <button id="tab-btn-derivation" onclick="switchPedagogicalTab('derivation')" class="flex-1 py-3 text-center text-xs font-semibold border-b-2 border-transparent text-slate-400 hover:text-slate-200 transition">
+                        Mathematical Steps
+                    </button>
+                    <button id="tab-btn-algorithm" onclick="switchPedagogicalTab('algorithm')" class="flex-1 py-3 text-center text-xs font-semibold border-b-2 border-transparent text-slate-400 hover:text-slate-200 transition">
+                        Code Engine
+                    </button>
+                </div>
+
+                <!-- Tab Content 1: Mental Model & Physics Context -->
+                <div id="tab-content-intuition" class="p-5 space-y-5 overflow-y-auto">
+                    
+                    <div class="bg-slate-950 p-4 rounded-xl border border-slate-800/80">
+                        <h4 class="text-xs font-bold text-slate-400 tracking-wider uppercase mb-1">The Physics Core</h4>
+                        <p class="text-xs text-slate-300 leading-relaxed">
+                            Fluid drag is a resistive force opposing the relative motion of an object. Its source shifts based on how fast the object travels and how thick the fluid is:
+                        </p>
+                    </div>
+
+                    <!-- Air Drag Card -->
+                    <div class="border-l-4 border-emerald-500 bg-slate-900/60 p-4 rounded-r-xl border border-y-slate-800 border-r-slate-800">
+                        <div class="flex items-center justify-between mb-2">
+                            <span class="text-xs font-bold text-emerald-400 uppercase tracking-wide">High Speed / Inertial Drag</span>
+                            <span class="text-[10px] bg-emerald-500/10 text-emerald-300 px-2 py-0.5 rounded border border-emerald-500/20 font-mono">Fd &prop; v²</span>
+                        </div>
+                        <p class="text-xs text-slate-300 mb-3 leading-relaxed">
+                            Dominates at high speeds and low viscosities. The falling body actively displaces and pushes chunks of the fluid out of its path, producing a turbulent wake. 
+                        </p>
+                        <div class="bg-slate-950 px-3 py-2.5 rounded-lg font-mono text-[11px] text-slate-200 border border-slate-800 flex flex-col gap-1">
+                            <div class="text-slate-400">// Quadratic Drag Law:</div>
+                            <div>Fd = (1/2) * Cd * &rho;<sub>fluid</sub> * A * v²</div>
+                        </div>
+                        <ul class="text-[10px] text-slate-400 mt-2.5 space-y-1 list-disc list-inside">
+                            <li><strong class="text-slate-300">Cd:</strong> Shape drag coefficient (dimensionless)</li>
+                            <li><strong class="text-slate-300">A:</strong> Projected cross-sectional area (&pi;r²)</li>
+                        </ul>
+                    </div>
+
+                    <!-- Stokes' Law Card -->
+                    <div class="border-l-4 border-cyan-500 bg-slate-900/60 p-4 rounded-r-xl border border-y-slate-800 border-r-slate-800">
+                        <div class="flex items-center justify-between mb-2">
+                            <span class="text-xs font-bold text-cyan-400 uppercase tracking-wide">Viscous Drag (Stokes' Law)</span>
+                            <span class="text-[10px] bg-cyan-500/10 text-cyan-300 px-2 py-0.5 rounded border border-cyan-500/20 font-mono">Fd &prop; v</span>
+                        </div>
+                        <p class="text-xs text-slate-300 mb-3 leading-relaxed">
+                            Dominates at micro-scales, slow speeds, or very thick (viscous) liquids. Friction between adjacent fluid layers shearing past each other generates the force.
+                        </p>
+                        <div class="bg-slate-950 px-3 py-2.5 rounded-lg font-mono text-[11px] text-slate-200 border border-slate-800 flex flex-col gap-1">
+                            <div class="text-slate-400">// Linear (Stokes') Drag Law:</div>
+                            <div>Fd = 6 * &pi; * &eta; * r * v</div>
+                        </div>
+                        <ul class="text-[10px] text-slate-400 mt-2.5 space-y-1 list-disc list-inside">
+                            <li><strong class="text-slate-300">&eta; (eta):</strong> Dynamic viscosity (resistance to shearing)</li>
+                            <li><strong class="text-slate-300">r:</strong> Sphere physical radius</li>
+                        </ul>
+                    </div>
+
+                    <!-- Dynamic Reynolds Number Infographic -->
+                    <div class="bg-slate-950 p-4 rounded-xl border border-slate-800">
+                        <div class="flex justify-between items-center mb-2">
+                            <h5 class="text-xs font-bold text-purple-400 uppercase tracking-wider">The Boundary: Reynolds Number (Re)</h5>
+                            <span class="text-[10px] bg-purple-500/10 text-purple-300 px-2 rounded font-mono border border-purple-500/20">Re = &rho;<sub>fluid</sub> · v · d / &eta;</span>
+                        </div>
+                        <p class="text-[11px] text-slate-300 leading-relaxed mb-3">
+                            The Reynolds number acts as the physical scaling metric to decide which drag regime dominates:
+                        </p>
+                        <div class="grid grid-cols-2 gap-2 text-[10px] font-mono">
+                            <div class="p-2 bg-slate-900 border border-slate-800 rounded">
+                                <span class="text-cyan-400 block font-bold mb-1">Re &lt;&lt; 1 (Viscous Dominated)</span>
+                                Shearing friction governs motion. Stokes' Law is highly active.
+                            </div>
+                            <div class="p-2 bg-slate-900 border border-slate-800 rounded">
+                                <span class="text-emerald-400 block font-bold mb-1">Re &gt;&gt; 1000 (Inertial Dominated)</span>
+                                Fluid displacement and pressure wake govern motion. Quadratic law active.
+                            </div>
+                        </div>
+                    </div>
+
+                </div>
+
+                <!-- Tab Content 2: Analytical & Mathematical Derivation -->
+                <div id="tab-content-derivation" class="p-5 space-y-5 hidden overflow-y-auto">
+                    <h4 class="text-xs font-bold text-slate-400 tracking-wider uppercase mb-1">Deriving Terminal Velocity</h4>
+                    <p class="text-xs text-slate-300 leading-relaxed">
+                        At terminal velocity (<span class="font-mono text-pink-400">v = v<sub>t</sub></span>), acceleration falls to zero. The force balance on the falling sphere settles into a perfect equilibrium:
+                    </p>
+
+                    <div class="bg-slate-950 p-3 rounded-lg text-center font-mono text-sm border border-slate-850 py-4 my-2">
+                        <span class="text-red-400 font-bold">F<sub>gravity</sub></span> - 
+                        <span class="text-cyan-400 font-bold">F<sub>buoyancy</sub></span> - 
+                        <span class="text-emerald-400 font-bold">F<sub>drag</sub></span> = 0
+                    </div>
+
+                    <!-- Step 1: Base Vectors -->
+                    <div class="space-y-3">
+                        <div class="flex gap-3">
+                            <div class="w-6 h-6 rounded-full bg-slate-850 flex items-center justify-center text-xs text-brand-400 font-mono flex-shrink-0">1</div>
+                            <div class="text-xs">
+                                <span class="font-bold text-slate-200 block">Gravity and Mass</span>
+                                <p class="text-slate-400 mt-1">Mass is written as Volume (V) times Sphere Density (&rho;<sub>obj</sub>):</p>
+                                <div class="font-mono text-brand-300 mt-1.5 bg-slate-950 p-1.5 px-3 rounded inline-block">m = (4/3) &pi; r³ &rho;<sub>obj</sub></div>
+                                <div class="font-mono text-slate-200 mt-1 inline-block ml-2">F<sub>g</sub> = m · g</div>
+                            </div>
+                        </div>
+
+                        <div class="flex gap-3">
+                            <div class="w-6 h-6 rounded-full bg-slate-850 flex items-center justify-center text-xs text-brand-400 font-mono flex-shrink-0">2</div>
+                            <div class="text-xs">
+                                <span class="font-bold text-slate-200 block">Buoyancy Correction (Archimedes' Principle)</span>
+                                <p class="text-slate-400 mt-1">An object submerged in a fluid experiences an upward force equal to the weight of displaced fluid:</p>
+                                <div class="font-mono text-cyan-300 mt-1.5 bg-slate-950 p-1.5 px-3 rounded inline-block">F<sub>b</sub> = Displaced Mass · g = (4/3) &pi; r³ &rho;<sub>fluid</sub> g</div>
+                            </div>
+                        </div>
+
+                        <div class="flex gap-3">
+                            <div class="w-6 h-6 rounded-full bg-slate-850 flex items-center justify-center text-xs text-brand-400 font-mono flex-shrink-0">3</div>
+                            <div class="text-xs">
+                                <span class="font-bold text-slate-200 block">Substituting into Balance Formula</span>
+                                <p class="text-slate-400 mt-1">Subtract buoyancy directly from gravity to get net vertical driving force:</p>
+                                <div class="font-mono text-amber-300 mt-1.5 bg-slate-950 p-1.5 px-3 rounded inline-block block">F<sub>drive</sub> = (4/3) &pi; r³ g (&rho;<sub>obj</sub> - &rho;<sub>fluid</sub>)</div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Analytical Outcomes -->
+                    <div class="bg-slate-950 p-4 rounded-xl border border-slate-850 mt-4">
+                        <span class="text-xs font-bold text-slate-400 uppercase tracking-wide block mb-3">Resulting Analytical Terminal Velocity (v<sub>t</sub>)</span>
+                        
+                        <!-- Quadratic Analytical vt -->
+                        <div class="mb-4 pb-4 border-b border-slate-800">
+                            <div class="flex justify-between items-center text-xs mb-1">
+                                <span class="text-emerald-400 font-semibold">Quadratic Drag Limit:</span>
+                                <span class="font-mono bg-emerald-500/10 text-emerald-400 px-1.5 rounded text-[10px]">High Speed</span>
+                            </div>
+                            <div class="bg-slate-900 p-2.5 rounded font-mono text-[11px] text-center my-1.5">
+                                v<sub>t</sub> = &radic;[ (8/3) · g · r · (&rho;<sub>obj</sub> - &rho;<sub>fluid</sub>) / (C<sub>d</sub> · &rho;<sub>fluid</sub>) ]
+                            </div>
+                            <p class="text-[10px] text-slate-400 leading-relaxed mt-1">
+                                Terminal velocity scales as the <strong class="text-slate-300">square root of the radius</strong>. Larger, heavier spheres fall exponentially faster.
+                            </p>
+                        </div>
+
+                        <!-- Linear Analytical vt -->
+                        <div>
+                            <div class="flex justify-between items-center text-xs mb-1">
+                                <span class="text-cyan-400 font-semibold">Linear (Stokes) Drag Limit:</span>
+                                <span class="font-mono bg-cyan-500/10 text-cyan-400 px-1.5 rounded text-[10px]">Slow Speed</span>
+                            </div>
+                            <div class="bg-slate-900 p-2.5 rounded font-mono text-[11px] text-center my-1.5">
+                                v<sub>t</sub> = [ 2 · g · r² · (&rho;<sub>obj</sub> - &rho;<sub>fluid</sub>) ] / (9 · &eta;)
+                            </div>
+                            <p class="text-[10px] text-slate-400 leading-relaxed mt-1">
+                                Terminal velocity scales as the <strong class="text-slate-300">square of the radius</strong>. Tiny variations in particle radius yield drastic changes in sinking rates.
+                            </p>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Tab Content 3: Computational Engine Integration Loop -->
+                <div id="tab-content-algorithm" class="p-5 space-y-4 hidden flex-grow overflow-y-auto">
+                    <div>
+                        <h4 class="text-xs font-bold text-slate-400 tracking-wider uppercase mb-1">Numerical Integration Tracker</h4>
+                        <p class="text-xs text-slate-300 leading-relaxed">
+                            Continuous differential motion must be solved sequentially in code. Below is the active algorithm being processed by this browser in real-time.
+                        </p>
+                    </div>
+
+                    <!-- Code Tracker -->
+                    <div class="rounded-xl overflow-hidden border border-slate-800 bg-slate-950 text-[11px] font-mono">
+                        <div class="bg-slate-900 px-4 py-2 text-slate-400 text-xs border-b border-slate-800 flex justify-between">
+                            <span>Dynamic Euler-Cromer Loop</span>
+                            <span class="text-brand-400">Sync: Active</span>
+                        </div>
+                        
+                        <div class="p-3 space-y-1 text-slate-300">
+                            <!-- Line 1 -->
+                            <div id="algo-line-1" class="p-1 px-2 rounded transition-all duration-150">
+                                <span class="text-slate-500 mr-2">01</span><span class="text-emerald-400">const</span> V = (4 / 3) * Math.PI * Math.pow(r, 3);
+                            </div>
+                            <!-- Line 2 -->
+                            <div id="algo-line-2" class="p-1 px-2 rounded transition-all duration-150">
+                                <span class="text-slate-500 mr-2">02</span><span class="text-emerald-400">const</span> m = V * rho_obj;
+                            </div>
+                            <!-- Line 3 -->
+                            <div id="algo-line-3" class="p-1 px-2 rounded transition-all duration-150">
+                                <span class="text-slate-500 mr-2">03</span><span class="text-emerald-400">const</span> Fg = m * g;
+                            </div>
+                            <!-- Line 4 -->
+                            <div id="algo-line-4" class="p-1 px-2 rounded transition-all duration-150">
+                                <span class="text-slate-500 mr-2">04</span><span class="text-emerald-400">const</span> Fb = V * rho_fluid * g;
+                            </div>
+                            <!-- Line 5 -->
+                            <div id="algo-line-5" class="p-1 px-2 rounded transition-all duration-150">
+                                <span class="text-slate-500 mr-2">05</span><span class="text-emerald-400">let</span> Fd;
+                            </div>
+                            <!-- Line 6 -->
+                            <div id="algo-line-6" class="p-1 px-2 rounded transition-all duration-150 pl-6">
+                                <span class="text-slate-500 mr-2">06</span><span class="text-pink-400">if</span> (isQuadratic) {
+                            </div>
+                            <!-- Line 7 -->
+                            <div id="algo-line-7" class="p-1 px-2 rounded transition-all duration-150 pl-10">
+                                <span class="text-slate-500 mr-2">07</span>  Fd = 0.5 * Cd * rho_fluid * (Math.PI * r * r) * v * v;
+                            </div>
+                            <!-- Line 8 -->
+                            <div id="algo-line-8" class="p-1 px-2 rounded transition-all duration-150 pl-6">
+                                <span class="text-slate-500 mr-2">08</span>} <span class="text-pink-400">else</span> {
+                            </div>
+                            <!-- Line 9 -->
+                            <div id="algo-line-9" class="p-1 px-2 rounded transition-all duration-150 pl-10">
+                                <span class="text-slate-500 mr-2">09</span>  Fd = 6 * Math.PI * viscosity * r * v;
+                            </div>
+                            <!-- Line 10 -->
+                            <div id="algo-line-10" class="p-1 px-2 rounded transition-all duration-150 pl-6">
+                                <span class="text-slate-500 mr-2">10</span>}
+                            </div>
+                            <!-- Line 11 -->
+                            <div id="algo-line-11" class="p-1 px-2 rounded transition-all duration-150">
+                                <span class="text-slate-500 mr-2">11</span><span class="text-emerald-400">const</span> F_net = Fg - Fb - Fd;
+                            </div>
+                            <!-- Line 12 -->
+                            <div id="algo-line-12" class="p-1 px-2 rounded transition-all duration-150">
+                                <span class="text-slate-500 mr-2">12</span><span class="text-emerald-400">const</span> acceleration = F_net / m;
+                            </div>
+                            <!-- Line 13 -->
+                            <div id="algo-line-13" class="p-1 px-2 rounded transition-all duration-150">
+                                <span class="text-slate-500 mr-2">13</span>v = v + acceleration * dt;
+                            </div>
+                            <!-- Line 14 -->
+                            <div id="algo-line-14" class="p-1 px-2 rounded transition-all duration-150">
+                                <span class="text-slate-500 mr-2">14</span>y = y + v * dt;
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Step Tracker Explanation -->
+                    <div class="bg-slate-900 p-4 border border-slate-800 rounded-xl">
+                        <span class="text-xs font-bold text-slate-400 block mb-1">State Highlights</span>
+                        <p id="algorithm-live-explanation" class="text-xs text-slate-300 leading-relaxed font-mono">
+                            Press Play to start the loop and watch the numerical values updates sequentially.
+                        </p>
+                    </div>
+                </div>
+
+            </div>
+
+            <!-- Critical Thinking & Real World Applications -->
+            <div class="bg-slate-900 border border-slate-800 rounded-2xl p-5 shadow-lg">
+                <h3 class="text-sm font-semibold text-slate-200 uppercase tracking-wider mb-3 flex items-center gap-2">
+                    <svg class="w-4.5 h-4.5 text-yellow-400" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M9.663 17h4.673M12 3v1m6.364 1.636l-.707.707M21 12h-1M4 12H3m3.343-5.657l-.707-.707m2.828 9.9a5 5 0 117.072 0l-.548.547A3.374 3.374 0 0014 18.469V19a2 2 0 11-4 0v-.531c0-.895-.356-1.754-.988-2.386l-.548-.547z"/></svg>
+                    Experimental Analysis: Mind Lab
+                </h3>
+                
+                <div class="space-y-4">
+                    <div class="bg-slate-950 p-3.5 rounded-xl border border-slate-800/80">
+                        <span class="text-xs font-bold text-amber-400 block mb-1">Why doesn't heavy dust drop instantly?</span>
+                        <p class="text-[11px] text-slate-300 leading-relaxed">
+                            A grain of rock dust (&rho; = 2500 kg/m³) is highly dense compared to air. Yet, because its radius (r) is incredibly small, Stokes' Law applies. Viscous drag quickly matches its tiny weight, halting acceleration at terminal velocities of mere millimeters per second.
+                        </p>
+                    </div>
+
+                    <div class="bg-slate-950 p-3.5 rounded-xl border border-slate-800/80">
+                        <span class="text-xs font-bold text-sky-400 block mb-1">Empirical Coefficient Determination</span>
+                        <p class="text-[11px] text-slate-300 leading-relaxed">
+                            Fluid laws are highly complex and often determined empirically. By letting spheres fall through liquids and measuring terminal velocity (v<sub>t</sub>) through sensor frames, physicists reverse-engineer fluid dynamic viscosity (&eta;) or shape drag coefficients (C<sub>d</sub>) accurately.
+                        </p>
+                    </div>
+                </div>
+            </div>
+
+        </div>
+
+    </main>
+
+    <!-- Footer -->
+    <footer class="border-t border-slate-800 bg-slate-950 py-4 text-center mt-auto text-[11px] text-slate-500">
+        <div class="max-w-7xl mx-auto px-4 flex flex-col sm:flex-row justify-between gap-2">
+            <span>Fluid Drag Simulator &bull; Designed for Physical Intuition</span>
+            <span class="font-mono text-slate-600">Calculated via discrete integration &bull; No Math rendering dependencies</span>
+        </div>
+    </footer>
+
+    <!-- JAVASCRIPT SIMULATION LOGIC -->
+    <script>
+        // Physics Engine State
+        let state = {
+            regime: 'quadratic', // 'quadratic' or 'linear'
+            playing: true,
+            
+            // Sphere Physical State
+            r: 0.15,            // Radius (meters)
+            rho_obj: 2500,      // Object Density (kg/m^3)
+            y: 0.05,            // Position down from surface (meters, 0 = top, 10 = bottom of column)
+            v: 0.0,             // Current velocity (m/s)
+            t: 0.0,             // Elapsed time (seconds)
+            
+            // Environmental Constants
+            g: 9.81,            // Gravity (m/s^2)
+            rho_fluid: 1.2,     // Fluid Density (kg/m^3)
+            Cd: 0.47,           // Drag coefficient (for Quadratic)
+            viscosity: 1.5,     // Dynamic viscosity (eta) in Pa*s (for Linear/Stokes)
+            
+            // Derived Quantities
+            m: 0,
+            V: 0,
+            Fg: 0,
+            Fb: 0,
+            Fd: 0,
+            a: 0,
+            vt: 0,              // Analytical Terminal Velocity
+            
+            // Historical Data for Graphing
+            history: []         // array of {t, v}
+        };
+
+        // Time Increment for Integration
+        const dt = 0.016; // Approx 60fps frame delta
+
+        // Color and Theme palettes
+        const COLORS = {
+            quadratic: {
+                accent: '#10b981', // emerald-500
+                background: 'rgba(16, 185, 129, 0.06)',
+                fluid: 'rgba(14, 165, 233, 0.15)' // translucent sky blue
+            },
+            linear: {
+                accent: '#06b6d4', // cyan-500
+                background: 'rgba(6, 182, 212, 0.06)',
+                fluid: 'rgba(245, 158, 11, 0.35)' // translucent amber honey/oil
+            }
+        };
+
+        // UI Canvas References
+        let physicsCanvas, physicsCtx;
+        let chartCanvas, chartCtx;
+        let animationFrameId;
+
+        // Interactive Active Code Highlighting Index
+        let currentCodeLine = 1;
+
+        // On Load Initializer
+        window.onload = function() {
+            physicsCanvas = document.getElementById('physics-canvas');
+            physicsCtx = physicsCanvas.getContext('2d');
+            chartCanvas = document.getElementById('chart-canvas');
+            chartCtx = chartCanvas.getContext('2d');
+
+            // Setup Resize listeners
+            window.addEventListener('resize', resizeCanvases);
+            resizeCanvases();
+
+            // Default preset initialization
+            applyPreset('basejump');
+
+            // Start Animation loop
+            tick();
+        };
+
+        function resizeCanvases() {
+            // Adjust physical canvas resolutions relative to container widths
+            const pRect = physicsCanvas.parentElement.getBoundingClientRect();
+            physicsCanvas.width = pRect.width;
+            physicsCanvas.height = pRect.height;
+
+            const cRect = chartCanvas.parentElement.getBoundingClientRect();
+            chartCanvas.width = cRect.width;
+            chartCanvas.height = cRect.height;
+        }
+
+        // Toggle state playing
+        function togglePlay() {
+            state.playing = !state.playing;
+            const btn = document.getElementById('btn-pause');
+            if (state.playing) {
+                btn.innerHTML = `
+                    <svg class="w-3.5 h-3.5 text-brand-400" fill="currentColor" viewBox="0 0 24 24"><path d="M6 19h4V5H6v14zm8-14v14h4V5h-4z"/></svg>
+                    <span>Pause</span>
+                `;
+            } else {
+                btn.innerHTML = `
+                    <svg class="w-3.5 h-3.5 text-emerald-400" fill="currentColor" viewBox="0 0 24 24"><path d="M8 5v14l11-7z"/></svg>
+                    <span>Play</span>
+                `;
+            }
+        }
+
+        // Reset positions
+        function resetSimulation() {
+            state.y = 0.05;
+            state.v = 0.0;
+            state.t = 0.0;
+            state.history = [];
+        }
+
+        // Change Active Drag Mode
+        function setRegime(regime) {
+            state.regime = regime;
+            const btnQuad = document.getElementById('btn-regime-quad');
+            const btnLin = document.getElementById('btn-regime-linear');
+
+            // Update sliders UI for target properties
+            const coefTitle = document.getElementById('lbl-context-coef-title');
+            const coefDesc = document.getElementById('lbl-context-coef-desc');
+            const coefSlider = document.getElementById('slider-context-coef');
+
+            if (regime === 'quadratic') {
+                btnQuad.className = "px-3 py-1.5 rounded-md text-xs font-medium transition-all bg-brand-500 text-white shadow-sm";
+                btnLin.className = "px-3 py-1.5 rounded-md text-xs font-medium transition-all text-slate-400 hover:text-white";
+                
+                // Show Cd Slider
+                coefTitle.innerHTML = "Drag Coefficient (Cd):";
+                coefDesc.innerHTML = "Dimensionless rating of shape geometry (Sphere is ~0.47).";
+                coefSlider.min = 0.1;
+                coefSlider.max = 2.0;
+                coefSlider.step = 0.01;
+                coefSlider.value = state.Cd;
+            } else {
+                btnLin.className = "px-3 py-1.5 rounded-md text-xs font-medium transition-all bg-brand-500 text-white shadow-sm";
+                btnQuad.className = "px-3 py-1.5 rounded-md text-xs font-medium transition-all text-slate-400 hover:text-white";
+                
+                // Show Viscosity Slider
+                coefTitle.innerHTML = "Dynamic Viscosity (&eta;):";
+                coefDesc.innerHTML = "Dynamic Shear resistance (Pa·s). Molasses ~5.0, Honey ~1.5, Water ~0.001.";
+                coefSlider.min = 0.05;
+                coefSlider.max = 8.0;
+                coefSlider.step = 0.05;
+                coefSlider.value = state.viscosity;
+            }
+
+            resetSimulation();
+            updateSliders();
+        }
+
+        // Apply physical configurations presets
+        function applyPreset(preset) {
+            if (preset === 'basejump') {
+                state.regime = 'quadratic';
+                state.r = 0.25;            // Skydiver modeled as cylinder/sphere equivalent
+                state.rho_obj = 1000;      // Water-like human density
+                state.rho_fluid = 1.2;     // Standard Air Density
+                state.Cd = 1.0;            // Human drag coeff roughly 1.0
+                state.viscosity = 1.8e-5;  // Low air viscosity
+                
+                setRegime('quadratic');
+            } else if (preset === 'marble-molasses') {
+                state.regime = 'linear';
+                state.r = 0.08;            // Large marble
+                state.rho_obj = 2500;      // Glass Density
+                state.rho_fluid = 1400;    // Molasses Density
+                state.viscosity = 4.5;     // High viscous fluid
+                state.Cd = 0.47;
+                
+                setRegime('linear');
+            } else if (preset === 'steel-water') {
+                state.regime = 'quadratic';
+                state.r = 0.05;            // Ball bearing
+                state.rho_obj = 7800;      // Steel density
+                state.rho_fluid = 1000;    // Water density
+                state.Cd = 0.47;           // Ideal Sphere
+                state.viscosity = 0.01;
+                
+                setRegime('quadratic');
+            }
+
+            // Sync Sliders positions with states
+            document.getElementById('slider-radius').value = state.r;
+            document.getElementById('slider-density-obj').value = state.rho_obj;
+            document.getElementById('slider-density-fluid').value = state.rho_fluid;
+            
+            if (state.regime === 'quadratic') {
+                document.getElementById('slider-context-coef').value = state.Cd;
+            } else {
+                document.getElementById('slider-context-coef').value = state.viscosity;
+            }
+
+            resetSimulation();
+            updateSliders();
+        }
+
+        // Synchronize HTML sliders into JS state values
+        function updateSliders() {
+            state.r = parseFloat(document.getElementById('slider-radius').value);
+            state.rho_obj = parseFloat(document.getElementById('slider-density-obj').value);
+            state.rho_fluid = parseFloat(document.getElementById('slider-density-fluid').value);
+            
+            const contextVal = parseFloat(document.getElementById('slider-context-coef').value);
+            if (state.regime === 'quadratic') {
+                state.Cd = contextVal;
+            } else {
+                state.viscosity = contextVal;
+            }
+
+            // Sync Slider Display Numbers
+            document.getElementById('lbl-radius').innerHTML = `${state.r.toFixed(2)} m`;
+            document.getElementById('lbl-density-obj').innerHTML = `${state.rho_obj.toFixed(0)} kg/m³`;
+            document.getElementById('lbl-density-fluid').innerHTML = `${state.rho_fluid.toFixed(1)} kg/m³`;
+            
+            if (state.regime === 'quadratic') {
+                document.getElementById('lbl-context-coef').innerHTML = `${state.Cd.toFixed(2)}`;
+                document.getElementById('overlay-fluid-name').innerHTML = state.rho_fluid > 800 ? "Water-like" : "Air-like";
+            } else {
+                document.getElementById('lbl-context-coef').innerHTML = `${state.viscosity.toFixed(2)} Pa·s`;
+                document.getElementById('overlay-fluid-name').innerHTML = state.viscosity > 2.0 ? "Molasses-like" : "Oil-like";
+            }
+
+            // Dynamic calculation updates on physical parameters
+            recalculatePhysics();
+        }
+
+        // Recalculates Derived variables & Analytical limits
+        function recalculatePhysics() {
+            // Sphere Physical Properties
+            state.V = (4.0 / 3.0) * Math.PI * Math.pow(state.r, 3);
+            state.m = state.V * state.rho_obj;
+            
+            // Standard Forces
+            state.Fg = state.m * state.g;
+            state.Fb = state.V * state.rho_fluid * state.g;
+
+            // Analytical Terminal velocity limit calculation (Forces balanced mathematically)
+            // Fg - Fb - Fd = 0 => (m - V*rho_fluid)*g = Fd
+            const F_driving = (state.m - state.V * state.rho_fluid) * state.g;
+
+            if (F_driving <= 0) {
+                // Sphere floats or has neutral buoyancy
+                state.vt = 0;
+            } else {
+                if (state.regime === 'quadratic') {
+                    const crossSectionArea = Math.PI * Math.pow(state.r, 2);
+                    // F_driving = 0.5 * Cd * rho_fluid * A * Vt^2
+                    state.vt = Math.sqrt(F_driving / (0.5 * state.Cd * state.rho_fluid * crossSectionArea));
+                } else {
+                    // Viscous Drag: F_driving = 6 * pi * eta * r * Vt
+                    state.vt = F_driving / (6 * Math.PI * state.viscosity * state.r);
+                }
+            }
+
+            document.getElementById('stat-vt').innerHTML = `${state.vt.toFixed(2)} m/s`;
+        }
+
+        // Active Step Tracker highlighting matching pseudo-code
+        function highlightStep(stepNum) {
+            currentCodeLine = stepNum;
+            // Clear current highlights
+            for (let i = 1; i <= 14; i++) {
+                const el = document.getElementById(`algo-line-${i}`);
+                if (el) el.className = "p-1 px-2 rounded transition-all duration-150 text-slate-400";
+            }
+            
+            // Highlight selected
+            const activeEl = document.getElementById(`algo-line-${stepNum}`);
+            if (activeEl) {
+                activeEl.className = "p-1 px-2 rounded transition-all duration-150 bg-brand-500/15 text-brand-300 font-bold border-l-2 border-brand-500";
+            }
+
+            // Update explanation text accompanying highlighted step
+            const explanation = document.getElementById('algorithm-live-explanation');
+            switch (stepNum) {
+                case 1:
+                    explanation.innerHTML = `V = ${state.V.toExponential(3)} m³ &bull; Sphere volume calculated using standard sphere geometry.`;
+                    break;
+                case 2:
+                    explanation.innerHTML = `m = V &rho; = ${state.m.toFixed(3)} kg &bull; Sphere absolute mass calculated using material density.`;
+                    break;
+                case 3:
+                    explanation.innerHTML = `Fg = m·g = ${state.Fg.toFixed(3)} N &bull; Downward gravitational pull computed on active mass.`;
+                    break;
+                case 4:
+                    explanation.innerHTML = `Fb = ${state.Fb.toFixed(3)} N &bull; Displaced fluid buoyancy upward calculated.`;
+                    break;
+                case 7:
+                    explanation.innerHTML = `Quadratic Drag Limit applies. Fd scales with velocity squared. Fd = ${state.Fd.toFixed(3)} N.`;
+                    break;
+                case 9:
+                    explanation.innerHTML = `Viscous Stokes' Drag applies. Fd scales linearly with velocity. Fd = ${state.Fd.toFixed(3)} N.`;
+                    break;
+                case 11:
+                    explanation.innerHTML = `F_net = Fg - Fb - Fd = ${(state.Fg - state.Fb - state.Fd).toFixed(3)} N &bull; Unbalanced resultant force.`;
+                    break;
+                case 12:
+                    explanation.innerHTML = `Acceleration = F_net/m = ${state.a.toFixed(2)} m/s² &bull; Current instant change rate of velocity.`;
+                    break;
+                case 13:
+                    explanation.innerHTML = `v_new = v + a*dt = ${state.v.toFixed(2)} m/s &bull; Integration of velocity forward by time step dt (${dt}s).`;
+                    break;
+                case 14:
+                    explanation.innerHTML = `y_new = y + v*dt = ${state.y.toFixed(2)}m &bull; Position down fluid column tracked.`;
+                    break;
+            }
+        }
+
+        // Main continuous animation loop
+        function tick() {
+            if (state.playing) {
+                updatePhysics();
+            }
+            renderPhysics();
+            renderChart();
+            requestAnimationFrame(tick);
+        }
+
+        // Computational Differential Step
+        function updatePhysics() {
+            recalculatePhysics();
+
+            // Run Step-by-Step Code highlighting index tracking based on frames or sub-frame steps
+            const totalSteps = [1, 2, 3, 4, 11, 12, 13, 14];
+            if (state.regime === 'quadratic') {
+                totalSteps.splice(4, 0, 7);
+            } else {
+                totalSteps.splice(4, 0, 9);
+            }
+            // Cycle visual algorithmic steps sequentially over frame ticks for educational tracing
+            const stepIndex = Math.floor(Date.now() / 350) % totalSteps.length;
+            highlightStep(totalSteps[stepIndex]);
+
+            // Math Computational Drag evaluation
+            if (state.regime === 'quadratic') {
+                const crossSectionArea = Math.PI * Math.pow(state.r, 2);
+                state.Fd = 0.5 * state.Cd * state.rho_fluid * crossSectionArea * Math.pow(state.v, 2);
+            } else {
+                state.Fd = 6 * Math.PI * state.viscosity * state.r * state.v;
+            }
+
+            // Upward forces cannot artificially push sphere back upward on settling
+            const upwardForces = state.Fb + state.Fd;
+            let F_net = state.Fg - upwardForces;
+
+            // Compute Instantaneous Acceleration
+            state.a = F_net / state.m;
+
+            // Integration Engine: Euler-Cromer Iteration
+            state.v += state.a * dt;
+            if (state.v < 0) state.v = 0; // Downward direction boundary
+
+            // Integrate Position down the vertical fluid shaft
+            state.y += state.v * dt;
+            state.t += dt;
+
+            // Bottom Collision boundary of visual sandbox
+            if (state.y > 10) {
+                state.y = 10;
+                state.v = 0;
+                state.a = 0;
+            }
+
+            // Save timeline performance state data for Graph plotting
+            if (state.t < 15.0) { // Limit timeline record lengths
+                state.history.push({ t: state.t, v: state.v });
+            }
+
+            // Calculate Reynolds Number to present
+            // Re = (rho * v * d) / viscosity
+            const characteristicDiameter = state.r * 2.0;
+            // Guard viscosity to prevent division by zero in air preset
+            const dynamicVisc = state.viscosity > 0 ? state.viscosity : 1e-5;
+            const reynolds = (state.rho_fluid * state.v * characteristicDiameter) / dynamicVisc;
+            
+            // Push indicators to UI
+            document.getElementById('stat-velocity').innerHTML = `${state.v.toFixed(2)} m/s`;
+            document.getElementById('stat-time').innerHTML = `${state.t.toFixed(1)} s`;
+            document.getElementById('stat-reynolds').innerHTML = reynolds > 9999 ? reynolds.toExponential(2) : reynolds.toFixed(1);
+            
+            document.getElementById('val-accel').innerHTML = `${state.a.toFixed(2)} m/s²`;
+            document.getElementById('val-fg-meter').innerHTML = `${state.Fg.toFixed(3)} N`;
+            document.getElementById('val-fb-meter').innerHTML = `${state.Fb.toFixed(3)} N`;
+            document.getElementById('val-fd-meter').innerHTML = `${state.Fd.toFixed(3)} N`;
+
+            // Adjust live vector dynamic scales meters visually (normalized to gravity force)
+            const maxNormalizer = Math.max(state.Fg, 0.1);
+            document.getElementById('bar-fg').style.width = `${Math.min((state.Fg / maxNormalizer) * 100, 100)}%`;
+            document.getElementById('bar-fb').style.width = `${Math.min((state.Fb / maxNormalizer) * 100, 100)}%`;
+            document.getElementById('bar-fd').style.width = `${Math.min((state.Fd / maxNormalizer) * 100, 100)}%`;
+        }
+
+        // Canvas Rendering for Fluid Sandbox Column
+        function renderPhysics() {
+            const ctx = physicsCtx;
+            const w = physicsCanvas.width;
+            const h = physicsCanvas.height;
+            ctx.clearRect(0, 0, w, h);
+
+            // 1. Draw Liquid background and viscosity gradients
+            const grd = ctx.createLinearGradient(0, 0, 0, h);
+            if (state.regime === 'quadratic') {
+                // Light Blue Air/Water
+                grd.addColorStop(0, '#0c4a6e');
+                grd.addColorStop(1, '#0284c7');
+            } else {
+                // Golden dense Honey/Viscosity column
+                grd.addColorStop(0, '#78350f');
+                grd.addColorStop(1, '#d97706');
+            }
+            ctx.fillStyle = grd;
+            ctx.fillRect(0, 0, w, h);
+
+            // 2. Render shearing flow streamlines / particle flows
+            ctx.strokeStyle = 'rgba(255, 255, 255, 0.08)';
+            ctx.lineWidth = 1;
+            const streamSpacing = 30;
+            const flowSpeedMultiplier = state.v * 12;
+
+            for (let i = 10; i < w; i += streamSpacing) {
+                ctx.beginPath();
+                // Waviness decreases as viscosity (Stokes' mode) increases (Laminar shear vs. Turbulence)
+                const amplitude = state.regime === 'quadratic' ? 4 : 1;
+                const wavelength = 60;
+                
+                for (let yPos = 0; yPos < h; yPos += 5) {
+                    const wavePhase = (yPos - (Date.now() * 0.005 * flowSpeedMultiplier)) / wavelength;
+                    const xOffset = Math.sin(wavePhase) * amplitude;
+                    if (yPos === 0) {
+                        ctx.moveTo(i + xOffset, yPos);
+                    } else {
+                        ctx.lineTo(i + xOffset, yPos);
+                    }
+                }
+                ctx.stroke();
+            }
+
+            // 3. Render falling sphere
+            // Map physical y position [0m to 10m] into pixel height [offset to h-offset]
+            const topMargin = 40;
+            const bottomMargin = 40;
+            const travelDistance = h - topMargin - bottomMargin;
+            const sphereY = topMargin + (state.y / 10.0) * travelDistance;
+            const sphereX = w / 2;
+            
+            // Map physical radius [0.05m to 0.5m] visually into pixels [10px to 45px]
+            const sphereRadiusPixels = 10 + (state.r / 0.5) * 35;
+
+            // Draw sphere body
+            ctx.beginPath();
+            ctx.arc(sphereX, sphereY, sphereRadiusPixels, 0, 2 * Math.PI);
+            const sphereGrad = ctx.createRadialGradient(sphereX - sphereRadiusPixels*0.3, sphereY - sphereRadiusPixels*0.3, sphereRadiusPixels*0.1, sphereX, sphereY, sphereRadiusPixels);
+            
+            // Shading style matches sphere density visually (Dense metal = silver/dark steel; light materials = wood/yellow)
+            if (state.rho_obj > 5000) {
+                // Steel ball
+                sphereGrad.addColorStop(0, '#ffffff');
+                sphereGrad.addColorStop(0.3, '#94a3b8');
+                sphereGrad.addColorStop(1, '#1e293b');
+            } else if (state.rho_obj < 1000) {
+                // Wooden Ball
+                sphereGrad.addColorStop(0, '#fef08a');
+                sphereGrad.addColorStop(0.5, '#ca8a04');
+                sphereGrad.addColorStop(1, '#713f12');
+            } else {
+                // Standard Glass / Red sphere
+                sphereGrad.addColorStop(0, '#fca5a5');
+                sphereGrad.addColorStop(0.3, '#ef4444');
+                sphereGrad.addColorStop(1, '#7f1d1d');
+            }
+            
+            ctx.fillStyle = sphereGrad;
+            ctx.shadowColor = 'rgba(0, 0, 0, 0.5)';
+            ctx.shadowBlur = 10;
+            ctx.shadowOffsetY = 4;
+            ctx.fill();
+            ctx.shadowColor = 'transparent'; // clear shadows
+
+            // 4. Render Dynamic Vector Arrows relative to sphere center
+            if (state.y < 10) { // Only draw vector forces when sphere is in flight
+                // gravity (Fg) - Downward red vector
+                const scaleFactor = 15.0; // scales force units into readable pixel lengths
+                const gravityArrowLength = Math.max((state.Fg / state.Fg) * 50, 25); // base reference sizing
+                drawArrow(ctx, sphereX, sphereY, sphereX, sphereY + gravityArrowLength, '#ef4444', 3, 'Fg');
+
+                // buoyancy (Fb) - Upward cyan vector
+                if (state.Fb > 0.01) {
+                    const buoyancyArrowLength = (state.Fb / state.Fg) * gravityArrowLength;
+                    if (buoyancyArrowLength > 5) {
+                        drawArrow(ctx, sphereX, sphereY, sphereX, sphereY - buoyancyArrowLength, '#22d3ee', 3, 'Fb');
+                    }
+                }
+
+                // drag (Fd) - Upward green vector
+                if (state.Fd > 0.01) {
+                    const dragArrowLength = (state.Fd / state.Fg) * gravityArrowLength;
+                    const buoyOffset = (state.Fb / state.Fg) * gravityArrowLength;
+                    if (dragArrowLength > 5) {
+                        // Stack the drag arrow on top of buoyancy arrow visually to represent forces sum
+                        drawArrow(ctx, sphereX, sphereY - buoyOffset, sphereX, sphereY - buoyOffset - dragArrowLength, '#10b981', 3, 'Fd');
+                    }
+                }
+            }
+        }
+
+        // SVG Utility function to draw dynamic vector force arrows on Canvas
+        function drawArrow(ctx, fromx, fromy, tox, toy, color, width, label) {
+            ctx.strokeStyle = color;
+            ctx.fillStyle = color;
+            ctx.lineWidth = width;
+            
+            ctx.beginPath();
+            ctx.moveTo(fromx, fromy);
+            ctx.lineTo(tox, toy);
+            ctx.stroke();
+
+            // Arrow head
+            const angle = Math.atan2(toy - fromy, tox - fromx);
+            const headLength = 8;
+            ctx.beginPath();
+            ctx.moveTo(tox, toy);
+            ctx.lineTo(tox - headLength * Math.cos(angle - Math.PI / 6), toy - headLength * Math.sin(angle - Math.PI / 6));
+            ctx.lineTo(tox - headLength * Math.cos(angle + Math.PI / 6), toy - headLength * Math.sin(angle + Math.PI / 6));
+            ctx.closePath();
+            ctx.fill();
+
+            // Text Label
+            ctx.font = 'bold 9px monospace';
+            ctx.fillStyle = '#ffffff';
+            ctx.fillText(label, tox + 6, toy + (fromy > toy ? 6 : -2));
+        }
+
+        // Render Line chart plotting Velocity over time
+        function renderChart() {
+            const ctx = chartCtx;
+            const w = chartCanvas.width;
+            const h = chartCanvas.height;
+            ctx.clearRect(0, 0, w, h);
+
+            // Graph bounds padding
+            const padLeft = 35;
+            const padRight = 10;
+            const padTop = 10;
+            const padBottom = 20;
+            const gw = w - padLeft - padRight;
+            const gh = h - padTop - padBottom;
+
+            // Draw axis borders
+            ctx.strokeStyle = '#334155';
+            ctx.lineWidth = 1;
+            ctx.beginPath();
+            ctx.moveTo(padLeft, padTop);
+            ctx.lineTo(padLeft, h - padBottom);
+            ctx.lineTo(w - padRight, h - padBottom);
+            ctx.stroke();
+
+            // Draw horizontal ticks and limits
+            ctx.font = '8px monospace';
+            ctx.fillStyle = '#64748b';
+            ctx.textAlign = 'right';
+            ctx.textBaseline = 'middle';
+            
+            // Y-Axis Ticks: Velocity limits scale
+            const maxVelScale = Math.max(state.vt * 1.2, 5.0);
+            for (let i = 0; i <= 4; i++) {
+                const fraction = i / 4;
+                const vVal = fraction * maxVelScale;
+                const yPos = h - padBottom - (fraction * gh);
+                
+                ctx.fillText(vVal.toFixed(1), padLeft - 6, yPos);
+                
+                ctx.strokeStyle = 'rgba(51, 65, 85, 0.3)';
+                ctx.beginPath();
+                ctx.moveTo(padLeft, yPos);
+                ctx.lineTo(w - padRight, yPos);
+                ctx.stroke();
+            }
+
+            // X-Axis Timeline boundary limit ticks
+            ctx.textAlign = 'center';
+            ctx.textBaseline = 'top';
+            const maxTimeScale = 15.0; // limits to 15 seconds visualization width
+            for (let i = 0; i <= 5; i++) {
+                const fraction = i / 5;
+                const tVal = fraction * maxTimeScale;
+                const xPos = padLeft + (fraction * gw);
+                ctx.fillText(`${tVal.toFixed(0)}s`, xPos, h - padBottom + 4);
+            }
+
+            // Draw Terminal Velocity Target reference line
+            const vtFraction = state.vt / maxVelScale;
+            if (vtFraction <= 1.0) {
+                const vtY = h - padBottom - (vtFraction * gh);
+                ctx.strokeStyle = 'rgba(236, 72, 153, 0.4)'; // pink-500
+                ctx.setLineDash([4, 4]);
+                ctx.beginPath();
+                ctx.moveTo(padLeft, vtY);
+                ctx.lineTo(w - padRight, vtY);
+                ctx.stroke();
+                ctx.setLineDash([]);
+                
+                ctx.fillStyle = '#f472b6';
+                ctx.font = 'bold 8px monospace';
+                ctx.textAlign = 'right';
+                ctx.fillText("Analytical Vt", w - padRight, vtY - 6);
+            }
+
+            // Plot real-time recorded trajectory curve
+            if (state.history.length > 1) {
+                ctx.strokeStyle = state.regime === 'quadratic' ? '#10b981' : '#06b6d4';
+                ctx.lineWidth = 2;
+                ctx.beginPath();
+
+                for (let i = 0; i < state.history.length; i++) {
+                    const pt = state.history[i];
+                    // Map points to graph bounds pixels
+                    const xCoord = padLeft + (Math.min(pt.t / maxTimeScale, 1.0) * gw);
+                    const yCoord = h - padBottom - (Math.min(pt.v / maxVelScale, 1.0) * gh);
+
+                    if (i === 0) {
+                        ctx.moveTo(xCoord, yCoord);
+                    } else {
+                        ctx.lineTo(xCoord, yCoord);
+                    }
+                }
+                ctx.stroke();
+            }
+        }
+
+        // Pedagogical tab manager
+        function switchPedagogicalTab(tabName) {
+            // Setup active and dormant design tokens
+            const tabButtons = ['intuition', 'derivation', 'algorithm'];
+            tabButtons.forEach(name => {
+                const btn = document.getElementById(`tab-btn-${name}`);
+                const cont = document.getElementById(`tab-content-${name}`);
+                
+                if (name === tabName) {
+                    btn.className = "flex-1 py-3 text-center text-xs font-semibold border-b-2 border-brand-500 text-brand-400 transition";
+                    cont.classList.remove('hidden');
+                } else {
+                    btn.className = "flex-1 py-3 text-center text-xs font-semibold border-b-2 border-transparent text-slate-400 hover:text-slate-200 transition";
+                    cont.classList.add('hidden');
+                }
+            });
+        }
+    </script>
+</body>
+</html>

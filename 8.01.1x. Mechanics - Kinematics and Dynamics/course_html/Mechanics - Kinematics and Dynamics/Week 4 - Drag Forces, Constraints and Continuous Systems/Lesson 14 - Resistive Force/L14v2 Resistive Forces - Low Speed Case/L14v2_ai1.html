@@ -1,0 +1,1089 @@
+<!DOCTYPE html>
+<html lang="en" class="dark">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Velocity-Dependent Resistive Forces Explorer</title>
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            darkMode: 'class',
+            theme: {
+                extend: {
+                    colors: {
+                        brand: {
+                            50: '#eef2ff',
+                            100: '#e0e7ff',
+                            500: '#6366f1',
+                            600: '#4f46e5',
+                            700: '#4338ca',
+                        },
+                        amber: {
+                            400: '#fbbf24',
+                            500: '#f59e0b',
+                        },
+                        emerald: {
+                            400: '#34d399',
+                            500: '#10b981',
+                        }
+                    },
+                    fontFamily: {
+                        sans: ['Inter', 'sans-serif'],
+                    }
+                }
+            }
+        }
+    </script>
+    <!-- Google Fonts Inter -->
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;500;700&display=swap" rel="stylesheet">
+    <style>
+        body {
+            font-family: 'Inter', sans-serif;
+            scrollbar-width: thin;
+            scrollbar-color: rgba(156, 163, 175, 0.5) transparent;
+        }
+        .math-font {
+            font-family: 'JetBrains Mono', monospace;
+        }
+        /* Custom scrollbar styling */
+        ::-webkit-scrollbar {
+            width: 6px;
+            height: 6px;
+        }
+        ::-webkit-scrollbar-track {
+            background: transparent;
+        }
+        ::-webkit-scrollbar-thumb {
+            background: rgba(156, 163, 175, 0.3);
+            border-radius: 3px;
+        }
+        ::-webkit-scrollbar-thumb:hover {
+            background: rgba(156, 163, 175, 0.5);
+        }
+    </style>
+</head>
+<body class="bg-slate-950 text-slate-100 min-h-screen flex flex-col antialiased">
+
+<header class="border-b border-slate-800 bg-slate-900/80 backdrop-blur sticky top-0 z-50 px-4 py-3 sm:px-6">
+    <div class="max-w-7xl mx-auto flex flex-col sm:flex-row items-center justify-between gap-4">
+        <div class="flex items-center gap-3">
+            <div class="bg-gradient-to-tr from-brand-600 to-indigo-400 p-2 rounded-xl shadow-lg shadow-indigo-500/10">
+                <svg class="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19.428 15.428a2 2 0 00-1.022-.547l-2.387-.477a6 6 0 00-3.86.517l-.318.158a6 6 0 01-3.86.517L6.05 15.21a2 2 0 00-1.806.547M8 4h8l-1 1v5.172a2 2 0 00.586 1.414l5 5c1.26 1.26.367 3.414-1.415 3.414H4.828c-1.782 0-2.674-2.154-1.414-3.414l5-5A2 2 0 009 10.172V5L8 4z" />
+                </svg>
+            </div>
+            <div>
+                <h1 class="text-xl font-bold tracking-tight bg-gradient-to-r from-white to-slate-400 bg-clip-text text-transparent">Linear Drag & Fluid Dynamics Explorer</h1>
+                <p class="text-xs text-slate-400">Interactive Mental Model & Step-by-Step Derivation Lab</p>
+            </div>
+        </div>
+        <div class="flex items-center gap-2">
+            <span class="text-xs font-semibold px-2.5 py-1 rounded-full bg-indigo-500/10 text-indigo-400 border border-indigo-500/20">
+                Newtonian Mechanics
+            </span>
+            <span class="text-xs font-semibold px-2.5 py-1 rounded-full bg-emerald-500/10 text-emerald-400 border border-emerald-500/20">
+                Slow-motion Viscosity
+            </span>
+        </div>
+    </div>
+</header>
+
+<main class="flex-1 max-w-7xl w-full mx-auto p-4 sm:p-6 grid grid-cols-1 lg:grid-cols-12 gap-6">
+
+    <!-- LEFT COLUMN: The Interactive Simulation Lab (5 cols) -->
+    <div class="lg:col-span-5 flex flex-col gap-6">
+        
+        <!-- Simulation Control Center Card -->
+        <div class="bg-slate-900 border border-slate-800 rounded-2xl p-4 sm:p-5 flex flex-col gap-5 shadow-xl">
+            <div class="flex items-center justify-between border-b border-slate-800 pb-3">
+                <h2 class="text-md font-semibold text-slate-200 flex items-center gap-2">
+                    <span class="w-2.5 h-2.5 rounded-full bg-brand-500 animate-pulse"></span>
+                    Interactive Fluid Chamber
+                </h2>
+                <!-- Preset Dropdown -->
+                <div class="flex items-center gap-2">
+                    <label for="preset-select" class="text-xs text-slate-400">Preset:</label>
+                    <select id="preset-select" class="bg-slate-850 text-xs border border-slate-700 rounded-lg px-2.5 py-1 text-slate-300 focus:outline-none focus:border-brand-500 cursor-pointer">
+                        <option value="oil">Marble in Olive Oil</option>
+                        <option value="water">Steel Ball in Water</option>
+                        <option value="air">Micro-Dust in Air</option>
+                        <option value="heavy">Dense Object (Heavy)</option>
+                    </select>
+                </div>
+            </div>
+
+            <!-- Fluid Chamber Visualization Box -->
+            <div class="relative bg-slate-950 border border-slate-800 rounded-xl overflow-hidden flex flex-col justify-end" style="height: 380px;">
+                <!-- Fluid Background overlay styling -->
+                <div id="fluid-chamber-bg" class="absolute inset-0 bg-gradient-to-b from-amber-950/20 to-amber-900/40 transition-all duration-500"></div>
+                
+                <!-- Density indicators grid / visual patterns -->
+                <div class="absolute inset-0 opacity-10 flex flex-col justify-around pointer-events-none">
+                    <div class="border-b border-slate-500 w-full"></div>
+                    <div class="border-b border-slate-500 w-full"></div>
+                    <div class="border-b border-slate-500 w-full"></div>
+                    <div class="border-b border-slate-500 w-full"></div>
+                </div>
+
+                <!-- Simulation Interactive SVG Overlay -->
+                <svg id="sim-svg" class="absolute inset-0 w-full h-full z-10 pointer-events-none">
+                    <!-- Velocity / Force Vectors -->
+                    <g id="vector-group">
+                        <!-- Gravity Force (Fg) Arrow -->
+                        <line id="vec-fg" x1="0" y1="0" x2="0" y2="0" stroke="#10b981" stroke-width="3.5" marker-end="url(#arrow-green)" />
+                        <!-- Resistive Drag Force (Fd) Arrow -->
+                        <line id="vec-fd" x1="0" y1="0" x2="0" y2="0" stroke="#ef4444" stroke-width="3.5" marker-end="url(#arrow-red)" />
+                        <!-- Net Velocity Arrow -->
+                        <line id="vec-v" x1="0" y1="0" x2="0" y2="0" stroke="#3b82f6" stroke-width="2.5" marker-end="url(#arrow-blue)" stroke-dasharray="3 3" />
+                    </g>
+                    <!-- Custom markers definitions for SVG arrows -->
+                    <defs>
+                        <marker id="arrow-green" viewBox="0 0 10 10" refX="6" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
+                            <path d="M0,0 L10,5 L0,10 z" fill="#10b981" />
+                        </marker>
+                        <marker id="arrow-red" viewBox="0 0 10 10" refX="6" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
+                            <path d="M0,0 L10,5 L0,10 z" fill="#ef4444" />
+                        </marker>
+                        <marker id="arrow-blue" viewBox="0 0 10 10" refX="6" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
+                            <path d="M0,0 L10,5 L0,10 z" fill="#3b82f6" />
+                        </marker>
+                    </defs>
+                </svg>
+
+                <!-- Floating Ball Element (Marble) -->
+                <div id="sim-ball" class="absolute left-1/2 -translate-x-1/2 w-8 h-8 rounded-full bg-radial from-slate-200 to-slate-400 shadow-[0_0_15px_rgba(255,255,255,0.4)] border border-white/50 flex items-center justify-center z-20 cursor-grab active:cursor-grabbing">
+                    <div class="w-1.5 h-1.5 bg-white/70 rounded-full -translate-x-1 -translate-y-1"></div>
+                </div>
+
+                <!-- Live Vector Indicators Sidebar Inside Chamber -->
+                <div class="absolute bottom-3 right-3 bg-slate-900/90 border border-slate-700/50 rounded-lg p-2.5 text-xs z-30 flex flex-col gap-1.5 pointer-events-none backdrop-blur-sm shadow-md">
+                    <div class="flex items-center gap-2">
+                        <span class="inline-block w-3 h-1 bg-emerald-500 rounded-full"></span>
+                        <span class="text-slate-300 font-medium">Gravity F<sub>g</sub> = m·g</span>
+                    </div>
+                    <div class="flex items-center gap-2">
+                        <span class="inline-block w-3 h-1 bg-red-500 rounded-full"></span>
+                        <span class="text-slate-300 font-medium">Drag F<sub>d</sub> = -α·v</span>
+                    </div>
+                    <div class="flex items-center gap-2 border-t border-slate-800 pt-1 mt-1">
+                        <span class="inline-block w-3 h-1 bg-blue-500 rounded-full"></span>
+                        <span class="text-slate-300 font-medium">Velocity (v)</span>
+                    </div>
+                </div>
+
+                <!-- Simulation Info Banner -->
+                <div class="absolute top-3 left-3 bg-slate-900/90 border border-slate-700/50 rounded-lg px-2.5 py-1 text-[11px] font-mono text-brand-300 z-30 pointer-events-none backdrop-blur-sm">
+                    Status: <span id="sim-status">Released from rest</span>
+                </div>
+            </div>
+
+            <!-- Simulation Controls Buttons row -->
+            <div class="flex gap-2">
+                <button id="btn-play" class="flex-1 bg-brand-600 hover:bg-brand-500 transition-colors py-2.5 px-4 rounded-xl font-medium text-sm flex items-center justify-center gap-2 shadow-lg shadow-brand-600/10">
+                    <svg class="w-4 h-4 fill-current" viewBox="0 0 24 24"><path d="M8 5v14l11-7z"/></svg>
+                    <span>Play</span>
+                </button>
+                <button id="btn-reset" class="px-4 py-2.5 bg-slate-800 hover:bg-slate-750 transition-colors border border-slate-700 rounded-xl font-medium text-sm flex items-center justify-center">
+                    Reset
+                </button>
+            </div>
+
+            <!-- Input Parameters Sliders -->
+            <div class="grid grid-cols-2 gap-4 border-t border-slate-800 pt-4">
+                <!-- Mass Slider -->
+                <div class="flex flex-col gap-1.5">
+                    <div class="flex items-center justify-between text-xs">
+                        <span class="text-slate-400 font-medium flex items-center gap-1">
+                            Mass (m)
+                        </span>
+                        <span class="font-mono text-brand-400" id="val-mass">0.20 kg</span>
+                    </div>
+                    <input id="slide-mass" type="range" min="0.05" max="1.00" step="0.01" value="0.20" class="w-full accent-brand-500 h-1.5 bg-slate-800 rounded-lg appearance-none cursor-pointer">
+                </div>
+
+                <!-- Drag Coefficient Slider -->
+                <div class="flex flex-col gap-1.5">
+                    <div class="flex items-center justify-between text-xs">
+                        <span class="text-slate-400 font-medium flex items-center gap-1">
+                            Drag Coeff (α)
+                        </span>
+                        <span class="font-mono text-brand-400" id="val-alpha">0.40 kg/s</span>
+                    </div>
+                    <input id="slide-alpha" type="range" min="0.05" max="2.00" step="0.01" value="0.40" class="w-full accent-brand-500 h-1.5 bg-slate-800 rounded-lg appearance-none cursor-pointer">
+                </div>
+
+                <!-- Gravity Slider -->
+                <div class="flex flex-col gap-1.5">
+                    <div class="flex items-center justify-between text-xs">
+                        <span class="text-slate-400 font-medium flex items-center gap-1">
+                            Gravity (g)
+                        </span>
+                        <span class="font-mono text-brand-400" id="val-g">9.8 m/s²</span>
+                    </div>
+                    <input id="slide-g" type="range" min="1.0" max="25.0" step="0.1" value="9.8" class="w-full accent-brand-500 h-1.5 bg-slate-800 rounded-lg appearance-none cursor-pointer">
+                </div>
+
+                <!-- Fluid Density/Visual Visual Indicator -->
+                <div class="flex flex-col gap-1.5">
+                    <div class="flex items-center justify-between text-xs">
+                        <span class="text-slate-400 font-medium">Fluid Density</span>
+                        <span class="font-mono text-amber-400" id="val-fluid-density">Moderate</span>
+                    </div>
+                    <div class="flex items-center h-1.5 bg-slate-800 rounded-full overflow-hidden">
+                        <div id="density-fill" class="h-full bg-gradient-to-r from-amber-500 to-amber-700 rounded-full transition-all" style="width: 50%;"></div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Dynamically computed properties live output dashboard -->
+            <div class="grid grid-cols-3 gap-2 bg-slate-950 p-3 rounded-xl border border-slate-850 text-center">
+                <div class="flex flex-col">
+                    <span class="text-[10px] uppercase tracking-wider text-slate-500 font-medium">Time Constant (τ)</span>
+                    <span id="calc-tau" class="text-sm font-mono font-bold text-indigo-400">0.50 s</span>
+                </div>
+                <div class="flex flex-col border-x border-slate-800/60">
+                    <span class="text-[10px] uppercase tracking-wider text-slate-500 font-medium">Terminal Vel (v<sub>T</sub>)</span>
+                    <span id="calc-vterm" class="text-sm font-mono font-bold text-emerald-400">4.90 m/s</span>
+                </div>
+                <div class="flex flex-col">
+                    <span class="text-[10px] uppercase tracking-wider text-slate-500 font-medium">Current Speed (v)</span>
+                    <span id="calc-curr-v" class="text-sm font-mono font-bold text-amber-400">0.00 m/s</span>
+                </div>
+            </div>
+
+        </div>
+
+        <!-- Custom SVG Charting Engine Card -->
+        <div class="bg-slate-900 border border-slate-800 rounded-2xl p-4 sm:p-5 shadow-xl flex flex-col gap-4">
+            <div class="flex items-center justify-between">
+                <h3 class="text-sm font-semibold text-slate-300">Real-Time Phase Curves & Asymptotes</h3>
+                <span class="text-[11px] font-mono text-slate-400">v(t) Curve</span>
+            </div>
+            <!-- Dynamic SVG Plot -->
+            <div class="relative bg-slate-950 border border-slate-850 rounded-xl p-2 h-44 flex items-center justify-center">
+                <svg id="chart-svg" class="w-full h-full" style="min-height: 150px;">
+                    <!-- Grid Lines -->
+                    <g stroke="#1e293b" stroke-width="1">
+                        <line x1="10%" y1="10%" x2="95%" y2="10%" />
+                        <line x1="10%" y1="50%" x2="95%" y2="50%" />
+                        <line x1="10%" y1="90%" x2="95%" y2="90%" />
+                        <line x1="10%" y1="10%" x2="10%" y2="90%" stroke="#475569" />
+                        <line x1="95%" y1="10%" x2="95%" y2="90%" />
+                    </g>
+                    <!-- Asymptote Terminal Velocity line (dashed green) -->
+                    <line id="chart-vterm-line" x1="10%" y1="30%" x2="95%" y2="30%" stroke="#10b981" stroke-width="1.5" stroke-dasharray="4 3" />
+                    <!-- Theoretical Trajectory Curve Path -->
+                    <path id="chart-curve" d="" fill="none" stroke="#6366f1" stroke-width="2.5" />
+                    <!-- Current Position Point Pulse -->
+                    <circle id="chart-point" cx="0" cy="0" r="5" fill="#f59e0b" stroke="#ffffff" stroke-width="1.5" class="transition-all" />
+                    <!-- Graph Labels -->
+                    <text x="6%" y="15%" fill="#ef4444" font-size="9" text-anchor="end" class="font-mono">vT</text>
+                    <text x="6%" y="90%" fill="#94a3b8" font-size="9" text-anchor="end" class="font-mono">0</text>
+                    <text x="95%" y="96%" fill="#94a3b8" font-size="9" text-anchor="end" class="font-mono">Time (s)</text>
+                    <text x="12%" y="20%" fill="#10b981" font-size="8" class="font-mono">Terminal speed limit</text>
+                    <!-- Tau Line indicator -->
+                    <line id="chart-tau-line" x1="10%" y1="10%" x2="10%" y2="90%" stroke="#818cf8" stroke-width="1" stroke-dasharray="2 2" />
+                    <text id="chart-tau-text" x="12%" y="82%" fill="#818cf8" font-size="8" class="font-mono">τ = m/α</text>
+                </svg>
+            </div>
+            <div class="text-[11px] text-slate-400 flex justify-between px-1">
+                <span>Solid blue curve: Exact integration output</span>
+                <span>Orange dot: Real-time particle state</span>
+            </div>
+        </div>
+
+    </div>
+
+    <!-- RIGHT COLUMN: Dynamic Step-by-Step Learning Lab (7 cols) -->
+    <div class="lg:col-span-7 flex flex-col gap-6">
+        
+        <!-- Derivation panel introduction -->
+        <div class="bg-slate-900 border border-slate-800 rounded-2xl p-5 shadow-xl flex flex-col gap-4">
+            <h2 class="text-lg font-bold text-slate-100 flex items-center gap-2">
+                <svg class="w-5 h-5 text-indigo-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253" />
+                </svg>
+                Dynamic Derivation Lab & Intuitive Math Explainer
+            </h2>
+            <p class="text-sm text-slate-300 leading-relaxed">
+                Watch the differential equations self-populate and calculate with values matching the simulator configurations on the left! Switch between sliders to witness dynamic numerical substitution instantly.
+            </p>
+
+            <!-- Navigation tabs for the Step-by-step math solver -->
+            <div class="flex border-b border-slate-800 overflow-x-auto gap-2">
+                <button id="tab-btn-1" onclick="switchStep(1)" class="tab-btn border-b-2 border-indigo-500 text-indigo-400 px-4 py-2 text-xs font-semibold whitespace-nowrap tracking-wider transition-all">
+                    1. FORCES SETUP
+                </button>
+                <button id="tab-btn-2" onclick="switchStep(2)" class="tab-btn border-b-2 border-transparent text-slate-400 hover:text-slate-300 px-4 py-2 text-xs font-semibold whitespace-nowrap tracking-wider transition-all">
+                    2. DIFF EQUATION
+                </button>
+                <button id="tab-btn-3" onclick="switchStep(3)" class="tab-btn border-b-2 border-transparent text-slate-400 hover:text-slate-300 px-4 py-2 text-xs font-semibold whitespace-nowrap tracking-wider transition-all">
+                    3. INTEGRATION
+                </button>
+                <button id="tab-btn-4" onclick="switchStep(4)" class="tab-btn border-b-2 border-transparent text-slate-400 hover:text-slate-300 px-4 py-2 text-xs font-semibold whitespace-nowrap tracking-wider transition-all">
+                    4. SOLUTION
+                </button>
+                <button id="tab-btn-5" onclick="switchStep(5)" class="tab-btn border-b-2 border-transparent text-slate-400 hover:text-slate-300 px-4 py-2 text-xs font-semibold whitespace-nowrap tracking-wider transition-all">
+                    5. CRITICAL INTUITION
+                </button>
+            </div>
+
+            <!-- STEP CONTENT BLOCKS -->
+            <!-- Step 1: Forces setup -->
+            <div id="step-content-1" class="step-panel flex flex-col gap-4">
+                <div class="p-3 bg-brand-500/10 border border-brand-500/20 rounded-xl">
+                    <p class="text-xs text-brand-300 font-medium leading-relaxed">
+                        <strong>Mental Model:</strong> A slow-moving marble falling in a heavy fluid (like honey or oil) experiences a resistance that grows linearly with its speed. This opposes gravity, pushing upward.
+                    </p>
+                </div>
+
+                <!-- Hand-styled equation panel without mathjax LaTeX dependency issues -->
+                <div class="bg-slate-950 p-4 rounded-xl border border-slate-850 flex flex-col gap-3">
+                    <span class="text-xs text-slate-500 font-mono">1.1 NET FORCE VECTOR MODEL</span>
+                    <div class="flex items-center justify-center py-2 text-lg text-slate-200">
+                        <span class="font-mono bg-slate-900 px-2 py-1 rounded border border-slate-800 mr-2 text-indigo-400 font-bold">F<sub>net</sub></span>
+                        <span class="mx-1">=</span>
+                        <span class="font-mono text-emerald-400 font-bold mr-2">F<sub>g</sub></span>
+                        <span class="mx-1">-</span>
+                        <span class="font-mono text-red-400 font-bold ml-2">F<sub>d</sub></span>
+                    </div>
+                    <div class="flex flex-col gap-2 text-xs text-slate-400 border-t border-slate-900 pt-3">
+                        <div class="flex justify-between items-center">
+                            <span>Gravity Pull (Downwards):</span>
+                            <span class="font-mono text-emerald-400">F<sub>g</sub> = m · g = (<span class="dyn-val-m">0.20</span> kg)(<span class="dyn-val-g">9.8</span> m/s²) = <strong id="val-computed-fg">1.96</strong> N</span>
+                        </div>
+                        <div class="flex justify-between items-center">
+                            <span>Resistive Force (Upwards):</span>
+                            <span class="font-mono text-red-400">F<sub>d</sub> = α · v = (<span class="dyn-val-a">0.40</span>) · v</span>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="bg-slate-950 p-4 rounded-xl border border-slate-850 flex flex-col gap-2">
+                    <span class="text-xs text-slate-500 font-mono">1.2 PHYSICAL DIMENSION PROOF (UNITS ANALYZED)</span>
+                    <p class="text-xs text-slate-300 leading-relaxed">
+                        To guarantee unit harmony, what must the unit of coefficient <span class="text-brand-400 font-mono">α</span> be?
+                    </p>
+                    <div class="flex justify-center py-2">
+                        <!-- Custom CSS HTML math fraction -->
+                        <div class="flex items-center text-xs font-mono bg-slate-900 border border-slate-800 px-4 py-2.5 rounded-lg text-slate-300">
+                            <span>[α] = </span>
+                            <div class="inline-flex flex-col items-center mx-2 border-r border-slate-850 pr-2">
+                                <span class="border-b border-slate-700 pb-0.5 px-1">[Force]</span>
+                                <span class="pt-0.5 px-1">[Velocity]</span>
+                            </div>
+                            <span>=</span>
+                            <div class="inline-flex flex-col items-center mx-2 border-r border-slate-850 pr-2">
+                                <span class="border-b border-slate-700 pb-0.5 px-1">kg·m/s²</span>
+                                <span class="pt-0.5 px-1">m/s</span>
+                            </div>
+                            <span>= kg·s<sup>-1</sup></span>
+                        </div>
+                    </div>
+                    <p class="text-[11px] text-slate-400">
+                        This unit profile, matching kilograms per second, means that with higher values, the fluid applies massive resistive braking force even at low speeds.
+                    </p>
+                </div>
+            </div>
+
+            <!-- STEP CONTENT BLOCKS -->
+            <!-- Step 2: The Differential Equation Formulation -->
+            <div id="step-content-2" class="step-panel hidden flex flex-col gap-4">
+                <div class="p-3 bg-indigo-500/10 border border-indigo-500/20 rounded-xl">
+                    <p class="text-xs text-indigo-300 font-medium leading-relaxed">
+                        <strong>Newton's Second Law:</strong> Mass times acceleration must balance these vertical forces perfectly. Since acceleration is the derivative of speed, we get a first-order differential equation.
+                    </p>
+                </div>
+
+                <div class="bg-slate-950 p-4 rounded-xl border border-slate-850 flex flex-col gap-3">
+                    <span class="text-xs text-slate-500 font-mono">2.1 THE MOTION DIFFERENTIAL FORMULA</span>
+                    <div class="flex items-center justify-center py-2 text-md text-slate-200">
+                        <span class="font-mono text-slate-400">m·</span>
+                        <div class="inline-flex flex-col items-center mx-1 font-mono text-amber-400">
+                            <span class="border-b border-slate-700 pb-0.5 px-0.5">dv</span>
+                            <span class="pt-0.5 px-0.5">dt</span>
+                        </div>
+                        <span class="mx-2">=</span>
+                        <span class="font-mono text-emerald-400">m·g</span>
+                        <span class="mx-2">-</span>
+                        <span class="font-mono text-red-400">α·v</span>
+                    </div>
+                    
+                    <p class="text-xs text-slate-400 leading-relaxed">
+                        Dividing both sides by mass (<span class="font-mono">m</span>) yields the standardized inhomogeneous linear first-order differential equation:
+                    </p>
+
+                    <div class="flex items-center justify-center py-2 text-md text-slate-200">
+                        <div class="inline-flex flex-col items-center mx-1 font-mono text-amber-400">
+                            <span class="border-b border-slate-700 pb-0.5 px-0.5">dv</span>
+                            <span class="pt-0.5 px-0.5">dt</span>
+                        </div>
+                        <span class="mx-2">=</span>
+                        <span class="font-mono text-emerald-400">g</span>
+                        <span class="mx-2">-</span>
+                        <div class="inline-flex flex-col items-center mx-1 font-mono text-red-400">
+                            <span class="border-b border-slate-700 pb-0.5 px-0.5">α</span>
+                            <span class="pt-0.5 px-0.5">m</span>
+                        </div>
+                        <span class="font-mono">·v</span>
+                    </div>
+
+                    <!-- Computed substitute preview -->
+                    <div class="border-t border-slate-900 pt-3 mt-1">
+                        <p class="text-xs text-brand-300 font-mono text-center">
+                            Live values substituted: <br>
+                            <span class="text-slate-200">dv/dt = <span class="dyn-val-g">9.8</span> - (<span id="calc-alpha-over-m">2.00</span>)·v</span>
+                        </p>
+                    </div>
+                </div>
+
+                <div class="p-3 bg-slate-950 border border-slate-850 rounded-xl">
+                    <span class="text-xs text-slate-400 font-semibold block mb-1">Critical Insight: Terminal Velocity Concept</span>
+                    <p class="text-xs text-slate-300 leading-relaxed">
+                        When the object speeds up, the resistive drag matches gravitational force. The net acceleration <span class="font-mono text-amber-400">dv/dt</span> drops to <strong>zero</strong>. 
+                        Solving for <span class="font-mono text-emerald-400">dv/dt = 0</span> gives the terminal limit:
+                    </p>
+                    <div class="flex items-center justify-center py-2 text-sm text-slate-200 font-mono">
+                        <span>v<sub>T</sub> = </span>
+                        <div class="inline-flex flex-col items-center mx-1">
+                            <span class="border-b border-slate-700 pb-0.5 px-1">m · g</span>
+                            <span class="pt-0.5 px-1">α</span>
+                        </div>
+                        <span class="mx-2">=</span>
+                        <div class="inline-flex flex-col items-center mx-1 text-emerald-400">
+                            <span class="border-b border-slate-700 pb-0.5 px-1"><span class="dyn-val-m">0.20</span> · <span class="dyn-val-g">9.8</span></span>
+                            <span class="pt-0.5 px-1"><span class="dyn-val-a">0.40</span></span>
+                        </div>
+                        <span class="mx-2">=</span>
+                        <span class="text-emerald-400 font-bold" id="calc-terminal-sub">4.90 m/s</span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- STEP CONTENT BLOCKS -->
+            <!-- Step 3: Separation of Variables & Integration -->
+            <div id="step-content-3" class="step-panel hidden flex flex-col gap-4">
+                <div class="p-3 bg-indigo-500/10 border border-indigo-500/20 rounded-xl">
+                    <p class="text-xs text-indigo-300 font-medium leading-relaxed">
+                        <strong>Separation of Variables:</strong> To solve for velocity <span class="font-mono text-amber-400">v(t)</span>, we isolate all terms with <span class="font-mono">v</span> on the left, and time terms <span class="font-mono">dt</span> on the right.
+                    </p>
+                </div>
+
+                <div class="bg-slate-950 p-4 rounded-xl border border-slate-850 flex flex-col gap-3">
+                    <span class="text-xs text-slate-500 font-mono">3.1 VARIABLE SEPARATION RECONSTRUCTION</span>
+                    <p class="text-xs text-slate-300">
+                        First, we factor out <span class="font-mono">-α/m</span> to simplify the upcoming natural log integration:
+                    </p>
+
+                    <div class="flex items-center justify-center py-2 text-md text-slate-200">
+                        <div class="inline-flex flex-col items-center mx-1 font-mono text-amber-400">
+                            <span class="border-b border-slate-700 pb-0.5 px-0.5">dv</span>
+                            <span class="pt-0.5 px-0.5">dt</span>
+                        </div>
+                        <span class="mx-2">= -</span>
+                        <div class="inline-flex flex-col items-center mx-1 font-mono">
+                            <span class="border-b border-slate-700 pb-0.5 px-0.5">α</span>
+                            <span class="pt-0.5 px-0.5">m</span>
+                        </div>
+                        <span class="font-mono ml-2">( v - </span>
+                        <div class="inline-flex flex-col items-center mx-1 font-mono text-emerald-400">
+                            <span class="border-b border-slate-700 pb-0.5 px-1">m·g</span>
+                            <span class="pt-0.5 px-1">α</span>
+                        </div>
+                        <span class="font-mono">)</span>
+                    </div>
+
+                    <p class="text-xs text-slate-300">
+                        Now, rearrange the differential parts on opposite sides of the equation:
+                    </p>
+
+                    <div class="flex items-center justify-center py-3 text-md text-slate-200 font-mono">
+                        <div class="inline-flex flex-col items-center mx-1 text-amber-400">
+                            <span class="border-b border-slate-700 pb-0.5 px-1">dv</span>
+                            <span>v - <div class="inline-flex flex-col items-center mx-1 text-xs text-slate-400"><span class="border-b border-slate-800 pb-0.2 px-0.5">m·g</span><span>α</span></div></span>
+                        </div>
+                        <span class="mx-3">= -</span>
+                        <div class="inline-flex flex-col items-center mx-1">
+                            <span class="border-b border-slate-700 pb-0.5 px-1">α</span>
+                            <span class="pt-0.5 px-1">m</span>
+                        </div>
+                        <span class="ml-2">dt</span>
+                    </div>
+                </div>
+
+                <div class="bg-slate-950 p-4 rounded-xl border border-slate-850 flex flex-col gap-3">
+                    <span class="text-xs text-slate-500 font-mono">3.2 DEFINITE INTEGRAL WITH INITIAL BOUNDS (FROM REST, v<sub>0</sub> = 0)</span>
+                    <p class="text-xs text-slate-300 leading-relaxed">
+                        We integrate from time <span class="font-mono text-slate-400">0</span> to <span class="font-mono text-indigo-400">t</span>, and speed <span class="font-mono text-slate-400">0</span> to <span class="font-mono text-amber-400">v(t)</span>:
+                    </p>
+                    <div class="flex items-center justify-center py-2 text-md text-slate-300 font-mono">
+                        <span class="text-slate-400 text-lg">∫<sub><span class="text-[9px]">0</span></sub><sup><span class="text-[9px]">v(t)</span></sup></span>
+                        <div class="inline-flex flex-col items-center mx-1 text-amber-400">
+                            <span class="border-b border-slate-700 pb-0.5 px-1">dv'</span>
+                            <span>v' - v<sub>T</sub></span>
+                        </div>
+                        <span class="mx-3">= -</span>
+                        <span class="text-slate-400 text-lg">∫<sub><span class="text-[9px]">0</span></sub><sup><span class="text-[9px]">t</span></sup></span>
+                        <div class="inline-flex flex-col items-center mx-1 text-xs">
+                            <span class="border-b border-slate-700 pb-0.5 px-1">α</span>
+                            <span class="pt-0.5 px-1">m</span>
+                        </div>
+                        <span class="ml-1">dt'</span>
+                    </div>
+
+                    <div class="border-t border-slate-900 pt-3">
+                        <p class="text-xs text-slate-400">
+                            Applying integration rules gives a logarithm on the left:
+                            <span class="font-mono block text-center py-2 text-slate-200">
+                                ln|v - v<sub>T</sub>| - ln|-v<sub>T</sub>| = - (α/m)·t
+                            </span>
+                            Combining logs:
+                            <span class="font-mono block text-center py-1 text-slate-200">
+                                ln| (v - v<sub>T</sub>) / (-v<sub>T</sub>) | = - (α/m)·t
+                            </span>
+                        </p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- STEP CONTENT BLOCKS -->
+            <!-- Step 4: Analytical Solution -->
+            <div id="step-content-4" class="step-panel hidden flex flex-col gap-4">
+                <div class="p-3 bg-indigo-500/10 border border-indigo-500/20 rounded-xl">
+                    <p class="text-xs text-indigo-300 font-medium leading-relaxed">
+                        <strong>Exponentiation and Solution:</strong> Exponentiating both sides cancels out the natural log, letting us solve directly for the final velocity over time function <span class="font-mono">v(t)</span>.
+                    </p>
+                </div>
+
+                <div class="bg-slate-950 p-4 rounded-xl border border-slate-850 flex flex-col gap-3">
+                    <span class="text-xs text-slate-500 font-mono">4.1 SOLVING ALGEBRAICALLY FOR V(t)</span>
+                    <div class="text-xs text-slate-300 flex flex-col gap-2">
+                        <span>Raise both sides to base <span class="font-mono">e</span>:</span>
+                        <div class="flex items-center justify-center py-1 text-md text-slate-200 font-mono">
+                            <div class="inline-flex flex-col items-center mx-1">
+                                <span class="border-b border-slate-700 pb-0.5 px-1">v(t) - v<sub>T</sub></span>
+                                <span class="pt-0.5 px-1">-v<sub>T</sub></span>
+                            </div>
+                            <span class="mx-2">=</span>
+                            <span>e<sup>- (α / m) · t</sup></span>
+                        </div>
+                        <span>Multiply by <span class="font-mono">-v<sub>T</sub></span> and rearrange the terms:</span>
+                        <div class="flex items-center justify-center py-1.5 text-md text-slate-200 font-mono">
+                            <span>v(t) = v<sub>T</sub> · (1 - e<sup>- (α / m) · t</sup>)</span>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="bg-slate-950 p-4 rounded-xl border border-slate-850 flex flex-col gap-3">
+                    <span class="text-xs text-slate-500 font-mono">4.2 FINAL EXPONENTIAL FORM WITH TIME CONSTANT (τ)</span>
+                    <p class="text-xs text-slate-300 leading-relaxed">
+                        Let's introduce the time constant <strong>τ = m/α</strong>. This value represents how fast the object approaches its terminal velocity limit.
+                    </p>
+
+                    <div class="flex items-center justify-center py-3 text-lg text-slate-200 font-mono border-y border-slate-900 my-2">
+                        <span class="text-brand-400 font-bold">v(t) = </span>
+                        <div class="inline-flex flex-col items-center mx-1 text-emerald-400 font-bold">
+                            <span class="border-b border-slate-700 pb-0.5 px-1.5">m·g</span>
+                            <span class="pt-0.5 px-1.5">α</span>
+                        </div>
+                        <span class="ml-1">(1 - e<sup>-t / τ</sup>)</span>
+                    </div>
+
+                    <!-- Computed substitutions -->
+                    <div class="text-xs text-slate-400 flex flex-col gap-2">
+                        <div class="flex justify-between">
+                            <span>Time constant (τ = m/α):</span>
+                            <span class="font-mono text-indigo-400" id="calc-tau-deriv">0.50 s</span>
+                        </div>
+                        <div class="flex justify-between">
+                            <span>At t = 1τ (63.2% of v<sub>T</sub>):</span>
+                            <span class="font-mono text-brand-300" id="calc-v-1tau">3.10 m/s</span>
+                        </div>
+                        <div class="flex justify-between">
+                            <span>At t = 3τ (95.0% of v<sub>T</sub>):</span>
+                            <span class="font-mono text-brand-300" id="calc-v-3tau">4.66 m/s</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- STEP CONTENT BLOCKS -->
+            <!-- Step 5: Critical Thinking & Mental Models -->
+            <div id="step-content-5" class="step-panel hidden flex flex-col gap-4">
+                <div class="p-4 bg-emerald-500/10 border border-emerald-500/20 rounded-xl">
+                    <h3 class="text-xs font-bold text-emerald-400 uppercase tracking-wider mb-1">Visualizing Fluid Paradoxes</h3>
+                    <p class="text-xs text-emerald-300 leading-relaxed">
+                        Why does a heavier object reach a *faster* terminal speed than a lighter object of the exact same size and shape? Let's explore below.
+                    </p>
+                </div>
+
+                <!-- Dual Sphere Mental Model Graphic -->
+                <div class="grid grid-cols-2 gap-4 bg-slate-950 p-4 rounded-xl border border-slate-850">
+                    <!-- Left Sphere (Steel Ball) -->
+                    <div class="flex flex-col items-center text-center p-3 bg-slate-900 rounded-lg border border-slate-800">
+                        <div class="w-12 h-12 rounded-full bg-gradient-to-tr from-slate-400 to-slate-200 shadow-inner flex items-center justify-center text-slate-900 font-bold text-xs mb-2">
+                            Steel
+                        </div>
+                        <span class="text-xs font-bold text-slate-200 block">Steel Ball (Denser)</span>
+                        <p class="text-[11px] text-slate-400 mt-1">
+                            Radius is identical. Has high density, so <strong class="text-emerald-400">mass is large</strong>. Gravity force pulls hard.
+                        </p>
+                        <div class="mt-3 text-xs font-mono text-indigo-400 bg-slate-950 px-2 py-1 rounded w-full">
+                            v<sub>T</sub> = <span class="text-emerald-400 font-bold">High</span>
+                        </div>
+                    </div>
+
+                    <!-- Right Sphere (Plastic Ball) -->
+                    <div class="flex flex-col items-center text-center p-3 bg-slate-900 rounded-lg border border-slate-800">
+                        <div class="w-12 h-12 rounded-full bg-gradient-to-tr from-blue-500 to-blue-300 shadow-inner flex items-center justify-center text-slate-950 font-bold text-xs mb-2">
+                            Plastic
+                        </div>
+                        <span class="text-xs font-bold text-slate-200 block">Plastic Ball (Lighter)</span>
+                        <p class="text-[11px] text-slate-400 mt-1">
+                            Radius is identical. Has low density, so <strong class="text-amber-500">mass is small</strong>. Low drag quickly matches gravity force.
+                        </p>
+                        <div class="mt-3 text-xs font-mono text-indigo-400 bg-slate-950 px-2 py-1 rounded w-full">
+                            v<sub>T</sub> = <span class="text-amber-500 font-bold">Low</span>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="bg-slate-950 p-4 rounded-xl border border-slate-850 flex flex-col gap-2.5">
+                    <span class="text-xs text-slate-500 font-mono">5.2 FLUID DYNAMICS TAKEAWAYS & CRITICAL REASONING</span>
+                    <ul class="text-xs text-slate-300 list-disc list-inside space-y-2">
+                        <li>
+                            <strong class="text-indigo-300">Geometric independence:</strong> The drag coefficient <span class="text-slate-300 font-mono">α</span> depends purely on physical dimensions, shape, and fluid viscosity—not the object's mass density.
+                        </li>
+                        <li>
+                            <strong class="text-indigo-300">Dynamic Equilibrium:</strong> Terminal speed is reached because drag increases with velocity. Thus, the falling body self-regulates its acceleration to zero.
+                        </li>
+                        <li>
+                            <strong class="text-indigo-300">Terminal limit limit:</strong> No matter how high you drop an object from in a viscous fluid, its falling speed will mathematically asymptotically cap at <span class="font-mono text-emerald-400">m·g / α</span>.
+                        </li>
+                    </ul>
+                </div>
+            </div>
+
+        </div>
+
+    </div>
+
+</main>
+
+<footer class="border-t border-slate-900 bg-slate-950/80 px-4 py-4 text-center text-xs text-slate-500 mt-auto">
+    <div class="max-w-7xl mx-auto flex flex-col sm:flex-row items-center justify-between gap-2">
+        <span>Designed for physics educators and intuitive learners.</span>
+        <span>Built with pure HTML & Interactive JavaScript &bull; Safe Math Layouts</span>
+    </div>
+</footer>
+
+<script>
+    /* Global Simulation Parameters and States */
+    const simState = {
+        mass: 0.20,      // kg
+        alpha: 0.40,     // kg/s
+        g: 9.8,          // m/s^2
+        y: 0,            // meters fallen (visual coords scale)
+        v: 0,            // m/s
+        t: 0,            // seconds elapsed
+        isPlaying: false,
+        animationId: null,
+        lastTime: null,
+        simScale: 40,    // scaling visual y coord into pixels
+    };
+
+    // Predefined chamber conditions
+    const presets = {
+        oil: { m: 0.22, alpha: 0.85, g: 9.8, desc: "Dense Olive Oil, very slow fall" },
+        water: { m: 0.50, alpha: 0.25, g: 9.8, desc: "Steel ball in clean water" },
+        air: { m: 0.08, alpha: 0.05, g: 9.8, desc: "Extremely light dust floating" },
+        heavy: { m: 0.95, alpha: 0.30, g: 20.0, desc: "High gravity, heavy mass" }
+    };
+
+    const elements = {
+        massSlider: document.getElementById('slide-mass'),
+        alphaSlider: document.getElementById('slide-alpha'),
+        gSlider: document.getElementById('slide-g'),
+        massVal: document.getElementById('val-mass'),
+        alphaVal: document.getElementById('val-alpha'),
+        gVal: document.getElementById('val-g'),
+        presetSelect: document.getElementById('preset-select'),
+        fluidBg: document.getElementById('fluid-chamber-bg'),
+        densityFill: document.getElementById('density-fill'),
+        densityText: document.getElementById('val-fluid-density'),
+        simBall: document.getElementById('sim-ball'),
+        simStatus: document.getElementById('sim-status'),
+        btnPlay: document.getElementById('btn-play'),
+        btnReset: document.getElementById('btn-reset'),
+        
+        // Computed metrics
+        calcTau: document.getElementById('calc-tau'),
+        calcVterm: document.getElementById('calc-vterm'),
+        calcCurrV: document.getElementById('calc-curr-v'),
+
+        // Derivation panels live substitutes
+        dynValM: document.querySelectorAll('.dyn-val-m'),
+        dynValG: document.querySelectorAll('.dyn-val-g'),
+        dynValA: document.querySelectorAll('.dyn-val-a'),
+        valComputedFg: document.getElementById('val-computed-fg'),
+        calcAlphaOverM: document.getElementById('calc-alpha-over-m'),
+        calcTerminalSub: document.getElementById('calc-terminal-sub'),
+        calcTauDeriv: document.getElementById('calc-tau-deriv'),
+        calcV1tau: document.getElementById('calc-v-1tau'),
+        calcV3tau: document.getElementById('calc-v-3tau'),
+
+        // Vector shapes
+        vecFg: document.getElementById('vec-fg'),
+        vecFd: document.getElementById('vec-fd'),
+        vecV: document.getElementById('vec-v'),
+        simSvg: document.getElementById('sim-svg'),
+
+        // SVGs for Plotting Chart
+        chartSvg: document.getElementById('chart-svg'),
+        chartCurve: document.getElementById('chart-curve'),
+        chartPoint: document.getElementById('chart-point'),
+        chartVtermLine: document.getElementById('chart-vterm-line'),
+        chartTauLine: document.getElementById('chart-tau-line'),
+        chartTauText: document.getElementById('chart-tau-text')
+    };
+
+    function init() {
+        // Slider listeners
+        elements.massSlider.addEventListener('input', (e) => {
+            simState.mass = parseFloat(e.target.value);
+            syncInputs();
+            calculateTheoreticals();
+            resetSimulation();
+        });
+
+        elements.alphaSlider.addEventListener('input', (e) => {
+            simState.alpha = parseFloat(e.target.value);
+            syncInputs();
+            calculateTheoreticals();
+            resetSimulation();
+        });
+
+        elements.gSlider.addEventListener('input', (e) => {
+            simState.g = parseFloat(e.target.value);
+            syncInputs();
+            calculateTheoreticals();
+            resetSimulation();
+        });
+
+        // Preset Listener
+        elements.presetSelect.addEventListener('change', (e) => {
+            applyPreset(e.target.value);
+        });
+
+        // Button Listeners
+        elements.btnPlay.addEventListener('click', togglePlay);
+        elements.btnReset.addEventListener('click', () => {
+            resetSimulation();
+            simState.t = 0;
+            simState.y = 0;
+            simState.v = 0;
+            updatePhysicsPos();
+        });
+
+        // Initialize display state
+        applyPreset('oil');
+        updatePhysicsPos();
+        drawStaticGraph();
+    }
+
+    function applyPreset(key) {
+        const p = presets[key];
+        if (!p) return;
+
+        simState.mass = p.m;
+        simState.alpha = p.alpha;
+        simState.g = p.g;
+
+        // Visual design mapping for fluid color
+        if (key === 'oil') {
+            elements.fluidBg.className = "absolute inset-0 bg-gradient-to-b from-amber-950/40 to-yellow-900/40 transition-all duration-500";
+            elements.densityFill.style.width = "85%";
+            elements.densityText.textContent = "Very Dense (Oil)";
+        } else if (key === 'water') {
+            elements.fluidBg.className = "absolute inset-0 bg-gradient-to-b from-blue-950/40 to-indigo-900/30 transition-all duration-500";
+            elements.densityFill.style.width = "50%";
+            elements.densityText.textContent = "Medium (Water)";
+        } else if (key === 'air') {
+            elements.fluidBg.className = "absolute inset-0 bg-gradient-to-b from-slate-900/30 to-slate-800/20 transition-all duration-500";
+            elements.densityFill.style.width = "10%";
+            elements.densityText.textContent = "Minimal (Air)";
+        } else {
+            elements.fluidBg.className = "absolute inset-0 bg-gradient-to-b from-red-950/20 to-purple-900/40 transition-all duration-500";
+            elements.densityFill.style.width = "70%";
+            elements.densityText.textContent = "Heavy Medium";
+        }
+
+        elements.massSlider.value = p.m;
+        elements.alphaSlider.value = p.alpha;
+        elements.gSlider.value = p.g;
+
+        syncInputs();
+        calculateTheoreticals();
+        resetSimulation();
+    }
+
+    function syncInputs() {
+        elements.massVal.textContent = simState.mass.toFixed(2) + " kg";
+        elements.alphaVal.textContent = simState.alpha.toFixed(2) + " kg/s";
+        elements.gVal.textContent = simState.g.toFixed(1) + " m/s²";
+
+        // Update deriving steps values
+        elements.dynValM.forEach(el => el.textContent = simState.mass.toFixed(2));
+        elements.dynValG.forEach(el => el.textContent = simState.g.toFixed(1));
+        elements.dynValA.forEach(el => el.textContent = simState.alpha.toFixed(2));
+
+        const gravityForceValue = simState.mass * simState.g;
+        elements.valComputedFg.textContent = gravityForceValue.toFixed(2);
+        
+        const alphaOverM = simState.alpha / simState.mass;
+        elements.calcAlphaOverM.textContent = alphaOverM.toFixed(2);
+    }
+
+    function calculateTheoreticals() {
+        const tau = simState.mass / simState.alpha;
+        const vTerm = (simState.mass * simState.g) / simState.alpha;
+
+        // Update dashboard values
+        elements.calcTau.textContent = tau.toFixed(2) + " s";
+        elements.calcVterm.textContent = vTerm.toFixed(2) + " m/s";
+
+        // Deriv lab substitutes
+        elements.calcTerminalSub.textContent = vTerm.toFixed(2) + " m/s";
+        elements.calcTauDeriv.textContent = tau.toFixed(2) + " s";
+
+        const v1tau = vTerm * (1 - Math.exp(-1));
+        const v3tau = vTerm * (1 - Math.exp(-3));
+        elements.calcV1tau.textContent = v1tau.toFixed(2) + " m/s";
+        elements.calcV3tau.textContent = v3tau.toFixed(2) + " m/s";
+
+        // Update static curves
+        drawStaticGraph();
+    }
+
+    function togglePlay() {
+        if (simState.isPlaying) {
+            simState.isPlaying = false;
+            elements.btnPlay.innerHTML = `
+                <svg class="w-4 h-4 fill-current" viewBox="0 0 24 24"><path d="M8 5v14l11-7z"/></svg>
+                <span>Play</span>
+            `;
+            elements.simStatus.textContent = "Paused";
+            if (simState.animationId) cancelAnimationFrame(simState.animationId);
+        } else {
+            simState.isPlaying = true;
+            elements.btnPlay.innerHTML = `
+                <svg class="w-4 h-4 fill-current" viewBox="0 0 24 24"><path d="M6 19h4V5H6v14zm8-14v14h4V5h-4z"/></svg>
+                <span>Pause</span>
+            `;
+            elements.simStatus.textContent = "Falling in fluid...";
+            simState.lastTime = performance.now();
+            simState.animationId = requestAnimationFrame(loop);
+        }
+    }
+
+    function resetSimulation() {
+        simState.isPlaying = false;
+        elements.btnPlay.innerHTML = `
+            <svg class="w-4 h-4 fill-current" viewBox="0 0 24 24"><path d="M8 5v14l11-7z"/></svg>
+            <span>Play</span>
+        `;
+        elements.simStatus.textContent = "Released from rest";
+        if (simState.animationId) cancelAnimationFrame(simState.animationId);
+        simState.t = 0;
+        simState.v = 0;
+        simState.y = 0;
+        updatePhysicsPos();
+    }
+
+    function loop(timestamp) {
+        if (!simState.isPlaying) return;
+
+        const dt = (timestamp - simState.lastTime) / 1000; // time steps in seconds
+        simState.lastTime = timestamp;
+
+        // Avoid massive lags causing system destabilization
+        const cappedDt = Math.min(dt, 0.05);
+
+        // Physics solver: analytical exact solution syncing for pristine pedagogical accuracy
+        simState.t += cappedDt;
+        
+        const tau = simState.mass / simState.alpha;
+        const vTerm = (simState.mass * simState.g) / simState.alpha;
+
+        // Current velocity based on standard dynamic integration
+        simState.v = vTerm * (1 - Math.exp(-simState.t / tau));
+
+        // Exact integration path for distance (y)
+        simState.y = vTerm * simState.t - vTerm * tau * (1 - Math.exp(-simState.t / tau));
+
+        updatePhysicsPos();
+
+        // Loop continuous
+        simState.animationId = requestAnimationFrame(loop);
+    }
+
+    function updatePhysicsPos() {
+        const parentHeight = 380; // height of vat visual chamber
+        const ballSize = 32;
+
+        // Visual mapping: looping vertical position inside visual bounds for continuous fall
+        const scaledY = (simState.y * simState.simScale) % (parentHeight - 80);
+        const ballTop = 30 + scaledY; // keep top margin
+
+        // Position marble
+        elements.simBall.style.top = `${ballTop}px`;
+
+        // Calculate forces vectors for rendering
+        const Fg = simState.mass * simState.g;
+        const Fd = simState.alpha * simState.v;
+
+        // Scale factors for visual vector overlays
+        const vectorScale = 25.0; // scale Newtons/velocities into visually recognizable pixels
+        const Fg_len = Fg * vectorScale;
+        const Fd_len = Fd * vectorScale;
+        const V_len = simState.v * vectorScale;
+
+        // Set SVG view parameters relative to the ball center
+        const ballCenterX = elements.simSvg.clientWidth / 2;
+        const ballCenterY = ballTop + (ballSize / 2);
+
+        // Check if elements are fully ready
+        if (ballCenterX > 0) {
+            // Gravity Force Vector (Points straight down from center)
+            elements.vecFg.setAttribute('x1', ballCenterX);
+            elements.vecFg.setAttribute('y1', ballCenterY);
+            elements.vecFg.setAttribute('x2', ballCenterX);
+            elements.vecFg.setAttribute('y2', ballCenterY + Fg_len);
+
+            // Drag Force Vector (Points straight up from center)
+            elements.vecFd.setAttribute('x1', ballCenterX);
+            elements.vecFd.setAttribute('y1', ballCenterY);
+            elements.vecFd.setAttribute('x2', ballCenterX);
+            elements.vecFd.setAttribute('y2', ballCenterY - Fd_len);
+
+            // Speed Velocity Vector (Points offset down)
+            elements.vecV.setAttribute('x1', ballCenterX + 25); // shift to side of the ball
+            elements.vecV.setAttribute('y1', ballCenterY);
+            elements.vecV.setAttribute('x2', ballCenterX + 25);
+            elements.vecV.setAttribute('y2', ballCenterY + V_len);
+        }
+
+        // Write real-time values on metric cards
+        elements.calcCurrV.textContent = simState.v.toFixed(2) + " m/s";
+
+        // Sync visual marker point coordinates inside the SVG plotting curve
+        updateChartPoint();
+    }
+
+    function drawStaticGraph() {
+        const svgWidth = elements.chartSvg.clientWidth || 300;
+        const svgHeight = elements.chartSvg.clientHeight || 150;
+
+        const paddingLeft = svgWidth * 0.10;
+        const paddingRight = svgWidth * 0.05;
+        const paddingTop = svgHeight * 0.10;
+        const paddingBottom = svgHeight * 0.10;
+
+        const graphWidth = svgWidth - paddingLeft - paddingRight;
+        const graphHeight = svgHeight - paddingTop - paddingBottom;
+
+        const vTerm = (simState.mass * simState.g) / simState.alpha;
+        const tau = simState.mass / simState.alpha;
+
+        // Plot limit parameters
+        const maxTime = 4.0; // max scale: 4.0s
+        const maxVelVal = vTerm * 1.2; // set peak height to allow headspace above asymptote
+
+        // Render terminal speed dashed horizontal line y coordinate
+        const termY = paddingTop + graphHeight - (vTerm / maxVelVal) * graphHeight;
+        elements.chartVtermLine.setAttribute('y1', termY);
+        elements.chartVtermLine.setAttribute('y2', termY);
+
+        // Render Tau vertical line marker x coordinate
+        const tauX = paddingLeft + (tau / maxTime) * graphWidth;
+        if (tauX < svgWidth) {
+            elements.chartTauLine.setAttribute('x1', tauX);
+            elements.chartTauLine.setAttribute('x2', tauX);
+            elements.chartTauText.setAttribute('x', tauX + 5);
+        }
+
+        // Build continuous SVG curve path representing v(t) trajectory
+        let pathPoints = [];
+        const resolution = 40;
+        for (let i = 0; i <= resolution; i++) {
+            const t_val = (i / resolution) * maxTime;
+            const v_val = vTerm * (1 - Math.exp(-t_val / tau));
+
+            const x_coord = paddingLeft + (t_val / maxTime) * graphWidth;
+            const y_coord = paddingTop + graphHeight - (v_val / maxVelVal) * graphHeight;
+            pathPoints.push(`${x_coord.toFixed(1)},${y_coord.toFixed(1)}`);
+        }
+        elements.chartCurve.setAttribute('d', `M ${pathPoints.join(' L ')}`);
+    }
+
+    function updateChartPoint() {
+        const svgWidth = elements.chartSvg.clientWidth || 300;
+        const svgHeight = elements.chartSvg.clientHeight || 150;
+
+        const paddingLeft = svgWidth * 0.10;
+        const paddingRight = svgWidth * 0.05;
+        const paddingTop = svgHeight * 0.10;
+        const paddingBottom = svgHeight * 0.10;
+
+        const graphWidth = svgWidth - paddingLeft - paddingRight;
+        const graphHeight = svgHeight - paddingTop - paddingBottom;
+
+        const vTerm = (simState.mass * simState.g) / simState.alpha;
+        const maxTime = 4.0; 
+        const maxVelVal = vTerm * 1.2; 
+
+        // Current time, looping for graphing consistency
+        const loopTime = simState.t % maxTime;
+        const currentV = simState.v;
+
+        const targetX = paddingLeft + (loopTime / maxTime) * graphWidth;
+        const targetY = paddingTop + graphHeight - (currentV / maxVelVal) * graphHeight;
+
+        elements.chartPoint.setAttribute('cx', targetX);
+        elements.chartPoint.setAttribute('cy', targetY);
+    }
+
+    function switchStep(stepIndex) {
+        // Highlight active navigation tab
+        const tabBtns = document.querySelectorAll('.tab-btn');
+        tabBtns.forEach((btn, idx) => {
+            if (idx + 1 === stepIndex) {
+                btn.className = "tab-btn border-b-2 border-indigo-500 text-indigo-400 px-4 py-2 text-xs font-semibold whitespace-nowrap tracking-wider transition-all";
+            } else {
+                btn.className = "tab-btn border-b-2 border-transparent text-slate-400 hover:text-slate-300 px-4 py-2 text-xs font-semibold whitespace-nowrap tracking-wider transition-all";
+            }
+        });
+
+        // Toggle corresponding text panel visibility
+        const stepPanels = document.querySelectorAll('.step-panel');
+        stepPanels.forEach((panel, idx) => {
+            if (idx + 1 === stepIndex) {
+                panel.classList.remove('hidden');
+            } else {
+                panel.classList.add('hidden');
+            }
+        });
+    }
+
+    // Trigger run sequence on window ready
+    window.onload = function() {
+        init();
+        window.addEventListener('resize', () => {
+            updatePhysicsPos();
+            drawStaticGraph();
+        });
+    };
+</script>
+</body>
+</html>
